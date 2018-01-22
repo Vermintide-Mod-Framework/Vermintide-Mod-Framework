@@ -1,0 +1,34 @@
+group = "Vertex Inputs"
+display_name = "Color0"
+
+imports = {
+	color0 = { 
+		type = "float4"
+		semantic = "COLOR0"
+		domain = "vertex"
+	}
+}
+
+output = {
+	type = { typeof: "color0" }
+}
+
+options = {
+	"acb6ef9d-5ba0-42e4-85f3-2924b4b4be25" = "VC_COMPRESSED"
+	"43710e4f-f52a-4038-8ec8-d6cb0546103b" = "FAST_GAMMA_DECODE"
+}
+
+ui = [
+	{ type = "checkbox" display_name = "Fast Gamma Decode"	option = "43710e4f-f52a-4038-8ec8-d6cb0546103b" } 
+	{ type = "checkbox" display_name = "Compressed"			option = "acb6ef9d-5ba0-42e4-85f3-2924b4b4be25" } 
+]
+
+code = """
+	#if defined(FAST_GAMMA_DECODE)
+		color0 = fast_gamma_to_linear_rgb(color0);
+	#endif
+	#if defined(VC_COMPRESSED)
+		color0 = decode_vertex_color(color0);
+	#endif
+	RESULT(color0);
+"""

@@ -1,0 +1,14 @@
+group = "Math"
+display_name = "Divide"
+inputs = {
+	"78dddd43-ff51-4173-bb0c-99d8c27b6bb2" = { name = "a" display_name = "A" type = "auto" }
+	"03986150-1b08-4045-80c9-d08d58842627" = { name = "b" display_name = "B" type = "auto" }
+}
+
+output = {
+	type = { largestof: ["a", "b"] }
+}
+
+code = """
+	RESULT(a / b);
+"""

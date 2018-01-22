@@ -1,0 +1,18 @@
+group = "Vertex Inputs/Texcoord"
+display_name = "Texcoord2"
+
+imports = {
+	texcoord = { 
+		type = "float2"
+		semantic = "TEXCOORD2"
+		domain = "vertex"
+	}
+}
+
+output = {
+	type = { typeof: "texcoord" }
+}
+
+code = """
+	RESULT(texcoord);
+"""

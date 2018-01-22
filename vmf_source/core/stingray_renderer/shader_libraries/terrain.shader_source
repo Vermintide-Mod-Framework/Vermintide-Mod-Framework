@@ -1,0 +1,872 @@
+// in this context include refers to another shader file 
+includes = [ "core/stingray_renderer/shader_libraries/common.shader_source" ] 
+
+
+render_states = {
+	wireframe = {
+		inherits = "opacity"
+		states = {
+			fill_mode = "fill_wireframe"	
+			defined_D3D11 = {
+				depth_bias = "-1"
+				depth_bias_clamp = "-0.00015"
+				slope_scale_depth_bias = "-2.0"
+			}
+			defined_D3D12 = {
+				depth_bias = "-1"
+				depth_bias_clamp = "-0.00015"
+				slope_scale_depth_bias = "-2.0"
+			}
+		}		
+	}
+	
+	terrain = {
+		inherits = "gbuffer_material"
+		states = {
+			fill_mode = "fill_solid"
+			cull_mode = "cull_ccw"
+		}
+	}
+	
+	filter = {
+		inherits = "default"
+		states = {
+			z_write_enable = "false"
+			z_enable = "false"
+		}
+	}
+
+	brush = {
+		inherits = "filter"
+		states = {
+			ndefined_SAMPLE_BASED = {
+				ndefined_SAMPLE_HEIGHT = {
+					ndefined_FLATTEN = {
+						blend_enable = "true"
+						defined_SUB = {
+							blend_op = "blend_op_rev_sub"
+						}
+						ndefined_SUB = {				
+							blend_op = "blend_op_add"
+						}
+						dest_blend = "blend_one"
+						src_blend = "blend_one"				
+					}
+				}
+			}
+		}
+	}	
+
+	marker = {
+		inherits = "opacity"
+		states = {
+			cull_mode = "cull_cw"
+			z_func = "greater_equal"
+			//blend_op = "blend_op_add"
+			//dest_blend = "blend_one"
+			//src_blend = "blend_one"
+		}
+	}
+	
+	depth_only = {
+		inherits = "default"
+		states = {
+			write_mask0 = "0x0"
+			write_mask1 = "0x0"
+			write_mask2 = "0x0"
+			write_mask3 = "0x0"
+		}
+	}	
+	
+	shadow_caster = {
+		inherits = "depth_only"
+		states = {
+			defined_D3D11 = {
+				depth_bias = "0xff"			
+				slope_scale_depth_bias = "1.0"		
+			}
+			defined_D3D12 = {
+				depth_bias = "0xff"			
+				slope_scale_depth_bias = "1.0"		
+			}
+			defined_GL2 = {
+				offset_units = "1.0"
+				offset_factor = "2.0"
+				depth_bias_enable = "true"
+			}
+		}
+	}		
+}
+
+sampler_states = {
+	terrain_anisotropic = {
+		inherits = "wrap_anisotropic"
+		states = {
+			ndefined_GL2 = {
+				max_anisotropy = "0x4"
+			}
+			defined_GL2 = {
+				max_anisotropy = "16.0"
+			}
+		}	
+	}
+	terrain_anisotropic_srgb = {
+		inherits = "wrap_anisotropic_srgb"
+		states = { 
+			ndefined_GL2 = {
+				max_anisotropy = "0x4"
+			}
+			defined_GL2 = {
+				max_anisotropy = "16.0"
+			}			
+		}	
+	}		
+}
+
+hlsl_shaders = {
+	terrain_shared = {
+		code="""
+			float2 morph(float2 uv, float2 wp, float t, float gsize, float psize) {
+				float3 grid_size = { gsize, gsize*0.5, 2.f/gsize };
+				float2 frac_part = (frac(uv*grid_size.yy) * grid_size.zz) * psize.xx;
+				return wp - frac_part * t;				
+			}
+				float3 normal_from_hmap(Sampler2D height_map, float2 uv, float2 texel_size, float texel_aspect) {	
+					#if defined(D3D11) || defined(D3D12) || defined(GNM)
+						float4 h = {
+							TEX2D(height_map, uv + texel_size * float2(-1, 0)).r,
+							TEX2D(height_map, uv + texel_size * float2(1, 0)).r,
+							TEX2D(height_map, uv + texel_size * float2(0, -1)).r,
+							TEX2D(height_map, uv + texel_size * float2(0, 1)).r
+						};
+					#elif defined(GL2)				
+						float4 h = {
+							TEX2D(height_map, uv + texel_size * float2(-1, 0)).r,
+							TEX2D(height_map, uv + texel_size * float2(1, 0)).r,
+							TEX2D(height_map, uv + texel_size * float2(0, 1)).r,
+							TEX2D(height_map, uv + texel_size * float2(0, -1)).r
+						};
+					#endif				
+					h *= texel_aspect;
+					
+					float3 n = {
+						h[0] - h[1], 
+						h[3] - h[2],
+						2
+					};				
+					
+					return normalize(n);
+				}
+		"""
+	}
+	
+	
+	terrain_depth = {
+		includes = [ "common", "terrain_shared" ]
+		
+		samplers = {		
+			defined_D3D11 = {
+				clamp_linear = { sampler_states = "clamp_linear" }
+			}
+			defined_D3D12 = {
+				clamp_linear = { sampler_states = "clamp_linear" }
+			}
+			ndefined_D3D11 = {
+				ndefined_D3D12 = {
+					defined_GNM = {
+						clamp_linear = { sampler_states = "clamp_linear" }
+					}
+					ndefined_GNM = {
+						hmap = { sampler_states ="clamp_linear" }
+					}
+				}
+			}
+		}
+		
+		code="""
+			struct VS_INPUT {
+				float2 position : POSITION;
+				#if defined(GL2)
+					float4 pos_scale : TEXCOORD0;
+					float4 tile_info : TEXCOORD1;				
+				#endif							
+			};
+			
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+			};
+			
+			CBUFFER_START(c0)
+				float4x4 world_view_proj;
+				float4x4 world;
+				float3 terrain_size;
+				float3 lod_camera_pos;				
+			CBUFFER_END
+			
+			#if defined(D3D11) || defined(D3D12) || defined(GNM)
+				SamplerState clamp_linear;			
+				Texture2D<float> hmap;	
+				Buffer<float4> idata;
+			#elif defined(GL2)
+				sampler2D hmap;
+			#endif
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE			
+			PS_INPUT vs_main(VS_INPUT input 
+				#if defined(D3D11) || defined(D3D12) || defined(GNM)
+					, uint instance_id : SV_InstanceId
+				#endif
+				)
+			{		
+				PS_INPUT o;
+				
+				#if defined(GL2)
+					float4 pos_scale = input.pos_scale;
+					float4 tile_info = input.tile_info;
+				#elif defined(D3D11) || defined(D3D12) || defined(GNM)
+					float4 pos_scale = idata.Load(instance_id * 2 + 0);
+					float4 tile_info = idata.Load(instance_id * 2 + 1);			
+				#endif				
+				
+				float2 half_size = terrain_size.xy * 0.5;
+				float2 mip = input.position.xy;
+				float2 pos = (mip.xy - 0.5) * pos_scale.zw + pos_scale.xy;
+				
+				float3 p = mul(float4(pos, 0, 1), world);
+				float t = 1-saturate((distance(p, lod_camera_pos) - (tile_info.x - pos_scale.z*0.5)) / tile_info.y);
+				pos = morph(input.position.xy, pos, t, 32, pos_scale.z);
+
+				float2 huv = ((pos.xy / half_size) * 0.5 + 0.5);
+				#if defined(D3D11) || defined(D3D12) || defined(GNM)
+					huv.y = 1-huv.y;
+				#endif
+				
+				#if defined(D3D11) || defined(D3D12)
+					float h = hmap.SampleLevel(clamp_linear, huv, 0).r * terrain_size.z;				
+				#elif defined(GNM)
+					float h = hmap.SampleLOD(clamp_linear, huv, 0).r * terrain_size.z;
+				#else
+					float h = TEX2Dlod(hmap, float4(huv,0,0)).r * terrain_size.z;
+				#endif
+				
+				o.position = mul(float4(pos.xy, h, 1), world_view_proj);
+				
+				return o;
+			}
+			
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			float4 ps_main(PS_INPUT input) : SV_TARGET0 {
+				return float4(1,1,1,1);
+			}
+		"""
+	}
+	
+	terrain = {
+		includes = [ "common", "gbuffer_access", "terrain_shared" ]
+		
+		samplers = {		
+			hmap = { sampler_states = "clamp_linear" }
+			blend_mask = { sampler_states = "clamp_linear" }
+			// global_diffuse_map = { sampler_states = "clamp_linear" }
+ 
+			defined_DIFFUSE_MAP = {
+				diffuse_map = { sampler_states = "terrain_anisotropic_srgb" }
+			}
+			defined_MATERIAL_MAP = {
+				// TODO: this is inactivated because we currently have to many samplers
+				// material_map = { sampler_states = "terrain_anisotropic_srgb" }
+			}
+			defined_NORMAL_MAP = {
+				// TODO: this is inactivated because we currently have to many samplers
+				// normal_map = { sampler_states = "wrap_anisotropic" }
+			}
+			
+			defined_RED_DIFFUSE_MAP = {
+				first_blend_diffuse_map = { sampler_states = "terrain_anisotropic_srgb" }
+			}
+			defined_RED_NORMAL_MAP = {
+				first_blend_normal_map = { sampler_states = "terrain_anisotropic" }
+			}
+			defined_RED_MATERIAL_MAP = {
+				first_blend_material_map = { sampler_states = "terrain_anisotropic_srgb" }
+			}
+			
+			defined_GREEN_DIFFUSE_MAP = {
+				second_blend_diffuse_map = { sampler_states = "terrain_anisotropic_srgb" }
+			}
+			defined_GREEN_NORMAL_MAP = {
+				second_blend_normal_map = { sampler_states = "terrain_anisotropic" }
+			}
+			defined_GREEN_MATERIAL_MAP = {
+				second_blend_material_map = { sampler_states = "terrain_anisotropic_srgb" }
+			}		
+			
+			defined_BLUE_DIFFUSE_MAP = {
+				third_blend_diffuse_map = { sampler_states = "terrain_anisotropic_srgb" }
+			}
+			defined_BLUE_NORMAL_MAP = {
+				third_blend_normal_map = { sampler_states = "terrain_anisotropic" }
+			}
+			defined_BLUE_MATERIAL_MAP = {
+				third_blend_material_map = { sampler_states = "terrain_anisotropic_srgb" }
+			}			
+			
+			defined_ALPHA_DIFFUSE_MAP = {
+				fourth_blend_diffuse_map = { sampler_states = "terrain_anisotropic_srgb" }
+			}
+			defined_ALPHA_NORMAL_MAP = {
+				fourth_blend_normal_map = { sampler_states = "terrain_anisotropic" }
+			}
+			defined_ALPHA_MATERIAL_MAP = {
+				fourth_blend_material_map = { sampler_states = "terrain_anisotropic_srgb" }
+			}			
+		}
+		
+		code="""
+			struct VS_INPUT {
+				float2 position : POSITION;
+				#if defined(GL2)
+					float4 pos_scale : TEXCOORD0;
+					float4 tile_info : TEXCOORD1;
+				#endif				
+			};
+			
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				float2 uv : TEXCOORD0;
+				float2 depth : TEXCOORD1;
+				float4 color : COLOR;
+			};
+			
+			#ifdef DIFFUSE_MAP
+				DECLARE_SAMPLER_2D(diffuse_map); // exports={ name="Diffuse Map" type="resource" sort_tag="0_DIFFUSE_MAP"}
+			#endif			
+
+			#ifdef MATERIAL_MAP
+				// TODO: this is inactivated because we currently have to many samplers
+				//DECLARE_SAMPLER_2D(material_map); // exports={ name="Material Map" type="resource" sort_tag="0_MATERIAL_MAP" }
+			#endif
+			#ifdef NORMAL_MAP
+				// TODO: this is inactivated because we currently have to many samplers
+				//DECLARE_SAMPLER_2D(normal_map); // exports = { name = "Normal Map" type = "resource" sort_tag = "0_NORMAL_MAP" }
+			#endif
+			
+			#ifdef RED_DIFFUSE_MAP
+				DECLARE_SAMPLER_2D(first_blend_diffuse_map); // exports={ name="Red Blend - Diffuse Map" type="resource" sort_tag="1_DIFFUSE_MAP"}
+			#endif			
+			#ifdef RED_NORMAL_MAP 
+				DECLARE_SAMPLER_2D(first_blend_normal_map); // exports={ name="Red Blend - Normal Map" type="resource" sort_tag="1_NORMAL_MAP"}
+			#endif
+			#ifdef RED_MATERIAL_MAP
+				DECLARE_SAMPLER_2D(first_blend_material_map); // exports={ name="Red Blend - Material Map" type="resource" sort_tag="1_MATERIAL_MAP"}
+			#endif
+			
+			#ifdef GREEN_DIFFUSE_MAP
+				DECLARE_SAMPLER_2D(second_blend_diffuse_map); // exports={ name="Green Blend - Diffuse Map" type="resource" sort_tag="2_DIFFUSE_MAP"}
+			#endif			
+			#ifdef GREEN_NORMAL_MAP 
+				DECLARE_SAMPLER_2D(second_blend_normal_map); // exports={ name="Green Blend - Normal Map" type="resource" sort_tag="2_NORMAL_MAP"}
+			#endif
+			#ifdef GREEN_MATERIAL_MAP
+				DECLARE_SAMPLER_2D(second_blend_material_map); // exports={ name="Green Blend - Material Map" type="resource" sort_tag="2_MATERIAL_MAP"}
+			#endif
+
+			#ifdef BLUE_DIFFUSE_MAP
+				DECLARE_SAMPLER_2D(third_blend_diffuse_map); // exports={ name="Blue Blend - Diffuse Map" type="resource" sort_tag="3_DIFFUSE_MAP"}
+			#endif			
+			#ifdef BLUE_NORMAL_MAP 
+				DECLARE_SAMPLER_2D(third_blend_normal_map); // exports={ name="Blue Blend - Normal Map" type="resource" sort_tag="3_NORMAL_MAP"}
+			#endif
+			#ifdef BLUE_MATERIAL_MAP
+				DECLARE_SAMPLER_2D(third_blend_material_map); // exports={ name="Blue Blend - Material Map" type="resource" sort_tag="3_MATERIAL_MAP"}
+			#endif			
+
+			#ifdef ALPHA_DIFFUSE_MAP
+				DECLARE_SAMPLER_2D(fourth_blend_diffuse_map); // exports={ name="Alpha Blend - Diffuse Map" type="resource" sort_tag="4_DIFFUSE_MAP"}
+			#endif			
+			#ifdef ALPHA_NORMAL_MAP 
+				DECLARE_SAMPLER_2D(fourth_blend_normal_map); // exports={ name="Alpha Blend - Normal Map" type="resource" sort_tag="4_NORMAL_MAP"}
+			#endif
+			#ifdef ALPHA_MATERIAL_MAP
+				DECLARE_SAMPLER_2D(fourth_blend_material_map); // exports={ name="Alpha Blend - Material Map" type="resource" sort_tag="4_MATERIAL_MAP"}
+			#endif			
+			
+			#if defined(DIFFUSE_MAP)// || defined(MATERIAL_MAP) || defined(NORMAL_MAP) // TODO: this is inactivated because we currently have to many samplers
+				#define BASE_MAP
+			#endif
+			
+			#if defined(RED_DIFFUSE_MAP) || defined(RED_NORMAL_MAP) || defined(RED_MATERIAL_MAP)
+				#define RED_BLEND
+			#endif
+			#if defined(GREEN_DIFFUSE_MAP) || defined(GREEN_NORMAL_MAP) || defined(GREEN_MATERIAL_MAP)
+				#define GREEN_BLEND
+			#endif
+			#if defined(BLUE_DIFFUSE_MAP) || defined(BLUE_NORMAL_MAP) || defined(BLUE_MATERIAL_MAP)
+				#define BLUE_BLEND
+			#endif
+			#if defined(ALPHA_DIFFUSE_MAP) || defined(ALPHA_NORMAL_MAP) || defined(ALPHA_MATERIAL_MAP)
+				#define ALPHA_BLEND
+			#endif
+			
+			CBUFFER_START(c0)
+				float4x4 world_view_proj;
+				float4x4 world;
+				float3 terrain_size;
+				float3 lod_camera_pos;
+				#ifdef BASE_MAP
+					float2 base_map_scale; // exports={ name="Base Map - UV Scale" type="vector2" value=[1 1] min=[0 0] max=[1024 1024] step=[1 1] }
+				#endif
+				#ifndef MATERIAL_MAP
+					float glossiness; 	// exports={ name="Glossiness Amount" type="scalar" value=0.5 min=0.0 max=1.0 step=0.001 sort_tag="0_MATERIAL_MAP_0" }
+					float specular; 	// exports={ name="Specular Mask" type="scalar" value=0.0 min=0.0 max=1.0 step=0.001 sort_tag="0_MATERIAL_MAP_1" }
+				#endif
+				
+				#ifdef RED_BLEND
+					float2 red_maps_scale; // exports={ name="Red Blend - UV Scale" type="vector2" value=[1 1] min=[0 0] max=[1024 1024] step=[1 1] sort_tag="1_BLEND_SMOOTHING" }
+					float red_masked_blend_smoothing; // exports={ name="Red Blend - Smoothing" type="scalar" value=0.2 min=0.001 max=1.0 step=0.001 sort_tag="1_BLEND_SMOOTHING" }
+					#ifndef RED_MATERIAL_MAP
+						float red_glossiness; 	// exports={ name="Red Blend - Glossiness Amount" type="scalar" value=0.5 min=0.0 max=1.0 step=0.001 sort_tag="1_MATERIAL_MAP_0" }
+						float red_specular; 	// exports={ name="Red Blend - Specular Mask" type="scalar" value=0.0 min=0.0 max=1.0 step=0.001 sort_tag="1_MATERIAL_MAP_1" }
+					#endif
+				#endif
+				#ifdef GREEN_BLEND
+					float2 green_maps_scale; // exports={ name="Green Blend - UV Scale" type="vector2" value=[1 1] min=[0 0] max=[1024 1024] step=[1 1] sort_tag="2_BLEND_SMOOTHING"}
+					float green_masked_blend_smoothing; // exports={ name="Green Blend - Smoothing" type="scalar" value=0.2 min=0.001 max=1.0 step=0.001 sort_tag="2_BLEND_SMOOTHING" }
+					#ifndef GREEN_MATERIAL_MAP
+						float green_glossiness; 	// exports={ name="Green Blend - Glossiness Amount" type="scalar" value=0.5 min=0.0 max=1.0 step=0.001 sort_tag="2_MATERIAL_MAP_0" }
+						float green_specular; 	// exports={ name="Green Blend - Specular Mask" type="scalar" value=0.0 min=0.0 max=1.0 step=0.001 sort_tag="2_MATERIAL_MAP_1" }
+					#endif
+				#endif
+				#ifdef BLUE_BLEND
+					float2 blue_maps_scale; // exports={ name="Blue Blend - UV Scale" type="vector2" value=[1 1] min=[0 0] max=[1024 1024] step=[1 1] sort_tag="3_BLEND_SMOOTHING" }
+					float blue_masked_blend_smoothing; // exports={ name="Blue Blend - Smoothing" type="scalar" value=0.2 min=0.001 max=1.0 step=0.001 sort_tag="3_BLEND_SMOOTHING" }
+					#ifndef BLUE_MATERIAL_MAP
+						float blue_glossiness; 	// exports={ name="Blue Blend - Glossiness Amount" type="scalar" value=0.5 min=0.0 max=1.0 step=0.001 sort_tag="3_MATERIAL_MAP_0" }
+						float blue_specular; 	// exports={ name="Blue Blend - Specular Mask" type="scalar" value=0.0 min=0.0 max=1.0 step=0.001 sort_tag="3_MATERIAL_MAP_1" }
+					#endif
+				#endif				
+				#ifdef ALPHA_BLEND
+					float2 alpha_maps_scale; // exports={ name="Alpha Blend - UV Scale" type="vector2" value=[1 1] min=[0 0] max=[1024 1024] step=[1 1] sort_tag="4_BLEND_SMOOTHING" }
+					float alpha_masked_blend_smoothing; // exports={ name="Alpha Blend - Smoothing" type="scalar" value=0.2 min=0.001 max=1.0 step=0.001 sort_tag="4_BLEND_SMOOTHING" }
+					#ifndef ALPHA_MATERIAL_MAP
+						float alpha_glossiness; // exports={ name="Alpha Blend - Glossiness Amount" type="scalar" value=0.5 min=0.0 max=1.0 step=0.001 sort_tag="4_MATERIAL_MAP_0" }
+						float alpha_specular; 	// exports={ name="Alpha Blend - Specular Mask" type="scalar" value=0.0 min=0.0 max=1.0 step=0.001 sort_tag="4_MATERIAL_MAP_1" }
+					#endif
+				#endif				
+				
+				#ifdef DETAIL_FADE
+					float2 fade_out_detail_settings; // exports={ name="Fade out details [start, fade]" type="vector2" value=[30 20] min=[5 1] max=[500 250] step=[0.5 0.5] sort_tag="DETAIL_FADE" }
+				#endif
+				
+				#if defined(GL2)
+					float2 inv_hmap_size;
+				#endif	
+				
+				float4 dev_wireframe_color;
+			CBUFFER_END
+								
+			#if defined(D3D11) || defined(D3D12) || defined(GNM)
+				Buffer<float4> idata;
+			#endif
+			DECLARE_SAMPLER_2D(hmap);
+			DECLARE_SAMPLER_2D(blend_mask);
+			// DECLARE_SAMPLER_CUBE(global_diffuse_map);
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input, uint instance_id : SV_InstanceId) {
+				PS_INPUT o;
+				
+				#if defined(GL2)
+					float4 pos_scale = input.pos_scale;
+					float4 tile_info = input.tile_info;
+					//float4 pos_scale = float4(0,0,32, 32);
+					//float4 tile_info = float4(0, 32, 32, 0);
+				#elif defined(D3D11) || defined(D3D12) || defined(GNM)
+					float4 pos_scale = idata.Load(instance_id * 2 + 0);
+					float4 tile_info = idata.Load(instance_id * 2 + 1);			
+				#endif
+								
+				float2 half_size = terrain_size.xy * 0.5;
+				float2 mip = input.position.xy;				
+				float2 pos = (mip.xy - 0.5) * pos_scale.zw + pos_scale.xy;
+								
+				float3 wp = mul(float4(pos, 0, 1), world);
+				float t = 1-saturate((distance(wp, camera_pos) - (tile_info.x - pos_scale.z*0.5)) / tile_info.y);						
+
+				float2 huv = ((pos.xy / half_size) * 0.5 + 0.5);
+				#if defined(D3D11) || defined(D3D12) || defined(GNM)
+					huv.y = 1-huv.y;
+				#endif
+				
+				float h = TEX2DLOD(hmap, huv, 0).r * terrain_size.z;		
+				
+				float4 object_pos = float4(pos.xy, h, 1);
+				float4 p = mul(object_pos, world_view_proj);
+				o.position = p;
+				o.uv = huv;
+				
+				const float3 lod_cols[8] = {
+					float3(1,0,0),
+					float3(0,1,0),
+					float3(0,0,1),
+					float3(1,1,0),
+					float3(0,1,1),
+					float3(1,1,0.5),
+					float3(1,0,0.5),
+					float3(0,1,0.5)
+				};
+				
+				o.color = float4(lod_cols[(uint)tile_info.w], t);			
+				o.depth = float2(p.z + camera_near_far.x, 0);
+
+				return o;
+			}			
+			
+			void terrain_layer(inout half4 tnormal, inout float3 diffuse_color, inout float3 gsm, half opacity, half smoothing, bool threshold_blending, half4 layer_normal, float3 layer_diffuse_color, float3 layer_gsm, half fadeout) {				
+				//opacity = threshold_blending ? smoothstep(saturate(gsm.b - smoothing), gsm.b, opacity) : opacity;				
+				opacity = threshold_blending ? 1-saturate((gsm.b - opacity) / smoothing) : opacity;	
+				#if defined(DETAIL_FADE)
+					opacity *= fadeout;
+				#endif				
+				diffuse_color = lerp(diffuse_color, layer_diffuse_color, opacity);				
+				tnormal = lerp(tnormal, layer_normal, opacity);
+				gsm = lerp(gsm, layer_gsm, opacity);
+			}
+			
+			#if defined(DRAW_WIREFRAME)
+				DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+				float4 ps_main(PS_INPUT input) : SV_TARGET0 {
+					return dev_wireframe_color;
+				} 			
+			#else
+				DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+				GBUFFER_OUT ps_main(PS_INPUT input) {				
+					GBUFFER_OUT o;	
+
+					#if defined(D3D11) || defined(D3D12) || defined(GNM)
+						float2 res;
+						TEXTURE_NAME(hmap).GetDimensions(res.x, res.y);
+						float2 inv_hmap_size = 1.0/res;
+					#endif
+					float3 n = normal_from_hmap(hmap, input.uv, inv_hmap_size, terrain_size.z);	
+					
+					#ifdef DIFFUSE_MAP
+						float3 base_color = TEX2D(diffuse_map, input.uv * base_map_scale);
+					#else
+						float3 base_color = float3(0.5,0.5,0.5);
+					#endif
+					
+					#ifdef MATERIAL_MAP
+						// TODO: this is inactivated because we currently have to many samplers
+						//float3 gsm = TEX2D(material_map, input.uv * base_map_scale).rgb;
+						float3 gsm = float3(0.5f, 0.0f, 0.f);
+					#else
+						float3 gsm = float3(glossiness, specular, 0.f);
+					#endif				
+
+					#if defined(DETAIL_FADE)
+						float4 mask = float4(0,0,0,0);
+						half fadeout = 1-saturate((input.depth - fade_out_detail_settings.x) / fade_out_detail_settings.y);						
+						if (fadeout > 0)
+							mask = TEX2D(blend_mask, input.uv);											
+					#else
+						float4 mask = TEX2D(blend_mask, input.uv);
+						half fadeout = 1;
+					#endif				
+					
+					#ifdef NORMAL_MAP
+						// TODO: this is inactivated because we currently have to many samplers
+						//half4 tnormal = TEX2D(normal_map, input.uv * base_map_scale);
+						half4 tnormal = float4(0.5, 0.5, 0.5, 0.5);
+
+						//tnormal = normalize(tnormal);
+					#else
+						half4 tnormal = float4(0.5, 0.5, 0.5, 0.5);
+					#endif
+					
+					float3 layer_gsm;
+					half4 layer_base_color;
+					half4 layer_normal;
+					half opacity;								
+					#if defined(RED_BLEND)					
+						opacity = mask.r;
+						red_maps_scale *= opacity > 0 ? 1 : 0;					
+						if (opacity > 0.0) {
+							#if defined(RED_DIFFUSE_MAP)						
+								layer_base_color = TEX2D(first_blend_diffuse_map, input.uv * red_maps_scale);							
+							#else
+								layer_base_color.rgb = base_color;
+								layer_base_color.a = 0;
+							#endif
+							
+							#if defined(RED_MATERIAL_MAP)						
+								layer_gsm = TEX2D(first_blend_material_map, input.uv * red_maps_scale).rgb;
+								#if !defined(RED_WRITE_HEIGHT)
+									layer_gsm.b = gsm.b;
+								#endif						
+							#else						
+								layer_gsm = float3(red_glossiness, red_specular, gsm.b);
+								#if defined(RED_WRITE_HEIGHT)
+									gsm.b = layer_base_color.a;
+								#endif
+							#endif
+							
+							#if defined(RED_NORMAL_MAP)
+								layer_normal = TEX2D(first_blend_normal_map, input.uv * red_maps_scale);
+							#else
+								layer_normal = float4(0.5, 0.5, 0.5, 0.5);
+							#endif
+							
+							#if defined(RED_THRESHOLD_BLENDING)
+								const bool red_threshold_blending = true;
+							#else
+								const bool red_threshold_blending = false;
+							#endif
+							terrain_layer(tnormal, base_color, gsm, opacity, red_masked_blend_smoothing, red_threshold_blending, layer_normal, layer_base_color.rgb, layer_gsm, fadeout);
+						}
+					#endif				
+					
+					#if defined(GREEN_BLEND)					
+						opacity = mask.g;
+						green_maps_scale *= opacity > 0 ? 1 : 0;					
+						if (opacity > 0.0) {
+							#if defined(GREEN_DIFFUSE_MAP)
+								layer_base_color = TEX2D(second_blend_diffuse_map, input.uv * green_maps_scale);
+							#else
+								layer_base_color.rgb = base_color;
+								layer_base_color.a = 0;
+							#endif
+							
+							#if defined(GREEN_MATERIAL_MAP)
+								layer_gsm = TEX2D(second_blend_material_map, input.uv * green_maps_scale).rgb;
+								#if !defined(GREEN_WRITE_HEIGHT)
+									layer_gsm.b = gsm.b;
+								#endif
+							#else
+								layer_gsm = float3(green_glossiness, green_specular, gsm.b);
+								#if defined(RED_WRITE_HEIGHT)
+									layer_gsm.b = layer_base_color.a;
+								#endif						
+							#endif										
+							
+							#if defined(GREEN_NORMAL_MAP)
+								layer_normal = TEX2D(second_blend_normal_map, input.uv * green_maps_scale);
+							#else
+								layer_normal = float4(0.5, 0.5, 0.5, 0.5);
+							#endif
+
+							#if defined(GREEN_THRESHOLD_BLENDING)
+								const bool green_threshold_blending = true;
+							#else
+								const bool green_threshold_blending = false;
+							#endif					
+							terrain_layer(tnormal, base_color, gsm, opacity, green_masked_blend_smoothing, green_threshold_blending, layer_normal, layer_base_color.rgb, layer_gsm, fadeout);					
+						}
+					#endif				
+
+					#if defined(BLUE_BLEND)					
+						opacity = mask.b;
+						blue_maps_scale *= opacity > 0 ? 1 : 0;					
+						if (opacity > 0.0) {
+							#if defined(BLUE_DIFFUSE_MAP)
+								layer_base_color = TEX2D(third_blend_diffuse_map, input.uv * blue_maps_scale);
+							#else
+								layer_base_color.rgb = base_color;
+								layer_base_color.a = 0;
+							#endif
+							
+							#if defined(BLUE_MATERIAL_MAP)
+								layer_gsm = TEX2D(third_blend_material_map, input.uv * blue_maps_scale).rgb;
+								#if !defined(BLUE_WRITE_HEIGHT)
+									layer_gsm.b = gsm.b;
+								#endif						
+							#else
+								layer_gsm = float3(blue_glossiness, blue_specular, gsm.b);
+								#if defined(RED_WRITE_HEIGHT)
+									layer_gsm.b = layer_base_color.a;
+								#endif
+							#endif										
+							
+							#if defined(BLUE_NORMAL_MAP)
+								layer_normal = TEX2D(third_blend_normal_map, input.uv * blue_maps_scale);
+							#else
+								layer_normal = float4(0.5, 0.5, 0.5, 0.5);
+							#endif
+							
+							#if defined(BLUE_THRESHOLD_BLENDING)
+								const bool blue_threshold_blending = true;
+							#else
+								const bool blue_threshold_blending = false;
+							#endif					
+							terrain_layer(tnormal, base_color, gsm, opacity, blue_masked_blend_smoothing, blue_threshold_blending, layer_normal, layer_base_color.rgb, layer_gsm, fadeout);
+						}
+					#endif				
+
+					#if defined(ALPHA_BLEND)
+						opacity = mask.a;
+						alpha_maps_scale *= opacity > 0 ? 1 : 0;					
+						if (opacity > 0.0) {
+							#if defined(ALPHA_DIFFUSE_MAP)
+								layer_base_color = TEX2D(fourth_blend_diffuse_map, input.uv * alpha_maps_scale);
+							#else
+								layer_base_color.rgb = base_color;
+								layer_base_color.a = 0;
+							#endif
+							
+							#if defined(ALPHA_MATERIAL_MAP)
+								layer_gsm = TEX2D(fourth_blend_material_map, input.uv * alpha_maps_scale).rgb;
+								#if !defined(ALPHA_WRITE_HEIGHT)
+									layer_gsm.b = gsm.b;
+								#endif						
+							#else
+								layer_gsm = float3(alpha_glossiness, alpha_specular, gsm.b);
+								#if defined(RED_WRITE_HEIGHT)
+									layer_gsm.b = layer_base_color.a;
+								#endif						
+							#endif					
+							
+							#if defined(ALPHA_NORMAL_MAP)
+								layer_normal = TEX2D(fourth_blend_normal_map, input.uv * alpha_maps_scale);
+							#else
+								layer_normal = float4(0.5, 0.5, 0.5, 0.5);
+							#endif
+							
+							#if defined(ALPHA_THRESHOLD_BLENDING)
+								const bool alpha_threshold_blending = true;
+							#else
+								const bool alpha_threshold_blending = false;
+							#endif					
+							terrain_layer(tnormal, base_color, gsm, opacity, alpha_masked_blend_smoothing, alpha_threshold_blending, layer_normal, layer_base_color.rgb, layer_gsm, fadeout);
+						}
+					#endif				
+					
+					tnormal.xyz = normalize(decode_normal_map(tnormal));
+					float3 world_normal = normalize(float3(n.xy + tnormal.xy, n.z * tnormal.z));
+					
+					BASE_COLOR(o) = gbuffer_encode_base_color(base_color);					
+					NORMAL(o) = gbuffer_encode_normal(world_normal);
+					METALLIC(o) = gbuffer_encode_metallic_mask(gsm.g);
+					ROUGHNESS(o) = gbuffer_encode_roughness(1.0 - gsm.r); // Note: roughness ~ 1 - glossiness
+					
+					// Velocity vector -- always static, motion vectors calculated as post processing step
+					VELOCITY(o) = encode_velocity(0.0);
+
+					DENSITY(o) = 1.0;
+					// AMBIENT_DIFFUSE_LIGHT(o) = gbuffer_encode_ambient_diffuse_light(rgbm_decode(TEXCUBELOD(global_diffuse_map, world_normal, 0)));
+					AMBIENT_OCCLUSION(o) = gbuffer_encode_ambient_occlusion(1.f);
+
+					return o;				
+				}			
+			#endif
+		"""
+	}
+}
+
+shaders = {
+	terrain = {
+		editor_advanced_mode = false
+		
+		editor_options = [			
+			{				
+				name="Base Texture Layers"
+				options = [	
+					{ name="Diffuse Map" define="DIFFUSE_MAP" }
+					// TODO: these are inactivated because we currently have to many samplers
+					// { name="Material Map" define="MATERIAL_MAP" }
+					// { name="Normal Map" define="NORMAL_MAP" }
+				]
+			}
+			
+			{ 
+				name="Deferred Decals" 
+				options = [
+					{ name="Decal Group 1" define="DEFERRED_DECALS_GROUP_1" }
+					{ name="Decal Group 2" define="DEFERRED_DECALS_GROUP_2" }
+					{ name="Decal Group 3" define="DEFERRED_DECALS_GROUP_3" }
+				]
+			}					
+						
+			
+			{				
+				name="Settings"
+				options = [	
+					{ name="Fade-out Mask Textures" define="DETAIL_FADE" }
+				]
+			}						
+			
+			{				
+				name="Red Mask Blend - Texture Layers"
+				options = [						
+					{ name="Threshold Blending" define="RED_THRESHOLD_BLENDING" }
+					{ name="Writes Height for Threshold Blending" define="RED_WRITE_HEIGHT" }
+					{ name="Diffuse Map" define="RED_DIFFUSE_MAP" }
+					{ name="Material Map" define="RED_MATERIAL_MAP" }
+					{ name="Normal Map" define="RED_NORMAL_MAP" }
+				]
+			}			
+			
+			{				
+				name="Green Mask Blend - Texture Layers"
+				options = [	
+					{ name="Threshold Blending" define="GREEN_THRESHOLD_BLENDING" }
+					{ name="Writes Height for Threshold Blending" define="GREEN_WRITE_HEIGHT" }
+					{ name="Diffuse Map" define="GREEN_DIFFUSE_MAP" }
+					{ name="Material Map" define="GREEN_MATERIAL_MAP" }
+					{ name="Normal Map" define="GREEN_NORMAL_MAP" }
+				]
+			}			
+			
+			{				
+				name="Blue Mask Blend - Texture Layers"
+				options = [	
+					{ name="Threshold Blending" define="BLUE_THRESHOLD_BLENDING" }
+					{ name="Writes Height for Threshold Blending" define="BLUE_WRITE_HEIGHT" }
+					{ name="Diffuse Map" define="BLUE_DIFFUSE_MAP" }
+					{ name="Material Map" define="BLUE_MATERIAL_MAP" }
+					{ name="Normal Map" define="BLUE_NORMAL_MAP" }
+				]
+			}			
+			
+			{				
+				name="Alpha Mask Blend - Texture Layers"
+				options = [	
+					{ name="Threshold Blending" define="ALPHA_THRESHOLD_BLENDING" }
+					{ name="Writes Height for Threshold Blending" define="ALPHA_WRITE_HEIGHT" }
+					{ name="Diffuse Map" define="ALPHA_DIFFUSE_MAP" }
+					{ name="Material Map" define="ALPHA_MATERIAL_MAP" }
+					{ name="Normal Map" define="ALPHA_NORMAL_MAP" }
+				]
+			}			
+		]
+		
+		contexts = {
+			shadow_caster = {
+				passes_sort_mode="immediate"
+				passes = [
+					{ hlsl_shader="terrain_depth" render_states="shadow_caster" }
+				]			
+			}
+			
+			default = {
+				passes = [
+					{ layer="gbuffer" hlsl_shader="terrain" render_states="terrain" }
+					{ layer="wireframe" hlsl_shader="terrain" defines="DRAW_WIREFRAME" render_states="wireframe" branch_key="dev_wireframe" }
+				]
+			}
+		}	
+		
+		compile = {
+			shadow_caster = [ 
+				{ defines="" platforms="D3D11 D3D12 GL2 GNM" }				
+			] 
+			
+			default = [
+				{ defines="" platforms="D3D11 D3D12 GL2 GNM" }
+			]
+		} 
+	}
+}
+
+static_compile = [ 
+	{ shader="terrain" }
+]

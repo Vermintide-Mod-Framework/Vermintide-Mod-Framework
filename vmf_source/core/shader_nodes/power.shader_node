@@ -1,0 +1,14 @@
+group = "Math"
+display_name = "Power"
+inputs = {
+	"447b3fe2-c820-4511-a923-b38b0f6c9fe6" = { name = "a" display_name = "Value" type = "auto" }
+	"e16267f4-8b4e-4079-b13d-f380cfd386ec" = { name = "b" display_name = "Power" type = "auto" }
+}
+
+output = {
+	type = { largestof: ["a", "b"] }
+}
+
+code = """
+	RESULT(pow(a,b));
+"""

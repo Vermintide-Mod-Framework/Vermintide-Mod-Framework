@@ -1,0 +1,62 @@
+group = "Terrain"
+display_name = "Sample Blend Mask"
+depends_on = ["core/stingray_renderer/output_nodes/terrain_base"]
+
+inputs = {
+	"1ee9af1f-65f2-4739-ad28-5ea6a0e68fc3" = { name = "texcoord" display_name = "UV" type = "vector2" domain = "pixel" }
+}
+
+domain = "pixel"
+output = {
+	type = "float4"
+}
+
+options = {
+	"acb6ef9d-5ba0-42e4-85f3-2924b4b4be25" = "ADDRESS_CLAMP"
+	"5dd59b3d-1762-4a14-9930-7500230ef3db" = "ADDRESS_WRAP"
+	"f669a3a6-0376-4187-840e-80000e2939d5" = "FILTER_LINEAR"
+	"43dea0e2-a77d-410d-88bb-945dac9139d8" = "FILTER_POINT"
+	"1e067464-12d8-4826-9b72-cfd5765003e3" = "FILTER_ANISOTROPIC"
+}
+
+ui = [
+	{
+		type = "drop_down"
+		display_name = "Address mode"
+		options = {
+			"Clamp" = "acb6ef9d-5ba0-42e4-85f3-2924b4b4be25"
+			"Wrap" = "5dd59b3d-1762-4a14-9930-7500230ef3db"
+		}
+		default = "5dd59b3d-1762-4a14-9930-7500230ef3db"
+	}
+	{
+		type = "drop_down"
+		display_name = "Filter mode"
+		options = {
+			"Anisotropic" = "1e067464-12d8-4826-9b72-cfd5765003e3"
+			"Linear" = "f669a3a6-0376-4187-840e-80000e2939d5"
+			"Point" = "43dea0e2-a77d-410d-88bb-945dac9139d8"
+		}
+		default = "f669a3a6-0376-4187-840e-80000e2939d5"
+	}
+]
+
+code_blocks = {
+	default = {
+		language = "hlsl"
+
+		samplers = {
+			mask = {
+				type = "2d"
+				sampler_state = "core/shader_nodes/graph_common#default_node_sampler"
+				source = "resource_set"
+				slot_name = "blend_mask"
+			}
+		}
+
+		code = """
+			float4 c = TEX2D(mask, texcoord);
+			RESULT(c);
+		"""
+	}
+}

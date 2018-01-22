@@ -1,0 +1,18 @@
+group = "Input"
+display_name = "Wind Amount"
+
+imports = {
+	wind_amount = {
+		type = "float3"
+		domain = "global"
+		source = "shading_environment"
+	}
+}
+
+output = {
+	type = { typeof: "wind_amount" }
+}
+
+code = """
+	RESULT(wind_amount);
+"""

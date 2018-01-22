@@ -1,0 +1,15 @@
+group = "Math"
+display_name = "Clamp"
+inputs = {
+	"be3ca146-3448-40d8-bd4b-da66ef6ff935" = { name = "x" display_name = "Value" type = "auto" }
+	"6f471281-8e67-4fd5-978f-5e378ef0668d" = { name = "max" display_name = "Max" type = "auto" }
+	"e64169ad-12a5-41ba-a708-4cc5526e1ea0" = { name = "min" display_name = "Min" type = "auto" }
+}
+
+output = {
+	type = { typeof: "x" }
+}
+
+code = """
+	RESULT(clamp(x,min,max));
+"""

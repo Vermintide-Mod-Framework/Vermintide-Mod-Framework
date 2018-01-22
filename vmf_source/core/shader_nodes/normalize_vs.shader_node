@@ -1,0 +1,15 @@
+group = "Math"
+display_name = "Normalize VS"
+domain = "vertex"
+
+inputs = {
+	"7bc3f92e-1302-40b5-9aea-723e5a7b6b94" = { name = "a" display_name = "Vector" type = { vector2:[] vector3:[] vector4:[] } }
+}
+
+output = {
+	type = { typeof: "a" }
+}
+
+code = """
+	RESULT(normalize(a));
+"""

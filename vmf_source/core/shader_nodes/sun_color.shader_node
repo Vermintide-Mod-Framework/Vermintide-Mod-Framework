@@ -1,0 +1,20 @@
+group = "Input"
+display_name = "Sun Color"
+
+imports = {
+	sun_color = {
+		type = "float3"
+		domain = "global"
+		source = "engine"
+	}
+}
+
+defines = ["HAS_SUN_COLOR"]
+
+output = {
+	type = { typeof: "sun_color" }
+}
+
+code = """
+	RESULT(sun_color);
+"""

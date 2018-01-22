@@ -1,0 +1,72 @@
+group = "Fatshark"
+display_name = "Distance Fade"
+
+depends_on = [
+	"core/stingray_renderer/output_nodes/standard_base"
+	"core/stingray_renderer/output_nodes/unlit_base", 
+	"core/stingray_renderer/output_nodes/particle_base", 
+	"core/stingray_renderer/output_nodes/particle_gbuffer_base", 
+	"core/stingray_renderer/output_nodes/particle_distortion_base"]
+
+inputs = {
+	"01a82a06-57f6-4dc2-8a63-f3c7119064aa" = { 
+		name = "depth_fade_distance" 
+		display_name = "Depth Fade Distance" 
+		type = "scalar" 
+		domain = "pixel" 
+		is_required = true 
+	}
+}
+
+imports = {
+	pixel_depth = {
+		type = "float"
+		domain = "pixel"
+		output_channel = "pixel_depth"
+	}
+
+	screen_pos = {
+		type = "float2"
+		domain = "pixel"
+		output_channel = "screen_pos"
+	}
+}
+
+defines = ["NEEDS_PIXEL_DEPTH", "NEEDS_LINEAR_DEPTH", "NEEDS_SCREEN_POS"]
+
+domain = "pixel"
+output = {
+	type = "float"
+}
+
+options = {
+	"b110967d-d67a-485f-af33-90ad4bed2eec" = "SMOOTH_STEP"
+}
+
+
+ui = [
+	{
+		type = "drop_down"
+		display_name = "Fade Curve"
+		options = {
+			"Linear" = "00000000-0000-0000-0000-000000000000"
+			"Smooth" = "b110967d-d67a-485f-af33-90ad4bed2eec"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+]
+
+language = "hlsl"
+code = """
+	#if defined(HAS_LINEAR_DEPTH)
+		float gbuffer_depth = gbuffer_decode_depth(TEX2D(linear_depth, screen_pos.xy));
+		#ifdef SMOOTH_STEP
+			float result = smoothstep(gbuffer_depth, gbuffer_depth - depth_fade_distance, pixel_depth);
+		#else
+			float result = saturate((gbuffer_depth - pixel_depth) / depth_fade_distance);
+		#endif
+	#else
+		float result = 1.0;
+	#endif
+	RESULT(result);
+"""

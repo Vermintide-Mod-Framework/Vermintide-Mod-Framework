@@ -1,0 +1,19 @@
+group = "Decal"
+display_name = "Decal UV"
+depends_on = ["core/stingray_renderer/output_nodes/decal_base"]
+
+imports = {
+	decal_uv = {
+		type = "float2"
+		domain = "pixel"
+		output_channel = "decal_uv"
+	}
+}
+
+output = {
+	type = { typeof: "decal_uv" }
+}
+
+code = """
+	RESULT(decal_uv);
+"""

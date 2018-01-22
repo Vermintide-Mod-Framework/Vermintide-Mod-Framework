@@ -1,0 +1,25 @@
+group = "Particle Ribbon"
+display_name = "Vertex Color"
+
+imports = {
+	color = { 
+		type = "float4"
+		semantic = "COLOR"
+		domain = "vertex"
+	}
+}
+
+output = {
+	type = { typeof: "color" }
+}
+
+options = {
+}
+
+ui = [
+]
+
+code = """
+	color = fast_gamma_to_linear_rgba(decode_vertex_color(color));
+	RESULT(color);
+"""

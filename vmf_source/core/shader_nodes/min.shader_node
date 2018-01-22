@@ -1,0 +1,14 @@
+group = "Math"
+display_name = "Minimum"
+inputs = {
+	"f72597c4-7487-419a-affb-af690e6582e1" = { name = "a" display_name = "A" type = "auto" }
+	"0806db0d-2c4a-43ca-99cc-a5a2f036a8e8" = { name = "b" display_name = "Min" type = "auto" }
+}
+
+output = {
+	type = { largestof: ["a", "b"] }
+}
+
+code = """
+	RESULT( min(a,b) );
+"""

@@ -1,0 +1,18 @@
+group = "Vertex Inputs"
+display_name = "Tangent"
+
+imports = {
+	tangent = { 
+		type = "float3"
+		semantic = "TANGENT"
+		domain = "vertex"
+	}
+}
+
+output = {
+	type = { typeof: "tangent" }
+}
+
+code = """
+	RESULT(tangent);
+"""

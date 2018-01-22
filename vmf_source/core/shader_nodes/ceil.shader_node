@@ -1,0 +1,13 @@
+group = "Math"
+display_name = "Ceil"
+inputs = {
+	"15a35abd-ee72-4498-8233-3542fde59a81" = { name = "a" display_name = "A" type = "auto" }
+}
+
+output = {
+	type = { typeof: "a" }
+}
+
+code = """
+	RESULT(ceil(a));
+"""

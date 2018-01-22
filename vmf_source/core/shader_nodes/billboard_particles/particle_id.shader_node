@@ -1,0 +1,21 @@
+ 
+
+group = "Particle Billboard"
+display_name = "Particle ID"
+
+imports = {
+	particle_id = {
+		type = "float"
+		semantic = "TEXCOORD5"
+		domain = "vertex"
+	}
+}
+
+output = {
+	type = { typeof: "particle_id" }
+}
+
+code = """
+	RESULT(particle_id);
+"""
+

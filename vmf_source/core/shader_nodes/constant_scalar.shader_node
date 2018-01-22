@@ -1,0 +1,13 @@
+group = "Constant"
+display_name = "Constant Scalar"
+inputs = {
+	"c4d6bc08-c489-430f-a836-ed490e59c3f9" = { name = "a" display_name = "A" type = "scalar"}
+}
+
+output = {
+	type = { typeof: "a" }
+}
+
+code = """
+	RESULT(a);
+"""

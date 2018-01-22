@@ -1,0 +1,704 @@
+// in this context include refers to another shader file
+includes = [ "core/stingray_renderer/shader_libraries/common.shader_source" ] 
+
+/*
+	TODO
+	Write to AMBIENT_DIFFUSE_LIGHT?
+	Write to AMBIENT_OCCLUSION?
+*/
+
+render_states = {
+	decal_opacity = {
+		inherits = "opacity"
+		states = {			
+			write_mask0 = "red|green|blue"
+		}		
+	}
+
+	decal_projector_debug_draw = {
+		inherits = "default"
+	}
+
+	decal_base_color_normal = {
+		inherits = "opacity"
+		states = {
+			z_func = "greater_equal"
+			write_mask0 = "red|green|blue"
+
+			defined_GROUP_STENCIL_MASK = {
+				stencil_enable = "true"
+				stencil_fail = "stencil_op_keep"
+				stencil_pass = "stencil_op_keep"
+				stencil_z_fail = "stencil_op_keep"
+
+				stencil_fail_back_side = "stencil_op_keep"
+				stencil_pass_back_side = "stencil_op_keep"
+				stencil_z_fail_back_side = "stencil_op_keep"
+				
+				stencil_write_mask = "0x0"
+
+				defined_GROUP_0 = {
+					stencil_func = "equal"
+					stencil_func_back_side = "equal"
+					stencil_mask = "0x60"
+					stencil_ref = "0x0"
+				}
+				defined_GROUP_1 = {
+					stencil_func = "equal"
+					stencil_func_back_side = "equal"
+					stencil_mask = "0x60"
+					stencil_ref = "0x20"
+				}
+				defined_GROUP_2 = {
+					stencil_func = "equal"
+					stencil_func_back_side = "equal"
+					stencil_mask = "0x60"
+					stencil_ref = "0x40"
+				}
+				defined_GROUP_3 = {
+					stencil_func = "equal"
+					stencil_func_back_side = "equal"
+					stencil_mask = "0x60"
+					stencil_ref = "0x60"
+				}
+				defined_GROUP_01 = {
+					stencil_func = "equal"
+					stencil_func_back_side = "equal"
+					stencil_mask = "0x40"
+					stencil_ref = "0x0"
+				}
+				defined_GROUP_02 = {
+					stencil_func = "equal"
+					stencil_func_back_side = "equal"
+					stencil_mask = "0x20"
+					stencil_ref = "0x0"
+				}
+				defined_GROUP_13 = {
+					stencil_func = "equal"
+					stencil_func_back_side = "equal"
+					stencil_mask = "0x20"
+					stencil_ref = "0x60"
+				}
+				defined_GROUP_23 = {
+					stencil_func = "equal"
+					stencil_func_back_side = "equal"
+					stencil_mask = "0x40"
+					stencil_ref = "0x60"
+				}
+				defined_GROUP_012 = {
+					stencil_func = "not_equal"
+					stencil_func_back_side = "not_equal"
+					stencil_mask = "0x60"
+					stencil_ref = "0x60"
+				}
+				defined_GROUP_123 = {
+					stencil_func = "not_equal"
+					stencil_func_back_side = "not_equal"
+					stencil_mask = "0x60"
+					stencil_ref = "0x0"
+				}
+				defined_GROUP_023 = {
+					stencil_func = "not_equal"
+					stencil_func_back_side = "not_equal"
+					stencil_mask = "0x60"
+					stencil_ref = "0x20"
+				}
+				defined_GROUP_013 = {
+					stencil_func = "not_equal"
+					stencil_func_back_side = "not_equal"
+					stencil_mask = "0x60"
+					stencil_ref = "0x40"
+				}
+			}
+		}
+	}
+
+	decal_pre_pass = {
+		inherits = "opacity"
+		states = {
+			z_enable = "true"
+			z_func = "greater_equal"
+			write_mask0 = ""
+			stencil_enable = "true"
+
+			stencil_write_mask = "0x60"
+			stencil_mask = "0x60"
+			stencil_ref = "0x0"
+
+			stencil_func = "always"
+			stencil_func_back_side = "always"
+			
+			stencil_fail = "stencil_op_keep"
+			stencil_pass = "stencil_op_keep"
+			stencil_z_fail = "stencil_op_replace"
+
+			stencil_fail_back_side = "stencil_op_keep"
+			stencil_pass_back_side = "stencil_op_keep"
+			stencil_z_fail_back_side = "stencil_op_replace"
+		}
+	}
+
+	decal_roughness_metallic_additive = {
+		inherits = "decal_base_color_normal"
+		states = {
+			write_mask0 = "alpha"
+			blend_op = "blend_op_add"
+
+			defined_WRITES_ROUGHNESS = {
+				defined_ROUGHNESS_THRESHOLD = {
+					blend_enable = "false"
+				}
+				ndefined_ROUGHNESS_THRESHOLD = {
+					src_blend = "blend_one"
+					dest_blend = "blend_one"	
+				}
+			}
+			defined_WRITES_METALLIC = {
+				src_blend = "blend_one"
+				dest_blend = "blend_one"
+			}
+		}
+	}
+}
+
+hlsl_shaders = {
+	decal = { 
+		includes = [ "common", "gbuffer_access" ] 
+				
+		samplers = {
+			defined_DIFFUSE_MAP = {
+				diffuse_map = { sampler_states = "wrap_anisotropic_srgb" }
+			}
+
+			defined_WRITES_NORMAL = {
+				normal_map = { sampler_states = "wrap_anisotropic" }
+			}
+		}
+		
+		code="""
+			#if defined(DIFFUSE_MAP)
+				DECLARE_SAMPLER_2D(diffuse_map); // exports={ name="Diffuse Map" type="resource" }
+			#endif
+			
+			#if defined(WRITES_NORMAL)
+				DECLARE_SAMPLER_2D(normal_map); // exports={ name="Normal Map" type="resource" }
+			#endif
+		
+			struct VS_INPUT {
+				float4 position : POSITION;		
+				float2 uv : TEXCOORD0;
+				float decal_instance: TEXCOORD1;
+				#if defined(WRITES_NORMAL)
+					float3 tangent : TANGENT;
+					float3 binormal : BINORMAL;					
+				#endif				
+			};
+			
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				float3 uv_fade : TEXCOORD0;			
+				#if defined(WRITES_NORMAL)
+					float3 tsm0 : TEXCOORD1;
+					float3 tsm1 : TEXCOORD2;
+					float3 tsm2 : TEXCOORD3;
+				#endif
+			};			
+			
+			#define MAX_INSTANCES_PER_BATCH 50 
+			CBUFFER_START(c0)
+				float4x4 world_view_proj;
+				float4x4 instance_data[MAX_INSTANCES_PER_BATCH];				
+				float2 sustain_release;
+			CBUFFER_END
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input) {
+				PS_INPUT o;
+				
+				int decal_instance = (int)floor(((frac((float)input.decal_instance / (float)MAX_INSTANCES_PER_BATCH)) * MAX_INSTANCES_PER_BATCH) + 0.5);
+				float4x4 decal_tm = instance_data[decal_instance];	
+				float t = decal_tm._m33;
+				//float3 custom = decal_tm._m03_m13_m23;
+				decal_tm._m03_m13_m23 = float3(0,0,0);				
+				decal_tm._m33 = t == 0 ? 0 : 1;
+				
+				float4 position = input.position;				
+				position = mul(position, decal_tm);
+				o.position = mul(position, world_view_proj);
+				o.position.z -= 0.001f;
+				
+				float fade = (t > sustain_release.x ? (t < (sustain_release.x + sustain_release.y) ? 1-saturate((t-sustain_release.x) / sustain_release.y) : 0) : 1);
+				o.uv_fade = float3(input.uv, fade);
+				
+				#if defined(WRITES_NORMAL)					
+					float3 tangent = input.tangent;
+					float3 binormal = input.binormal;
+					float3 normal = cross(binormal, tangent);
+					tangent = -tangent;
+					
+					tspace_transform_transpose(o.tsm0, o.tsm1, o.tsm2, tangent, binormal, normal, (float3x3)decal_tm);					
+				#endif
+				
+				return o;
+			}
+						
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			half4 ps_main(PS_INPUT input) : SV_TARGET0 
+			{
+				float2 uv = input.uv_fade.xy;
+				float alpha = input.uv_fade.z;
+
+				#if defined(DIFFUSE_MAP)
+					half4 base_color_alpha = TEX2D(diffuse_map, uv);
+					float3 base_color = base_color_alpha.rgb;
+					alpha *= base_color_alpha.a;				
+				#endif
+				
+				#if defined(WRITES_NORMAL) 
+					float3 tnormal = decode_normal_map(TEX2D(normal_map, uv));
+					float3 world_space_normal = rotate_vector3(tnormal, (float3)input.tsm0, (float3)input.tsm1, (float3)input.tsm2);					
+					return half4(gbuffer_encode_normal(world_space_normal), alpha);
+				#elif defined(WRITES_BASE_COLOR)
+					return half4(gbuffer_encode_base_color(base_color), alpha);
+				#endif
+			}	
+		"""
+	}
+
+	decal_projector_fatshark = {
+		includes = [ "common", "gbuffer_access" ]
+
+		samplers = {
+			linear_depth = { sampler_states = "clamp_point" }
+
+			defined_DIFFUSE_MAP = {
+				diffuse_map = { sampler_states = "clamp_anisotropic" }
+			}
+			defined_NORMAL_MAP = {
+				normal_map = { sampler_states = "clamp_anisotropic" }
+			}
+			defined_ANGULAR_THRESHOLD = {
+				//defined_PRE_PASS = {
+					normals_copy = { sampler_states = "clamp_linear" }
+				//}
+			}
+		}
+
+		code="""
+			DECLARE_SAMPLER_2D(linear_depth);
+			#if defined(DIFFUSE_MAP)
+				DECLARE_SAMPLER_2D(diffuse_map); // exports={ name="Diffuse Map" type="resource" sort_tag="0_DIFFUSE_MAP"}
+			#endif
+
+			#if defined(NORMAL_MAP)
+				DECLARE_SAMPLER_2D(normal_map); // exports={ name="Normal Map" type="resource" sort_tag="0_NORMAL_MAP"}
+			#endif
+
+			#if defined(ANGULAR_THRESHOLD) //&& defined(PRE_PASS)
+				DECLARE_SAMPLER_2D(normals_copy);
+			#endif
+
+			struct VS_INPUT {
+				float4 position : POSITION;
+				#if defined(WRITES_NORMAL)
+					float3 tangent : TANGENT;
+					float3 binormal : BINORMAL;
+				#endif
+			};
+
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				float4 w : TEXCOORD0;
+				#if defined(WRITES_NORMAL)
+					float3 tsm0 : TEXCOORD1;
+					float3 tsm1 : TEXCOORD2;
+					float3 tsm2 : TEXCOORD3;
+				#endif
+			};
+
+			CBUFFER_START(c0)
+				float4x4 inv_world;
+				float4x4 world_view_proj;
+				float4x4 world;
+
+				float4x4 bounding_volume;
+
+				#if defined(COLOR_ALPHA_FADE)
+					float alpha;
+				#endif
+
+				#if defined(DIFFUSE_MAP) || defined(NORMAL_MAP)
+					float2 uv_scale; // exports={ name="UV Scale" type="vector2" value=[1 1] min=[0 0] max=[10 10] step=[0.01 0.01] }
+					float2 uv_offset; // exports={ name="UV Offset" type="vector2" value=[0 0] min=[0 0] max=[1 1] step=[0.01 0.01] }
+					float diffuse_alpha; // exports={ name="Diffuse Alpha" type="scalar" value=1 min=0 max=1 step=0.01 }
+					float normal_alpha; // exports={ name="Normal Alpha" type="scalar" value=1 min=0 max=1 step=0.01 }
+
+					#if defined(UV_ROTATION_ANIM)
+						float2 uv_rotation_pivot;   // exports={ name="UV Rotation Pivot" type="vector2" value=[0.5 0.5] min=[-1.0 -1.0] max=[1.0 1.0] step=[0.001 0.001] }
+						float2 uv_rotation_speed;   // exports={ name="UV Rotation Speed" type="scalar" value=1.57 min=-6.28 max=6.28 step=0.001 }
+					#elif defined(TEXTURE_FILM)
+						float2 frame_range; // exports={ name="Frame range" type="vector2" value=[0.0 4.0] min=[0.0 0.0] max=[128.0 128.0] step=[1.0 1.0] }
+						float2 frame_size; // exports={ name="Frame size" type="vector2" value=[0.25 0.25] min=[0.005 0.005] max=[1.0 1.0] step=[0.001 0.001] }
+						float frame_fps; // exports={ name="Frames per second" type="scalar" value=1.0 min=1.0 max=120.0 step=1.0 }
+					#endif
+				#endif
+
+				#if defined(ANGULAR_THRESHOLD)
+					float angular_threshold; // exports={ name="Angular Threshold Value [radians]" type="scalar" value=0.35 min=0.0 max=1.0 step=0.001 }
+				#endif
+
+				#if defined(HEIGHT_THRESHOLD)
+					float height_threshold; // exports={ name="Height Threshold Value [meter]" type="scalar" value=0.5 min=-0.5 max=1.0 step=0.001 }
+				#endif
+
+				#if defined(DIFFUSE_MAP) && defined(TINT_COLOR)
+					float3 color; // exports = { name="Diffuse Tint" type="vector3" min=[0 0 0] max=[1 1 1] step=[0.01 0.01 0.01] value=[0.5 0.5 0.5] }
+				#endif
+
+				#if defined(GLOSSINESS_SPECULAR)
+					float2 gloss_spec; // exports={ name="Roughness/Metallic" type="vector2" value=[0.5 0.04] min=[0.0 0.04] max=[1.0 1.0] step=[0.001 0.96] }
+
+					#if defined( ROUGHNESS_THRESHOLD )
+						float roughness_threshold; // exports={ name="Roughness Threshold" type="scalar" value=0.1 min=0.0 max=1.0 step=0.001 }
+					#endif
+				#endif
+			CBUFFER_END
+
+			float2 uv_pass_through_modifier(float2 uv) {
+				return uv;
+			}
+
+			#if defined(UV_ROTATION_ANIM)
+				float2 uv_rotation_anim_modifier(float2 uv) {
+					float a = uv_rotation_speed * time;
+					float c = cos(a);
+					float s = sin(a);
+					float2 center = uv - uv_rotation_pivot;
+					return float2(	(center.x * c + center.y * s) + uv_rotation_pivot.x,
+									(center.y * c - center.x * s) + uv_rotation_pivot.y);
+				}
+			#elif defined(TEXTURE_FILM)
+				float2 uv_texture_film_modifier(float2 uv) {
+					float frames_x = floor((1/frame_size.x) + 0.5);
+					float frames_y = floor((1/frame_size.y) + 0.5);
+
+					float frame_time = 1.0f/frame_fps;
+
+					float current_frame = frame_range.x + fmod(floor(time/frame_time + 0.5), (frame_range.y - frame_range.x));
+
+					float uv_x = floor(fmod(current_frame,frames_x) + 0.5) * frame_size.x + (1.0 - uv.x)/frames_x;
+					float uv_y = floor(current_frame/frames_y) * frame_size.y + uv.y/frames_y;
+
+					return float2(uv_x, uv_y);
+
+				}
+			#endif
+
+			#if defined(DIFFUSE_MAP) || defined(NORMAL_MAP)
+				#if defined(TEXTURE_FILM)
+					#define uv_modifier uv_texture_film_modifier
+				#elif defined(UV_ROTATION_ANIM)
+					#define uv_modifier uv_rotation_anim_modifier
+				#else
+					#define uv_modifier uv_pass_through_modifier
+				#endif
+			#endif
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input) {
+				PS_INPUT o;
+
+				o.position = mul(input.position, world_view_proj);
+				o.w = encode_world_pos(o.position, camera_unprojection);
+
+				#if defined(WRITES_NORMAL)
+					float3 tangent = float3(1,0,0);
+					float3 binormal = float3(0,0,1);
+					float3 normal = float3(0,-1,0);
+
+					tspace_transform_transpose(o.tsm0, o.tsm1, o.tsm2, tangent, binormal, normal, (float3x3)world);
+				#endif
+
+				return o;
+			}
+			
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			half4 ps_main(PS_INPUT input
+				#if defined(GL2)
+					, float4 wpos : WPOS
+				#endif
+				) : SV_TARGET0
+			{
+				#if defined(GL2)
+					half2 screen_uv = wpos.xy / back_buffer_size;
+				#else
+					half2 screen_uv = input.position.xy / back_buffer_size;
+				#endif
+
+				float3 wp = decode_world_pos(input.w, gbuffer_decode_depth(TEX2D(linear_depth, screen_uv)));
+				float3 op = mul(float4(wp, 1), inv_world);
+				float3 containment = (op > bounding_volume._m00_m01_m02) * (op < bounding_volume._m10_m11_m12);
+				float mask = dot(containment, containment) == 3;
+
+				[branch]
+				if( mask == 0 )
+					discard;
+
+				#if defined(COLOR_ALPHA_FADE)
+					mask *= alpha;
+				#endif
+
+				float2 uv = (op.xz / (bounding_volume._m20_m22*0.5))*0.5+0.5;
+				uv.y = 1 - uv.y;
+				uv = uv_modifier(uv);
+				uv = uv * uv_scale + uv_offset;
+
+				#if defined(ANGULAR_THRESHOLD) || defined(HEIGHT_THRESHOLD)
+					float3 up_vector = normalize(-world._m10_m11_m12);
+				#endif
+
+				float threshold_multiplier = 1;
+				#if defined(ANGULAR_THRESHOLD)
+					float2 sample_uv = input.position.xy / back_buffer_size;
+					float4 world_normal_data = TEX2D(normals_copy, sample_uv);
+					float3 world_normal = normalize(gbuffer_decode_normal(world_normal_data));
+					#if defined(ANGULAR_THRESHOLD_SOFT_FADE)
+						// TODO: add options to decrease the fade area.
+						threshold_multiplier *= saturate((dot(up_vector, world_normal) - angular_threshold) / (1.0 - angular_threshold));
+					#else
+						threshold_multiplier *= dot(up_vector, world_normal) <= angular_threshold ? 0.0 : 1.0;
+					#endif
+				#endif
+				#if defined(HEIGHT_THRESHOLD)
+					// TODO: in progress
+					float3 wp_bottom = world._m30_m31_m32;
+					float height = dot(wp - wp_bottom, up_vector); 
+					threshold_multiplier *= height > height_threshold ? 0.0 : 1.0;
+				#endif
+
+
+				#if defined(WRITES_BASE_COLOR)
+					float4 base_color = TEX2D(diffuse_map, uv);
+
+					#if defined(USE_NORMAL_ALPHA)
+						base_color.a = TEX2D(normal_map, uv).a;
+					#endif
+
+					base_color.a *= diffuse_alpha;
+
+					#if defined(TINT_COLOR)
+						base_color.rgb *= color.rgb;
+					#endif
+
+					base_color.rgb = gbuffer_encode_base_color(base_color.rgb);
+					return base_color * float4(1, 1, 1, mask * threshold_multiplier);
+				#endif
+
+				#if defined(WRITES_NORMAL)
+					float4 normal_data = TEX2D(normal_map, uv);
+					float3 tnormal = decode_normal_map(normal_data);
+					#if defined(INVERT_NORMAL_G)
+						tnormal.g = -tnormal.g;
+					#endif
+
+					float alpha = 1;
+					#if defined(USE_NORMAL_ALPHA)
+						alpha = normal_data.a;
+					#elif defined(DIFFUSE_MAP)
+						alpha = TEX2D( diffuse_map, uv).a;
+					#endif
+
+					float3 world_space_normal = rotate_vector3(tnormal, (float3)input.tsm0, (float3)input.tsm1, (float3)input.tsm2);
+
+					return half4(gbuffer_encode_normal(world_space_normal), alpha * normal_alpha * mask * threshold_multiplier);
+				#endif
+
+				#if defined(WRITES_ROUGHNESS)
+					float roughness = 1.0 - gloss_spec.x; // Note: Roughness ~ 1 - glossniess
+
+					float alpha = 1.0;
+					#if defined(USE_NORMAL_ALPHA) && defined(NORMAL_MAP)
+						alpha = TEX2D(normal_map, uv).a;
+					#elif defined(DIFFUSE_MAP)
+						alpha = TEX2D(diffuse_map, uv).a;
+					#endif
+					
+					#if defined(ROUGHNESS_THRESHOLD)
+						[branch]
+						if( (threshold_multiplier * alpha) < roughness_threshold )
+							discard;
+					#endif
+
+					#if defined(ANGULAR_THRESHOLD)
+						return half4( 0, 0, 0, gbuffer_encode_roughness( lerp(saturate(world_normal_data.a), roughness, alpha * mask * threshold_multiplier ) ) );
+					#else
+						return half4( 0, 0, 0, gbuffer_encode_roughness( alpha * roughness * mask * threshold_multiplier ) );
+					#endif
+				#endif
+
+				#if defined(WRITES_METALLIC)
+					float alpha = 1.0;
+					#if defined(USE_NORMAL_ALPHA) && defined(NORMAL_MAP)
+						alpha = TEX2D(normal_map, uv).a;
+					#elif defined(DIFFUSE_MAP)
+						alpha = TEX2D(diffuse_map, uv).a;
+					#endif
+
+					return half4( 0, 0, 0, gbuffer_encode_metallic_mask( alpha * gloss_spec.y * mask * threshold_multiplier ) );
+				#endif
+			}
+		"""
+	}	
+}
+
+shaders = {
+	decal = {
+		editor_options = [
+			{
+				name="Texture Layers"
+				options = [
+					{ name="Base Color Map" define="DIFFUSE_MAP" }
+					{ name="Normal Map" define="NORMAL_MAP" }
+				]
+			}		
+		]
+		
+		contexts = {
+			default = {	
+				passes = [
+					{ 
+						defined="DIFFUSE_MAP"
+						pass = [
+							{ layer="decal_base_color_metallic" hlsl_shader="decal" defines="WRITES_BASE_COLOR" render_states="decal_opacity" } 
+						]
+					}
+					{ 
+						defined="NORMAL_MAP"
+						pass = [
+							{ layer="decal_normal_roughness" hlsl_shader="decal" defines="WRITES_NORMAL" render_states="decal_opacity" } 
+						]
+					}
+				]								
+			}
+		}	
+		
+		compile = {
+			default = [				
+				{ defines="" platforms = "D3D11 D3D12 GL2 GNM"} 
+			]
+		} 		
+	}
+
+	decal_projector_fatshark = {
+		editor_options = [
+			{
+				name="Texture Layers"
+				options = [
+					{ name="Base Color Map" define="DIFFUSE_MAP" } 
+					{ name="Normal Map" define="NORMAL_MAP" }
+					{ name="Roughness/Metallic" define="GLOSSINESS_SPECULAR" } 
+					{ name="Roughness Threshold" define="ROUGHNESS_THRESHOLD" condition="GLOSSINESS_SPECULAR"}
+					{ name="Use Normal Alpha as Alpha" define="USE_NORMAL_ALPHA" }
+				]
+			}
+
+			{
+				name = "Color"
+				options = [
+					{ name="Base Color Tint" define="TINT_COLOR" }
+				]
+			}
+
+			{
+				name="UV Manipulation"
+				options = [
+					{ name="Texture Film" define="TEXTURE_FILM" }
+					{ name="UV Rotation" define="UV_ROTATION_ANIM" }
+				]
+			}
+
+			{
+				name="Settings"
+				options = [
+					{ name="Debug Draw Projection Box" define="DEBUG_DRAW" }
+					{ name="Invert Normal Green" define="INVERT_NORMAL_G" }
+					{ name="Angular Threshold" define="ANGULAR_THRESHOLD" }
+					{ name=" - Soft Fade" define="ANGULAR_THRESHOLD_SOFT_FADE" condition="ANGULAR_THRESHOLD" }
+					{ name="Height Threshold" define="HEIGHT_THRESHOLD" }
+				]
+			}
+
+			{
+				name = "Particle Options"
+				options = [
+					{ name="Fade with Color Alpha" define="COLOR_ALPHA_FADE" }
+				]
+			}
+
+			{
+				name="Material Settings"
+				options = [
+					{ name="Use Group Mask" 		define="GROUP_STENCIL_MASK" }
+					{ name="Decal Group 0" 		 	define="GROUP_0" condition="GROUP_STENCIL_MASK" }
+					{ name="Decal Group 1" 		 	define="GROUP_1" condition="GROUP_STENCIL_MASK" }
+					{ name="Decal Group 2" 		 	define="GROUP_2" condition="GROUP_STENCIL_MASK" }
+					{ name="Decal Group 3" 		 	define="GROUP_3" condition="GROUP_STENCIL_MASK" }
+					{ name="Decal Group 0, 1" 	 	define="GROUP_01" condition="GROUP_STENCIL_MASK" }
+					{ name="Decal Group 0, 2"	 	define="GROUP_02" condition="GROUP_STENCIL_MASK" }
+					{ name="Decal Group 1, 3"	 	define="GROUP_13" condition="GROUP_STENCIL_MASK" }
+					{ name="Decal Group 2, 3" 	 	define="GROUP_23" condition="GROUP_STENCIL_MASK" }
+					{ name="Decal Group 0, 1, 2" 	define="GROUP_012" condition="GROUP_STENCIL_MASK" }
+					{ name="Decal Group 1, 2, 3" 	define="GROUP_123" condition="GROUP_STENCIL_MASK" }
+					{ name="Decal Group 0, 2, 3" 	define="GROUP_023" condition="GROUP_STENCIL_MASK" }
+					{ name="Decal Group 0, 1, 3" 	define="GROUP_013" condition="GROUP_STENCIL_MASK" }
+				]
+			}
+		]
+
+		contexts = {
+			default = {
+				passes = [
+					{
+						defined = "DEBUG_DRAW"
+						pass = [
+							{ layer="decal_base_color_metallic" hlsl_shader="decal_projector_fatshark" defines="WRITES_BASE_COLOR" render_states="decal_projector_debug_draw" } 
+						]
+						fail = [
+							//{ layer="decal_pre_pass" hlsl_shader="decal_projector_fatshark" defines="PRE_PASS" render_states="decal_pre_pass" } 
+							
+							{
+								defined="DIFFUSE_MAP"
+								pass = [
+									{ layer="decal_base_color_metallic" hlsl_shader="decal_projector_fatshark" defines="WRITES_BASE_COLOR" render_states="decal_base_color_normal" }
+								]
+							}
+							{
+								defined="NORMAL_MAP"
+								pass = [
+									{ layer="decal_normal_roughness" hlsl_shader="decal_projector_fatshark" defines="WRITES_NORMAL" render_states="decal_base_color_normal" }
+								]
+							}
+							{
+								defined="GLOSSINESS_SPECULAR"
+								pass = [
+									{ layer="decal_normal_roughness" 	hlsl_shader="decal_projector_fatshark" defines="WRITES_ROUGHNESS" render_states="decal_roughness_metallic_additive" }
+									//{ layer="decal_base_color_metallic" hlsl_shader="decal_projector_fatshark" defines="WRITES_METALLIC" render_states="decal_roughness_metallic_additive" }
+								]
+							}
+						]
+					}
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				{ defines="" platforms = "D3D11 D3D12 GL2 GNM"}
+			]
+		}
+	}			
+}
+
+static_compile= [
+	{ shader="decal" defines="DIFFUSE_MAP NORMAL_MAP" }
+]

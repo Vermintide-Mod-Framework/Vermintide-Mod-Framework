@@ -1,0 +1,130 @@
+group = "Noise (Expensive)"
+display_name = "Noise 3D"
+inputs = {
+	"3679b6ae-ea55-4c84-a531-7d3f350f505f" = { name = "uvw" display_name = "UVW" is_required = true type = "vector3" domain = "pixel" }
+	"93aded2c-9f72-44e4-9b0a-9e6b892b99e3" = { name = "a" display_name = "A" is_required = false type = { scalar: ["HAS_A_INPUT"] } domain = "pixel" }
+	"ba717440-5742-42f5-b81a-145b3ab1ddec" = { name = "b" display_name = "B" is_required = false type = { scalar: ["HAS_B_INPUT"] } domain = "pixel" }
+}
+
+domain = "pixel"
+output = {
+	type = "float"
+}
+
+options = {
+	"b154b1bb-8b43-44c1-ba03-8c552176375e" = "VALUE_3D"
+	"8d01fa80-ecec-4140-b09a-635b6e96e646" = "VALUE_PERLIN_3D"
+	"ee3af997-15bf-46b0-b121-901260a53611" = "VALUE_HERMITE_3D"
+	"4739a4bb-9b3d-481d-bf32-0988f06fc6b8" = "PERLIN_3D"
+	"43513af3-331c-4cd3-a8af-57898d2629e1" = "HERMITE_3D"
+	"efd29873-4430-45c8-a4fb-5631704e3fa2" = "CUBIST_3D"
+	"59d1c03c-f309-4432-aee2-590f909e7459" = "CELLULAR_3D"
+	"526f7923-e8a6-4499-b9f7-4ae586a67bf4" = "POLKA_DOT_3D"
+	"5c697940-af02-4d4e-bbe3-8be2506641e8" = "SIMPLEX_PERLIN_3D"
+	"c617d225-bffb-466b-9022-56993ee40265" = "SIMPLEX_CELLULAR_3D"
+	"56dd9739-c575-4f04-bc4b-a525ff413985" = "SIMPLEX_POLKA_DOT_3D"
+}
+
+ui = [
+	{
+		type = "drop_down"
+		display_name = "Noise Type"
+		options = {
+			"Value [0, 1]"						= "b154b1bb-8b43-44c1-ba03-8c552176375e"
+			"Value-Perlin [-1, 1], a"			= "8d01fa80-ecec-4140-b09a-635b6e96e646"
+			"Value-Hermite [-1, 1], a, b"		= "ee3af997-15bf-46b0-b121-901260a53611"
+			"Perlin [-1, 1]"					= "4739a4bb-9b3d-481d-bf32-0988f06fc6b8"
+			"Hermite [-1, 1]"					= "43513af3-331c-4cd3-a8af-57898d2629e1"
+			"Cubist [0, 1], a, b"				= "efd29873-4430-45c8-a4fb-5631704e3fa2"
+			"Cellular [0, 1]"					= "59d1c03c-f309-4432-aee2-590f909e7459"
+			"Polka Dot [0, 1], a, b"			= "526f7923-e8a6-4499-b9f7-4ae586a67bf4"		
+			"Simplex Perlin [-1, 1]"			= "5c697940-af02-4d4e-bbe3-8be2506641e8"	
+			"Simplex Cellular [0, ~1]"			= "c617d225-bffb-466b-9022-56993ee40265"		
+			"Simplex Polka Dot [0, 1], a, b"	= "56dd9739-c575-4f04-bc4b-a525ff413985"	
+		}
+		default = "b154b1bb-8b43-44c1-ba03-8c552176375e"
+	}
+]
+
+code_blocks = {
+	default = {
+		include:["core/stingray_renderer/shader_libraries/noise#noise_functions"]
+
+		code = {
+			hlsl = """
+				#if defined(VALUE_3D)
+					float result = Value3D(uvw);
+				#elif defined(VALUE_PERLIN_3D)
+					#ifndef HAS_A_INPUT
+						float blend = 0.5;
+					#else
+						float blend = a;
+					#endif
+					float result = ValuePerlin3D(uvw, blend);
+				#elif defined(VALUE_HERMITE_3D)
+					#ifndef HAS_A_INPUT
+						float MAXVALUE = 1.0;
+					#else
+						float MAXVALUE = a;
+					#endif
+					#ifndef HAS_B_INPUT
+						float MAXGRADIENT = 1.0;
+					#else
+						float MAXGRADIENT = b;
+					#endif
+					float result = ValueHermite3D(uvw, 2.0*MAXVALUE, 2.0*MAXGRADIENT, 1.0 / ( MAXVALUE + MAXGRADIENT * 0.3125 * 2.0 ));
+				#elif defined(PERLIN_3D)
+					float result = Perlin3D(uvw);
+				#elif defined(HERMITE_3D)
+					float result = Hermite3D(uvw);
+				#elif defined(CUBIST_3D)
+					#ifndef HAS_A_INPUT
+						float high = 1.0;
+					#else
+						float high = a;
+					#endif
+					#ifndef HAS_B_INPUT
+						float low = -2.0;
+					#else
+						float low = b;
+					#endif
+					float result = Cubist3D(uvw, float2(low, 1.0/(high-low)));
+				#elif defined(CELLULAR_3D)
+					float result = Cellular3D(uvw);
+				#elif defined(POLKA_DOT_3D)
+					#ifndef HAS_A_INPUT
+						float high_radius = 1.0;
+					#else
+						float high_radius = a;
+					#endif
+					#ifndef HAS_B_INPUT
+						float low_radius = 0.1;
+					#else
+						float low_radius = b;
+					#endif
+					float result = PolkaDot3D(uvw, low_radius, high_radius);
+				#elif defined(SIMPLEX_PERLIN_3D)
+					float result = SimplexPerlin3D(uvw);
+				#elif defined(SIMPLEX_CELLULAR_3D)
+					float result = SimplexCellular3D(uvw);
+				#elif defined(SIMPLEX_POLKA_DOT_3D)
+					#ifndef HAS_A_INPUT
+						float radius = 1.0;
+					#else
+						float radius = a;
+					#endif
+					#ifndef HAS_B_INPUT
+						float variation = 0.1;
+					#else
+						float variation = b;
+					#endif
+					float result = SimplexPolkaDot3D(uvw, radius, variation);
+				#else
+					float result = 0.0;
+				#endif
+
+				RESULT(result);
+			"""
+		}
+	}
+}

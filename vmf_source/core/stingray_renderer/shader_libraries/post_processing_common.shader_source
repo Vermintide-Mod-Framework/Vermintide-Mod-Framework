@@ -1,0 +1,55 @@
+hlsl_shaders = {
+	post_processing_common = {
+		code="""
+			#if !defined(RENDERER_GL)
+				#define AO_MAX_DISTANCE 300.0
+				#define SSR_MIPMAP_LEVELS 5.0
+
+				#define TWOPI PI * 2
+
+				#define VELOCITY_COMPONENTS xy
+
+				#if defined(PLATFORM_XB1)
+					#define VELOCITY_EPSILON 0.00005
+				#else
+					#define VELOCITY_EPSILON 0.0001
+				#endif
+
+				// This is ~15px for a 1920x1080 back_buffer
+				#define MAX_COC 0.00925925925 
+
+				// The first 8 terms of a base 3 halton sequence
+				static const float halton_sequence_1d[8] = { 1.0/3.0, 2.0/3.0, 1.0/9.0, 4.0/9.0, 7.0/9.0, 2.0/9.0, 5.0/9.0, 8.0/9.0};
+
+				// Beyer dithering pattern
+				static const float dither_pattern[4][4] = {
+					{( 0.0/15.0 - 0.5) * 2.0, ( 8.0/15.0 - 0.5) * 2.0, ( 2.0/15.0 - 0.5) * 2.0, (10.0/15.0 - 0.5) * 2.0},
+					{(12.0/15.0 - 0.5) * 2.0, ( 4.0/15.0 - 0.5) * 2.0, (14.0/15.0 - 0.5) * 2.0, ( 6.0/15.0 - 0.5) * 2.0},
+					{( 3.0/15.0 - 0.5) * 2.0, (11.0/15.0 - 0.5) * 2.0, ( 1.0/15.0 - 0.5) * 2.0, ( 9.0/15.0 - 0.5) * 2.0},
+					{(15.0/15.0 - 0.5) * 2.0, ( 7.0/15.0 - 0.5) * 2.0, (13.0/15.0 - 0.5) * 2.0, ( 5.0/15.0 - 0.5) * 2.0}
+				};
+
+				float encode_bit_in_float(in float value, in bool bit) {
+					uint encoded = asint(value.x);
+					encoded = encoded & ~1;
+					encoded += bit;
+					return asfloat(encoded);
+				}
+
+				float decode_bit_from_float(in uint encoded, out bool bit) {
+					bit = ((encoded << 31) == 0);
+					return asfloat(encoded & ~1);
+				}
+
+				float encode_coc(float c) {
+					return saturate((c + 1.0) * 0.5);
+				}
+
+				float decode_coc(float c) {
+					return c * 2.0 - 1.0;
+				}
+
+			#endif
+		"""
+	}
+}

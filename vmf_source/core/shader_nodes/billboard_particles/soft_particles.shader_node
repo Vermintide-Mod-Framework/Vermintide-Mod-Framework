@@ -1,0 +1,59 @@
+group = "Particle Billboard"
+display_name = "Soft Particles"
+
+depends_on = [
+	"core/stingray_renderer/output_nodes/standard_base"
+	"core/stingray_renderer/output_nodes/unlit_base", 
+	"core/stingray_renderer/output_nodes/particle_base", 
+	"core/stingray_renderer/output_nodes/particle_gbuffer_base", 
+	"core/stingray_renderer/output_nodes/particle_distortion_base"]
+
+inputs = {
+	"a9330f88-8b4b-4979-a25e-e7fbe031eabd" = { 
+		name = "opacity" 
+		display_name = "Opacity" 
+		type = "scalar" 
+		domain = "pixel" 
+		is_required = true 
+	}
+
+	"1ee9af1f-65f2-4739-ad28-5ea6a0e68fc3" = { 
+		name = "depth_fade_distance" 
+		display_name = "Depth Fade Distance" 
+		type = "scalar" 
+		domain = "pixel" 
+		is_required = true 
+	}
+}
+
+imports = {
+	pixel_depth = {
+		type = "float"
+		domain = "pixel"
+		output_channel = "pixel_depth"
+	}
+
+	screen_pos = {
+		type = "float2"
+		domain = "pixel"
+		output_channel = "screen_pos"
+	}
+}
+
+defines = ["NEEDS_PIXEL_DEPTH", "NEEDS_LINEAR_DEPTH", "NEEDS_SCREEN_POS"]
+
+domain = "pixel"
+output = {
+	type = { typeof: "opacity" }
+}
+
+language = "hlsl"
+code = """
+	#if defined(HAS_LINEAR_DEPTH)
+		float gbuffer_depth = gbuffer_decode_depth(TEX2D(linear_depth, screen_pos.xy));
+		float result = opacity * saturate(abs(gbuffer_depth - pixel_depth) / depth_fade_distance);
+	#else
+		float result = opacity;
+	#endif
+	RESULT(result);
+"""

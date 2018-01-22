@@ -1,0 +1,13 @@
+group = "Math"
+display_name = "Square Root"
+inputs = {
+	"19ef1275-ff3f-4a97-be76-9f8c65bed7aa" = { name = "a" display_name = "A" type = "auto" }
+}
+
+output = {
+	type = { typeof: "a" }
+}
+
+code = """
+	RESULT(sqrt(a));
+"""

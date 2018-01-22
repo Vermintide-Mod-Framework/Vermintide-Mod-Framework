@@ -1,0 +1,13 @@
+group = "Math"
+display_name = "Absolute"
+inputs = {
+	"f36f88b8-8111-4fc3-b56c-32a80e7db111" = { name = "a" display_name = "A" type = "auto" }
+}
+
+output = {
+	type = { typeof: "a" }
+}
+
+code = """
+	RESULT(abs(a));
+"""

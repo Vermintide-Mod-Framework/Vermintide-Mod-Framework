@@ -1,0 +1,35 @@
+group = "Utility"
+display_name = "Option Switch"
+inputs = {
+	"34654E2D-A837-462D-8A9E-27E9700AF34B" = { name = "a" display_name = "Enabled" type = "auto" }
+	"E1797178-8357-4545-A104-DDDFC5452428" = { name = "b" display_name = "Disabled" type = "auto" }
+}
+
+output = {
+	type = { typeof: "a" }
+}
+
+options = {
+	"B7F82F51-D658-453E-9E48-FC00F79D57D3" = "OPTION_DISABLED"
+	"96FC39FC-908B-454E-8DC5-FED9B0848619" = "OPTION_ENABLED"
+}
+
+ui = [
+	{
+		type = "drop_down"
+		display_name = "Option"
+		options = {
+			"Disabled" = "B7F82F51-D658-453E-9E48-FC00F79D57D3"
+			"Enabled" = "96FC39FC-908B-454E-8DC5-FED9B0848619"
+		}
+		default = "B7F82F51-D658-453E-9E48-FC00F79D57D3"
+	}
+]
+
+code = """
+	#if defined(OPTION_ENABLED)
+		RESULT(a);
+	#else
+		RESULT(b);
+	#endif
+"""

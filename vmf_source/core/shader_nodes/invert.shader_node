@@ -1,0 +1,13 @@
+group = "Math"
+display_name = "Invert / One Minus"
+inputs = {
+	"DB6BAC1D-3931-42BD-BD08-829BFBCBAD47" = { name = "a" display_name = "A" type = "auto"}
+}
+
+output = {
+	type = { typeof: "a" }
+}
+
+code = """
+	RESULT(1.0 - a);
+"""

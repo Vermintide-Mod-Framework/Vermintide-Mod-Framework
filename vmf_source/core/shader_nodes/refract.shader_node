@@ -1,0 +1,42 @@
+group = "Math"
+display_name = "Refract"
+inputs = {
+	"061d4f41-aed3-4f91-843f-bcb4ed0084ed" = { name = "ray" display_name = "In Vector" type = { vector2:[] vector3:[] vector4:[] } }
+	"93312e6b-6a60-4ac1-991e-d999857424a9" = { name = "normal" display_name = "Normal" type = { vector2:[] vector3:[] vector4:[] } }
+	"1eabad46-a82f-4f11-9e92-414d90b5fff3" = { name = "index" display_name = "Index" type = "scalar" }
+}
+
+output = {
+  type = { typeof: "ray" }
+}
+
+code_blocks = {
+	gnm_refract_block = {
+		code = """
+			#if defined(RENDERER_GNM)
+				inline float2 gnm_refract(float2 r, float2 n, float i) { return refract(float3(r,0), float3(n,0), i).xy; }
+				inline float2 gnm_refract(float2 r, float3 n, float i) { return refract(float3(r,0), n, i).xy; }
+				inline float2 gnm_refract(float2 r, float4 n, float i) { return refract(float3(r,0), n.xyz, i).xy; }
+
+				inline float3 gnm_refract(float3 r, float2 n, float i) { return refract(r, float3(n,0), i); }
+				inline float3 gnm_refract(float3 r, float3 n, float i) { return refract(r, n, i); }
+				inline float3 gnm_refract(float3 r, float4 n, float i) { return refract(r, n.xyz, i); }
+
+				inline float4 gnm_refract(float4 r, float2 n, float i) { return float4(refract(r.xyz, float3(n,0), i), 0); }
+				inline float4 gnm_refract(float4 r, float3 n, float i) { return float4(refract(r.xyz, n, i), 0); }
+				inline float4 gnm_refract(float4 r, float4 n, float i) { return float4(refract(r.xyz, n.xyz, 0), 0); } 
+			#endif
+		"""
+	}
+
+	default = {
+		include: ["gnm_refract_block"]
+		code = """
+			#if defined(RENDERER_GNM)
+				RESULT(gnm_refract(ray, normal, index));
+			#else
+				RESULT(refract(ray, normal, index));
+			#endif
+		"""
+	}
+}

@@ -1,0 +1,15 @@
+group = "Construct"
+display_name = "Construct Vector3"
+inputs = {
+	"c010729f-6137-412c-99a5-f263fdeaa53c" = { name = "r" display_name = "R" type = "scalar"}
+	"d6179868-364c-4f38-bdc0-ea639b305015" = { name = "g" display_name = "G" type = "scalar"}
+	"6cce8b1d-5c70-44ea-bea3-b1ceafeb750e" = { name = "b" display_name = "B" type = "scalar"}
+}
+
+output = {
+	type = "float3"
+}
+
+code = """
+	RESULT(float3(r,g,b));
+"""

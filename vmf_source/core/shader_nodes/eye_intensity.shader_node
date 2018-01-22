@@ -1,0 +1,18 @@
+group = "Fatshark"
+display_name = "Eye Intensity"
+
+imports = {
+	eye_intensity = {
+		type = "float"
+		domain = "global"
+		source = "shading_environment"
+	}
+}
+
+output = {
+	type = { typeof: "eye_intensity" }
+}
+
+code = """
+	RESULT(eye_intensity);
+"""

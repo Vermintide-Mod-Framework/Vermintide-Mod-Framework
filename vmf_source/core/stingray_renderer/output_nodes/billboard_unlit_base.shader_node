@@ -1,0 +1,243 @@
+group = "Output"
+display_name = "Billboard Unlit Base"
+output_node = true
+render_configs = ["core/stingray_renderer/renderer"]
+
+inputs = {
+	"aee6e47b-be7b-4d67-a123-2ab5d660b94e" = {
+		name = "vertex_offset"
+		display_name = "Position offset"
+		is_required = false
+		type = { vector3: ["HAS_VERTEX_OFFSET"] }
+		domain = "vertex"
+	}
+
+	"aca690cb-6305-4a2f-bf3d-69183a493db3" = {
+		name = "base_color"
+		is_required = false
+		display_name = "Base Color"
+		type = { vector3: ["HAS_BASE_COLOR"] }
+		domain = "pixel"
+	}
+
+	"34259752-b962-4b65-92c3-903a57338519" = {
+		name = "opacity"
+		is_required = false
+		display_name = "Opacity"
+		type = { scalar: ["HAS_OPACITY"] }
+		domain = "pixel"
+	}
+}
+
+
+options = {
+	"d1a42a54-0794-4d57-9aa0-eb35acb6b35c" = "INSTANCED"
+	"8df1b8f7-17c2-4ae4-8c4e-25517ec1df46" = "DOUBLE_SIDED"
+	"34994d84-9d51-48ac-af85-bc053b2c65c3" = "SKIN"
+	"e1bfa889-2503-4ac3-9134-c08a7fa04568" = "PROJECT_TO_FAR_PLANE"
+	"6a6241cc-7d21-4e2e-87c8-8d9c7bdcd322" = "CAMERA_TRANSLATION_LOCK"
+	"435e14e4-556d-4ac1-af14-8dafe63aff8f" = "BLEND_TRANSPARENT"
+	"52c7ce01-ee57-4770-914e-727fc1966962" = "LAYER_EMISSIVE"
+	"da09a694-b81f-4684-9912-61294914fd70" = "LAYER_SKYDOME_BILLBOARD"
+	"4c3163d4-c086-4645-ba1c-0d68a98022a1" = "LAYER_HDR_TRANSPARENT"
+	"c8d8b754-c567-4c7b-9cbd-8acab22beff5" = "LAYER_TRANSPARENT"
+	"afe47c59-33c4-43b2-af4a-817085b1113c" = "DEPTH_TEST_INVERTED"
+	"774556cd-2d1e-4df8-8ae2-5e84800f0c04" = "DEPTH_TEST_DISABLED"
+	"7b8bc0bf-c453-49d2-9415-0e80fec1039f" = "DISABLE_DEPTH_WRITE"
+	"b2556764-e8e9-47cf-9ecc-f53b5d5d73c7" = "HAS_CUSTOM_FOV"
+	"72ecf75c-f85f-49a2-8708-cd3158c1afa8" = "BILLBOARD_TANGENT_ALIGNED" 
+	"33aec36d-02fd-4494-81b5-02b9d6ebf4bb" = "BILLBOARD_CAMERA_ALIGNED"
+	"7ae0cdd4-6508-433d-a994-9f2d4ba7b336" = "BILLBOARD_TANGENT_ALIGNED_X_LOCKED"
+	"774ef841-1d96-4a1f-8b6d-da8007bfe93e" = "BILLBOARD_TANGENT_ALIGNED_Y_LOCKED"
+	"d8ad7502-a44d-4cf0-920e-957a477f5c86" = "BILLBOARD_SPHERICAL_NORMAL"
+	"7afd3648-ebd1-4a40-94b4-a07e59a6fbb2" = "DISABLE_WRITE_DEPTH"
+	"7fb0b18d-1725-4e76-b3fe-f7a59b607f98" = "SECONDARY_SUN_DIRECTION"
+}
+
+ui = [
+	{
+		type = "drop_down"
+		display_name = "Billboard Option"
+		options = {
+			"Screen Aligned" 	= "00000000-0000-0000-0000-000000000000"
+			"Camera Aligned" 	= "33aec36d-02fd-4494-81b5-02b9d6ebf4bb"
+			"Tangent Aligned" 	= "72ecf75c-f85f-49a2-8708-cd3158c1afa8"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+	{
+		type = "drop_down"
+		display_name = "Tangent Aligned Axis"
+		options = {
+			"Z-Axis" = "00000000-0000-0000-0000-000000000000"
+			"Y-Axis" = "774ef841-1d96-4a1f-8b6d-da8007bfe93e"
+			"X-Axis" = "7ae0cdd4-6508-433d-a994-9f2d4ba7b336"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+	{
+		type = "drop_down"
+		display_name = "Skydome Billboard Direction"
+		options = {
+			"Sun Direction" 			= "00000000-0000-0000-0000-000000000000"
+			"Secondary Sun Direction" 	= "7fb0b18d-1725-4e76-b3fe-f7a59b607f98"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+	{
+		type = "drop_down"
+		display_name = "Normal Options"
+		options = {
+			"Plane Normal"				= "00000000-0000-0000-0000-000000000000"
+			"Spherical Plane Normal"	= "d8ad7502-a44d-4cf0-920e-957a477f5c86"
+
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+
+	{
+		type = "drop_down"
+		display_name = "Layer"
+		options = {
+			"Emissive"			= "52c7ce01-ee57-4770-914e-727fc1966962"
+			"Skydome Billboard"	= "da09a694-b81f-4684-9912-61294914fd70"
+			"HDR Transparent" 	= "4c3163d4-c086-4645-ba1c-0d68a98022a1"
+			"LDR Transparent" 	= "c8d8b754-c567-4c7b-9cbd-8acab22beff5"
+		}
+		default = "4c3163d4-c086-4645-ba1c-0d68a98022a1"
+	}
+
+	{
+		type = "drop_down"
+		display_name = "Depth Testing"
+		options = {
+			"Normal"	= "00000000-0000-0000-0000-000000000000"
+			"Inverted"	= "afe47c59-33c4-43b2-af4a-817085b1113c"
+			"Disabled"	= "774556cd-2d1e-4df8-8ae2-5e84800f0c04"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+
+	{
+		type = "drop_down"
+		display_name = "Blend Mode"
+		options = {
+			"Opaque"		= "00000000-0000-0000-0000-000000000000"
+			"Transparent"	= "435e14e4-556d-4ac1-af14-8dafe63aff8f"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+
+	{ type = "checkbox" display_name = "Disable Depth Writes" option = "7b8bc0bf-c453-49d2-9415-0e80fec1039f" }
+	{ type = "checkbox" display_name = "Double Sided" option = "8df1b8f7-17c2-4ae4-8c4e-25517ec1df46" }
+	{ type = "checkbox" display_name = "Instancing" option = "d1a42a54-0794-4d57-9aa0-eb35acb6b35c" }
+	{ type = "checkbox" display_name = "Project to Far Plane" option = "e1bfa889-2503-4ac3-9134-c08a7fa04568" }
+	{ type = "checkbox" display_name = "Camera Translation Lock" option = "6a6241cc-7d21-4e2e-87c8-8d9c7bdcd322" }
+	{ type = "checkbox" display_name = "Custom FOV" option = "b2556764-e8e9-47cf-9ecc-f53b5d5d73c7" }
+]
+
+render_state = {
+	skydome_billboard = {
+		inherit: ["core/stingray_renderer/shader_libraries/common#default"]
+		state: {
+			write_mask0 = "red|green|blue"
+
+			"defined(BLEND_TRANSPARENT)" = {
+				blend_enable = "true"
+				blend_op = "blend_op_add"
+				dest_blend = "blend_inv_src_alpha"
+				src_blend = "blend_one"
+			}
+
+			"defined(DEPTH_TEST_DISABLED)" = {
+				z_enable = "false"
+			}
+			
+			z_write_enable = "false"
+		}
+	}
+}
+
+sampler_state = { }
+
+channels = 	{
+	"defined(NEEDS_EYE_VECTOR)": {
+		eye_vector = { type = "float3" domain = "vertex" }
+	}
+
+	"defined(NEEDS_WORLD_SPACE_NORMAL)": {
+		world_space_normal = { type = "float3" domains = ["vertex", "pixel"] }
+	}
+
+	"defined(MOTION_BLUR)": {
+		last_clip_position = { type = "float3" domains = ["vertex", "pixel"] }
+	}
+
+	"defined(MATERIAL_TRANSFER)": {
+		lightmap_uv = { type = "float2" semantic="TEXCOORD1" domains = ["vertex"] }
+	}
+
+	"defined(NEEDS_SCREEN_POS)": {
+		screen_pos = { type = "float2" domain = "pixel" }
+	}
+
+	"defined(NEEDS_PIXEL_DEPTH)": {
+		pixel_depth = { type = "float" domain = "pixel" }
+	}
+
+	vertex_position = { type = "float4" domain = "vertex" }
+	vertex_normal = { type = "float3" semantic = "NORMAL" domain = "vertex" }
+}
+
+permutation_sets = {
+	vertex_modifiers = [
+		{ if: "num_skin_weights() == 4" define: { "macros": ["SKINNED_4WEIGHTS"] stages: ["vertex"] } }
+		{ if: "num_skin_weights() == 3" define: { "macros": ["SKINNED_3WEIGHTS"] stages: ["vertex"] } }
+		{ if: "num_skin_weights() == 2" define: { "macros": ["SKINNED_2WEIGHTS"] stages: ["vertex"] } }
+		{ if: "num_skin_weights() == 1" define: { "macros": ["SKINNED_1WEIGHT"]  stages: ["vertex"] } }
+		{ default = true }
+	]
+
+	instanced_modifiers = [
+		{ default = true }
+	]
+	
+	non_instanced_modifiers = [
+		{ permute_with: "vertex_modifiers" }
+	]
+
+	default = [
+		{ if: "defined(INSTANCED)" permute_with: "instanced_modifiers" }
+		{ if: "!defined(INSTANCED)" permute_with: "non_instanced_modifiers" }
+	]
+}
+
+shader_contexts = {
+	default = {
+		passes_sort_mode = "deferred"
+		compile_with = [
+			{ if: "on_renderer(D3D11, D3D12, GNM, GL) && defined(BLEND_TRANSPARENT) && defined(LAYER_HDR_TRANSPARENT) && render_setting(low_res_transparency)" defines=["LOW_RES_ENABLED"] permute_with: "default" }
+			{ if: "on_renderer(D3D11, D3D12, GNM, GL)" permute_with: "default" }
+		]
+
+		passes = [
+			{ if: "defined(LAYER_EMISSIVE)" then: [
+				{ layer="emissive" code_block="core/stingray_renderer/output_nodes/unlit_base#unlit" defines=["BILLBOARD" "MOTION_BLUR"] render_state="core/stingray_renderer/output_nodes/unlit_base#unlit" }
+			]}	
+			{ if: "defined(LAYER_SKYDOME_BILLBOARD)" then: [
+				{ layer="skydome_billboard" code_block="core/stingray_renderer/output_nodes/unlit_base#unlit" defines={ macros: ["BILLBOARD"] stages: ["vertex"] } render_state="skydome_billboard" }
+			]}
+			{ if: "defined(LAYER_HDR_TRANSPARENT)" then: [
+				{ layer="hdr_transparent" code_block="core/stingray_renderer/output_nodes/unlit_base#unlit" defines={ macros: ["BILLBOARD"] stages: ["vertex"] } render_state="core/stingray_renderer/output_nodes/unlit_base#unlit" }
+			]}
+
+			{ if: "defined(LAYER_TRANSPARENT)" then: [
+				{ layer="transparent" code_block="core/stingray_renderer/output_nodes/unlit_base#unlit" defines={ macros: ["BILLBOARD"] stages: ["vertex"] } render_state="core/stingray_renderer/output_nodes/unlit_base#unlit" }
+			] else: [
+				{ if: "!on_renderer(GL)" then: [
+					{ layer="wireframe" code_block="core/stingray_renderer/output_nodes/unlit_base#unlit" defines=["BILLBOARD" "DRAW_WIREFRAME"] render_state="core/stingray_renderer/output_nodes/unlit_base#wireframe" branch_key="dev_wireframe" }
+				]}
+			]}
+		]
+	}
+}

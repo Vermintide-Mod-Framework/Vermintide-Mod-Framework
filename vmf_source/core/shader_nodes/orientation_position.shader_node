@@ -1,0 +1,31 @@
+group = "Orientation"
+display_name = "Position"
+depends_on = ["core/stingray_renderer/output_nodes/standard_base", "core/stingray_renderer/output_nodes/light_base"]
+
+defines = ["NEEDS_WORLD_POSE"]
+
+imports = {
+	world = {
+		type = "float4x4"
+		domain = "global"
+		source = "engine"
+	}
+}
+
+output = {
+	type = "float3"
+}
+
+code_blocks = {
+    default = {
+        code = {
+			glsl = """
+				RESULT(vec3(world[0].w, world[1].w, world[2].w));
+			"""
+
+			hlsl = """
+				RESULT(world._m30_m31_m32);
+			"""
+		}
+	}
+}

@@ -1,0 +1,23 @@
+mod =  [
+	"vmf"
+]
+
+package = [
+	"resource_packages/vmf"
+]
+
+material = [
+	"materials/header_background"
+	"materials/header_background_lit"
+]
+
+lua = [
+  "scripts/mods/vmf/vmf_loader"
+  "scripts/mods/vmf/modules/old_hook_and_console"
+  "scripts/mods/vmf/modules/mods"
+  "scripts/mods/vmf/modules/hooks"
+  "scripts/mods/vmf/modules/settings"
+  "scripts/mods/vmf/modules/gui"
+  "scripts/mods/vmf/modules/vmf_options_view"
+	"scripts/mods/vmf/modules/testing_stuff_here"
+]

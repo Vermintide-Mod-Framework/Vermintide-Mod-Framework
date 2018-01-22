@@ -1,0 +1,15 @@
+group = "Math"
+display_name = "Smoothstep"
+inputs = {
+	"1a8071d5-29fa-44f1-a22d-9c08b526e4a5" = { name = "max" display_name = "Max" type = "auto" }
+	"026ff907-516a-41d3-9170-d09ff255ace8" = { name = "min" display_name = "Min" type = "auto" }
+	"19ef1275-ff3f-4a97-be76-9f8c65bed7aa" = { name = "x" display_name = "X" type = "auto" }
+}
+
+output = {
+	type = { typeof: "max" }
+}
+
+code = """
+	RESULT(smoothstep(min,max,x));
+"""

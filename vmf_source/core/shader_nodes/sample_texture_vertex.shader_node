@@ -1,0 +1,115 @@
+group = "Sampling"
+display_name = "Sample Texture VS"
+inputs = {
+	"1ee9af1f-65f2-4739-ad28-5ea6a0e68fc3" = { name = "texcoord" display_name = "UV" type = "vector2" domain = "pixel" }
+	"aa23e053-3c53-40f7-a06f-23d5d5a65924" = { name = "mip_level" is_required = true display_name = "Mip Level" type = { scalar: ["HAS_MIPLEVEL"] } }
+}
+
+domain = "vertex"
+output = {
+	type = "float4"
+}
+
+options = {
+	"acb6ef9d-5ba0-42e4-85f3-2924b4b4be25" = "ADDRESS_CLAMP"
+	"5dd59b3d-1762-4a14-9930-7500230ef3db" = "ADDRESS_WRAP"
+	"f669a3a6-0376-4187-840e-80000e2939d5" = "FILTER_LINEAR"
+	"43dea0e2-a77d-410d-88bb-945dac9139d8" = "FILTER_POINT"
+	"1e067464-12d8-4826-9b72-cfd5765003e3" = "FILTER_ANISOTROPIC"
+	"fb3f709b-a54a-4e93-ac9f-e9fc76fb8bcd" = "SRGB"
+    "90e20826-8689-42fa-8e24-f484ec64c5c3" = "NORMAL_MAP_DECODE"
+    "43710e4f-f52a-4038-8ec8-d6cb0546103b" = "RGBM_DECODE"
+    "e94e53e6-49b6-4194-a747-8f064a5932e0" = "LINEAR"
+    "0268506C-B417-49DC-BBBE-3D5949595940" = "FLIP_GREEN"
+    "aea8c8f4-81e6-4784-bc83-bee2f73eea58" = "NORMAL_ROUGHNESS_DECODE"
+}
+
+ui = [
+	{
+		type = "drop_down"
+		display_name = "Encoding"
+		options = {
+			"Linear Color" = "e94e53e6-49b6-4194-a747-8f064a5932e0"
+			"sRGB Color" = "fb3f709b-a54a-4e93-ac9f-e9fc76fb8bcd"
+			"Normal Map" = "90e20826-8689-42fa-8e24-f484ec64c5c3"
+			"Normal Roughness Map" = "aea8c8f4-81e6-4784-bc83-bee2f73eea58"
+			"RGBM Color" = "43710e4f-f52a-4038-8ec8-d6cb0546103b"
+		}
+		default = "fb3f709b-a54a-4e93-ac9f-e9fc76fb8bcd"
+	}
+	{
+		type = "drop_down"
+		display_name = "Address mode"
+		options = {
+			"Clamp" = "acb6ef9d-5ba0-42e4-85f3-2924b4b4be25"
+			"Wrap" = "5dd59b3d-1762-4a14-9930-7500230ef3db"
+		}
+		default = "5dd59b3d-1762-4a14-9930-7500230ef3db"
+	}
+	{
+		type = "drop_down"
+		display_name = "Filter mode"
+		options = {
+			"Anisotropic" = "1e067464-12d8-4826-9b72-cfd5765003e3"
+			"Linear" = "f669a3a6-0376-4187-840e-80000e2939d5"
+			"Point" = "43dea0e2-a77d-410d-88bb-945dac9139d8"
+		}
+		default = "1e067464-12d8-4826-9b72-cfd5765003e3"
+	}
+	{ type = "checkbox" display_name = "Invert Green Channel" 					option = "0268506C-B417-49DC-BBBE-3D5949595940" }
+]
+
+code_blocks = {
+	default = {
+		language = "hlsl"
+		samplers = {
+			texture_map = {
+				display_name = "Texture"
+				type = "2d"
+				sampler_state = "core/shader_nodes/graph_common#default_node_sampler"
+				source = "material"
+			}
+		}
+
+		code = """
+			float4 result;
+			#if defined(HAS_MIPLEVEL)
+				result = TEX2DLOD(texture_map, texcoord, mip_level);
+			#else
+				result = TEX2D(texture_map, texcoord);
+			#endif
+				
+			#if defined(FLIP_GREEN)
+				result.y = 1.0-result.y;
+			#endif
+
+			#if defined(RENDERER_GL) && defined(SRGB)
+				result = fast_gamma_to_linear_rgb(result);
+			#endif
+
+			#if defined(NORMAL_MAP_DECODE)
+				result = float4(decode_normal_map(result), result.a);
+			#elif defined(RGBM_DECODE)
+				result = float4(rgbm_decode(result), result.a);
+			#elif defined(NORMAL_ROUGHNESS_DECODE)
+				float3 N = 2.0*result.rgb - 1.0;
+				float roughness = result.a;
+				#if 0
+					// Specular AA
+					// TODO: Pre-bake this code
+					// http://blog.selfshadow.com/publications/s2013-shading-course/rad/s2013_pbs_rad_notes.pdf
+					float r = length(N);
+					if (r < 1.0) {
+						float rr = r * r ;
+						float kappa = (3.0 * r - r * rr) / (1.0 - rr) ;
+						float variance = 1.0 / (2.0 * kappa) ;
+						roughness = sqrt (roughness * roughness + variance);
+					 }
+				#endif
+				result = float4(normalize(N), roughness);
+			#endif
+
+			RESULT(result);
+		"""
+	}
+}

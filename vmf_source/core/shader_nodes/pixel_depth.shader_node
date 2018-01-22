@@ -1,0 +1,29 @@
+group = "Fatshark"
+display_name = "Camera Depth"
+
+depends_on = [
+	"core/stingray_renderer/output_nodes/standard_base"
+	"core/stingray_renderer/output_nodes/unlit_base", 
+	"core/stingray_renderer/output_nodes/particle_base", 
+	"core/stingray_renderer/output_nodes/particle_gbuffer_base", 
+	"core/stingray_renderer/output_nodes/particle_distortion_base"]
+
+imports = {
+	pixel_depth = {
+		type = "float"
+		domain = "pixel"
+		output_channel = "pixel_depth"
+	}
+}
+
+defines = ["NEEDS_PIXEL_DEPTH"]
+
+domain = "pixel"
+output = {
+	type = "float"
+}
+
+language = "hlsl"
+code = """
+	RESULT(pixel_depth - camera_near_far.x);
+"""

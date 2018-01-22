@@ -1,0 +1,129 @@
+group = "Animation"
+display_name = "Vegetation Animation"
+depends_on = ["core/stingray_renderer/output_nodes/standard_base"]
+
+inputs = {
+	"3e1d53e1-301e-4d75-90f9-485c5f5b001c" = { name = "vertex_position" display_name = "Vertex Position" type = "vector4"}
+	"40bc989e-34f6-4422-9742-e45597516edd" = { name = "vertex_color" display_name = "Vertex Color" type = "vector4" }
+	"f7bc6467-5f47-49b0-89b4-55711dcd7bb2" = { name = "normal" display_name = "World Normal" type = "vector3" }
+	"12bc956e-5e4a-46b0-8264-e785975cbe12" = { name = "time" display_name = "Time" type = "scalar" }
+	"AA743CA6-7F0A-4836-BEEB-DCAECC466E08" = { name = "vegetation_speed" display_name = "Speed" is_required = false type = {scalar: ["HAS_SPEED"]} }
+	"F4547919-4A0A-44B7-B78F-1624EB8D1A81" = { name = "branch_settings" display_name = "Bend Amplitude/Frequency" is_required = false type = {vector2: ["HAS_BRANCH"]} }
+	"B73F4EB0-088F-424D-95F8-BF18FE90C24A" = { name = "detail_settings" display_name = "Detail Amplitude/Frequency" is_required = false type = {vector2: ["HAS_DETAIL"]} }
+	"237C535E-B07D-4F06-B13F-4485CCF6B8BD" = { name = "wind_vector" display_name = "Wind" is_required = false type = {vector3: ["HAS_WIND"]} }
+	"E4EE528C-37B0-4DD4-8D60-CA8D8F4162E0" = { name = "bend_scale" display_name = "Bend Scale" is_required = false type = {scalar: ["HAS_BENDSCALE"]} }
+}
+
+defines = ["NEEDS_WORLD_POSE"]
+
+imports = {
+	world = {
+		type = "float4x4"
+		domain = "global"
+		source = "engine"
+	}
+}
+
+output = {
+	type = "float3"
+}
+
+code_blocks = {
+	vegetation_bending = {
+		code="""
+			// Vegetation vertex animation (based on GPUGems 3 chapter by Tiago Sousa / Crytek)
+			// sine waves approximation by smoothing a number of triangle waves using bicubic interpolation.
+			inline float4 smooth_curve( float4 x ) {
+				return x * x * (3.0 - 2.0 * x);
+			}
+
+			inline float4 triangle_wave( float4 x ) {
+				return abs(frac(x + 0.5) * 2.0 - 1.0);
+			}
+
+			inline float4 smooth_triangle_wave( float4 x ) {
+				return smooth_curve(triangle_wave(x));
+			}
+
+			static const float4 vegetation_freq = float4(1.975, 0.793, 0.375, 0.193);
+			inline float3 vegetation_detail_bending(float3 object_pos, float3 vnormal, float4 vdata, float3 vertex_pos, float speed, float2 branch_settings, float2 detail_settings, float time) {
+				float detail_amp = detail_settings.x;
+				float detail_freq = detail_settings.y;
+
+				float branch_amp = branch_settings.x;
+				float branch_freq = branch_settings.y;
+
+				float edge_attenuation = vdata.x * vdata.z;
+				float branch_phase = vdata.y * 2.0 - 1.0;
+				float branch_attenuation = vdata.z;
+
+				float detail_phase = dot(vertex_pos.xyz, float3(branch_phase, branch_phase, branch_phase));
+
+				float2 waves_in = time + float2(detail_phase, branch_phase);
+
+				float4 waves = (frac(waves_in.xyxy * vegetation_freq * float2(detail_freq, branch_freq).xyxy * speed) * 2.0 - 1.0);
+				waves = smooth_triangle_wave(waves);
+
+				float2 waves_sum = (waves.xz + waves.yw);
+				return waves_sum.xxy * float3(edge_attenuation * detail_amp * vnormal.xy, branch_attenuation * branch_amp);
+			}
+
+			inline float3 vegetation_main_bending(float3 vertex_pos, float3 wind, float bend_scale, float3 object_pos) {
+				// Reset the world vertex to object space
+				vertex_pos -= object_pos;
+				float bend_factor = vertex_pos.z * bend_scale;
+				// Smooth bending factor and increase its nearby height limit.
+				bend_factor += 1.0;
+				bend_factor *= bend_factor;
+				bend_factor = bend_factor * bend_factor - bend_factor;
+				// Displace position
+				float3 new_pos = vertex_pos;
+				new_pos.xy += wind.xy * bend_factor;
+				float height = length(vertex_pos);
+				// reduce stretch
+				new_pos = normalize(new_pos) * height;
+				// output as offset to existing vertex position
+				return (new_pos - vertex_pos);
+			}
+
+			inline float3 vegetation_bending(float3 object_pos, float3 vnormal, float4 vdata, float4 vertex_pos, float speed, float2 branch_settings, float2 detail_settings, float time, float3 wind, float bend_scale) {
+				float3 new_pos = vegetation_main_bending(vertex_pos.xyz, wind, bend_scale, object_pos);
+				new_pos += vegetation_detail_bending(object_pos, vnormal, vdata, vertex_pos.xyz, speed, branch_settings, detail_settings, time);
+				return new_pos;
+			}
+
+		"""
+	}
+
+	default = {
+		include: ["vegetation_bending"]
+		code = """
+			#if defined(RENDERER_GL)
+				float3 object_pos = float3(world[0].w, world[1].w, world[2].w);
+			#else
+				float3 object_pos = world._m30_m31_m32;
+			#endif
+
+			#if !defined(HAS_SPEED)
+				float vegetation_speed = 0.5;
+			#endif
+
+			#if !defined(HAS_BRANCH)
+				float2 branch_settings = float2(0.3, 0.1);
+			#endif
+
+			#if !defined(HAS_DETAIL)
+				float2 detail_settings = float2(0.05, 0.5);
+			#endif
+
+			#if !defined(HAS_WIND)
+				float3 wind_vector = float3(1.0, 1.0, 0.0);
+			#endif
+
+			#if !defined(HAS_BENDSCALE)
+				float bend_scale = 0.005;
+			#endif
+			RESULT(vegetation_bending(object_pos, normal, vertex_color, vertex_position, vegetation_speed, branch_settings, detail_settings, time, wind_vector, bend_scale));
+		"""
+	}
+}

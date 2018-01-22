@@ -1,0 +1,23 @@
+group = "Decal"
+display_name = "Decal Box Edge Distance"
+depends_on = ["core/stingray_renderer/output_nodes/decal_base"]
+
+
+defines = ["NEEDS_OBJECT_POSITION"]
+
+imports = {
+	object_position = {
+		type = "float3"
+		domain = "pixel"
+		output_channel = "object_position"
+	}
+}
+
+output = {
+	type = "float"
+}
+
+code = """
+	float3 dist = min(object_position - bounding_volume._m00_m01_m02, bounding_volume._m10_m11_m12 - object_position) * bounding_volume._m20_m21_m22;
+	RESULT(min(dist.x, min(dist.y, dist.z)));
+"""

@@ -1,0 +1,18 @@
+group = "Input"
+display_name = "Time"
+
+imports = {
+	time = {
+		type = "float"
+		domain = "global"
+		source = "engine"
+	}
+}
+
+output = {
+	type = { typeof: "time" }
+}
+
+code = """
+	RESULT(time);
+"""

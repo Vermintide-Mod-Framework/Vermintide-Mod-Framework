@@ -1,0 +1,40 @@
+group = "Particle Billboard"
+display_name = "UV Animation"
+
+inputs = {
+	"8a8a12c1-e3b5-4666-a9dd-b6b083f75e7a" = { name = "uv" display_name = "UV" type = "float2" is_required = true }
+	"242d1648-a626-445b-9534-bccec094112f" = { name = "frame_size" display_name = "Frame Size" type = "float2" is_required = true }
+	"c5823c75-4ae5-4c71-b070-315fa4d03e8e" = { name = "graph_uv_frame" display_name = "UV Frame (Debug Only)" type = { scalar: ["HAS_UV_FRAME"] } is_required = false }
+}
+
+imports = {
+	vertex_uv_frame = { 
+		type = "float"
+		domain = "vertex"
+		output_channel = "uv_frame"
+	}
+}
+
+defines = ["NEEDS_UV_ANIMATION"]
+
+output = {
+	type = { typeof: "uv" }
+}
+
+code = """
+	float uv_frame;
+	#if defined(HAS_UV_FRAME)
+		uv_frame = graph_uv_frame;
+	#else
+		uv_frame = vertex_uv_frame;
+	#endif
+
+	uv *= frame_size;						
+	float n_frames = 1.0 / frame_size.x;
+	int frame_x = fmod(uv_frame, n_frames);
+	int frame_y = uv_frame / n_frames;
+	float2 offset = float2(frame_x * frame_size.x, frame_y * frame_size.y);
+	uv += offset;
+
+	RESULT(uv);
+"""

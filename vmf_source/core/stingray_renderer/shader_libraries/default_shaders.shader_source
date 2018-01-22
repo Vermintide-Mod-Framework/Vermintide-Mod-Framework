@@ -1,0 +1,512 @@
+includes = ["core/stingray_renderer/shader_libraries/common.shader_source"]
+
+render_states = {
+	line_object = {
+		inherits = "opacity"
+		states = {
+			defined_DEPTH_TEST_DISABLED = {
+				z_enable = "false"
+			}
+		}
+	}
+
+	gui = {
+		inherits = "opacity"
+		states = {
+			ndefined_DEPTH_TEST_ENABLED = {
+				z_enable = "false"
+			}
+			z_write_enable = "false"
+			defined_WRITE_MASK = {
+				blend_enable = "false"
+				write_mask0 = "alpha"
+			}
+			defined_MASKED = {
+				blend_enable = "true"
+				blend_op = "blend_op_add"
+				dest_blend = "blend_inv_dest_alpha"
+				src_blend = "blend_dest_alpha"
+			}
+		}
+	}
+
+
+	missing_shader = {
+		inherits = "opacity"
+		states = {
+			cull_mode = "cull_none"
+		}
+	}
+
+}
+
+hlsl_shaders = {
+	gui = {
+		includes = [ "common" ]
+
+		samplers = {
+			defined_DIFFUSE_MAP = {
+				defined_TILE_DIFFUSE_MAP = {
+					defined_POINT_SAMPLE = {
+						diffuse_map = { sampler_states = "wrap_point" }
+					}
+					ndefined_POINT_SAMPLE = {
+						diffuse_map = { sampler_states = "wrap_linear" }
+					}					
+				}
+				ndefined_TILE_DIFFUSE_MAP = {
+					defined_POINT_SAMPLE = {
+						diffuse_map = { sampler_states = "clamp_point" }
+					}
+					ndefined_POINT_SAMPLE = {
+						diffuse_map = { sampler_states = "clamp_linear" }	
+					}
+				}
+			}
+			defined_YUV_VIDEO = {
+				diffuse_map = { sampler_states = "wrap_linear" }
+				normal_map = { sampler_states = "wrap_linear" }
+			}
+			defined_BINK_VIDEO = {
+				diffuse_map = { sampler_states = "wrap_linear" }
+				normal_map = { sampler_states = "wrap_linear" }
+				material_map = { sampler_states = "wrap_linear" }
+			}
+		}
+
+		vp_code = """
+			PRECISION HIGHP float;
+
+			uniform mat4 world_view_proj;
+
+			in vec4 position0;
+			in lowp vec4 color0;
+			out lowp vec4 v_color;
+
+			#ifdef DIFFUSE_MAP
+				in vec2 texcoord0;
+				out vec2 v_texcoord;
+			#endif
+
+			void main() {
+				#ifdef DIFFUSE_MAP
+					v_texcoord = texcoord0;
+				#endif
+				v_color = color0.bgra;
+
+				gl_Position =  position0 * world_view_proj;
+			}
+		"""
+
+		fp_code = """
+			#ifdef DIFFUSE_MAP
+				uniform sampler2D diffuse_map;
+				in vec2 v_texcoord;
+			#endif
+
+			in LOWP vec4 v_color;
+
+			#ifdef ONE_BIT_ALPHA
+				#define ONE_BIT_ALPHA_REF 0.5
+			#endif
+
+			layout(location = 0) out lowp vec4 color;
+
+			void main() {
+				LOWP vec4 col = v_color;
+				#ifdef DIFFUSE_MAP
+					LOWP vec4 diffuse = texture(diffuse_map, v_texcoord);
+					#ifdef ONE_BIT_ALPHA
+						if (diffuse.a < ONE_BIT_ALPHA_REF)
+							discard;
+
+						col.rgb *= diffuse.rgb;
+					#else
+						col *= diffuse;
+					#endif
+
+				#endif
+
+				#if defined(MASKED)
+					col.rgb *= col.a;
+				#endif
+
+				color = col;
+			}
+		"""
+
+		code="""
+			#define RWGT 0.3086
+			#define GWGT 0.6094
+			#define BWGT 0.0820
+			#define SAT_MAT(s) float3x3( \
+				(1.0 - s) * RWGT + s, \
+				(1.0 - s) * RWGT, \
+				(1.0 - s) * RWGT, \
+				(1.0 - s) * GWGT, \
+				(1.0 - s) * GWGT + s, \
+				(1.0 - s) * GWGT, \
+				(1.0 - s) * BWGT, \
+				(1.0 - s) * BWGT, \
+				(1.0 - s) * BWGT + s \
+				)
+
+			#if defined(DIFFUSE_MAP) || defined(YUV_VIDEO) || defined(BINK_VIDEO)
+				#define UV0
+			#endif
+
+			#if defined(DIFFUSE_MAP)
+				DECLARE_SAMPLER_2D(diffuse_map); // exports={ name="Diffuse Map" type="resource" }
+			#endif
+
+			#if defined(YUV_VIDEO) || defined(BINK_VIDEO)
+				DECLARE_SAMPLER_2D(diffuse_map);
+				DECLARE_SAMPLER_2D(normal_map);
+			#endif
+
+			#if defined(BINK_VIDEO)
+				DECLARE_SAMPLER_2D(material_map);
+			#endif
+
+			#define TAA_GUI_DEPTH_BIAS_RANGE 50.0 // The [0, TAA_GUI_DEPTH_BIAS_RANGE] depth range for which we lerp the min-max depth biases for line drawing
+			#define TAA_GUI_MIN_DEPTH_BIAS 0.001 // The depth offset to add for lines drawn at z = 0
+			#define TAA_GUI_MAX_DEPTH_BIAS 0.05 // The depth offset to add for lines drawn at z >= GUI_DEPTH_BIAS_RANGE
+
+			struct VS_INPUT {
+				float4 position : POSITION;
+				float4 color : COLOR;
+				#if defined(UV0)
+					float2 uv : TEXCOORD0;
+				#endif
+			};
+
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				#if defined(SELECTABLE)
+					float4 color : TEXCOORD1;
+				#else
+					float4 color : COLOR;
+				#endif
+				#if defined(UV0)
+					float2 uv : TEXCOORD0;
+				#endif
+			};
+
+			CBUFFER_START(c0)
+				float4x4 world_view_proj;
+				float threshold_fade; // exports = { name="Threshold Fade" type="scalar" value=0.05 min=0.0 max=1 step=0.001 }
+				#if defined(CLOCK_MASK)
+					float start_angle; // exports = { name="Start angle" type="scalar" value=0.0 min=0.0 max=360.0 step=0.1 }
+					float masked_angle; // exports = { name="Masked angle" type="scalar" value=0.0 min=-360.0 max=360.0 step=0.1 }
+					float2 origin; // exports = { name="Origin" type="vector2" value=[0 0] min=[-256 -256] max=[256 256] step=[1 1] }
+				#endif
+				#if defined(SATURATE)
+					float2 saturate_params; // exports = { name="Saturate Amount/Intensity" type="vector2" value=[0 1] min=[0 0] max=[1 10] step=[0.001 0.001] }
+				#endif
+			CBUFFER_END
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input) {
+				PS_INPUT o;
+				o.position = mul(input.position, world_view_proj);
+				
+				// When using temporal antialiasing we add a z offset to all drawn gui. This is done to minimize the flickering that can
+				// happen when compositing non jittered gui elements with a jittered depth buffer.
+				#if defined(LINE_OBJECT) && !defined(DEPTH_TEST_DISABLED)
+					o.position.z -= lerp(TAA_GUI_MIN_DEPTH_BIAS, TAA_GUI_MAX_DEPTH_BIAS, saturate((o.position.z / o.position.w) / TAA_GUI_DEPTH_BIAS_RANGE)) * taa_enabled;
+				#endif
+				o.color = decode_vertex_color(input.color);
+				#if defined(SELECTABLE)
+					o.color *= float4(PI * 2.0 * 255.0/256.0, 4.0, 4.0, 1.0);
+				#endif
+				#if defined(UV0)
+					o.uv = input.uv;
+				#endif
+				return o;
+			}
+
+			float3 yuv_to_rgb(float3 yuv) {
+				float y = 1.1643*(yuv.x-0.0625);
+				float u = yuv.y - 0.5;
+				float v = yuv.z - 0.5;
+				float r = y + 1.5958*v;
+				float g = y - 0.39173*u-0.81290*v;
+				float b = y + 2.017*u;
+				return float3(r,g,b);
+			}
+
+			float3 ycbcr_to_rgb(float3 ycbcr) {
+				float y = 1.164 * (ycbcr.x - 16.0 / 256.0);
+				float r = y + 1.596 * (ycbcr.z - 0.5);
+				float g = y - 0.813 * (ycbcr.z - 0.5) - 0.391 * (ycbcr.y - 0.5);
+				float b = y + 2.018 * (ycbcr.y - 0.5);
+				return float3(r,g,b);
+			}
+			
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			float4 ps_main(PS_INPUT input) : SV_TARGET0 {
+				#if defined(WRITE_MASK)
+					#if defined(DIFFUSE_MAP)
+						float mask = TEX2D(diffuse_map, input.uv).a;
+					#else
+						float mask = input.color.a;
+					#endif
+					#if defined(THRESHOLD_MASK)
+						mask = input.color.a > mask ? saturate((input.color.a - mask) / threshold_fade) : 0;
+					#endif
+					return float4(0,0,0,mask);
+				#else
+				#if defined(SELECTABLE)
+					float4 c = float4( 1, 1, 1, input.color.a );
+				#else
+					float4 c = input.color;
+				#endif
+
+				#if defined(YUV_VIDEO)
+					float y = TEX2D(diffuse_map, input.uv).r;
+					float2 uv = TEX2D(normal_map, input.uv).rg;
+					c *= float4(yuv_to_rgb(float3(y,uv)), 1);
+				#elif defined(BINK_VIDEO)
+					float y = TEX2D(diffuse_map, input.uv).r;
+					float b = TEX2D(normal_map, input.uv).r;
+					float r = TEX2D(material_map, input.uv).r;
+
+					c *= float4(ycbcr_to_rgb(float3(y,b,r)), 1);
+				#elif defined(DIFFUSE_MAP)
+					#ifdef NORMAL_TO_DIFFUSE
+						float4 diffuse = TEX2D(diffuse_map, input.uv).rgaa;
+					#else
+						float4 diffuse = TEX2D(diffuse_map, input.uv);
+					#endif
+					#if defined(ONE_BIT_ALPHA)
+						one_bit_alpha_mask(diffuse.a, 0.5);
+						c.rgb *= diffuse.rgb;
+					#else
+						c *= diffuse;
+						#if defined(ALPHA_MUL_COLOR_INTENSITY)
+							c.a *= saturate(length(diffuse.rgb));
+						#endif
+					#endif
+				#endif
+
+					#if defined(MASKED)
+						c.rgb *= c.a;
+					#endif
+
+				#if defined(GRAYSCALE)
+					float intensity = (c.r + c.g + c.b) / 3.0f;
+					c.rgb = intensity;
+				#elif defined(SATURATE)
+					float intensity = dot(c.rgb, 0.33 * saturate_params.y);
+					c.rgb = lerp(c.rgb, intensity, saturate_params.x);
+				#endif
+
+				#if defined(CLOCK_MASK)
+					float2 center = float2( 0.5, 0.5 );
+					float2 pos = input.uv;
+
+					float2 delta = pos - center;
+					float dist = length( delta );
+					float2 dir = delta / dist;
+
+					if (dist > 0.0000001)
+					{
+						float angle = atan2( dir.y, dir.x );
+						angle *= 180 / PI;
+						angle += 720;
+						angle -= start_angle;
+						#if defined(GL2)
+							angle = frac(angle/360) * 360;
+						#else
+							angle %= 360;
+						#endif
+						if (masked_angle >= 0)
+							c.a *= (angle >= masked_angle);
+						else
+							c.a *= (360-angle >= -masked_angle);
+					}
+				#endif
+
+				#if defined(SELECTABLE)
+					// TODO: Add Hue rotation if demand high enough.
+					c.rgb = mul( c.rgb, SAT_MAT(input.color.y) ) * input.color.z;
+				#endif
+
+					return c;
+				#endif
+			}
+		"""
+	}
+
+	missing_shader = {
+		includes = ["common"]
+
+		code="""
+			struct VS_INPUT {
+				float4 position : POSITION;
+			};
+
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				float4 color : COLOR;
+			};
+
+			CBUFFER_START(c0)
+				float4x4 world_view_proj;
+			CBUFFER_END
+			
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input) {
+				PS_INPUT o;
+
+				o.position = mul(input.position, world_view_proj);
+				o.color = float4(1, 0, 1, 0.4 + 0.6 * (sin(time*5.0)*0.5 + 0.5));
+				return o;
+			}
+			
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			float4 ps_main(PS_INPUT input) : SV_TARGET0 {
+				return input.color;
+			}
+		"""
+
+		vp_code = """
+			layout(location = POSITION0) in vec4 in_pos;
+
+			out vec4 v_col;
+
+			CBUFFER_START(c0)
+				UNIFORM mat4 world_view_proj;
+			CBUFFER_END
+
+			void main() {
+				gl_Position = in_pos * world_view_proj;
+				v_col = vec4(1, 0, 1, 0.4 + 0.6*(sin(time*5.0)*0.5 + 0.5));
+			}
+		"""
+
+		fp_code = """
+			layout(location = 0) out vec4 out_color;
+
+			in vec4 v_col;
+			void main() {
+				out_color = v_col;
+			}
+		"""
+	}
+}
+
+shaders = {
+	line_object = {
+		editor_advanced_mode = true
+
+		editor_options = [
+			{
+				name="Depth Testing"
+				options = [
+					{ name="Disable Depth Testing" define="DEPTH_TEST_DISABLED" }
+				]
+			}
+		]
+
+		contexts = {
+			default = {
+				passes = [
+					{ layer="transparent" hlsl_shader="gui" render_states="line_object" defines="LINE_OBJECT" }
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				{ if: "on_renderer(D3D11, D3D12, GL, GNM)" }
+			]
+		}
+	}
+
+
+	gui = {
+		editor_options = [
+			{
+				name="Pixel Modifiers"
+				options = [
+					{ name="Diffuse Map" define="DIFFUSE_MAP" }
+					{ name="YUV Video Decode" define="YUV_VIDEO" tool_tip="Does YUV->RGB conversion (Y in diffuse_map slot, UV in normal_map slot).\nTo be used together with VideoPlayer" }
+					{ name="Bink Video Decode" define="BINK_VIDEO" tool_tip="Use together with VideoPlayer" }
+					{ name="One Bit Alpha" define="ONE_BIT_ALPHA" }
+					{ name="Normal Map to Diffuse Map" define="NORMAL_TO_DIFFUSE" tool_tip="Sample RGAA to display normal maps as diffuse maps."}
+					{ name="Grayscale" define="GRAYSCALE" }
+					{ name="Saturate" define="SATURATE" }
+				]
+			}
+			{
+				name="Masking"
+				options = [
+					{ name="Write Transparency Mask" define="WRITE_MASK" }
+					{ name="Threshold Mask" define="THRESHOLD_MASK" }
+					{ name="Transparency Masked" define="MASKED" }
+				]
+			}
+			{
+				name="Depth Testing"
+				options = [
+					{ name="Depth Testing Enabled" define="DEPTH_TEST_ENABLED" }
+				]
+			}
+		]
+
+		contexts = {
+			default = {
+				passes = [
+					{ layer="transparent" hlsl_shader="gui" render_states="gui" }
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				{ if: "on_renderer(D3D11, D3D12, GL, GNM)" }
+			]
+		}
+	}
+
+	missing_shader = {
+		editor_advanced_mode = true
+
+		contexts = {
+			default = {
+				passes = [
+					{ layer="transparent" hlsl_shader="missing_shader" render_states="missing_shader" }
+				]
+			}
+			shadow_caster = {
+				passes_sort_mode="immediate"
+				passes = [
+					{ hlsl_shader="missing_shader" render_states="shadow_caster" }
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				{ if: "on_renderer(D3D11, D3D12, GL, GNM)" }
+			]
+
+			shadow_caster = [
+				{ if: "on_renderer(D3D11, D3D12, GL, GNM)" }
+			]
+		}
+	}
+}
+
+static_compile = [
+	{ shader="line_object" defines=[""] }
+	{ shader="line_object" defines=["DEPTH_TEST_DISABLED"] }
+	{ shader="gui" defines=[""] }
+	{ shader="gui" defines=["DIFFUSE_MAP"] }
+	{ shader="gui" defines=["DEPTH_TEST_ENABLED"] }
+	{ shader="gui" defines=["DEPTH_TEST_ENABLED" "DIFFUSE_MAP"] }
+	{ shader="gui" defines=["DIFFUSE_MAP" "ONE_BIT_ALPHA"] }
+	{ shader="gui" defines=["DEPTH_TEST_ENABLED" "DIFFUSE_MAP" "ONE_BIT_ALPHA"] }
+	{ shader="missing_shader" }
+]

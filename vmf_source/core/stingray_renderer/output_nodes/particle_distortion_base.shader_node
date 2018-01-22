@@ -1,0 +1,175 @@
+group = "Output/Particles"
+display_name = "Distortion Base"
+output_node = true
+render_configs = ["core/stingray_renderer/renderer"]
+
+inputs = {
+	"1570ceed-8c40-4b7d-ba45-1bfe7722fed2" = {
+		name = "base_color"
+		is_required = false
+		display_name = "Base Color"
+		type = { vector3: ["HAS_BASE_COLOR"] }
+		domain = "pixel"
+	}
+
+	"cdc6c110-5859-461a-9934-17e54089c764" = {
+		name = "opacity"
+		is_required = false
+		display_name = "Opacity"
+		type = { scalar: ["HAS_OPACITY"] }
+		domain = "pixel"
+	}
+
+	"c050103c-1b43-4fbc-9547-d0c0d3f40ba6" = {
+		is_required = true
+		name = "distortion_normal"
+		display_name = "Distortion Normal"
+		domain = "pixel"
+		type = "vector3"
+	}
+
+	"402a4a8d-b721-4746-9a2d-90027c4aad68" = {
+		is_required = true
+		name = "distortion_strength"
+		display_name = "Distortion Strength"
+		domain = "pixel"
+		type = "vector2"
+	}
+}
+
+options = {
+	"2b136447-676e-4943-997b-04a28ae68497" = "WORLD_SPACE_NORMAL"
+	"a5733c57-be1f-457f-a6fc-366d9c0e3c8c" = "EXTERNAL_ROTATION"
+	"d63603f1-8cc0-4b03-a9aa-b787902c6997" = "TANGENT_LOCKED"
+	"f38425db-9f78-4f2c-95ba-634a367b7aed" = "SCREEN_SPACE"
+	"cae9d51b-35c3-40f7-9805-119d7932cfcf" = "PIVOT"
+	"6ce8aa19-350e-49b8-bb39-444a60db482d" = "ROTATION"
+	"b770b6bb-1e81-4937-8032-fec369a05ea3" = "HAS_CUSTOM_FOV"
+	"fea9af88-d417-433a-b475-346b6b03e249" = "HIGH_QUALITY"
+}
+
+ui = [
+	{
+		type = "drop_down"
+		display_name = "Resolution"
+		options = {
+			"Low"	= "00000000-0000-0000-0000-000000000000"
+			"Full" 	= "fea9af88-d417-433a-b475-346b6b03e249"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+	{
+		type = "drop_down"
+		display_name = "Turn-up Algorithms"
+		options = {
+			"Disabled"		= "00000000-0000-0000-0000-000000000000"
+			"Screen Space"	= "f38425db-9f78-4f2c-95ba-634a367b7aed"
+			"Aligned"		= "d63603f1-8cc0-4b03-a9aa-b787902c6997"
+			"Facing"		= "a5733c57-be1f-457f-a6fc-366d9c0e3c8c"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+
+	{ type = "checkbox" display_name = "Pivot" 		option = "cae9d51b-35c3-40f7-9805-119d7932cfcf" }
+	{ type = "checkbox" display_name = "Rotation" 	option = "6ce8aa19-350e-49b8-bb39-444a60db482d" }
+	{ type = "checkbox" display_name = "Custom FOV" option = "b770b6bb-1e81-4937-8032-fec369a05ea3" }
+]
+
+render_state = {
+	shadow_caster = {
+		inherit: ["core/stingray_renderer/output_nodes/particle_base#shadow_caster"]		
+	}
+
+	opacity = {
+		inherit: ["core/stingray_renderer/output_nodes/particle_base#opacity"]		
+	}	
+}
+
+channels = 	{
+	"defined(NEEDS_EYE_VECTOR)": {
+		eye_vector = { type = "float3" domain = "vertex" }
+	}
+
+	"defined(NEEDS_WORLD_SPACE_NORMAL)": {
+		world_space_normal = { type = "float3" domains = ["vertex", "pixel"] }
+	}
+
+	"defined(NEEDS_PIXEL_DEPTH)": {
+		pixel_depth = { type = "float" domain = "pixel" }
+	}
+
+	"defined(NEEDS_SCREEN_POS)": {
+		screen_pos = { type = "float2" domain = "pixel" }
+	}
+
+	"on_platform(GL)": {
+		vertex_corner_info = { type = "float2" semantic = "COLOR1" domain = "vertex" }
+	}
+	"!on_platform(GL)": {
+		vertex_corner_info = { type = "float2" semantic = "POSITION1" domain = "vertex" }
+	}
+	vertex_size = { type = "float2" semantic = "TEXCOORD7" domain = "vertex" }
+	"defined(ROTATION)": {
+		vertex_rotation = { type = "float" semantic = "TEXCOORD1" domains = ["vertex"] }
+	}
+	"defined(NEEDS_UV_SCALE)": {
+		"defined(NEEDS_UV_ANIMATION)": {
+			vertex_uv_data = { type = "float3" semantic = "TEXCOORD0" domains = ["vertex"] }
+			uv_frame = { type = "float" domains = ["vertex"] }
+		}
+		"!defined(NEEDS_UV_ANIMATION)": {
+			vertex_uv_data = { type = "float2" semantic = "TEXCOORD0" domains = ["vertex"] }
+		}
+		uv_scale = { type = "float2" domains = ["vertex"] }
+	}
+	"!defined(NEEDS_UV_SCALE)": {
+		"defined(NEEDS_UV_ANIMATION)": {
+			vertex_uv_frame = { type = "float" semantic = "TEXCOORD0" domains = ["vertex"] }
+			uv_frame = { type = "float" domains = ["vertex"] }
+		}
+	}
+	"defined(PIVOT)": {
+		vertex_pivot = { type = "float2" semantic = "TEXCOORD6" domains = ["vertex"] }
+	}
+	"defined(EXTERNAL_ROTATION) || defined(TANGENT_LOCKED)": {
+		vertex_tangent = { type = "float3" semantic = "TANGENT" domains = ["vertex"] }
+		"defined(EXTERNAL_ROTATION)": {
+			vertex_binormal = { type = "float3" semantic = "BINORMAL" domains = ["vertex"] }
+		}
+	}
+}
+
+shader_contexts = {
+	default = {
+		passes_sort_mode = "deferred"
+		compile_with = [
+			{ if: "on_renderer(D3D11, D3D12, GNM, GL) && render_cap(development) && render_setting(particle_visualization)" defines=["PARTICLE_DEBUG"] }
+			//{ if: "on_renderer(D3D11, D3D12, GNM, GL) && render_setting(low_res_transparency)" defines=["LOW_RES_ENABLED"] }
+			{ if: "on_renderer(D3D11, D3D12, GNM, GL)" }
+		]
+
+		passes = [
+			{ if: "defined(PARTICLE_DEBUG)" then: [
+				{ if: "defined(SCREEN_SPACE)" then: [
+					{ layer="hdr_transparent_screen_space_low_res" code_block="core/stingray_renderer/output_nodes/particle_base#billboard" defines=["DISTORTION"] render_state="opacity" }
+				] else: [
+					{ layer="hdr_transparent_low_res" code_block="core/stingray_renderer/output_nodes/particle_base#billboard" defines=["DISTORTION"] render_state="opacity" }
+				]}
+			] else: [
+				{ if: "defined(LOW_RES_ENABLED) && !defined(HIGH_QUALITY)" then: [
+					{ if: "defined(SCREEN_SPACE)" then: [
+						{ layer="hdr_transparent_screen_space_low_res" code_block="core/stingray_renderer/output_nodes/particle_base#billboard" defines=["DISTORTION" "LOW_RES"] render_state="opacity" }
+					] else: [
+						{ layer="hdr_transparent_low_res" code_block="core/stingray_renderer/output_nodes/particle_base#billboard" defines=["DISTORTION" "LOW_RES"] render_state="opacity" }
+					]}
+				] else: [
+					{ if: "defined(SCREEN_SPACE)" then: [
+						{ layer="hdr_transparent_screen_space" code_block="core/stingray_renderer/output_nodes/particle_base#billboard" defines=["DISTORTION"] render_state="opacity" }
+					] else: [
+						{ layer="hdr_transparent" code_block="core/stingray_renderer/output_nodes/particle_base#billboard" defines=["DISTORTION"] render_state="opacity" }
+					]}
+				]}
+			]}
+		]
+	}
+}

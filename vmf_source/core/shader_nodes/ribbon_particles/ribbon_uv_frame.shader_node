@@ -1,0 +1,20 @@
+group = "Particle Ribbon"
+display_name = "UV Frame"
+
+imports = {
+	uv_frame = { 
+		type = "float"
+		domain = "vertex"
+		output_channel = "uv_frame"
+	}
+}
+
+defines = ["NEEDS_UV_ANIMATION"]
+
+output = {
+	type = { typeof: "uv_frame" }
+}
+
+code = """
+	RESULT(uv_frame);
+"""

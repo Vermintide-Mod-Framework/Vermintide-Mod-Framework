@@ -1,0 +1,14 @@
+group = "Math"
+display_name = "Subtract"
+inputs = {
+	"d5e375bc-daa4-4464-8448-14bf08d97f0e" = { name = "a" display_name = "A" type = "auto" }
+	"cff85d3c-d5da-4ffc-ad20-f3872809ac4f" = { name = "b" display_name = "B" type = "auto" }
+}
+
+output = {
+	type = { largestof: ["a", "b"] }
+}
+
+code = """
+	RESULT(a - b);
+"""

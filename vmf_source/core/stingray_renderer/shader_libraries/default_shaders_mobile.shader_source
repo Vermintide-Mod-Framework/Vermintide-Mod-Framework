@@ -1,0 +1,160 @@
+hlsl_shaders = {
+	mobile_line_object = {
+		includes = [ "common" ]
+
+		vp_code = """
+			uniform mat4 world;
+			uniform mat4 view_proj;
+
+			in vec3 position0;
+			in lowp vec3 color0;
+
+			out lowp vec4 v_color;
+
+			void main() {
+				v_color = color0.bgra;
+				gl_Position =  vec4(position0.x, position0.y, position0.z, 1.0) * world * view_proj;
+			}
+		"""
+
+		fp_code = """
+			in lowp vec4 v_color;
+
+			layout(location = 0) out lowp vec4 color;
+			void main() {
+			   color = v_color;
+			}
+		"""
+	}
+
+	mobile_gui = {
+		includes = [ "common" ]
+
+		samplers = {
+			defined_DIFFUSE_MAP = {
+				diffuse_map = { sampler_states = "clamp_linear" }
+			}
+		}
+
+		vp_code = """
+			PRECISION HIGHP float;
+
+			uniform mat4 world_view_proj;
+
+			in vec4 position0;
+			in lowp vec4 color0;
+			out lowp vec4 v_color;
+
+			#ifdef DIFFUSE_MAP
+				in vec2 texcoord0;
+				out vec2 v_texcoord;
+			#endif
+
+			void main() {
+				#ifdef DIFFUSE_MAP
+					v_texcoord = texcoord0;
+				#endif
+				v_color = color0.bgra;
+
+				gl_Position =  position0 * world_view_proj;
+			}
+		"""
+
+		fp_code = """
+			#ifdef DIFFUSE_MAP
+				uniform sampler2D diffuse_map;
+				in vec2 v_texcoord;
+			#endif
+
+			in LOWP vec4 v_color;
+
+			#ifdef ONE_BIT_ALPHA
+				#define ONE_BIT_ALPHA_REF 0.5
+			#endif
+
+			layout(location = 0) out lowp vec4 color;
+
+			void main() {
+				LOWP vec4 col = v_color;
+				#ifdef DIFFUSE_MAP
+					LOWP vec4 diffuse = texture(diffuse_map, v_texcoord);
+					#ifdef ONE_BIT_ALPHA
+						if (diffuse.a < ONE_BIT_ALPHA_REF)
+							discard;
+
+						col.rgb *= diffuse.rgb;
+					#else
+						col *= diffuse;
+					#endif
+
+				#endif
+
+				#if defined(MASKED)
+					col.rgb *= col.a;
+				#endif
+
+				color = col;
+			}
+		"""
+
+		code="""
+			#if defined(DIFFUSE_MAP)
+				#define UV0
+			#endif
+
+			#if defined(DIFFUSE_MAP)
+				sampler2D diffuse_map; // exports={ name="Diffuse Map" type="resource" }
+			#endif
+
+			struct VS_INPUT {
+				float4 position : POSITION;
+				float4 color : COLOR;
+				#if defined(UV0)
+					float2 uv : TEXCOORD0;
+				#endif
+			};
+
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				float4 color : COLOR;
+				#if defined(UV0)
+					float2 uv : TEXCOORD0;
+				#endif
+			};
+
+			CBUFFER_START(c0)
+				float4x4 world_view_proj;
+			CBUFFER_END
+
+			PS_INPUT vs_main(VS_INPUT input) {
+				PS_INPUT o;
+				o.position = mul(input.position, world_view_proj);
+				o.color = decode_vertex_color(input.color);
+				#if defined(UV0)
+					o.uv = input.uv;
+				#endif
+				return o;
+			}
+
+			float4 ps_main(PS_INPUT input) : SV_TARGET0 {
+				float4 c = input.color;
+
+				#if defined(DIFFUSE_MAP)
+					float4 diffuse = tex2D(diffuse_map, input.uv);
+					#if defined(ONE_BIT_ALPHA)
+						one_bit_alpha_mask(diffuse.a, 0.5);
+						c.rgb * diffuse.rgb;
+					#else
+						c *= diffuse;
+					#endif
+				#endif
+
+				#if defined(MASKED)
+					c.rgb *= c.a;
+				#endif
+
+				return c;
+			}
+		"""
+	}
+}

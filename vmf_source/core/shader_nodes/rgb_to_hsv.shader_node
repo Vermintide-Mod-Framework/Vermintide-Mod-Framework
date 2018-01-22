@@ -1,0 +1,57 @@
+group = "Utility"
+display_name = "RGB to HSV"
+inputs = {
+	"96D9D117-6A3A-469A-A9B2-3EEDE48F9848" = { name = "rgb" display_name = "RGB" type = "vector3" }
+	"DAFF208B-6720-4EA8-99C2-423C636A230C" = { name = "hue" is_required = false display_name = "Hue" type = { scalar: ["HAS_HUE"] } }
+	"7E1968C6-238F-4FB0-A142-9A52B189223C" = { name = "sat" is_required = false display_name = "Saturation" type = { scalar: ["HAS_SAT"] } }
+	"57AD6551-795C-4A19-BD00-A814628F2976" = { name = "bright" is_required = false display_name = "Brightness / Value" type = { scalar: ["HAS_BRIGHT"] } }
+}
+
+output = {
+	type = { typeof: "rgb" }
+}
+
+code_blocks = {
+	rgb_to_hsv_block = {
+		code = """
+
+		// epsilon is used to remove the need to check for division-by-zero
+		const float epsilon_hsv = 1e-10;
+
+		// RGB to Hue Chroma Value
+		inline float3 rgb_to_hcv( float3 rgb ) {
+			float4 p = (rgb.g < rgb.b) ? float4(rgb.bg, -1.0, 2.0/3.0) : float4(rgb.gb, 0.0, -1.0/3.0);
+			float4 q = (rgb.r < p.x) ? float4(p.xyw, rgb.r) : float4(rgb.r, p.yzx);
+			float c = q.x - min(q.w, q.y);
+			float h = abs((q.w - q.y) / (6.0 * c + epsilon_hsv) + q.z);
+			return float3(h, c, q.x);
+		}
+
+		// RGB to HSV conversion based on work by Sam Hocevar and Emil Persson
+		// explanation: http://chilliant.blogspot.ca/2014/04/rgbhsv-in-hlsl-5.html
+		inline float3 rgb_to_hsv( float3 rgb ) {
+			float3 hcv = rgb_to_hcv(rgb);
+			float s = hcv.y / (hcv.z + epsilon_hsv);
+			return float3(hcv.x, s, hcv.z);
+		}
+		"""
+	}
+
+	default = {
+		include: ["rgb_to_hsv_block"]
+		code = """
+			float3 hsv = rgb_to_hsv(rgb);
+			#if defined(HAS_HUE)
+				float n = 0.0;
+				hsv.x = modf(hsv.x + hue, n);
+			#endif
+			#if defined(HAS_SAT)
+				hsv.y *= sat;
+			#endif
+			#if defined(HAS_BRIGHT)
+				hsv.z *= bright;
+			#endif
+			RESULT(hsv);
+		"""
+	}
+}

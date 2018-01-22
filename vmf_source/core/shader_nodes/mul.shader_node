@@ -1,0 +1,14 @@
+group = "Math"
+display_name = "Multiply"
+inputs = {
+	"c5823c75-4ae5-4c71-b070-315fa4d03e8e" = { name = "a" display_name = "A" type = "auto" }
+	"242d1648-a626-445b-9534-bccec094112f" = { name = "b" display_name = "B" type = "auto" }
+}
+
+output = {
+	type = { largestof: ["a", "b"] }
+}
+
+code = """
+	RESULT(a * b);
+"""

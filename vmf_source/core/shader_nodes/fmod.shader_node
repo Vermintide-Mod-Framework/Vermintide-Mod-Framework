@@ -1,0 +1,14 @@
+group = "Math"
+display_name = "Fmod"
+inputs = {
+	"f4e67b79-cc94-444f-99ca-c01316eb4cab" = { name = "a" display_name = "A" type = "auto" }
+	"abb0de2c-a337-4cb5-a2c1-5ffb3770a960" = { name = "b" display_name = "B" type = "auto" }
+}
+
+output = {
+	type = { largestof: ["a", "b"] }
+}
+
+code = """
+	RESULT(fmod(a,b));
+"""

@@ -1,0 +1,1107 @@
+group = "Output"
+display_name = "Decal Base"
+output_node = true
+render_configs = ["core/stingray_renderer/renderer"]
+
+inputs = {
+	"aca690cb-6305-4a2f-bf3d-69183a493db3" = {
+		name = "base_color"
+		is_required = false
+		display_name = "Base Color"
+		type = { vector3: ["HAS_BASE_COLOR"] }
+		domain = "pixel"
+	}
+
+	"ad5e052f-d316-4a0f-8b79-53c38204d61b" = {
+		is_required = false
+		name = "base_color_opacity"
+		display_name = "Base Color Opacity"
+		type = { scalar: ["HAS_BASE_COLOR_OPACITY"] }
+		domain = "pixel"
+	}
+
+	"b1c86408-aacb-4466-b754-ddcf37a3a2c8" = {
+		is_required = false
+		name = "normal"
+		display_name = "Normal"
+		type = { vector3: ["HAS_NORMAL"] }
+		domain = "pixel"
+	}
+
+	"36ba46d2-f6ea-4e60-a428-fdc17c75bc62" = {
+		is_required = false
+		name = "normal_opacity"
+		display_name = "Normal Opacity"
+		type = { scalar: ["HAS_NORMAL_OPACITY"] }
+		domain = "pixel"
+	}
+
+	"7cadc6f1-f753-41c0-9d6d-ca9fb101f144" = {
+		is_required = false
+		name = "metallic"
+		display_name = "Metallic"
+		type = { scalar: ["HAS_METALLIC"] }
+		domain = "pixel"
+	}
+
+	"f6a9f7bc-f229-42ce-9240-146828cbf665" = {
+		is_required = false
+		name = "roughness"
+		display_name = "Roughness"
+		type = { scalar: ["HAS_ROUGHNESS"] }
+		domain = "pixel"
+	}
+
+	"7c1ec98b-14e9-41fb-b356-e881723b8731" = {
+		is_required = false
+		name = "metallic_roughness_mask"
+		display_name = "Metallic/Roughness Mask"
+		type = { scalar: ["HAS_METALLIC_ROUGHNESS_MASK"] }
+		domain = "pixel"
+	}
+
+	"927a23bd-14d7-48a8-9934-04199a82af19" = {
+		is_required = false
+		name = "metallic_roughness_threshold"
+		display_name = "Metallic/Roughness Threshold"
+		type = { scalar: ["HAS_METALLIC_ROUGHNESS_THRESHOLD"] }
+		domain = "pixel"
+	}
+
+	"1164a5ef-4563-4795-b3b5-42825d6df037" = {
+		is_required = false
+		name = "emissive"
+		display_name = "Emissive"
+		type = { vector3: ["HAS_EMISSIVE"] }
+		domain = "pixel"
+	}
+
+	"34259752-b962-4b65-92c3-903a57338519" = {
+		name = "mask"
+		is_required = false
+		display_name = "Mask"
+		type = { scalar: ["HAS_MASK"] }
+		domain = "pixel"
+	}
+
+	"7a9306c6-95ae-4cdb-9fef-0eedacce4e83" = {
+		name = "mask_threshold"
+		is_required = false
+		display_name = "Mask Threshold"
+		type = { scalar: ["HAS_MASK_THRESHOLD"] }
+		domain = "pixel"
+	}
+
+	"59fd1cf4-f736-470d-8510-1dd7c016639e" = {
+		is_required = false
+		name = "normal_threshold"
+		display_name = "Angle Threshold"
+		type = { scalar: ["HAS_NORMAL_THRESHOLD"] }
+		domain = "pixel"
+	}
+}
+
+options = {
+	"d1a42a54-0794-4d57-9aa0-eb35acb6b35c" = "INSTANCED"
+	"2b136447-676e-4943-997b-04a28ae68497" = "WORLD_SPACE_NORMAL"
+	"8df1b8f7-17c2-4ae4-8c4e-25517ec1df46" = "TANGENT_BASIS_FROM_SURFACE"
+	"d00a0e06-a753-47fd-9ffd-20f091ff7810" = "SOFT_NORMAL_THRESHOLD"
+	"a2c093fa-a258-44ba-a16d-dc43792ffa38" = "COLOR_ALPHA_FADE"
+	"462ac943-c3a7-4a8a-ad2e-95f1e7ab9db3" = "FADE_OVER_TIME"
+
+	"d902d6eb-36e4-479f-aac8-10a7afdcbf35" = "GROUP_0"
+	"2395c420-550a-41fb-9d06-d6988794dca4" = "GROUP_1"
+	"6cc950bc-76c1-43a5-a413-979084d5f841" = "GROUP_2"
+	"efb12ce5-bcf8-47ad-94aa-c9094833b2d1" = "GROUP_3"
+	"421b1c9b-9eb1-4ca6-9364-99178675c355" = "GROUP_01"
+	"81bd528a-a801-452b-b237-3b442c80557e" = "GROUP_02"
+	"2c0f5484-4d92-4d38-8e88-972885de2ba4" = "GROUP_13"
+	"2f1738ff-75c4-4ccf-8345-6879833536a9" = "GROUP_23"
+	"4035efa3-d637-4d4d-865d-24653f90b7a3" = "GROUP_012"
+	"82ad5599-11b0-4bf8-bcdf-f77c817f183d" = "GROUP_123"
+	"1695f356-fa07-4ccd-b181-9d0e6844570d" = "GROUP_023"
+	"cf3416fb-c210-463b-bb8d-0cf789b72e6c" = "GROUP_013"
+}
+
+ui = [
+	{
+		type = "drop_down"
+		display_name = "Decal Group"
+		options = {
+			"None" = "00000000-0000-0000-0000-000000000000"
+			"0" 		= "d902d6eb-36e4-479f-aac8-10a7afdcbf35"	
+			"1" 		= "2395c420-550a-41fb-9d06-d6988794dca4"
+			"2" 		= "6cc950bc-76c1-43a5-a413-979084d5f841"
+			"3" 		= "efb12ce5-bcf8-47ad-94aa-c9094833b2d1"
+			"0, 1" 	 	= "421b1c9b-9eb1-4ca6-9364-99178675c355"
+			"0, 2"	 	= "81bd528a-a801-452b-b237-3b442c80557e"
+			"1, 3"	 	= "2c0f5484-4d92-4d38-8e88-972885de2ba4"
+			"2, 3" 		= "2f1738ff-75c4-4ccf-8345-6879833536a9"
+			"0, 1, 2" 	= "4035efa3-d637-4d4d-865d-24653f90b7a3"
+			"1, 2, 3" 	= "82ad5599-11b0-4bf8-bcdf-f77c817f183d"
+			"0, 2, 3" 	= "1695f356-fa07-4ccd-b181-9d0e6844570d"
+			"0, 1, 3" 	= "cf3416fb-c210-463b-bb8d-0cf789b72e6c"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+
+	{
+		type = "drop_down"
+		display_name = "Normals In"
+		options = {
+			"Tangent Space" = "00000000-0000-0000-0000-000000000000"
+			"World Space"   = "2b136447-676e-4943-997b-04a28ae68497"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+
+	{
+		type = "drop_down"
+		display_name = "Normal Threshold"
+		options = {
+			"Hard" = "00000000-0000-0000-0000-000000000000"
+			"Soft" = "d00a0e06-a753-47fd-9ffd-20f091ff7810"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+
+	{
+		type = "drop_down"
+		display_name = "Tangent Basis From"
+		options = {
+			"Decal Box" = "00000000-0000-0000-0000-000000000000"
+			"Surface"   = "8df1b8f7-17c2-4ae4-8c4e-25517ec1df46"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+
+	{
+		type = "drop_down"
+		display_name = "Particle Option"
+		options = {
+			"none" = "00000000-0000-0000-0000-000000000000"
+			"Color Alpha Fade"   = "a2c093fa-a258-44ba-a16d-dc43792ffa38"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+
+	{ type = "checkbox" display_name = "Instancing" option = "d1a42a54-0794-4d57-9aa0-eb35acb6b35c" }
+	{ type = "checkbox" display_name = "Fade over time" option = "462ac943-c3a7-4a8a-ad2e-95f1e7ab9db3" }
+	
+]
+
+render_state = {
+	decal_stencil = {
+		state: {
+		"defined(GROUP_0) || defined(GROUP_1) || defined(GROUP_2) || defined(GROUP_3) ||
+			defined(GROUP_01) || defined(GROUP_02) || defined(GROUP_13) || defined(GROUP_23) ||
+			defined(GROUP_012) || defined(GROUP_123) || defined(GROUP_023) || defined(GROUP_013)" = {
+				stencil_enable = "true"
+				stencil_fail = "stencil_op_keep"
+				stencil_pass = "stencil_op_keep"
+				stencil_z_fail = "stencil_op_keep"
+
+				stencil_fail_back_side = "stencil_op_keep"
+				stencil_pass_back_side = "stencil_op_keep"
+				stencil_z_fail_back_side = "stencil_op_keep"
+				
+				stencil_write_mask = "0x0"
+			}
+
+			"defined(GROUP_0)" = {
+				stencil_func = "equal"
+				stencil_func_back_side = "equal"
+				stencil_mask = "0x60"
+				stencil_ref = "0x0"
+			}
+			"defined(GROUP_1)" = {
+				stencil_func = "equal"
+				stencil_func_back_side = "equal" 
+				stencil_mask = "0x60"
+				stencil_ref = "0x20"
+			}
+			"defined(GROUP_2)" = {
+				stencil_func = "equal"
+				stencil_func_back_side = "equal"
+				stencil_mask = "0x60"
+				stencil_ref = "0x40"
+			}
+			"defined(GROUP_3)" = {
+				stencil_func = "equal"
+				stencil_func_back_side = "equal"
+				stencil_mask = "0x60"
+				stencil_ref = "0x60"
+			}
+			"defined(GROUP_01)" = {
+				stencil_func = "equal"
+				stencil_func_back_side = "equal"
+				stencil_mask = "0x40"
+				stencil_ref = "0x0"
+			}
+			"defined(GROUP_02)" = {
+				stencil_func = "equal"
+				stencil_func_back_side = "equal"
+				stencil_mask = "0x20"
+				stencil_ref = "0x0"
+			}
+			"defined(GROUP_13)" = {
+				stencil_func = "equal"
+				stencil_func_back_side = "equal"
+				stencil_mask = "0x20"
+				stencil_ref = "0x60"
+			}
+			"defined(GROUP_23)" = {
+				stencil_func = "equal"
+				stencil_func_back_side = "equal"
+				stencil_mask = "0x40"
+				stencil_ref = "0x60"
+			}
+			"defined(GROUP_012)" = {
+				stencil_func = "not_equal"
+				stencil_func_back_side = "not_equal"
+				stencil_mask = "0x60"
+				stencil_ref = "0x60"
+			}
+			"defined(GROUP_123)" = {
+				stencil_func = "not_equal"
+				stencil_func_back_side = "not_equal"
+				stencil_mask = "0x60"
+				stencil_ref = "0x0"
+			}
+			"defined(GROUP_023)" = {
+				stencil_func = "not_equal"
+				stencil_func_back_side = "not_equal"
+				stencil_mask = "0x60"
+				stencil_ref = "0x20"
+			}
+			"defined(GROUP_013)" = {
+				stencil_func = "not_equal"
+				stencil_func_back_side = "not_equal"
+				stencil_mask = "0x60"
+				stencil_ref = "0x40"
+			}
+		}
+	}
+	
+	decal = {
+		inherit: ["core/stingray_renderer/shader_libraries/common#opacity" "decal_stencil"]
+		state: {
+			cull_mode = "cull_ccw"
+			z_func = "greater_equal"
+			z_write_enable = "false"
+			
+			"defined(HAS_BASE_COLOR)": {
+				write_mask0 = "red|green|blue"
+			}
+			"!defined(HAS_BASE_COLOR)": {
+				write_mask0 = "0x0"
+			}
+			"defined(HAS_NORMAL)": {
+				write_mask1 = "red|green|blue"
+			} 
+			"!defined(HAS_NORMAL)": {
+				write_mask1 = "0x0"
+			}
+
+			
+		}
+	}
+
+	decal_metal_roughness = {
+		inherit: ["core/stingray_renderer/shader_libraries/common#default" "decal_stencil"]
+		state: {
+			cull_mode = "cull_ccw"
+			z_func = "greater_equal"
+			z_write_enable = "false"
+			
+			independent_blend_enable = "true"
+			
+			"defined(HAS_METALLIC)": {
+				write_mask0 = "alpha"
+			}
+			"!defined(HAS_METALLIC)": {
+				write_mask0 = "0x0"
+			}
+			"defined(HAS_ROUGHNESS)": {
+				write_mask1 = "alpha"
+			}
+			"!defined(HAS_ROUGHNESS)": {
+				write_mask1 = "0x0"
+			}
+		}
+	}
+
+	emissive = {
+		inherit: ["core/stingray_renderer/shader_libraries/common#default" "decal_stencil"]
+		state: {
+			cull_mode = "cull_ccw"
+			write_mask0 = "red|green|blue"
+			z_write_enable = "false"
+			z_func = "greater_equal"
+			blend_enable = "true"
+			blend_op = "blend_op_add"
+			dest_blend = "blend_one"
+			src_blend = "blend_one"
+		}
+	}
+
+	wireframe = {
+		inherit: ["core/stingray_renderer/shader_libraries/common#opacity"]
+		state: {
+			fill_mode = "fill_wireframe"
+			"on_renderer(D3D11, D3D12)" = {
+				depth_bias = "-1"
+				depth_bias_clamp = "-0.00015"
+				slope_scale_depth_bias = "-2.0"
+			}
+		}
+	}
+}
+
+sampler_state = {}
+
+channels = {
+	"(defined(HAS_NORMAL) && !defined(WORLD_SPACE_NORMAL)) || defined(NEEDS_TANGENT_SPACE)": {
+		tsm0 = { type = "float3" domain = "pixel" }
+		tsm1 = { type = "float3" domain = "pixel" }
+		tsm2 = { type = "float3" domain = "pixel" }
+	}
+
+	"defined(NEEDS_EYE_VECTOR)": {
+		eye_vector = { type = "float3" domain = "pixel" }
+	}
+
+	decal_uv = { type = "float2" domain = "pixel" }
+
+	"defined(NEEDS_OBJECT_POSITION)": {
+		object_position = { type = "float3" domain = "pixel" }
+	}
+
+	"defined(NEEDS_WORLD_SPACE_POSITION)": {
+		world_position = { type = "float3" domain = "pixel" }
+	}
+}
+
+//log_permutations = true
+permutation_sets = {
+}
+
+shader_contexts = {
+	default = {
+		passes_sort_mode = "deferred"
+		compile_with = [
+			{ if: "on_renderer(D3D11, D3D12, GNM, GL)" }
+		]
+
+		passes = [
+			{ if: "defined(HAS_BASE_COLOR) || defined(HAS_NORMAL)" then: [
+				{ layer="decals" code_block="decal" defines=["GBUFFER_PASS" "BASE_COLOR_NORMAL_PASS"] render_state="decal" }
+			]}
+			
+			{ if: "defined(HAS_METALLIC) || defined(HAS_ROUGHNESS)" then: [
+				{ layer="decals" code_block="decal" defines=["GBUFFER_PASS" "METALLIC_ROUGHNESS_PASS"] render_state="decal_metal_roughness" }
+			]}
+
+			{ if: "defined(HAS_EMISSIVE)" then: [
+				{ layer="emissive" code_block="decal" defines=["EMISSIVE_PASS"] render_state="emissive" }
+			]}
+
+			{ if: "!on_renderer(GL)" then: [
+				{ layer="wireframe" code_block="decal" defines=["WIREFRAME_PASS"] render_state="wireframe" branch_key="dev_wireframe" }
+			]}
+		]
+	}
+}
+
+code_blocks = {
+	decal_common = {
+		code = {
+			shared = """
+				#if !(defined(RENDERER_GL) && defined(STAGE_VERTEX))
+					inline float2 compute_decal_uv(in float3 op, in float4x4 bounding_volume) {
+						#if defined(RENDERER_GL)
+							vec2 uv = (op.xz / (vec2(bounding_volume[0].z, bounding_volume[2].z) * 0.5)) * 0.5 + 0.5;
+						#else
+							float2 uv = (op.xz / (bounding_volume._m20_m22 * 0.5)) * 0.5 + 0.5;
+						#endif
+
+						uv.y = 1.0 - uv.y;
+						return uv;
+					}
+
+					// Reference:
+					//    Schuler C., "Normal Mapping without Precomputed Tangents",
+					//    Shader X5, pp. 131-140, 2006.
+					//
+					inline float3x3 tangent_frame(in float3 n, in float3 p, in float2 uv)
+					{
+						// Get edge vectors of the pixel triangle
+						float3 dp1  = ddx(p);
+						float3 dp2  = ddy(p);
+						float2 duv1 = ddx(uv);
+						float2 duv2 = ddy(uv);
+
+						// solve the linear system
+						float3 dp2perp  = cross(dp2, n);
+						float3 dp1perp  = cross(n, dp1);
+						float3 tangent  = dp2perp * duv1.x + dp1perp * duv2.x;
+						float3 binormal = dp2perp * duv1.y + dp1perp * duv2.y;
+
+						// construct a scale-invariant frame 
+						float invmax = rsqrt(max(dot(tangent,tangent), dot(binormal,binormal)));
+						return float3x3(tangent * invmax, binormal * invmax, n);
+					}
+				#endif
+			"""
+		}
+	}
+
+	decal = {
+		include:[
+			"core/stingray_renderer/shader_libraries/common#common",
+			"core/stingray_renderer/shader_libraries/common#gbuffer_access",
+			"core/stingray_renderer/shader_libraries/common#taa_offsets",
+			"decal_common"
+		]
+
+		instance_data = {
+			"on_renderer(D3D11, D3D12) && defined(INSTANCED)" : {
+				world = { type = "matrix4x4" }
+
+				"defined(WIREFRAME_PASS)" : {
+					dev_wireframe_color = { type = "vector4" }
+				}
+			}
+		}
+
+		samplers = {
+			linear_depth = { 
+				sampler_state = "core/stingray_renderer/shader_libraries/common#clamp_point"
+				source = "resource_set"
+				slot_name = "linear_depth"
+				type = "2d"
+			}
+
+			"defined(EMISSIVE_PASS)" : {
+				gbuffer1 = {
+					sampler_state = "core/stingray_renderer/shader_libraries/common#clamp_linear"
+					source = "resource_set"
+					slot_name = "gbuffer1"
+					type = "2d"
+				}
+			}
+			"defined(GBUFFER_PASS)" : {
+				normals_copy = {
+					sampler_state = "core/stingray_renderer/shader_libraries/common#clamp_linear"
+					source = "resource_set"
+					slot_name = "normals_copy"
+					type = "2d"
+				}
+			}
+		}
+
+		code = {
+			glsl = """
+				#define INVERSE_Y_TEXCOORD
+
+				#if defined(HAS_NORMAL) && !defined(WORLD_SPACE_NORMAL)
+					#define NEEDS_TANGENT_SPACE
+				#endif
+
+				#if defined(HAS_NORMAL_THRESHOLD) || (defined(NEEDS_TANGENT_SPACE) && defined(TANGENT_BASIS_FROM_SURFACE))
+					#define NEEDS_GBUFFER_NORMAL
+				#endif
+
+				CBUFFER_START(c_per_object)
+					UNIFORM mat4 world_view_proj;
+					UNIFORM mat4 world;
+					UNIFORM mat4 inv_world;
+					UNIFORM mat4 bounding_volume;
+				CBUFFER_END
+
+				#if defined(STAGE_VERTEX)
+					layout (location = POSITION0) in vec4 in_position;
+
+					out vec4 v_w;
+
+					#if defined(NEEDS_TANGENT_SPACE) && !defined(TANGENT_BASIS_FROM_SURFACE)
+						flat out vec3 v_tsm0;
+						flat out vec3 v_tsm1;
+						flat out vec3 v_tsm2;
+					#endif
+
+					#if defined(HAS_NORMAL_THRESHOLD)
+						flat out vec3 v_decal_box_y;
+					#endif
+
+					void main() {
+						vec4 p = in_position * world_view_proj;
+						v_w = encode_world_pos(p);
+
+						#if defined(NEEDS_TANGENT_SPACE) && !defined(TANGENT_BASIS_FROM_SURFACE)
+							tspace_transpose(
+								v_tsm0, v_tsm1, v_tsm2,
+								normalize(vec3(world[0].x,world[1].x,world[2].x)),
+								normalize(vec3(world[0].z,world[1].z,world[2].z)),
+								-normalize(vec3(world[0].y,world[1].y,world[2].y))
+								);
+						#endif
+
+						#if defined(HAS_NORMAL_THRESHOLD)
+							v_decal_box_y = -normalize(vec3(world[0].y,world[1].y,world[2].y));
+						#endif
+
+						gl_Position = p;
+					}
+				#elif defined(STAGE_FRAGMENT)
+					uniform highp usampler2D linear_depth;
+					#if defined(NEEDS_GBUFFER_NORMAL)
+						DECLARE_SAMPLER_2D(gbuffer1);
+					#endif
+
+					in highp vec4 v_w;
+
+					#if defined(HAS_NORMAL_THRESHOLD)
+						flat in highp vec3 v_decal_box_y;
+					#endif
+
+					#if defined(GBUFFER_PASS)
+						#if defined(NEEDS_TANGENT_SPACE) && !defined(TANGENT_BASIS_FROM_SURFACE)
+							flat in highp vec3 v_tsm0;
+							flat in highp vec3 v_tsm1;
+							flat in highp vec3 v_tsm2;
+						#endif
+
+						layout(location = 0) out mediump vec4 out_gbuffer0;
+						layout(location = 1) out mediump vec4 out_gbuffer1;
+
+						#define out_base_color_opacity out_gbuffer0.a
+						#define out_normal_opacity out_gbuffer1.a
+
+						void main() {
+							highp vec2  uv    = gl_FragCoord.xy/back_buffer_size;
+							highp float depth = uintBitsToFloat(texture(linear_depth, uv).r);
+							highp vec3  wp    = decode_world_pos(v_w, depth);
+							highp vec3  op    = (vec4(wp, 1.0) * inv_world).xyz;
+
+							// Discard pixel out of decal volume
+							if (!(all(greaterThan(op, vec3(bounding_volume[0].x,bounding_volume[1].x,bounding_volume[2].x))) &&
+							      all(lessThan(op,vec3(bounding_volume[0].y,bounding_volume[1].y,bounding_volume[2].y)))))
+								discard;
+
+							GraphManualChannels params;
+							GraphResults graph;
+
+							// Compute graph input data
+							highp vec2 decal_uv = compute_decal_uv(op, bounding_volume);
+							GRAPH_PARAM(params, decal_uv) = decal_uv;
+
+							// Compute eye vector
+							highp vec3 eye_vector = camera_pos - wp;
+							#if defined(NEEDS_EYE_VECTOR)
+								GRAPH_PARAM(params, eye_vector) = eye_vector;
+							#endif
+
+							#if defined(NEEDS_GBUFFER_NORMAL)
+								highp vec3 wn = gbuffer_decode_normal(TEX2D(gbuffer1, uv));
+							#endif
+
+							#if defined(NEEDS_TANGENT_SPACE)
+								#if defined(TANGENT_BASIS_FROM_SURFACE)
+									mat3 surface_tbn = tangent_frame(wn, eye_vector, decal_uv);
+									tspace_transpose(
+										GRAPH_PARAM(params, tsm0),
+										GRAPH_PARAM(params, tsm1),
+										GRAPH_PARAM(params, tsm2),
+										surface_tbn[0],
+										-surface_tbn[1],
+										surface_tbn[2]
+										);
+								#else
+									GRAPH_PARAM(params, tsm0) = v_tsm0;
+									GRAPH_PARAM(params, tsm1) = v_tsm1;
+									GRAPH_PARAM(params, tsm2) = v_tsm2;
+								#endif
+							#endif
+
+							graph_evaluate(graph, params);
+
+							#if defined(HAS_MASK)
+								#if defined(HAS_MASK_THRESHOLD)
+									float mask_threshold = graph.mask_threshold;
+								#else
+									float mask_threshold = 0.5;
+								#endif
+								if (graph.mask <= mask_threshold)
+									discard;
+							#endif
+
+							#if defined(HAS_NORMAL_THRESHOLD)
+								if (dot(v_decal_box_y, wn) < graph.normal_threshold)
+									discard;
+							#endif
+
+							// Base color
+							#if defined(HAS_BASE_COLOR)
+								out_base_color = gbuffer_encode_base_color(graph.base_color);
+								#if defined(HAS_BASE_COLOR_OPACITY)
+									out_base_color_opacity = graph.base_color_opacity;
+								#else
+									out_base_color_opacity = 1.0;
+								#endif
+							#endif
+
+							// Normal
+							#if defined(HAS_NORMAL)
+								highp vec3 graph_normal = graph.normal;
+								#if !defined(WORLD_SPACE_NORMAL)
+									graph_normal = rotate_vector3(
+										graph_normal,
+										GRAPH_PARAM(params, tsm0),
+										GRAPH_PARAM(params, tsm1),
+										GRAPH_PARAM(params, tsm2)
+										);
+								#endif
+
+								out_normal = gbuffer_encode_normal(graph_normal);
+								#if defined(HAS_NORMAL_OPACITY)
+									out_normal_opacity = graph.normal_opacity;
+								#else
+									out_normal_opacity = 1.0;
+								#endif
+							#endif
+						}
+					#elif defined(EMISSIVE_PASS)
+						layout(location = 0) out mediump vec4 out_color;
+
+						void main() {
+							highp vec2  uv    = gl_FragCoord.xy/back_buffer_size;
+							highp float depth = uintBitsToFloat(texture(linear_depth, uv).r);
+							highp vec3  wp    = decode_world_pos(v_w, depth);
+							highp vec3  op    = (vec4(wp, 1.0) * inv_world).xyz;
+
+							// Discard pixel out of decal volume
+							if (!(all(greaterThan(op, vec3(bounding_volume[0].x,bounding_volume[1].x,bounding_volume[2].x))) &&
+							      all(lessThan(op,vec3(bounding_volume[0].y,bounding_volume[1].y,bounding_volume[2].y)))))
+								discard;
+
+							GraphManualChannels params;
+							GraphResults graph;
+
+							highp vec2 decal_uv = compute_decal_uv(op, bounding_volume);
+							GRAPH_PARAM(params, decal_uv) = decal_uv;
+							graph_evaluate(graph, params);
+
+							#if defined(HAS_MASK)
+								#if defined(HAS_MASK_THRESHOLD)
+									float mask_threshold = graph.mask_threshold;
+								#else
+									float mask_threshold = 0.5;
+								#endif
+								if (graph.mask <= mask_threshold)
+									discard;
+							#endif
+
+							#if defined(HAS_NORMAL_THRESHOLD)
+								highp vec3 wn = gbuffer_decode_normal(TEX2D(gbuffer1, uv));
+								if (dot(v_decal_box_y, wn) < graph.normal_threshold)
+									discard;
+							#endif
+
+							out_color = vec4(graph.emissive, 0);
+						}
+					#endif
+				#endif
+			"""
+
+			hlsl = """
+				#if defined(INSTANCED) && defined(RENDERER_D3D11)
+					#define HAS_INSTANCING
+				#endif
+
+				#if defined(HAS_NORMAL) && !defined(WORLD_SPACE_NORMAL)
+					#define NEEDS_TANGENT_SPACE
+				#endif
+
+				#if defined(HAS_NORMAL_THRESHOLD) || (defined(NEEDS_TANGENT_SPACE) && defined(TANGENT_BASIS_FROM_SURFACE))
+					#define NEEDS_GBUFFER_NORMAL
+				#endif
+
+				#if defined(GBUFFER_PASS) || defined(EMISSIVE_PASS)
+					DECLARE_SAMPLER_2D(linear_depth);
+					#if defined(NEEDS_GBUFFER_NORMAL)
+							DECLARE_SAMPLER_2D(gbuffer1);
+					#if defined(EMISSIVE_PASS)
+						#else
+							DECLARE_SAMPLER_2D(normals_copy);
+						#endif
+					#endif
+				#endif
+
+				struct VS_INPUT {
+					float4 position : POSITION;
+				};
+				
+				inline void tspace_transpose(out float3 tsm0, out float3 tsm1, in float3 t, in float3 b, in float3 n) {
+					tsm0 = float3(t.x, b.x, n.x);
+					tsm1 = float3(t.y, b.y, n.y);
+				}
+				
+				#if defined(HAS_NORMAL_THRESHOLD)
+					#define DECAL_BOX_Y(o) o.decal_box_y.xyz
+					#if defined(FADE_OVER_TIME)
+						#define FADE_ALPHA(o) o.decal_box_y.w
+					#endif
+				#else
+					#if defined(FADE_OVER_TIME)
+						#define FADE_ALPHA(o) o.fade_alpha
+					#endif
+				#endif
+				
+				struct PS_INPUT {
+					float4 position : SV_POSITION;
+
+					#if defined(GBUFFER_PASS) || defined(EMISSIVE_PASS)
+						float4 w : TEXCOORD0;
+					#endif
+
+					#if defined(HAS_NORMAL_THRESHOLD)
+						#if defined(FADE_OVER_TIME)
+							NO_INTERPOLATION float4 decal_box_y : TEXCOORD1;
+						#else
+							NO_INTERPOLATION float3 decal_box_y : TEXCOORD1;
+						#endif
+					#else
+						#if defined(FADE_OVER_TIME)
+							NO_INTERPOLATION float fade_alpha: TEXCOORD1;
+						#endif
+					#endif
+
+					#if defined(NEEDS_TANGENT_SPACE) && !defined(TANGENT_BASIS_FROM_SURFACE)
+						NO_INTERPOLATION float3 tsm0 : TEXCOORD2;
+						NO_INTERPOLATION float3 tsm1 : TEXCOORD3;
+						// NO_INTERPOLATION float3 tsm2 : TEXCOORD4; // cross in ps to calculate this instead of exporting
+					#endif
+
+
+					#if defined(HAS_INSTANCING)
+						float4 instance_wireframe_color : COLOR0;
+					#endif
+				};
+
+				CBUFFER_START(c_per_object)
+					float4x4 world_view_proj;
+					float4x4 world;
+					float4x4 inv_world;
+					float4x4 bounding_volume;
+					float4 dev_wireframe_color;
+					#if defined(FADE_OVER_TIME)
+					float start_time;
+					float life_time;
+					#endif
+					#if defined(COLOR_ALPHA_FADE)
+						float alpha;
+					#endif
+					GRAPH_MATERIAL_EXPORTS
+				CBUFFER_END
+
+				#if defined(HAS_INSTANCING)
+					Buffer<float4> idata;
+					float ioffset;
+				#endif
+
+				DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+				PS_INPUT vs_main(VS_INPUT input
+					#if defined(HAS_INSTANCING)
+						, uint instance_id : SV_InstanceId
+					#endif
+					)
+				{
+					PS_INPUT o;
+					
+				
+					#if defined(HAS_INSTANCING)
+						uint offset = (uint)ioffset + instance_id * IDATA_STRIDE;
+						world[0] = idata.Load(offset + IDATA_world + 0);
+						world[1] = idata.Load(offset + IDATA_world + 1);
+						world[2] = idata.Load(offset + IDATA_world + 2);
+						world[3] = idata.Load(offset + IDATA_world + 3);
+
+						#if defined(WIREFRAME_PASS)
+							o.instance_wireframe_color = idata.Load(offset + IDATA_dev_wireframe_color);
+						#endif
+					#endif
+
+					#if defined(WIREFRAME_PASS) 
+						o.position = mul(input.position, world_view_proj);
+						return o;
+					#else
+						#if defined(NEEDS_TANGENT_SPACE) && !defined(TANGENT_BASIS_FROM_SURFACE)
+							//tspace_transpose(
+							//	o.tsm0, o.tsm1, o.tsm2,
+							//	normalize(world._m00_m01_m02),
+							//	normalize(world._m20_m21_m22),
+							//	-normalize(world._m10_m11_m12)
+							//	);
+							tspace_transpose(
+								o.tsm0, o.tsm1,
+								normalize(world._m00_m01_m02),
+								normalize(world._m20_m21_m22),
+								-normalize(world._m10_m11_m12)
+								);
+						#endif 
+
+						#if defined(HAS_NORMAL_THRESHOLD)
+							DECAL_BOX_Y(o) = -normalize(world._m10_m11_m12);
+							//o.decal_box_y = -normalize(world._m10_m11_m12);
+						#endif
+
+						#if defined(FADE_OVER_TIME)
+							float fade_alpha = saturate(((start_time + life_time) - time) / 2.0);
+							//o.fade_alpha = fade_alpha * fade_alpha;
+							FADE_ALPHA(o) = fade_alpha * fade_alpha;
+						#endif
+						
+
+						float4 p = mul(input.position, world_view_proj);
+						float4 view_space = p / p.w;
+						view_space.xy += get_vs_halton_offset(frame_number);
+						o.position = view_space * p.w;
+						o.w = encode_world_pos(o.position);
+						   
+						return o;
+					#endif
+				}
+
+				#if defined(GBUFFER_PASS)
+					#define BASE_COLOR_OPACITY(gbuffer) gbuffer.buffer0.a
+					#define NORMAL_OPACITY(gbuffer) gbuffer.buffer1.a
+
+					struct PS_OUTPUT {
+						half4 buffer0 : SV_TARGET0;
+						half4 buffer1 : SV_TARGET1;
+					};
+					
+					DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+					PS_OUTPUT ps_main(PS_INPUT input)
+					{
+						PS_OUTPUT o;
+
+						half2  uv    = input.position.xy/back_buffer_size;
+						float  depth = gbuffer_decode_depth(TEX2D(linear_depth, uv));
+						float3 wp    = decode_world_pos(input.w, depth);
+						float3 op    = mul(float4(wp, 1.0f), inv_world).xyz;
+
+						// Discard pixel out of decal volume
+						bool3 inside = ((op > bounding_volume._m00_m01_m02) && (op < bounding_volume._m10_m11_m12));
+						if(!all(inside))
+							discard;
+ 
+						GraphPixelParams params;
+						GraphPixelResults graph;    
+
+						// Compute graph input data 
+						float2 decal_uv = compute_decal_uv(op, bounding_volume);            
+						GRAPH_PIXEL_PARAM(params, decal_uv) = decal_uv; 
+
+						// Compute eye vector
+						float3 eye_vector = camera_pos - wp;
+						#if defined(NEEDS_EYE_VECTOR)
+							GRAPH_PIXEL_PARAM(params, eye_vector) = eye_vector;
+						#endif
+
+						#if defined(NEEDS_GBUFFER_NORMAL)
+							float4 normals = TEX2D(normals_copy, uv);
+							float3 wn = gbuffer_decode_normal(normals);
+							float old_roughness = normals.a;
+						#endif
+
+						#if defined(NEEDS_TANGENT_SPACE)
+							#if defined(TANGENT_BASIS_FROM_SURFACE)
+								float3x3 surface_tbn = tangent_frame(wn, eye_vector, decal_uv);
+								tspace_transpose(
+									GRAPH_PIXEL_PARAM(params, tsm0),
+									GRAPH_PIXEL_PARAM(params, tsm1),
+									GRAPH_PIXEL_PARAM(params, tsm2),
+									surface_tbn._m00_m01_m02,
+									-surface_tbn._m10_m11_m12,
+									surface_tbn._m20_m21_m22
+									);
+							#else
+								GRAPH_PIXEL_PARAM(params, tsm0) = input.tsm0;
+								GRAPH_PIXEL_PARAM(params, tsm1) = input.tsm1;
+								//GRAPH_PIXEL_PARAM(params, tsm2) = input.tsm2;
+								GRAPH_PIXEL_PARAM(params, tsm2) = cross(input.tsm0, input.tsm1);
+								
+							#endif
+						#endif
+
+						#if defined(NEEDS_OBJECT_POSITION)
+							GRAPH_PIXEL_PARAM(params, object_position) = op;
+						#endif
+
+						#if defined(NEEDS_WORLD_SPACE_POSITION)
+							GRAPH_PIXEL_PARAM(params, world_position) = wp;
+						#endif
+
+						GRAPH_EVALUATE_PIXEL(graph, params);
+
+						#if defined(HAS_MASK)
+							#if defined(HAS_MASK_THRESHOLD)
+								float mask_threshold = graph.mask_threshold;
+							#else
+								float mask_threshold = 0.5f;
+							#endif
+							if (graph.mask <= mask_threshold)
+								discard;
+						#endif
+
+						float threshold_fade = 1.0;
+						#if defined(HAS_NORMAL_THRESHOLD)
+							#if defined(SOFT_NORMAL_THRESHOLD)
+								//threshold_fade = saturate((dot(input.decal_box_y, wn) - graph.normal_threshold) / (1.0 - graph.normal_threshold));
+								threshold_fade = saturate((dot(DECAL_BOX_Y(input), wn) - graph.normal_threshold) / (1.0 - graph.normal_threshold));
+							#else
+								//if (dot(input.decal_box_y, wn) < graph.normal_threshold)
+								if (dot(DECAL_BOX_Y(input), wn) < graph.normal_threshold)
+									discard;
+							#endif
+						#endif
+						#if defined(COLOR_ALPHA_FADE)
+							threshold_fade *= alpha;
+						#endif
+						
+						#if defined(FADE_OVER_TIME)
+							//threshold_fade *= input.fade_alpha;
+							threshold_fade *= FADE_ALPHA(input);
+						#endif
+
+						// Base color
+						#if defined(BASE_COLOR_NORMAL_PASS)
+							#if defined(HAS_BASE_COLOR)
+								BASE_COLOR(o) = gbuffer_encode_base_color(graph.base_color);
+								#if defined(HAS_BASE_COLOR_OPACITY)
+									BASE_COLOR_OPACITY(o) = graph.base_color_opacity * threshold_fade;
+								#else
+									BASE_COLOR_OPACITY(o) = threshold_fade;
+								#endif
+							#endif
+
+							// Normal
+							#if defined(HAS_NORMAL)
+								float3 graph_normal = graph.normal;
+								#if !defined(WORLD_SPACE_NORMAL)
+									graph_normal = rotate_vector3(
+										graph_normal,
+										GRAPH_PIXEL_PARAM(params, tsm0),
+										GRAPH_PIXEL_PARAM(params, tsm1),
+										GRAPH_PIXEL_PARAM(params, tsm2)
+										);
+								#endif
+
+								NORMAL(o) = gbuffer_encode_normal(float3(graph_normal));
+								#if defined(HAS_NORMAL_OPACITY)
+									NORMAL_OPACITY(o) = graph.normal_opacity * threshold_fade;
+								#else
+									NORMAL_OPACITY(o) = threshold_fade;
+								#endif
+							#endif
+						#elif defined(METALLIC_ROUGHNESS_PASS)
+							#if defined(HAS_METALLIC_ROUGHNESS_MASK)
+								#if defined(HAS_METALLIC_ROUGHNESS_THRESHOLD)
+									float metallic_roughness_threshold = graph.metallic_roughness_threshold;
+								#else
+									float metallic_roughness_threshold = 0.5f;
+								#endif
+								if (graph.metallic_roughness_mask * threshold_fade <= metallic_roughness_threshold)
+									discard;
+							#endif
+
+							#if defined(HAS_METALLIC)
+								METALLIC(o) = gbuffer_encode_metallic_mask(graph.metallic);
+							#endif
+
+							#if defined(HAS_ROUGHNESS)
+								#if defined(FADE_OVER_TIME)
+									//ROUGHNESS(o) = gbuffer_encode_roughness(lerp(old_roughness, graph.roughness, input.fade_alpha));
+									ROUGHNESS(o) = gbuffer_encode_roughness(lerp(old_roughness, graph.roughness, FADE_ALPHA(input)));
+								#else
+									ROUGHNESS(o) = gbuffer_encode_roughness(graph.roughness);
+								#endif
+							#endif
+						#endif
+
+						return o;
+					}
+				#elif defined(EMISSIVE_PASS)
+					DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+					float4 ps_main(PS_INPUT input) : SV_TARGET0
+					{
+						half2  uv    = input.position.xy/back_buffer_size;
+						float  depth = gbuffer_decode_depth(TEX2D(linear_depth, uv));
+						float3 wp    = decode_world_pos(input.w, depth);
+						float3 op    = mul(float4(wp, 1.0f), inv_world).xyz;
+
+						// Discard pixel out of decal volume
+						bool3 inside = ((op > bounding_volume._m00_m01_m02) && (op < bounding_volume._m10_m11_m12));
+						if(!all(inside))
+							discard;
+
+						GraphPixelParams params;
+						GraphPixelResults graph;
+
+						// Compute graph input data
+						float2 decal_uv = compute_decal_uv(op, bounding_volume);
+						GRAPH_PIXEL_PARAM(params, decal_uv) = decal_uv;
+
+						#if defined(NEEDS_OBJECT_POSITION)
+							GRAPH_PIXEL_PARAM(params, object_position) = op;
+						#endif
+
+						#if defined(NEEDS_WORLD_SPACE_POSITION)
+							GRAPH_PIXEL_PARAM(params, world_position) = wp;
+						#endif
+
+						GRAPH_EVALUATE_PIXEL(graph, params);
+
+						#if defined(HAS_MASK)
+							#if defined(HAS_MASK_THRESHOLD)
+								float mask_threshold = graph.mask_threshold;
+							#else
+								float mask_threshold = 0.5f;
+							#endif
+							if (graph.mask <= mask_threshold)
+								discard;
+						#endif
+
+						float threshold_fade = 1.0;
+						#if defined(HAS_NORMAL_THRESHOLD)
+							float3 wn = gbuffer_decode_normal(TEX2D(gbuffer1, uv));
+							#if defined(SOFT_NORMAL_THRESHOLD)
+								threshold_fade = saturate((dot(input.decal_box_y, wn) - graph.normal_threshold) / (1.0 - graph.normal_threshold));
+							#else
+								if (dot(input.decal_box_y, wn) < graph.normal_threshold)
+									discard;
+							#endif
+						#endif
+						#if defined(COLOR_ALPHA_FADE)
+							threshold_fade *= alpha;
+						#endif
+
+						return float4(graph.emissive * threshold_fade, 0.f);
+					}
+				#elif defined(WIREFRAME_PASS)
+					DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+					float4 ps_main(PS_INPUT input) : SV_TARGET0
+					{
+						#if defined(HAS_INSTANCING)
+							return input.instance_wireframe_color;
+						#else
+							return dev_wireframe_color;
+						#endif
+					}
+				#endif
+			"""
+		}
+	}
+}

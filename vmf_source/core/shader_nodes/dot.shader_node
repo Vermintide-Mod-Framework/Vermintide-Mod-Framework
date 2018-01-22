@@ -1,0 +1,14 @@
+group = "Math"
+display_name = "Dot Product"
+inputs = {
+	"1227923c-0ef1-4823-b673-301cc9a5fc69" = { name = "a" display_name = "A" type = "auto" }
+	"0e627d0f-2503-4925-9811-d44aca00e49c" = { name = "b" display_name = "B" type = "auto" }
+}
+
+output = {
+	type = "float"
+}
+
+code = """
+	RESULT(dot(a,b));
+"""

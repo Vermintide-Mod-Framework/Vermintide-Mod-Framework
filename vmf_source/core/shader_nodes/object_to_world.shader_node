@@ -1,0 +1,48 @@
+group = "Transform"
+display_name = "Object To World"
+depends_on = ["core/stingray_renderer/output_nodes/standard_base", "core/stingray_renderer/output_nodes/light_base", "core/stingray_renderer/output_nodes/unlit_base", "core/stingray_renderer/output_nodes/terrain_base"]
+
+inputs = {
+	"f72597c4-7487-419a-affb-df690e6582e1" = { name = "v" display_name = "Vector" type = "float3" }
+}
+
+options = {
+	"43344bde-3298-4b5f-8993-0be2a71a83b3" = "ROTATE_ONLY"
+}
+
+ui = [
+	{
+		type = "drop_down"
+		display_name = "Mode"
+		options = {
+			"Full Transform" = "00000000-0000-0000-0000-000000000000"
+			"Rotation only" = "43344bde-3298-4b5f-8993-0be2a71a83b3"
+		}
+	}
+]
+
+defines = ["NEEDS_WORLD_POSE"]
+
+imports = {
+	world = {
+		type = "float4x4"
+		domain = "global"
+		source = "engine"
+	}
+}
+
+output = {
+	type = { typeof: "v" }
+}
+
+code = """
+	#if defined(BILLBOARD)
+		RESULT(world._m30_m31_m32 + v);
+	#else
+		#if defined(ROTATE_ONLY)
+			RESULT(mul(v, to_mat3(world)));
+		#else
+			RESULT(mul(float4(v, 1), world).xyz);
+		#endif
+	#endif
+"""

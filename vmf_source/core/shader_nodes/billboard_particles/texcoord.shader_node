@@ -1,0 +1,21 @@
+group = "Particle Billboard"
+display_name = "Particle UV"
+
+imports = {
+	// TODO: fix 
+	//"on_platform(GL)": {
+	//	corner_info = { type = "float2" semantic = "COLOR1" domain = "vertex" }
+	//}
+	//"!on_platform(GL)": {
+		corner_info = { type = "float2" semantic = "POSITION1" domain = "vertex" }
+	//}
+}
+
+domain = "vertex"
+output = {
+	type = "float2"
+}
+
+code = """
+	RESULT(corner_info * float2(1,-1) * 0.5 + 0.5);
+"""

@@ -1,0 +1,28 @@
+group = "Utility"
+display_name = "Desaturation"
+// Luminance controls what channel is brighter then another. E.g. Green is brighter then red and blue when desaturated
+inputs = {
+	"1E4F2254-F27B-418F-AB46-9229A599980F" = { name = "color" display_name = "Color" type = "vector3" }
+	"FFCB2ED4-2061-432C-8AB5-E1A9EDED9038" = { name = "amount" display_name = "Amount" is_required = false type = { scalar: ["HAS_AMOUNT"] } }
+	"fb2bf997-f6f1-42a0-bd29-b6a12f9f3417" = { name = "luminance" display_name = "Luminance" is_required = false type = { vector3: ["HAS_LUM"] }}
+}
+
+output = {
+	type = { typeof: "color" }
+}
+
+code = """
+	#if defined(HAS_LUM)
+		float3 lum = luminance;
+	#else
+		float3 lum = float3(0.3, 0.6, 0.1);
+	#endif
+
+	float l = dot(lum, color);
+	float3 desaturated = new_float3(l, l, l);
+	#if defined(HAS_AMOUNT)
+		RESULT(lerp(color, desaturated, amount));
+	#else
+		RESULT(desaturated);
+	#endif
+"""

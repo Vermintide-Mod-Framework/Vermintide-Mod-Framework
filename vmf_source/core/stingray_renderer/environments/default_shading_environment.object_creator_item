@@ -1,0 +1,11 @@
+type = "entity"
+entity_resource = "core/stingray_renderer/environments/midday/midday_shading_environment"
+placeable = false
+menu_item = {
+    path = "Create/Shading Environment"
+    section = "LIGHTING"
+    order = 200
+}
+enabled = """
+    return Application.render_config_resource() == "core/stingray_renderer/renderer"
+"""

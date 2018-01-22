@@ -1,0 +1,151 @@
+group = "Noise (Expensive)"
+display_name = "Noise 2D"
+inputs = {
+	"43350130-56d2-4f38-8946-2db61bc0dc27" = { name = "uv" display_name = "UV" is_required = true type = "vector2" domain = "pixel" }
+	"73505236-5232-4270-a364-5c30356d44d5" = { name = "a" display_name = "A" is_required = false type = { scalar: ["HAS_A_INPUT"] } domain = "pixel" }
+	"2ea53a8d-bd55-4b4b-81f4-7bf2166c4d9c" = { name = "b" display_name = "B" is_required = false type = { scalar: ["HAS_B_INPUT"] } domain = "pixel" }
+	"5a2a194b-1ba3-4b56-834d-349aea030a90" = { name = "c" display_name = "C" is_required = false type = { scalar: ["HAS_C_INPUT"] } domain = "pixel" }
+}
+
+domain = "pixel"
+output = {
+	type = "float"
+}
+
+options = {
+	"fa47640c-251a-45ea-9b64-b66548831364" = "VALUE_2D"
+	"bf7f9537-897f-4765-937c-a8f6ed136c57" = "VALUE_PERLIN_2D"
+	"4d8f1b18-68b6-4583-89ce-55bbae9e26fb" = "VALUE_HERMITE_2D"
+	"ea90178c-95ca-4f4a-9e65-40d4ff1c7de2" = "PERLIN_2D"
+	"1df75adb-e671-4b6a-a312-b9cefbdf662b" = "HERMITE_2D"
+	"a32eedbc-2170-4ef1-ae28-cd99278fd7b7" = "CUBIST_2D"
+	"d34696e9-a9d1-4c99-93ed-c3e0d84eb03a" = "CELLULAR_2D"
+	"968553bd-efc4-43ef-b271-887992a50bcb" = "POLKA_DOT_2D"
+	"dc1b5dfb-3629-415c-9dbc-ee0f88a75c4b" = "STARS_2D"
+	"a7e6eafc-1322-48e6-94a0-9c57b12ee1e1" = "SIMPLEX_PERLIN_2D"
+	"cb95451e-3c58-458d-a1db-1a900822a3df" = "SIMPLEX_CELLULAR_2D"
+	"1e2afae4-0c42-4dd2-9ba6-34fab2887aed" = "SIMPLEX_POLKA_DOT_2D"
+}
+
+ui = [
+	{
+		type = "drop_down"
+		display_name = "Noise Type"
+		options = {
+			"Value [0, 1]"						= "fa47640c-251a-45ea-9b64-b66548831364"
+			"Value-Perlin [-1, 1], a"			= "bf7f9537-897f-4765-937c-a8f6ed136c57"
+			"Value-Hermite [-1, 1], a, b"		= "4d8f1b18-68b6-4583-89ce-55bbae9e26fb"
+			"Perlin [-1, 1]"					= "ea90178c-95ca-4f4a-9e65-40d4ff1c7de2"
+			"Hermite [-1, 1]"					= "1df75adb-e671-4b6a-a312-b9cefbdf662b"
+			"Cubist [0, 1], a, b"				= "a32eedbc-2170-4ef1-ae28-cd99278fd7b7"
+			"Cellular [0, 1]"					= "d34696e9-a9d1-4c99-93ed-c3e0d84eb03a"
+			"Polka Dot [0, 1], a, b"			= "968553bd-efc4-43ef-b271-887992a50bcb"
+			"Stars [0, 1], a, b, c"				= "dc1b5dfb-3629-415c-9dbc-ee0f88a75c4b"
+			"Simplex Perlin [-1, 1]"			= "a7e6eafc-1322-48e6-94a0-9c57b12ee1e1"	
+			"Simplex Cellular [0, ~1]"			= "cb95451e-3c58-458d-a1db-1a900822a3df"		
+			"Simplex Polka Dot [0, 1], a, b"	= "1e2afae4-0c42-4dd2-9ba6-34fab2887aed"		
+
+		}
+		default = "fa47640c-251a-45ea-9b64-b66548831364"
+	}
+]
+
+code_blocks = {
+	default = {
+		include:["core/stingray_renderer/shader_libraries/noise#noise_functions"]
+
+		code = {
+			hlsl = """
+				#if defined(VALUE_2D)
+					float result = Value2D(uv);
+				#elif defined(VALUE_PERLIN_2D)
+					#ifndef HAS_A_INPUT
+						float blend = 0.5;
+					#else
+						float blend = a;
+					#endif
+					float result = ValuePerlin2D(uv, blend);
+				#elif defined(VALUE_HERMITE_2D)
+					#ifndef HAS_A_INPUT
+						float MAXVALUE = 1.0;
+					#else
+						float MAXVALUE = a;
+					#endif
+					#ifndef HAS_B_INPUT
+						float MAXGRADIENT = 1.0;
+					#else
+						float MAXGRADIENT = b;
+					#endif
+					float result = ValueHermite2D(uv, 2.0*MAXVALUE, 2.0*MAXGRADIENT, 1.0 / ( MAXVALUE + MAXGRADIENT * 0.3125 * 2.0 ));
+				#elif defined(PERLIN_2D)
+					float result = Perlin2D(uv);
+				#elif defined(HERMITE_2D)
+					float result = Hermite2D(uv);
+				#elif defined(CUBIST_2D)
+					#ifndef HAS_A_INPUT
+						float high = 1.0;
+					#else
+						float high = a;
+					#endif
+					#ifndef HAS_B_INPUT
+						float low = -2.0;
+					#else
+						float low = b;
+					#endif
+					float result = Cubist2D(uv, float2(low, 1.0/(high-low)));
+				#elif defined(CELLULAR_2D)
+					float result = Cellular2D(uv);
+				#elif defined(POLKA_DOT_2D)
+					#ifndef HAS_A_INPUT
+						float high_radius = 1.0;
+					#else
+						float high_radius = a;
+					#endif
+					#ifndef HAS_B_INPUT
+						float low_radius = 0.1;
+					#else
+						float low_radius = b;
+					#endif
+					float result = PolkaDot2D(uv, low_radius, high_radius);
+				#elif defined(STARS_2D)
+					#ifndef HAS_A_INPUT
+						float probability = 0.5;
+					#else
+						float probability = a;
+					#endif
+					#ifndef HAS_B_INPUT
+						float max_dimness = 1.0;
+					#else
+						float max_dimness = b;
+					#endif
+					#ifndef HAS_C_INPUT
+						float two_over_radius = 4.0;
+					#else
+						float two_over_radius = b;
+					#endif
+					float result = Stars2D(uv, probability, max_dimness, two_over_radius);
+				#elif defined(SIMPLEX_PERLIN_2D)
+					float result = SimplexPerlin2D(uv);
+				#elif defined(SIMPLEX_CELLULAR_2D)
+					float result = SimplexCellular2D(uv);
+				#elif defined(SIMPLEX_POLKA_DOT_2D)
+					#ifndef HAS_A_INPUT
+						float radius = 1.0;
+					#else
+						float radius = a;
+					#endif
+					#ifndef HAS_B_INPUT
+						float variation = 0.1;
+					#else
+						float variation = b;
+					#endif
+					float result = SimplexPolkaDot2D(uv, radius, variation);
+				#else
+					float result = 0.0;
+				#endif
+
+				RESULT(result);
+			"""
+		}
+	}
+}

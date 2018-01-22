@@ -1,0 +1,42 @@
+group = "Transform"
+display_name = "Tangent To World"
+depends_on = [
+	"core/stingray_renderer/output_nodes/standard_base"
+	"core/stingray_renderer/output_nodes/terrain_base"
+]
+
+inputs = {
+	"f72597c4-7487-419a-affb-df690e6582e1" = { name = "v" display_name = "Vector" type = "float3" }
+}
+
+defines = ["NEEDS_TANGENT_SPACE"]
+
+imports = {
+	tsm0 = {
+		type = "float3"
+		domain = "vertex"
+		output_channel = "tsm0"
+	}
+	tsm1 = {
+		type = "float3"
+		domain = "vertex"
+		output_channel = "tsm1"
+	}
+	tsm2 = {
+		type = "float3"
+		domain = "vertex"
+		output_channel = "tsm2"
+	}
+}
+
+output = {
+	type = { typeof: "v" }
+}
+
+code = """
+	float3 res = float3(
+		dot(v, tsm0),
+		dot(v, tsm1),
+		dot(v, tsm2));
+	RESULT(normalize(res));
+"""

@@ -1,0 +1,14 @@
+header_background_lit = {
+	material_contexts = {
+		surface_material = ""
+	}
+
+	shader = "gui:DIFFUSE_MAP"
+
+	textures = {
+		diffuse_map = "gui/header_background_lit"
+	}
+
+	variables = {
+	}
+}

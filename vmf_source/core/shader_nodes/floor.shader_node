@@ -1,0 +1,13 @@
+group = "Math"
+display_name = "Floor"
+inputs = {
+	"9535d4e4-6a99-4590-952d-c2c11d0872b6" = { name = "a" display_name = "A" type = "auto" }
+}
+
+output = {
+	type = { typeof: "a" }
+}
+
+code = """
+	RESULT(floor(a));
+"""

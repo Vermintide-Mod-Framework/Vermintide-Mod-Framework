@@ -1,0 +1,118 @@
+
+shader = {
+	connections = [
+		{
+			destination = {
+				connector_id = "aca690cb-6305-4a2f-bf3d-69183a493db3"
+				instance_id = "f8bf5438-b06f-4d56-ae0c-e4abd31c1dc1"
+			}
+			source = {
+				instance_id = "525f7d4e-f6e6-4867-9bae-d2ebcdff4b9c"
+			}
+		}
+	]
+	constants = [
+		{
+			connector_id = "c4d6bc08-c489-430f-a836-ed490e59c3f9"
+			id = "964a0911-c691-405b-994d-5adf123e6f55"
+			instance_id = "7b49c63d-2d6b-4021-90f7-f0673a12d5e3"
+			value = [
+				1
+			]
+		}
+	]
+	nodes = [
+		{
+			content_size = [
+				160
+				0
+			]
+			export = {
+			}
+			id = "f8bf5438-b06f-4d56-ae0c-e4abd31c1dc1"
+			options = [
+				"2b136447-676e-4943-997b-04a28ae68497"
+			]
+			position = [
+				1360
+				460
+			]
+			samplers = {
+			}
+			type = "core/stingray_renderer/output_nodes/standard_base"
+		}
+		{
+			content_size = [
+				160
+				0
+			]
+			export = {
+			}
+			id = "7b49c63d-2d6b-4021-90f7-f0673a12d5e3"
+			options = [
+			]
+			position = [
+				700
+				1320
+			]
+			samplers = {
+			}
+			title = "Ao"
+			type = "core/shader_nodes/constant_scalar"
+		}
+		{
+			content_size = [
+				160
+				0
+			]
+			export = {
+				material_variable = {
+					display_name = "Base Color"
+					name = "base_color"
+					type = "float3"
+					ui = {
+						max = [
+							1
+							1
+							1
+						]
+						min = [
+							0
+							0
+							0
+						]
+						order = 0
+						step = [
+							0.001
+							0.001
+							0.001
+						]
+						ui_type = "Color"
+					}
+					value = [
+						0.5
+						0.5
+						0.5
+					]
+				}
+			}
+			id = "525f7d4e-f6e6-4867-9bae-d2ebcdff4b9c"
+			options = [
+			]
+			position = [
+				1120
+				300
+			]
+			samplers = {
+			}
+			title = "Base Color"
+			type = "core/shader_nodes/material_variable"
+		}
+	]
+	version = 2
+	is_editable = false
+}
+textures = {
+}
+variables = {
+}

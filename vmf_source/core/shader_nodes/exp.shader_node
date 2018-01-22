@@ -1,0 +1,13 @@
+group = "Math"
+display_name = "Exp"
+inputs = {
+	"837f2c43-756b-4f27-8911-b623e50b982a" = { name = "a" display_name = "A" type = "auto" }
+}
+
+output = {
+	type = { typeof: "a" }
+}
+
+code = """
+	RESULT(exp(a));
+"""

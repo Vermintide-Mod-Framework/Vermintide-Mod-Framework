@@ -1,0 +1,41 @@
+group = "Particle Billboard"
+display_name = "Vertex Color"
+
+imports = {
+	color = { 
+		type = "float4"
+		semantic = "COLOR"
+		domain = "vertex"
+	}
+}
+
+output = {
+	type = { typeof: "color" }
+}
+
+options = {
+	"c5b9991a-f14d-4f37-ad66-8a41103d5967" = "VC_COMPRESSED"
+	"71f11ae4-8f03-4a75-b3a0-4899eff35d29" = "FAST_GAMMA_DECODE"
+	"dbf19835-b8f4-4a3c-829b-c5fafdb60989" = "FAST_GAMMA_DECODE_ALPHA"
+}
+
+ui = [
+	{ type = "checkbox" display_name = "Fast Gamma Decode"	option = "71f11ae4-8f03-4a75-b3a0-4899eff35d29" } 
+	{ type = "checkbox" display_name = "Fast Gamma Decode Alpha"	option = "dbf19835-b8f4-4a3c-829b-c5fafdb60989" } 
+	{ type = "checkbox" display_name = "Compressed"			option = "c5b9991a-f14d-4f37-ad66-8a41103d5967" } 
+]
+
+code = """
+	#if defined(FAST_GAMMA_DECODE)
+		color = fast_gamma_to_linear_rgb(color);
+	#endif
+	
+	#if defined(FAST_GAMMA_DECODE_ALPHA)
+		color.a *= color.a;
+	#endif
+	
+	#if defined(VC_COMPRESSED)
+		color = decode_vertex_color(color);
+	#endif
+	RESULT(color);
+"""

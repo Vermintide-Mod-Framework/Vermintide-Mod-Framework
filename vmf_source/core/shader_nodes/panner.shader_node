@@ -1,0 +1,29 @@
+group = "Utility"
+display_name = "Panner"
+inputs = {
+	"40A76949-E7DB-47FB-9AEC-3FA98DD3FA2E" = { name = "uv" display_name = "UV" type = "vector2" }
+	"0CE9AD0A-0B3F-43B1-9139-12176F3AAD8E" = { name = "time" display_name = "Time" type = "scalar" }
+	"9a282471-a2d2-4591-a57e-c70179bb1962" = { name = "speed_u" display_name = "Speed U" is_required = false type = { scalar: ["HAS_SPEED_U"] }}
+	"e3419eb2-3635-4586-b58c-89ffd88d20d5" = { name = "speed_v" display_name = "Speed V" is_required = false type = { scalar: ["HAS_SPEED_V"] }}
+}
+
+output = {
+	type = { typeof: "uv" }
+}
+
+code = """
+
+	#if defined(HAS_SPEED_U)
+		float speed_x = speed_u;
+	#else
+		float speed_x = 0.33;
+	#endif
+
+	#if defined(HAS_SPEED_V)
+		float speed_y = speed_v;
+	#else
+		float speed_y = 0.33;
+	#endif
+
+	RESULT( float2(time*speed_x, time*speed_y) + uv );
+"""

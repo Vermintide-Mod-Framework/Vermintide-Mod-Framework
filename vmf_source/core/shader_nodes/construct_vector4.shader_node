@@ -1,0 +1,16 @@
+group = "Construct"
+display_name = "Construct Vector4"
+inputs = {
+	"e51d4226-628e-4714-809e-af60a5a09c87" = { name = "r" display_name = "R" type = "scalar"}
+	"00e9b0e5-91d3-4102-8909-de18ecefb1b5" = { name = "g" display_name = "G" type = "scalar"}
+	"49508d27-9f26-4716-aba6-3b2684ba4b08" = { name = "b" display_name = "B" type = "scalar"}
+	"d2e05875-2413-4431-af0f-0de8658cff7d" = { name = "a" display_name = "A" type = "scalar"}
+}
+
+output = {
+	type = "float4"
+}
+
+code = """
+	RESULT(float4(r,g,b,a));
+"""

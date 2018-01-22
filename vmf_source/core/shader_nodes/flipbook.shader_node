@@ -1,0 +1,44 @@
+group = "Utility"
+display_name = "Flipbook"
+inputs = {
+	"3BA4F382-41EB-4796-B32F-7A8B51BD8DFB" = { name = "fps" display_name = "FPS" is_required = false type = {scalar: ["HAS_FPS"]} }
+	"75F62304-E764-4DD7-9BDF-A486E92C92F2" = { name = "time" display_name = "Time" type = "scalar" }
+	"EE08FB38-9E0A-4009-BB48-A40EB8B85092" = { name = "uv" display_name = "UV" type = "vector2" }
+	"6b59bfdf-20fc-4817-88ea-4c2f0d08d4af" = { name = "sprite_rows" display_name = "Sprite Rows" is_required = false type = { scalar: ["HAS_ROWS"] }}
+	"3aba8613-fe85-4516-a049-0edd78e35d48" = { name = "sprite_cols" display_name = "Sprite Columns" is_required = false type = { scalar: ["HAS_COLS"] }}
+}
+
+output = {
+	type = { typeof: "uv" }
+}
+
+code = """
+	#if defined(HAS_FPS)
+		float frame_per_sec = fps;
+	#else
+		float frame_per_sec = 5.0;
+	#endif
+
+	#if defined(HAS_ROWS)
+		float sprite_per_row = sprite_rows;
+	#else
+		float sprite_per_row = 2.0;
+	#endif
+
+	#if defined(HAS_COLS)
+		float sprite_per_col = sprite_cols;
+	#else
+		float sprite_per_col = 2.0;
+	#endif
+
+	float current_frame = floor( fmod((frame_per_sec * time), (sprite_per_row * sprite_per_col)) );
+
+	float sprite_u = fmod(current_frame, sprite_per_row) / sprite_per_row;
+	float sprite_v = floor(current_frame / sprite_per_row) / sprite_per_col;
+
+	// add local UV offset
+	sprite_u += uv.x / sprite_per_row;
+	sprite_v += uv.y / sprite_per_col;
+    
+    RESULT(float2(sprite_u, sprite_v));
+"""

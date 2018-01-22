@@ -1,0 +1,19 @@
+group = "Math"
+display_name = "Ddx"
+inputs = {
+	"F301E39A-AA1D-4F5E-BA28-3BEFBEB7AF1D" = { name = "a" display_name = "A" type = "auto" }
+}
+
+domain = "pixel"
+
+output = {
+	type = { typeof: "a" }
+}
+
+code = """
+	#if defined(STAGE_PIXEL)
+		RESULT(ddx(a));
+	#else
+		RESULT(new_float3(0, 0, 0));
+	#endif
+"""

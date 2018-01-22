@@ -1,0 +1,216 @@
+includes = ["core/stingray_renderer/shader_libraries/common.shader_source"]
+
+render_states = {
+	heatmap = {
+		inherits = "opacity"
+		states = {
+			z_enable = "false"
+			defined_HEATMAP_WRITE = {
+				defined_HEATMAP_CLEAR = {
+					blend_enable = "false"
+				}
+				ndefined_HEATMAP_CLEAR = {
+					blend_enable = "true"
+					blend_op = "blend_op_add"
+					dest_blend = "blend_dest_alpha"
+					src_blend = "blend_src_alpha"
+				}
+			}
+		}
+	}
+
+	heatmap_apply = {
+		inherits = "default"
+		states = {
+			blend_enable = "true"
+			blend_op = "blend_op_add"
+			dest_blend = "blend_inv_src_alpha"
+			src_blend = "blend_src_alpha"
+		}
+	}
+}
+
+hlsl_shaders = {
+	heatmap = {
+		includes = [ "common" ]
+
+		samplers = {
+			defined_HEATMAP  = {
+				diffuse_map = { sampler_states = "clamp_linear" }
+				heatmap = { sampler_states = "clamp_linear" }
+			}
+			defined_HEATMAP_WRITE  = {
+				heatmap = { sampler_states = "clamp_linear" }
+			}
+		}
+
+		code="""
+			#if defined(HEATMAP) 
+				DECLARE_SAMPLER_2D(diffuse_map); // exports={ name="Diffuse Map" type="resource" }
+			#endif
+
+			DECLARE_SAMPLER_2D(heatmap);
+
+			struct VS_INPUT {
+				float4 position : POSITION;
+				float4 color : COLOR;
+				float2 uv : TEXCOORD0;
+			};
+
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				float4 color : COLOR;
+				float2 uv : TEXCOORD0;
+			};
+
+			CBUFFER_START(c0)
+				float4x4 world_view_proj;
+			CBUFFER_END
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input) {
+				PS_INPUT o;
+				o.position = mul(input.position, world_view_proj);
+				o.color = decode_vertex_color(input.color);
+				o.uv = input.uv;
+				return o;
+			}
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			float4 ps_main(PS_INPUT input) : SV_TARGET0 {
+				float4 c = input.color;
+
+				#if defined(HEATMAP)
+					float value = TEX2D(heatmap, input.uv).r;
+					float4 color = TEX2D(diffuse_map, float2(0.5, value));
+					color.a = value;
+					c *= color;
+				#elif defined(HEATMAP_WRITE)
+					#if !defined(HEATMAP_CLEAR)
+						float value = 1-(distance(input.uv, float2(0.5, 0.5)) * 2);
+						c *= value;
+					#endif
+				#endif
+
+				return c;
+			}
+		"""
+	}
+
+	heatmap_apply = {
+		includes = [ "common", "gbuffer_access" ]
+
+		samplers = {
+			linear_depth = { sampler_states = "clamp_point" }
+			heatmap = { sampler_states = "clamp_linear" }
+			heatmap_legend = { sampler_states = "clamp_linear" }
+		}
+
+		code="""
+			DECLARE_SAMPLER_2D(linear_depth);
+			DECLARE_SAMPLER_2D(heatmap);
+			DECLARE_SAMPLER_2D(heatmap_legend);
+
+			struct VS_INPUT {
+				float4 position : POSITION;
+			};
+
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				float4 w 		: TEXCOORD0;
+			};
+
+			CBUFFER_START(c0)
+				float4x4 world_view_proj;
+				float2 heatmap_world_position;
+				float2 heatmap_world_extents;
+			CBUFFER_END
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input)
+			{
+				PS_INPUT o;
+
+				o.position = mul(input.position, world_view_proj);
+				o.w = encode_world_pos(o.position, camera_unprojection);
+
+				return o;
+			}
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			float4 ps_main(PS_INPUT input) : SV_TARGET0
+			{
+				half2 screen_uv = input.position.xy / back_buffer_size;
+
+				float d = gbuffer_decode_depth(TEX2D(linear_depth, screen_uv));
+				float3 world_pos = decode_world_pos(input.w, d);
+				float2 calculated_uv = (world_pos - heatmap_world_position) / heatmap_world_extents;
+				if (calculated_uv.x >= 0 && calculated_uv.x <= 1
+					&& calculated_uv.y >= 0 && calculated_uv.y <= 1)
+				{
+					calculated_uv.y = 1 - calculated_uv.y;
+					float value = TEX2D(heatmap, calculated_uv).r;
+					float4 color = TEX2D(heatmap_legend, float2(0.5, value));
+					color.a = value;
+					return color;
+				}
+				return 0;
+			}
+		"""
+	}
+}
+
+shaders = {
+	heatmap = {
+		editor_advanced_mode = true
+
+		contexts = {
+			default = {
+				passes = [
+					{
+						defined = "HEATMAP_WRITE"
+						pass = [
+							{ layer="transparent_heatmap" hlsl_shader="heatmap" render_states="heatmap" }
+						]
+						fail = [
+							{ layer="transparent" hlsl_shader="heatmap" render_states="heatmap" }
+						]
+					}
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				{ defines="" }
+			]
+		}
+	}
+
+	heatmap_apply = {
+		editor_advanced_mode = true
+
+		contexts = {
+			default = {
+				passes = [
+					{ hlsl_shader="heatmap_apply" render_states="heatmap_apply" }
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				{ defines="" }
+			]
+		}
+	}
+}
+
+static_compile = [
+	{ shader="heatmap_apply" }
+
+	{ shader="heatmap" }
+	{ shader="heatmap" defines=["HEATMAP"] }
+	{ shader="heatmap" defines=["HEATMAP_WRITE"] }
+	{ shader="heatmap" defines=["HEATMAP_WRITE" "HEATMAP_CLEAR"] }
+]

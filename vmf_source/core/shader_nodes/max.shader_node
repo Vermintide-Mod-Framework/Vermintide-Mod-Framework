@@ -1,0 +1,14 @@
+group = "Math"
+display_name = "Maximum"
+inputs = {
+	"f72597c4-7487-419a-affb-ef690e6582e1" = { name = "a" display_name = "A" type = "auto" }
+	"0806db0d-2c4a-43ca-99cc-e5a2f036a8e8" = { name = "b" display_name = "B" type = "auto" }
+}
+
+output = {
+	type = { largestof: ["a", "b"] }
+}
+
+code = """
+	RESULT( max(a,b) );
+"""

@@ -1,0 +1,42 @@
+sampler_states = {
+	default_node_sampler = {
+		states = {
+			"defined(TAA_ENABLED)" = {
+				mip_lod_bias = "-2.0"
+			}
+			"defined(ADDRESS_CLAMP)" = {
+				"on_renderer(GL)" = {
+					address_u = "address_clamp_to_edge"
+					address_v = "address_clamp_to_edge"
+					address_w = "address_clamp_to_edge"
+				}
+				"on_renderer(D3D11, D3D12, GNM)" = {
+					address_u = "address_clamp"
+					address_v = "address_clamp"
+					address_w = "address_clamp"
+				}
+			}
+			"defined(ADDRESS_WRAP)" = {
+				address_u = "address_wrap"
+				address_v = "address_wrap"
+				address_w = "address_wrap"
+			}
+			"defined(FILTER_LINEAR)" = {
+				filter = "min_mag_mip_linear"
+			}
+			"defined(FILTER_POINT)" = {
+				filter = "min_mag_mip_point"
+			}
+			"defined(FILTER_ANISOTROPIC)" = {
+				filter = "anisotropic"
+				max_anisotropy = "8"
+			}
+			"defined(SRGB)" = {
+				srgb = "true"
+			}
+			"!defined(SRGB)" = {
+				srgb = "false"
+			}
+		}
+	}
+}

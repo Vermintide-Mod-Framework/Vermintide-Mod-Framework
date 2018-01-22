@@ -1,0 +1,13 @@
+group = "Math"
+display_name = "Cosine"
+inputs = {
+	"d0ff3f8a-3bc5-4a02-8edf-562e3985985e" = { name = "a" display_name = "Angle" type = "auto" }
+}
+
+output = {
+	type = { typeof: "a" }
+}
+
+code = """
+	RESULT(cos(a)); 
+"""

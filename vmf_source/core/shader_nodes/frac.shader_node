@@ -1,0 +1,13 @@
+group = "Math"
+display_name = "Fractional (Decimal)"
+inputs = {
+	"06acde87-5eb5-4800-881d-ed7c05de6ac6" = { name = "a" display_name = "A" type = "auto" }
+}
+
+output = {
+	type = { typeof: "a" }
+}
+
+code = """
+	RESULT(frac(a));
+"""

@@ -1,0 +1,69 @@
+// todo: output_a and output_b should be locked such that both are the same data type
+//       For now we will assume the user does this manually
+group = "Math"
+display_name = "If"
+inputs = {
+	"CED7BBF3-0B48-4335-B933-095A41CA0294" = { name = "input_a" display_name = "A" type = "auto" }
+	"39BC7619-2768-480B-ACFD-63FA66EF6905" = { name = "input_b" display_name = "B" type = "auto" }
+	"4CBB4480-79E8-4CE7-AC0F-8B09BAF12390" = { name = "output_a" display_name = "True" type = "auto" }
+	"F2F74E58-402D-472B-87DD-331E00DB416C" = { name = "output_b" display_name = "False" type = "auto" }
+}
+
+output = {
+	type = { typeof: "output_a" }
+}
+
+options = {
+	"9A84282B-F1A2-46D4-9FC4-5A76FC9B30DD" = "OP_EQUAL"
+	"6F615C8C-0C2E-4571-87BF-2131125BB9BD" = "OP_NOTEQUAL"
+	"9D6AE0AA-46AA-41C6-BD40-2F4030EA9668" = "OP_SMALLER"
+	"B153EA25-006C-4918-B18D-F934D95B1DDF" = "OP_LARGER"
+	"C14A2EBF-0E4F-40FC-A77B-552CFE5A8AA8" = "OP_SMALLEREQUAL"
+	"C5160115-6432-4FB7-9F16-44C0C45B4423" = "OP_LARGEREQUAL"
+	"B593D445-6CB9-4606-BDEC-87985B85CEE0" = "OP_AND"
+	"DAD8F6A0-EEE4-4CC1-9D34-B5BDD67FEF44" = "OP_OR"
+}
+
+ui = [
+	{
+		type = "drop_down"
+		display_name = "Operator"
+		options = {
+			"Equal (==)" = "9A84282B-F1A2-46D4-9FC4-5A76FC9B30DD"
+			"Not Equal (!=)" = "6F615C8C-0C2E-4571-87BF-2131125BB9BD"
+			"Less (<)" = "9D6AE0AA-46AA-41C6-BD40-2F4030EA9668"
+			"Greater (>)" = "B153EA25-006C-4918-B18D-F934D95B1DDF"
+			"Less Equal (<=)" = "C14A2EBF-0E4F-40FC-A77B-552CFE5A8AA8"
+			"Greater Equal (>=)" = "C5160115-6432-4FB7-9F16-44C0C45B4423"
+			"And (&&)" = "B593D445-6CB9-4606-BDEC-87985B85CEE0"
+			"Or (||)" = "DAD8F6A0-EEE4-4CC1-9D34-B5BDD67FEF44"
+		}
+		default = "9A84282B-F1A2-46D4-9FC4-5A76FC9B30DD"
+	}
+]
+
+code = """
+	output_a_type result;
+	
+	#if defined(OP_EQUAL)
+		result = (input_a == input_b) ? output_a : output_b;
+	#elif defined(OP_NOTEQUAL)
+		result = (input_a != input_b) ? output_a : output_b;
+	#elif defined(OP_SMALLER)
+		result = (input_a < input_b) ? output_a : output_b;
+	#elif defined(OP_LARGER)
+		result = (input_a > input_b) ? output_a : output_b;
+	#elif defined(OP_SMALLEREQUAL)
+		result = (input_a <= input_b) ? output_a : output_b;
+	#elif defined(OP_LARGEREQUAL)
+		result = (input_a >- input_b) ? output_a : output_b;
+	#elif defined(OP_AND)
+		result = (input_a && input_b) ? output_a : output_b;
+	#elif defined(OP_OR)
+		result = (input_a || input_b) ? output_a : output_b;
+	#else
+		result = output_a;
+	#endif
+
+	RESULT( result );
+"""

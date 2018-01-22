@@ -1,0 +1,14 @@
+textures = {
+	diffuse_map = "color_map"
+	normal_map = "normal_map"
+	metallic_map = "metallic_map"
+	roughness_map = "roughness_map"
+	emissive_map = "emissive_map"
+}
+variables = {
+	diffuse_color = "base_color"
+	metallic_value = "metallic"
+	roughness_value = "roughness"
+	self_illumination_color = "emissive"
+	emissive_intensity = "emissive_intensity"
+}

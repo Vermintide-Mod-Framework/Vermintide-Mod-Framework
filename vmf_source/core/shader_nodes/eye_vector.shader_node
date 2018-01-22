@@ -1,0 +1,25 @@
+group = "Input"
+display_name = "Eye Vector"
+depends_on = [
+	"core/stingray_renderer/output_nodes/standard_base", 
+	"core/stingray_renderer/output_nodes/unlit_base"
+	"core/stingray_renderer/output_nodes/terrain_base"
+]
+
+imports = {
+	dir = {
+		type = "float3"
+		domain = "vertex"
+		output_channel = "eye_vector"
+	}
+}
+
+defines = ["NEEDS_EYE_VECTOR"]
+
+output = {
+	type = { typeof: "dir" }
+}
+
+code = """
+	RESULT(dir);
+"""

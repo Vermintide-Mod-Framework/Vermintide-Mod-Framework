@@ -1,0 +1,19 @@
+group = "Light"
+display_name = "Light Color"
+depends_on = ["core/stingray_renderer/output_nodes/light_base"]
+
+imports = {
+	light_color = {
+		type = "float3"
+		domain = "global"
+		source = "engine"
+	}
+}
+
+output = {
+	type = { typeof: "light_color" }
+}
+
+code = """
+	RESULT(light_color);
+"""

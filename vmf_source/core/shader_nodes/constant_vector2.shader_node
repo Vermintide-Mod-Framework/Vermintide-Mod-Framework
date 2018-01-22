@@ -1,0 +1,13 @@
+group = "Constant"
+display_name = "Constant Vector2"
+inputs = {
+	"6ff26be7-68a1-4b89-b9dd-551d216086c2" = { name = "a" display_name = "XY" type = "float2"}
+}
+
+output = {
+	type = { typeof: "a" }
+}
+
+code = """
+	RESULT(a);
+"""

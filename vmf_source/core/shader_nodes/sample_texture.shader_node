@@ -1,0 +1,197 @@
+group = "Sampling"
+display_name = "Sample Texture"
+inputs = {
+	"1ee9af1f-65f2-4739-ad28-5ea6a0e68fc3" = { name = "texcoord" display_name = "UV" type = "vector2" domain = "pixel" }
+	"aa23e053-3c53-40f7-a06f-23d5d5a65924" = { name = "mip_level" is_required = false display_name = "Mip Level" type = { scalar: ["HAS_MIPLEVEL"] } }
+}
+
+domain = "pixel"
+output = {
+	type = "float4"
+}
+
+options = {
+	"acb6ef9d-5ba0-42e4-85f3-2924b4b4be25" = "ADDRESS_CLAMP"
+	"5dd59b3d-1762-4a14-9930-7500230ef3db" = "ADDRESS_WRAP"
+	"f669a3a6-0376-4187-840e-80000e2939d5" = "FILTER_LINEAR"
+	"43dea0e2-a77d-410d-88bb-945dac9139d8" = "FILTER_POINT"
+	"1e067464-12d8-4826-9b72-cfd5765003e3" = "FILTER_ANISOTROPIC"
+	"fb3f709b-a54a-4e93-ac9f-e9fc76fb8bcd" = "SRGB"
+    "90e20826-8689-42fa-8e24-f484ec64c5c3" = "NORMAL_MAP_DECODE"
+    "43710e4f-f52a-4038-8ec8-d6cb0546103b" = "RGBM_DECODE"
+    "e94e53e6-49b6-4194-a747-8f064a5932e0" = "LINEAR"
+    "0268506C-B417-49DC-BBBE-3D5949595940" = "FLIP_GREEN"
+    "aea8c8f4-81e6-4784-bc83-bee2f73eea58" = "NORMAL_ROUGHNESS_DECODE"
+}
+
+ui = [
+	{
+		type = "drop_down"
+		display_name = "Encoding"
+		options = {
+			"Linear Color" = "e94e53e6-49b6-4194-a747-8f064a5932e0"
+			"sRGB Color" = "fb3f709b-a54a-4e93-ac9f-e9fc76fb8bcd"
+			"Normal Map" = "90e20826-8689-42fa-8e24-f484ec64c5c3"
+			"Normal Roughness Map" = "aea8c8f4-81e6-4784-bc83-bee2f73eea58"
+			"RGBM Color" = "43710e4f-f52a-4038-8ec8-d6cb0546103b"
+		}
+		default = "fb3f709b-a54a-4e93-ac9f-e9fc76fb8bcd"
+	}
+	{
+		type = "drop_down"
+		display_name = "Address mode"
+		options = {
+			"Clamp" = "acb6ef9d-5ba0-42e4-85f3-2924b4b4be25"
+			"Wrap" = "5dd59b3d-1762-4a14-9930-7500230ef3db"
+		}
+		default = "5dd59b3d-1762-4a14-9930-7500230ef3db"
+	}
+	{
+		type = "drop_down"
+		display_name = "Filter mode"
+		options = {
+			"Anisotropic" = "1e067464-12d8-4826-9b72-cfd5765003e3"
+			"Linear" = "f669a3a6-0376-4187-840e-80000e2939d5"
+			"Point" = "43dea0e2-a77d-410d-88bb-945dac9139d8"
+		}
+		default = "1e067464-12d8-4826-9b72-cfd5765003e3"
+	}
+	{ type = "checkbox" display_name = "Invert Green Channel" 					option = "0268506C-B417-49DC-BBBE-3D5949595940" }
+]
+
+code_blocks = {
+	default = {
+		include: ["texture_debug"]
+		language = "hlsl"
+		samplers = {
+			texture_map = {
+				display_name = "Texture"
+				type = "2d"
+				sampler_state = "core/shader_nodes/graph_common#default_node_sampler"
+				source = "material"
+			}
+		}
+
+		code = """
+			float4 result;
+			#if defined(HAS_MIPLEVEL)
+				result = TEX2DLOD(texture_map, texcoord, mip_level);
+			#else
+				result = TEX2D(texture_map, texcoord);
+			#endif
+				
+			#if defined(FLIP_GREEN)
+				result.y = 1.0-result.y;
+			#endif
+
+			#if defined(RENDERER_GL) && defined(SRGB)
+				result = fast_gamma_to_linear_rgb(result);
+			#endif
+
+			#if defined(NORMAL_MAP_DECODE)
+				result = float4(decode_normal_map(result), result.a);
+			#elif defined(RGBM_DECODE)
+				result = float4(rgbm_decode(result), result.a);
+			#elif defined(NORMAL_ROUGHNESS_DECODE)
+				float3 N = 2.0*result.rgb - 1.0;
+				float roughness = result.a;
+				#if 0
+					// Specular AA
+					// TODO: Pre-bake this code
+					// http://blog.selfshadow.com/publications/s2013-shading-course/rad/s2013_pbs_rad_notes.pdf
+					float r = length(N);
+					if (r < 1.0) {
+						float rr = r * r ;
+						float kappa = (3.0 * r - r * rr) / (1.0 - rr) ;
+						float variance = 1.0 / (2.0 * kappa) ;
+						roughness = sqrt (roughness * roughness + variance);
+					 }
+				#endif
+				result = float4(normalize(N), roughness);
+			#endif
+
+			#if defined(MIPMAP_LEVEL_VISUALIZATION)
+				 // inspired by http://aras-p.info/blog/2011/05/03/a-way-to-visualize-mip-levels/
+				#if defined(HAS_MIPLEVEL)
+					float4 mip_color = miplevel_debug_color(mip_level);
+					result = lerp(result, mip_color, mip_color.a);
+				#else
+					float mip_level_ = calculate_miplevel(texture_map, texcoord);
+					float4 mip_color = miplevel_debug_color(mip_level_);
+					result = lerp(result, mip_color, mip_color.a);
+				#endif
+			#elif defined(TEXTURE_DENSITY_VISUALIZATION)
+				float texture_density = calculate_texture_density(texture_map, texcoord);
+				float4 blend_color = texture_density_debug(texture_density, 10.0);
+				result = lerp(result, blend_color, blend_color.a);
+			#elif defined(COLORED_TEXTURE_DENSITY_VISUALIZATION)
+				float texture_density = calculate_texture_density(texture_map, texcoord);
+				float4 blend_color = texture_density_debug(texture_density, 10.0);
+				result = lerp(float4(0.0, 1.0, 0.0, 0.0), blend_color, blend_color.a);
+			#endif
+
+			RESULT(result);
+		"""
+	}
+
+	texture_debug = {
+		language = "hlsl"
+		code="""
+			// Seems to be fairly accurate to HLSL
+			inline float calculate_miplevel(Sampler2D texture_map, float2 uv) 
+			{
+			    // The OpenGL Graphics System: A Specification 4.2
+			    //  - chapter 3.9.11, equation 3.21
+			    float2 texture_dim;
+			    texture_map.tex.GetDimensions(texture_dim.x, texture_dim.y);
+			    float2 texcoord = uv * texture_dim;
+			    float2 dx_vtc = ddx(texcoord);
+			    float2 dy_vtc = ddy(texcoord);
+			    float delta_max_sqr = max(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
+			   	return 0.5 * log2(delta_max_sqr); // == log2(sqrt(delta_max_sqr));
+			}
+
+			inline float calculate_texture_density(Sampler2D texture_map, float2 uv) 
+			{
+				float2 texture_dim;
+			    texture_map.tex.GetDimensions(texture_dim.x, texture_dim.y);
+			    float2 texcoord = uv * texture_dim;
+			    return max(length(ddx(texcoord)), length(ddy(texcoord)));
+			}
+
+			inline float calculate_mipmap_texture_density(Sampler2D texture_map, float2 uv) 
+			{
+				uint mip_level_ = calculate_miplevel(texture_map, uv);
+				return calculate_texture_density(texture_map, uv/float(1<<mip_level_));
+			}
+
+			inline float4 miplevel_debug_color(float mip_level) 
+			{
+				float4 color_table[6] = {
+					float4(0.0,0.0,1.0,0.8),
+					float4(0.0,0.5,1.0,0.4),
+					float4(1.0,1.0,1.0,0.0),
+					float4(1.0,0.7,0.0,0.2),
+					float4(1.0,0.3,0.0,0.6),
+					float4(1.0,0.0,0.0,0.8)
+				};
+
+				uint lower_mip = min(floor(mip_level), 5u);
+				uint higher_mip = min(ceil(mip_level), 5u);
+
+				return lerp(color_table[lower_mip], color_table[higher_mip], frac(mip_level));
+			}
+
+			inline float4 texture_density_debug(float texture_density, float max_value)
+			{
+			    if(texture_density < 1.0) {
+			    	float alpha = saturate(1.0 - texture_density);
+			    	return float4(0.0, 0.0, 1.0, alpha);
+			    } else {
+			    	float alpha = saturate((texture_density - 1.0)/(max_value - 1.0));
+			    	return float4(1.0, 0.0, 0.0, alpha);
+			    }
+			}
+		"""
+	}
+}

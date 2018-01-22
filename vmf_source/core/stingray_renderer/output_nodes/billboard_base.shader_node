@@ -1,0 +1,361 @@
+group = "Output"
+display_name = "Billboard Base"
+output_node = true
+render_configs = ["core/stingray_renderer/renderer"]
+
+inputs = {
+	"aee6e47b-be7b-4d67-a123-2ab5d660b94e" = {
+		name = "vertex_offset"
+		display_name = "Position offset"
+		is_required = false
+		type = { vector3: ["HAS_VERTEX_OFFSET"] }
+		domain = "vertex"
+	}
+
+	"aca690cb-6305-4a2f-bf3d-69183a493db3" = {
+		name = "base_color"
+		is_required = false
+		display_name = "Base Color"
+		type = { vector3: ["HAS_BASE_COLOR"] }
+		domain = "pixel"
+	}
+
+	"34259752-b962-4b65-92c3-903a57338519" = {
+		name = "opacity"
+		is_required = false
+		display_name = "Opacity"
+		type = { scalar: ["HAS_OPACITY"] }
+		domain = "pixel"
+	}
+
+	"7a9306c6-95ae-4cdb-9fef-0eedacce4e83" = {
+		name = "opacity_threshold"
+		is_required = false
+		display_name = "Opacity Threshold"
+		type = { scalar: ["HAS_OPACITY_THRESHOLD"] }
+		domain = "pixel"
+	}
+
+	"b1c86408-aacb-4466-b754-ddcf37a3a2c8" = {
+		is_required = false
+		name = "normal"
+		display_name = "Normal"
+		type = { vector3: ["HAS_NORMAL"] }
+		domain = "pixel"
+	}
+
+	"ad5e052f-d316-4a0f-8b79-53c38204d61b" = {
+		is_required = false
+		name = "metallic"
+		display_name = "Metallic"
+		type = { scalar: ["HAS_METALLIC"] }
+		domain = "pixel"
+	}
+
+	"36ba46d2-f6ea-4e60-a428-fdc17c75bc62" = {
+		is_required = false
+		name = "roughness"
+		display_name = "Roughness"
+		type = { scalar: ["HAS_ROUGHNESS"] }
+		domain = "pixel"
+	}
+
+	"1164a5ef-4563-4795-b3b5-42825d6df037" = {
+		is_required = false
+		name = "emissive"
+		display_name = "Emissive"
+		type = { vector3: ["HAS_EMISSIVE" ] }
+		domain = "pixel"
+	}
+
+	"59fd1cf4-f736-470d-8510-1dd7c016639e" = {
+		is_required = false
+		name = "ambient_occlusion"
+		display_name = "Ambient Occlusion"
+		type = { scalar: ["HAS_AMBIENT_OCCLUSION"] }
+		domain = "pixel"
+	}
+
+	"0544ddb6-e168-452d-86f2-42a79e8c98e3" = {
+		is_required = false
+		name = "sss_strength"
+		display_name = "Skin SSS"
+		type = { scalar: ["SKIN", "HAS_SKIN_SSS_STRENGTH"] }
+		domain = "pixel"
+	}
+}
+
+options = {
+	"b2c7c0d2-beff-4b1a-a9d4-068a507625a2" = "USE_FBX_PERMUTATIONS"
+	"d1a42a54-0794-4d57-9aa0-eb35acb6b35c" = "INSTANCED"
+	"8df1b8f7-17c2-4ae4-8c4e-25517ec1df46" = "CULL_NONE"
+	"c198c109-2cdf-49ee-af18-a982c23e2729" = "CULL_FRONT"
+	"34994d84-9d51-48ac-af85-bc053b2c65c3" = "SKIN"
+	"2b136447-676e-4943-997b-04a28ae68497" = "WORLD_SPACE_NORMAL"
+	"dd7fcf97-0627-48ab-b29a-95b5685bb123" = "TRANSPARENT"
+	"3b55d6c6-4398-4dbc-b9ef-570aff8696ae" = "TRANSPARENT_FADE"
+	"b5bb2062-c8fa-43c5-8657-493a0be6860c" = "SKINNED_DISABLED"
+	"901b44ce-d128-498a-9912-32cd9635c556" = "HAS_FOV"
+	"da4e717b-5d0d-47fa-93b0-01c988f8f3ff" = "LOCK_NORMAL_ROTATION"
+	"979cb7cf-c255-42d0-a389-78fc0fb0539f" = "DEFERRED_DECALS_GROUP_1"
+	"d557b597-fa90-46b4-a751-eb51ae61ba5b" = "DEFERRED_DECALS_GROUP_2"
+	"fe20cc01-4cec-4217-98a0-07220ad3add9" = "DEFERRED_DECALS_GROUP_3"
+	"524a5842-23b7-46d1-ab22-cb3a14746ce0" = "USE_GLOBAL_ROUGHNESS_MULTIPLIER"
+	"11256995-4805-4018-bd6b-9214414fd363" = "NORMAL_FLIP_DISABLED"
+	"580cc6eb-3591-4c71-aa50-528af18ba160" = "JITTER_TRANSPARENCY"
+
+	"a669a3b8-2bf0-4b3f-ba67-aebdeaf0e0d1" = "BILLBOARD_TANGENT_ALIGNED" 
+	"b2df1da0-8e59-4ad4-9ab7-7a4d5ddcf998" = "BILLBOARD_CAMERA_ALIGNED"
+	"f0642710-b291-4a17-80d0-1319d0decfd9" = "BILLBOARD_TANGENT_ALIGNED_X_LOCKED"
+	"32b48986-5602-4157-8a25-44fc7f71ee47" = "BILLBOARD_TANGENT_ALIGNED_Y_LOCKED"
+	"5bdca8b0-737e-417e-a2b4-d35cc935f605" = "BILLBOARD_SPHERICAL_NORMAL"
+	"c1c06809-56d3-4a8e-882c-7d84c31299ba" = "SECONDARY_SUN_DIRECTION"
+}
+
+ui = [
+	{
+		type = "drop_down"
+		display_name = "Billboard Option"
+		options = {
+			"Screen Aligned" 	= "00000000-0000-0000-0000-000000000000"
+			"Camera Aligned" 	= "b2df1da0-8e59-4ad4-9ab7-7a4d5ddcf998"
+			"Tangent Aligned" 	= "a669a3b8-2bf0-4b3f-ba67-aebdeaf0e0d1"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+	{
+		type = "drop_down"
+		display_name = "Tangent Aligned Axis"
+		options = {
+			"Z-Axis" = "00000000-0000-0000-0000-000000000000"
+			"Y-Axis" = "32b48986-5602-4157-8a25-44fc7f71ee47"
+			"X-Axis" = "f0642710-b291-4a17-80d0-1319d0decfd9"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+	{
+		type = "drop_down"
+		display_name = "Normal Options"
+		options = {
+			"Plane Normal"				= "00000000-0000-0000-0000-000000000000"
+			"Spherical Plane Normal"	= "5bdca8b0-737e-417e-a2b4-d35cc935f605"
+
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+	{
+		type = "drop_down"
+		display_name = "Normals In"
+		options = {
+			"Tangent Space"	= "00000000-0000-0000-0000-000000000000"
+			"World Space"	= "2b136447-676e-4943-997b-04a28ae68497"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+	{
+		type = "drop_down"
+		display_name = "Blend Mode"
+		options = {
+			"Opaque"			= "00000000-0000-0000-0000-000000000000"
+			"Transparent"		= "dd7fcf97-0627-48ab-b29a-95b5685bb123"
+			"Transparent Fade"	= "3b55d6c6-4398-4dbc-b9ef-570aff8696ae"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+	{
+		type = "drop_down"
+		display_name = "Decal Group"
+		options = {
+			"Group 0" = "00000000-0000-0000-0000-000000000000"
+			"Group 1" = "979cb7cf-c255-42d0-a389-78fc0fb0539f"
+			"Group 2" = "d557b597-fa90-46b4-a751-eb51ae61ba5b"
+			"Group 3" = "fe20cc01-4cec-4217-98a0-07220ad3add9"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+	
+	{ type = "checkbox" display_name = "Disable Skinning"				option = "b5bb2062-c8fa-43c5-8657-493a0be6860c" }
+	{ type = "checkbox" display_name = "Instancing" option = "d1a42a54-0794-4d57-9aa0-eb35acb6b35c" }
+	{ type = "checkbox" display_name = "Custom FOV" 					option = "901b44ce-d128-498a-9912-32cd9635c556" }
+	{ type = "checkbox" display_name = "Avoid Tangent Space Transform" 	option = "da4e717b-5d0d-47fa-93b0-01c988f8f3ff" }
+	{ type = "checkbox" display_name = "Use Global Roughness Multiplier" 	option = "524a5842-23b7-46d1-ab22-cb3a14746ce0" }
+	{ type = "checkbox" display_name = "Normal Flip Disabled (double sided)" option = "11256995-4805-4018-bd6b-9214414fd363" }
+	{ type = "checkbox" display_name = "Jitter Transparency" option = "580cc6eb-3591-4c71-aa50-528af18ba160" }
+]
+
+render_state = {
+}
+
+sampler_state = {
+}
+
+channels = 	{
+	"(defined(HAS_NORMAL) && !defined(WORLD_SPACE_NORMAL)) || defined(NEEDS_TANGENT_SPACE)": {
+		vertex_tangent = { type = "float3" semantic = "TANGENT" domain = "vertex" }
+		vertex_binormal = { type = "float3" semantic = "BINORMAL" domain = "vertex" }
+
+		tsm0 = { type = "float3" domains = ["vertex", "pixel"] }
+		tsm1 = { type = "float3" domains = ["vertex", "pixel"] }
+		tsm2 = { type = "float3" domains = ["vertex", "pixel"] }
+	}
+
+	"defined(NEEDS_EYE_VECTOR)": {
+		eye_vector = { type = "float3" domain = "vertex" }
+	}
+
+	"!defined(HAS_NORMAL) || defined(NEEDS_WORLD_SPACE_NORMAL)": {
+		world_space_normal = { type = "float3" domains = ["vertex", "pixel"] }
+	}
+
+	"defined(MOTION_BLUR)": {
+		last_clip_position = { type = "float3" domains = ["vertex", "pixel"] }
+	}
+
+	vertex_position = { type = "float4" domain = "vertex" }
+	vertex_normal = { type = "float3" semantic = "NORMAL" domain = "vertex" }
+
+	"defined(HAS_VERTEX_BAKED_DIFFUSE_LIGHTING)": {
+		vertex_color1 = { type = "float4" semantic = "COLOR1" domains = ["vertex"] }
+		baked_light = { type = "float3" domains = ["vertex", "pixel"] }
+	}
+
+	"defined(HAS_LIGHTMAP_BAKED_DIFFUSE_LIGHTING)": {
+		lightmap_uv_input = { type = "float2" semantic="TEXCOORD1" domains = ["vertex"] }
+		lightmap_uv = { type = "float2" domains = ["vertex", "pixel"] }
+	}
+	
+	"defined(MATERIAL_TRANSFER)": {
+		lightmap_uv = { type = "float2" semantic="TEXCOORD1" domains = ["vertex"] }
+	}
+
+	"defined(NEEDS_UNSKINNED_WORLD_POS)": {
+		unskinned_world_pos = { type = "float3" domains = ["vertex", "pixel"] }
+		unskinned_normal = { type = "float3" domains = ["vertex", "pixel"] }
+	}
+
+	"defined(NEEDS_PIXEL_DEPTH)": {
+		pixel_depth = { type = "float" domain = "pixel" }
+	}
+
+	"defined(NEEDS_SCREEN_POS)": {
+		screen_pos = { type = "float2" domain = "pixel" }
+	}
+
+	"defined(NEEDS_SUN_SHADOW_MASK)": {
+	//"defined(NEEDS_SUN_SHADOW_MASK) && (defined(EMISSIVE_PASS) || defined(TRANSPARENT) || defined(TRANSPARENT_FADE))": {	
+		sun_shadow_mask = { type = "float" domain = "pixel" }
+	}
+}
+
+//log_permutations = true
+permutation_sets = {
+	vertex_modifiers = [
+		{ if: "num_skin_weights() == 4" define: { "macros": ["SKINNED_4WEIGHTS"] stages: ["vertex"] } }
+		{ if: "num_skin_weights() == 3" define: { "macros": ["SKINNED_3WEIGHTS"] stages: ["vertex"] } }
+		{ if: "num_skin_weights() == 2" define: { "macros": ["SKINNED_2WEIGHTS"] stages: ["vertex"] } }
+		{ if: "num_skin_weights() == 1" define: { "macros": ["SKINNED_1WEIGHT"]  stages: ["vertex"] } }
+		{ default = true }
+	]
+
+	instanced_modifiers = [
+		// { if: "mesh_baked_lighting_type() == lightmap" define: ["HAS_LIGHTMAP_BAKED_DIFFUSE_LIGHTING"] }
+		{ default = true }
+	]
+
+	lightmap_modifiers = [
+		{ if: "lightmap_format() == directional_irradiance" define: ["HAS_DIRECTIONAL_LIGHTMAPS"] }
+		{ default = true }
+	]
+
+	non_instanced_modifiers = [
+		// { if: "mesh_baked_lighting_type() == lightmap" define: ["HAS_LIGHTMAP_BAKED_DIFFUSE_LIGHTING"] permute_with: "lightmap_modifiers" }
+		// { if: "mesh_baked_lighting_type() == vertex" define: ["HAS_VERTEX_BAKED_DIFFUSE_LIGHTING"] }
+		{ permute_with: "vertex_modifiers" }  
+	]
+
+	instanced_and_non_instanced = [
+		{ if: "defined(INSTANCED)" permute_with: "instanced_modifiers" }
+		{ if: "!defined(INSTANCED)" permute_with: "non_instanced_modifiers" }
+	]
+	
+	default = [
+		// FBX Standard material exclusive permutations, these will only compile of the
+		// 'USE_FBX_PERMUTATIONS' option is set, which it is in the shader used for imported fbx files.
+		{ if: "defined(USE_FBX_PERMUTATIONS) && is_any_material_variable_set(use_emissive_map, emissive)" define: ["FBX_EMISSIVE"] permute_with: "instanced_and_non_instanced" }
+		
+		// Normal default permutation set
+		{ if: "on_renderer(D3D11, D3D12, GNM, GL) && (defined(TRANSPARENT) || defined(TRANSPARENT_FADE)) && render_setting(low_res_transparency)" defines=["LOW_RES_ENABLED"] permute_with: "instanced_and_non_instanced" }
+		{ permute_with: "instanced_and_non_instanced" }
+	]
+
+	shadow_caster = [
+		{ if: "defined(INSTANCED)" }
+		{ if: "!defined(INSTANCED)" permute_with: "vertex_modifiers" }
+	]
+}
+
+shader_contexts = {
+	shadow_caster = {
+		passes_sort_mode = "immediate"
+		compile_with = [
+			{ if: "on_renderer(D3D11, D3D12, GNM, GL)" permute_with: "shadow_caster" }
+		]
+
+		passes = [
+			{ code_block="core/stingray_renderer/output_nodes/standard_base#depth_only" defines={ macros: ["BILLBOARD"] stages: ["vertex"] } render_state="core/stingray_renderer/output_nodes/standard_base#shadow_caster" }
+		]
+	}
+
+	material_transfer = {
+		passes_sort_mode = "immediate"
+		compile_with = [
+			{ if: "on_renderer(D3D11, D3D12)" }
+		]
+
+		passes = [
+			{ code_block="core/stingray_renderer/output_nodes/standard_base#gbuffer_base" defines=["BILLBOARD" "MATERIAL_TRANSFER"] render_state="core/stingray_renderer/output_nodes/standard_base#material_transfer" }
+		]
+	}
+
+	default = {
+		passes_sort_mode = "deferred"
+		compile_with = [
+			{ if: "on_renderer(D3D11, D3D12, GNM, GL)" permute_with: [
+				// TODO: create permutation for when local lights is off.
+				{ permute_with: "default" }
+			] }
+		] 
+ 
+		passes = [
+			{ if: "(defined(TRANSPARENT) || defined(TRANSPARENT_FADE))" then: [
+				{ if: "defined(CULL_NONE)" then: [
+					{ layer="hdr_transparent" code_block="core/stingray_renderer/output_nodes/standard_base#gbuffer_base" defines={ macros: ["BILLBOARD"] stages: ["vertex"] } render_state="core/stingray_renderer/output_nodes/standard_base#transparent_double_sided_ccw" }
+					{ layer="hdr_transparent" code_block="core/stingray_renderer/output_nodes/standard_base#gbuffer_base" defines={ macros: ["BILLBOARD"] stages: ["vertex"] } render_state="core/stingray_renderer/output_nodes/standard_base#transparent_double_sided_cw" }
+				] else: [
+					{ layer="hdr_transparent" code_block="core/stingray_renderer/output_nodes/standard_base#gbuffer_base" defines={ macros: ["BILLBOARD"] stages: ["vertex"] } render_state="core/stingray_renderer/output_nodes/standard_base#transparent" }
+				]}
+			] else: [
+				{ if: "defined(HAS_FOV)" then: [
+					{ layer="gbuffer_fpr" code_block="core/stingray_renderer/output_nodes/standard_base#gbuffer_base" defines=["BILLBOARD" "MOTION_BLUR"] render_state="core/stingray_renderer/output_nodes/standard_base#gbuffer_material" }
+				] else: [
+					{ if: "defined(HAS_OPACITY)" then: [
+						{ layer="gbuffer_alpha_masked" code_block="core/stingray_renderer/output_nodes/standard_base#gbuffer_base" defines=["BILLBOARD" "MOTION_BLUR"] render_state="core/stingray_renderer/output_nodes/standard_base#gbuffer_material" }
+					] else: [
+						{ layer="gbuffer" code_block="core/stingray_renderer/output_nodes/standard_base#gbuffer_base" defines=["BILLBOARD" "MOTION_BLUR"] render_state="core/stingray_renderer/output_nodes/standard_base#gbuffer_material" }
+					]}
+				]}
+				
+				// This bit of logic is a bit complicated. The gist of it is that we want to disable this pass
+				// for materials that has a value connected on emissive for all permutations, but should have it
+				// discarded for all but the special permutations with the define FBX_EMISSIVE
+				{ if: "defined(HAS_EMISSIVE) && (!defined(USE_FBX_PERMUTATIONS) || defined(FBX_EMISSIVE))" then: [
+					{ layer="emissive" code_block="core/stingray_renderer/output_nodes/standard_base#gbuffer_base" defines=["BILLBOARD" "EMISSIVE_PASS"] render_state="core/stingray_renderer/output_nodes/standard_base#emissive" }
+				]}
+			]}
+
+			{ if: "!on_renderer(GL)" then: [
+				{ layer="wireframe" code_block="core/stingray_renderer/output_nodes/standard_base#depth_only" defines=["BILLBOARD" "DRAW_WIREFRAME"] render_state="core/stingray_renderer/output_nodes/standard_base#wireframe" branch_key="dev_wireframe" }
+			]}
+		]
+	}
+}

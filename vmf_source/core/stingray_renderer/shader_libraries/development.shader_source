@@ -1,0 +1,1009 @@
+includes = ["core/stingray_renderer/shader_libraries/common.shader_source", 
+			"core/stingray_renderer/shader_libraries/lighting_common.shader_source",
+			"core/stingray_renderer/shader_libraries/post_processing_common.shader_source",
+			"core/stingray_renderer/shader_libraries/shadow_map_common.shader_source",
+			"core/stingray_renderer/shader_libraries/sampling_common.shader_source"]
+
+render_states = {
+	filter = {
+		inherits = "default"
+		states = {
+			ndefined_PROJECT_TO_FAR_PLANE = {
+				z_enable = "false"
+			}
+			z_write_enable = "false"
+		}
+	}
+
+	gbuffer_debug = {
+		inherits = "filter"
+		states = {
+			defined_FILL_ALBEDO = {
+				write_mask0 = "red|green|blue"
+				write_mask1 = "0x0"
+				write_mask2 = "0x0"
+				write_mask3 = "0x0"
+			}
+			defined_FILL_UNTOUCHED_PIXELS = {
+				z_enable = "true"
+				z_func = "less_equal"
+			}
+			defined_OUTLINE_INSIDE = {
+				stencil_enable = "true"
+				stencil_func = "equal"
+				stencil_fail = "stencil_op_keep"
+				stencil_pass = "stencil_op_keep"
+				stencil_z_fail = "stencil_op_keep"
+
+				stencil_func_back_side = "equal"
+				stencil_fail_back_side = "stencil_op_keep"
+				stencil_pass_back_side = "stencil_op_keep"
+				stencil_z_fail_back_side = "stencil_op_keep"
+
+				stencil_ref = "0x80"
+				stencil_mask = "0x80"
+				stencil_write_mask = "0x0"
+			}
+			defined_OUTLINE_OUTSIDE = {
+				stencil_enable = "true"
+				stencil_func = "not_equal"
+				stencil_fail = "stencil_op_keep"
+				stencil_pass = "stencil_op_keep"
+				stencil_z_fail = "stencil_op_keep"
+
+				stencil_func_back_side = "not_equal"
+				stencil_fail_back_side = "stencil_op_keep"
+				stencil_pass_back_side = "stencil_op_keep"
+				stencil_z_fail_back_side = "stencil_op_keep"
+
+				stencil_ref = "0x80"
+				stencil_mask = "0x80"
+				stencil_write_mask = "0x0"
+			}
+
+			defined_DENSITY_VISUALIZATION = {
+				stencil_enable = "true"
+				stencil_ref = "0x0"
+				stencil_mask = "0x18"
+				stencil_write_mask = "0x0"
+
+				stencil_func = "equal"
+				stencil_fail = "stencil_op_keep"
+				stencil_pass = "stencil_op_keep"
+				stencil_z_fail = "stencil_op_keep"
+
+				stencil_func_back_side = "equal"
+				stencil_fail_back_side = "stencil_op_keep"
+				stencil_pass_back_side = "stencil_op_keep"
+				stencil_z_fail_back_side = "stencil_op_keep"
+			}
+		}
+	}
+}
+
+sampler_states = {
+}
+
+hlsl_shaders = {
+	gbuffer_debug = {
+		includes = [ "common", "gbuffer_access" "color_management", "post_processing_common"]
+		samplers = {
+			gbuffer0 = { sampler_states = "clamp_linear" }
+			gbuffer1 = { sampler_states = "clamp_linear" }
+			gbuffer2 = { sampler_states = "clamp_linear" }
+			hdr3_rg = { sampler_states = "clamp_linear" }
+			// gbuffer3 = { sampler_states = "clamp_linear" }
+			global_diffuse_map = { sampler_states = "clamp_linear"}
+			ldr0 = { sampler_states = "clamp_linear" }
+			ldr3_div2 = { sampler_states = "clamp_linear" }
+			linear_depth = { sampler_states = "clamp_linear" }
+			hdr1 = { sampler_states = "clamp_linear" }
+			hdr2 = { sampler_states = "clamp_linear" }
+			hdr0_div2_mip6 = { sampler_states = "clamp_linear" }
+			ldr4_div2 = { sampler_states = "clamp_point" }
+			luminance_adaptation = { sampler_states = "clamp_linear" }
+		}
+
+		vp_code = """
+			layout(location = POSITION0) in vec4 in_pos;
+			layout(location = TEXCOORD0) in vec2 in_uv0;
+
+			CBUFFER_START(c0)
+				UNIFORM mat4 world_view_proj;
+			CBUFFER_END
+
+			out vec2 v_uv0;
+
+			void main() {
+				v_uv0 = in_uv0;
+
+				vec4 p = in_pos * world_view_proj;
+				#if defined(FILL_UNTOUCHED_PIXELS)
+					p.z = p.w;
+				#endif
+
+				gl_Position = p;
+			}
+		"""
+
+		fp_code = """
+			in vec2 v_uv0;
+			layout(location = 0) out vec4 out_color;
+
+			DECLARE_SAMPLER_2D(gbuffer0);
+			DECLARE_SAMPLER_2D(gbuffer1);
+			DECLARE_SAMPLER_2D(gbuffer2);
+			DECLARE_SAMPLER_2D(gbuffer3);
+			DECLARE_SAMPLER_2D(ldr0);
+			DECLARE_SAMPLER_2D(ldr3_div2);
+
+			void main() {
+				half4 gbuffer_0 = TEX2D(gbuffer0, v_uv0);
+				half4 gbuffer_1 = TEX2D(gbuffer1, v_uv0);
+				half4 gbuffer_2 = TEX2D(gbuffer2, v_uv0);
+				half4 gbuffer_3 = TEX2D(gbuffer3, v_uv0);
+				half4 ldr_0 = TEX2D(ldr0, v_uv0);
+				half4 ldr3_div2 = TEX2D(ldr3_div2, v_uv0);
+
+				float3 base_color = gbuffer_decode_base_color(gbuffer_0);
+				half metallic = gbuffer_decode_metallic_mask(gbuffer_0);
+				float3 diffuse_color = lerp(base_color, new_half3(0, 0, 0), metallic);
+				float3 specular_color = lerp(new_half3(0.04, 0.04, 0.04), base_color, metallic);
+				half shadow = ldr_0.r;
+				half2 velocity = gbuffer_2.zw;
+				half ao = gbuffer_2.x;
+
+				float3 N = normalize(gbuffer_decode_normal(gbuffer_1));
+				half roughness = gbuffer_decode_roughness(gbuffer_1);
+
+				#if defined(ALBEDO_VISUALIZATION)
+					out_color = vec4(pow(diffuse_color, vec3(1.0/2.2)), 0);
+				#elif defined(NORMAL_VISUALIZATION)
+					out_color = vec4(gbuffer_encode_normal(N), 0);
+				#elif defined(ROUGHNESS_VISUALIZATION)
+					out_color = vec4(roughness, roughness, roughness, 0);
+				#elif defined(SPECULAR_VISUALIZATION)
+					out_color = vec4(specular_color, 0);
+				#elif defined(METALLIC_VISUALIZATION)
+					out_color = vec4(metallic, metallic, metallic, 0);
+				#elif defined(AMBIENT_DIFFUSE_VISUALIZATION)
+					out_color = vec4(gbuffer_decode_ambient_diffuse_light(gbuffer_3), 0);
+				#elif defined(SUN_SHADOW_VISUALIZATION)
+					out_color = vec4(shadow, shadow, shadow, 0);
+				#elif defined(VELOCITY_VISUALIZATION)					
+					out_color = vec4(velocity * vec2(100), 0, 0);
+				#elif defined(AO_VISUALIZATION)					
+					out_color = vec4(ao, ao, ao, 0);
+				#elif defined(FILL_UNTOUCHED_PIXELS)
+					out_color = vec4(0, 0, 0, 0);
+				#else
+					out_color = vec4(0, 0, 0, 0);
+				#endif
+			}
+		"""
+
+		code="""
+			DECLARE_SAMPLER_2D(gbuffer0);
+			DECLARE_SAMPLER_2D(gbuffer1);
+			DECLARE_SAMPLER_2D(gbuffer2);
+			DECLARE_SAMPLER_2D(hdr3_rg);
+			//DECLARE_SAMPLER_2D(gbuffer3);
+			DECLARE_SAMPLER_CUBE(global_diffuse_map);
+			DECLARE_SAMPLER_2D(ldr0);
+			DECLARE_SAMPLER_2D(ldr3_div2);
+			DECLARE_SAMPLER_2D(linear_depth);
+			DECLARE_SAMPLER_2D(hdr1);
+			DECLARE_SAMPLER_2D(hdr2);
+			DECLARE_SAMPLER_2D(hdr0_div2_mip6);
+			DECLARE_SAMPLER_2D(ldr4_div2);
+			DECLARE_SAMPLER_2D(luminance_adaptation);
+
+			struct VS_INPUT {
+				float4 position : POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			CBUFFER_START(c0)
+				float4x4 world_view_proj;
+				float2 inv_input_texture0_size;
+				float ao_enabled;
+				float ssr_enabled;
+				float eye_adaptation_enabled;
+				float exposure;
+			CBUFFER_END
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input) {
+				PS_INPUT o;
+
+				o.position = mul(input.position, world_view_proj);
+				#ifdef FILL_UNTOUCHED_PIXELS
+					o.position.z = o.position.w;
+				#endif
+				o.uv = input.uv;
+
+				return o;
+			}
+
+			float3 rgb2xyz(float3 rgb) {
+				float3x3 m = {
+				    0.4124, 0.3576, 0.1805,
+				    0.2126, 0.7152, 0.0722,
+				    0.0193, 0.1192, 0.9505
+				};
+
+				return mul(m, rgb);
+			}
+
+			float3 xyz2lab(float3 xyz) {
+				float3 ref = float3(0.9505, 1.0000, 1.0888) * 100.0; // D65 white point
+				xyz /= ref;
+				xyz = (xyz > pow(6.0/29.0, 3.0)) ? pow(xyz, 1.0/3.0) : 1.0/3.0*pow(29.0/6.0, 2.0)*xyz + 4.0/29.0;
+				return float3(116.0, 500.0, 200.0) * float3(xyz.y, xyz.x - xyz.y, xyz.y - xyz.z) - float3(16.0, 0.0, 0.0);
+			}
+
+			// simple srgb approximation
+			float3 rgb2srgb(float3 rgb) {
+				return pow(rgb, 1.0/2.2);
+			}
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			float4 ps_main(PS_INPUT input) : SV_TARGET0 {
+
+				// #pragma warning(push) // PS4 note: why does the warnings fail to be disable if we push and pop the pragma warning state?
+				#pragma warning(disable:5206) // muting 'local variable unreferenced' warning
+				#pragma warning(disable:6205) // muting 'code after this return statement is unreachable' warning
+
+				half4 gbuffer_0 = TEX2D(gbuffer0, input.uv);
+				half4 gbuffer_1 = TEX2D(gbuffer1, input.uv);
+				half4 gbuffer_2 = TEX2D(gbuffer2, input.uv);
+				float4 gbuffer_4 = TEX2D(hdr3_rg, input.uv);
+				//half4 gbuffer_3 = TEX2D(gbuffer3, input.uv);
+				half4 ldr_0 = TEX2D(ldr0, input.uv);
+				half4 ldr_1_div2 = TEX2D(ldr3_div2, input.uv);
+				float d = gbuffer_decode_depth(TEX2D(linear_depth, input.uv));
+				half4 local_reflections_data = TEX2D(hdr1, input.uv);
+				half4 local_radiation_data = TEX2D(hdr2, input.uv);
+
+				float3 base_color = gbuffer_decode_base_color(gbuffer_0);
+				half metallic = gbuffer_decode_metallic_mask(gbuffer_0);
+				float3 diffuse_color = lerp(base_color, new_half3(0,0,0), metallic);
+				float3 specular_color = lerp(new_half3(0.04,0.04,0.04), base_color, metallic);
+				half shadow = ldr_0.r;
+				half2 velocity = decode_velocity(gbuffer_4.VELOCITY_COMPONENTS);
+				half ao = gbuffer_decode_ambient_occlusion(gbuffer_2);
+				if (ao_enabled) {
+					#if defined(SSAO_ENABLED)
+						half ssao = ldr_1_div2.r;
+						ao = min(ssao, ao);
+					#elif defined(SSAO_ONLY)
+						ao = ldr_1_div2.r;
+					#endif
+				}
+
+				float3 N = normalize(gbuffer_decode_normal(gbuffer_1));
+				half roughness = gbuffer_decode_roughness(gbuffer_1);
+
+				half density = gbuffer_decode_density(gbuffer_2);
+
+				float ssr_mip_level = TEX2DLOD(ldr4_div2, input.uv, 0).r * SSR_MIPMAP_LEVELS;
+				float ssr_weight = TEX2DLOD(hdr0_div2_mip6, input.uv, ssr_mip_level).a * ssr_enabled;
+
+				float local_reflection_probe_weight = local_reflections_data.w;
+				local_reflection_probe_weight = min(local_reflection_probe_weight, 1.0 - ssr_weight);
+				float global_probe_weight = 1.0 - (ssr_weight + local_reflection_probe_weight);
+				
+				float3 local_reflection_probe_influence = local_reflections_data.rgb * (1.0 - max(local_reflections_data.w + ssr_weight - 1.0, 0.0));
+
+				#if defined(ALBEDO_VISUALIZATION)
+					return float4(rgb2srgb(base_color),0);
+				#elif defined(DIFFUSE_VISUALIZATION)
+					return float4(rgb2srgb(diffuse_color),0);
+				#elif defined(NORMAL_VISUALIZATION)
+					return float4(gbuffer_encode_normal(N),0);
+				#elif defined(ROUGHNESS_VISUALIZATION)
+					return float4(roughness,roughness,roughness,0);
+				#elif defined(SPECULAR_VISUALIZATION)
+					return float4(rgb2srgb(specular_color),0);
+				#elif defined(METALLIC_VISUALIZATION)
+					return float4(metallic,metallic,metallic,0);
+				#elif defined(AMBIENT_DIFFUSE_VISUALIZATION)
+				 	//return float4(gbuffer_decode_ambient_diffuse_light(gbuffer_3), 0);
+				 	return half4(rgbm_decode(TEXCUBELOD(global_diffuse_map, N, 0)), 1.0);
+				#elif defined(SUN_SHADOW_VISUALIZATION)
+					return float4(shadow, shadow, shadow, 0);
+				#elif defined(VELOCITY_VISUALIZATION)										
+					return float4(velocity * 100, 0, 0);
+				#elif defined(NORMALIZED_VELOCITY_VISUALIZATION)
+					if (length(velocity) > 0.001) {
+						return float4(normalize(velocity)*0.5 + 0.5, 0, 0);
+					} else {
+						return float4(0, 0, 0, 0);
+					}
+				#elif defined(AO_VISUALIZATION)										
+					return float4(ao, ao, ao, 0);
+				#elif defined(FILL_UNTOUCHED_PIXELS)
+					return float4(0,0,0,0);
+				#elif defined(ALBEDO_XYZ_LUMINANCE_VISUALIZATION)
+					float lum = pow(dot(diffuse_color + specular_color, luminance_vector), 1.0/2.2);				
+					return float4(lum,lum,lum,0);
+				#elif defined(ALBEDO_XYZ_LUMINANCE_CLIPPING_VISUALIZATION)
+					float lum = pow(dot(diffuse_color + specular_color, luminance_vector), 1.0/2.2);
+					float min_value = 0.23; // charcoal
+					half max_value = 0.95;  // snow
+					float3 albedo_luminance = float3(lum,lum,lum);
+					if (lum < min_value) {
+						float alpha = saturate(saturate((min_value - lum)/min_value));
+						albedo_luminance = lerp(float3(0.0, 1.0, 1.0), float3(0.0, 0.0, 1.0), alpha);
+					} else if (lum > max_value) {
+						float alpha = saturate(saturate((lum - max_value)/(1.0 - max_value)));
+						albedo_luminance = lerp(float3(1.0, 1.0, 0.0), float3(1.0, 0.0, 0.0), alpha);
+					}
+					return float4(albedo_luminance, 0);
+				#elif defined(ALBEDO_LAB_LUMINANCE_VISUALIZATION)
+					float3 lab = xyz2lab(rgb2xyz(diffuse_color + specular_color));
+					return float4(pow(float3(lab.x, lab.x, lab.x)*0.1, 1/2.2), 0);
+				#elif defined(ALBEDO_LAB_LUMINANCE_CLIPPING_VISUALIZATION)
+					float3 lab = xyz2lab(rgb2xyz(diffuse_color + specular_color));
+					float lum = lab.x;
+					float min_value = xyz2lab(rgb2xyz(float3(0.04, 0.04, 0.04))).x; // charcoal
+					half max_value = xyz2lab(rgb2xyz(float3(0.9, 0.9, 0.9))).x;  // snow
+					float3 albedo_luminance = float3(lum,lum,lum)*0.1;
+					if (lum < min_value) {
+						float alpha = saturate(saturate((min_value - lum)/min_value));
+						albedo_luminance = lerp(float3(0.0, 1.0, 1.0), float3(0.0, 0.0, 1.0), alpha);
+					} else if (lum > max_value) {
+						float alpha = saturate(saturate((lum - max_value)/(1.0 - max_value)));
+						albedo_luminance = lerp(float3(1.0, 1.0, 0.0), float3(1.0, 0.0, 0.0), alpha);
+					}
+					return float4(pow(albedo_luminance, 1/2.2), 0);
+				#elif defined(LINEAR_DEPTH)
+					return saturate(d/20.0);
+				#elif defined(OUTLINE_INSIDE)
+					return float4(1, 0, 0, 0);
+				#elif defined(OUTLINE_OUTSIDE)	
+					return float4(0, 0, 0, 0);
+				#elif defined(RADIATION_PROBE_VISUALIZATION)
+					float3 color = local_radiation_data.rgb;
+					color *= exposure / (eye_adaptation_enabled ? TEX2D(luminance_adaptation, input.uv).r : 1.0);
+					return float4(color, 1.0);
+				#elif defined(RADIATION_WEIGHT_VISUALIZATION)
+					return float4(1.0 - local_radiation_data.w, local_radiation_data.w, 0.0, 1.0);
+				#elif defined(REFLECTION_PROBE_VISUALIZATION)
+					float3 color = local_reflection_probe_influence;
+					color *= exposure / (eye_adaptation_enabled ? TEX2D(luminance_adaptation, input.uv).r : 1.0);
+					return float4(color, 1.0);
+				#elif defined(REFLECTION_WEIGHT_VISUALIZATION)
+					return float4(global_probe_weight, local_reflection_probe_weight, ssr_weight, 1.0);
+				#elif defined(DENSITY_VISUALIZATION)
+					return float4(density, density, density, 0);
+				#elif defined(SKIN_SSS_VISUALIZATION)
+					return float4(density, density, density, 0);
+				#endif
+
+				return float4(0, 0, 0, 0);
+				
+				// #pragma warning(pop)
+
+			}
+		"""
+	}
+
+	clustered_shading_debug = {
+		includes = [ "common", "gbuffer_access", "brdf", "taa_offsets", "shadow_bias", "shadow_map_filtering", "clustered_shading" ]
+		samplers = {
+			linear_depth = { sampler_states = "clamp_point" }
+		}
+
+		code="""
+			DECLARE_SAMPLER_2D(linear_depth);
+
+			DECLARE_CLUSTER_DATA(cs_cluster_buffer);
+			DECLARE_LIGHT_INDEX_DATA(cs_light_index_buffer);
+			DECLARE_LIGHT_DATA(cs_light_data_buffer);
+			DECLARE_LIGHT_SHADOW_MATRICES(cs_light_shadow_matrices_buffer);
+			DECLARE_COMPARISON_SAMPLER_2D(local_lights_shadow_atlas);
+
+			struct VS_INPUT {
+				float4 position : POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				float2 uv : TEXCOORD0;
+				float4 w : TEXCOORD1;
+			};
+
+			CBUFFER_START(c0)
+				float4x4 world_view_proj;
+			CBUFFER_END
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input) {
+				PS_INPUT o;
+				o.position = mul(input.position, world_view_proj);
+				o.uv = input.uv;
+				o.w = encode_world_pos(o.position);
+				o.position.z = o.position.w;
+
+				// When using temporal antialiasing we try to cancel out the jitter
+				// that was introduced in the depth buffer. This is to minimize self occlusion
+				// that can arrise when performing a depth test beween the jittered depth buffer
+				// and a non jittered shadow map.
+				float4 tmp = o.position;
+				float4 view_space = tmp / tmp.w;
+				view_space.xy -= get_vs_halton_offset(frame_number);
+				tmp = view_space * tmp.w;
+				o.w = encode_world_pos(tmp);
+
+				return o;
+			}
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			float4 ps_main(PS_INPUT input) : SV_TARGET0 {
+				float depth = gbuffer_decode_depth(TEX2D(linear_depth, input.uv));
+				float3 wp = decode_world_pos(input.w, depth);
+
+				if (depth > cs_cluster_max_depth_inv_max_depth.x)
+					return float4(0, 0, 0, 1);
+
+				uint2 cluster_info;
+				sample_cluster_data(cs_cluster_buffer, input.position.xy, depth, cluster_info);
+
+				uint light_index = cluster_info.x;
+				int point_light_count = int(cluster_info.y & 0x00FFU);
+				int shadow_casting_point_light_count = int((cluster_info.y >> 8U) & 0x00FFU);
+				int spot_light_count = int((cluster_info.y >> 16U) & 0x00FFU);
+				int shadow_casting_spot_light_count = int((cluster_info.y >> 24U) & 0x00FFU);
+				float total = point_light_count + shadow_casting_point_light_count + spot_light_count + shadow_casting_spot_light_count;
+				
+				return float4(saturate(total / 32.0), 0, 0, 1);
+			}
+		"""
+	}
+
+	coc_visualization = {
+		includes = [ "common", "gbuffer_access", "post_processing_common" ]
+		samplers = {
+			input_texture0 = { sampler_states = "clamp_point" }
+		}
+
+		code="""
+			DECLARE_SAMPLER_2D(input_texture0);
+
+			struct VS_INPUT {
+				float4 position : POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			CBUFFER_START(c0)
+				float4x4 world_view_proj;
+			CBUFFER_END
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input) {
+				PS_INPUT o;
+
+				o.position = mul(input.position, world_view_proj);
+				o.uv = input.uv;
+
+				return o;
+			}
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			float4 ps_main(PS_INPUT input) : SV_TARGET0 {
+				const float signed_coc = decode_coc(TEX2D(input_texture0, input.uv).r);
+				return signed_coc > 0 ? float4(signed_coc, 0, 0, 1) : float4(0, 0, -signed_coc, 1.0);
+			}
+		"""
+	}
+
+	copy = {
+		includes = [ "common", "gbuffer_access" ]
+		samplers = {
+			ndefined_INTERLEAVE_BUFFER = {
+				defined_POINT_SAMPLER = {
+					input_texture0 = { sampler_states = "wrap_point" }
+				}
+				ndefined_POINT_SAMPLER = {
+					input_texture0 = { sampler_states = "wrap_linear" }
+				}
+
+			}
+		}
+
+		vp_code = """
+			layout(location = POSITION0) in vec4 in_pos;
+			layout(location = TEXCOORD0) in vec2 in_uv0;
+
+			CBUFFER_START(c0)
+				UNIFORM mat4 world_view_proj;
+			CBUFFER_END
+
+			out vec2 v_uv0;
+
+			void main() {
+				#if defined(FLIP_Y)
+					v_uv0 = vec2(in_uv0.x, 1.0 - in_uv0.y);
+				#else
+					v_uv0 = in_uv0;
+				#endif
+				
+				gl_Position = in_pos * world_view_proj;
+			}
+		"""
+
+		fp_code = """
+			in vec2 v_uv0;
+			layout(location = 0) out vec4 out_color;
+
+			DECLARE_SAMPLER_2D(input_texture0);
+
+			void main() {
+				vec4 c = TEX2D(input_texture0, v_uv0);
+				#if defined(ALPHA_TO_RGB)
+					c.rgb = c.aaa;
+				#endif
+				#if defined(ENCODE_RGBM)
+					c = rgbm_encode(c.rgb);
+				#endif
+				out_color = c;
+			}
+		"""
+
+		code="""
+			#if defined(INTERLEAVE_BUFFER)
+				StructuredBuffer<float> input_texture0;
+			#else
+				DECLARE_SAMPLER_2D(input_texture0);
+			#endif
+			//samplerCUBE input_texture0;
+
+			struct VS_INPUT {
+				float4 position : POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			CBUFFER_START(c0)
+				float4x4 world_view_proj;
+				float exposure;
+				#if defined(INTERLEAVE_BUFFER)
+					float2 input_texture0_size;
+				#else
+					float2 inv_input_texture0_size;
+				#endif
+				#if defined(CUBE_CAPTURE)
+					float2 uv_flip;
+				#endif
+			CBUFFER_END
+
+			#if defined(RENDERER_GL)
+				#define splat3(c) vec3(c)
+			#else
+				#define splat3(c) c
+			#endif
+
+			static const float3 luminance_vector = float3(0.2127, 0.7152, 0.0721);
+			static const half min_positive_f16 = 0.000061;
+
+			float3 inv_filmic_tone_mapping(float3 lin_x) {
+				float3 x = max(splat3(0.f), lin_x - splat3(0.004f));
+				return (0.00322581 * (25.0f - 88.0f * x)) / (x - 1.0f);
+			}
+
+			float3 filmic_tone_mapping(float3 lin_x) {
+				float3 x = max(splat3(0.f), lin_x - splat3(0.004f));
+				return (x*(6.2f*x + splat3(0.5f)))/(x*(6.2f*x + splat3(1.7f)) + splat3(0.06f));
+			}
+
+
+			float3 inv_safe_range_tone_map(float3 value) {
+				float lum = dot(value.rgb, luminance_vector);
+				value.rgb /= max((1.0 - lum), min_positive_f16);
+
+				return value;
+			}
+
+			float3 inv_safe_range_tone_map_offset(float3 value, float offset) {
+				float lum = dot(value.rgb, luminance_vector);
+				value.rgb /= max((offset - lum), min_positive_f16);
+
+				return value;
+			}
+
+
+			//return (max(0, x - 0.004)*(6.2*max(0, x - 0.004) + 0.5))/(max(0, x - 0.004)*(6.2*max(0, x - 0.004) + 1.7) + 0.06);
+			//(x*(6.2*x + 0.5))/(x*(6.2*x + 1.7) + 0.06)
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input) {
+				PS_INPUT o;
+				o.position = mul(input.position, world_view_proj);
+				#if defined(PROJECT_TO_FAR_PLANE)
+					o.position.z = o.position.w;
+				#endif
+
+				#if defined(FLIP_Y)
+					o.uv = float2(input.uv.x, 1.f - input.uv.y);
+				#else
+					o.uv = input.uv;
+				#endif
+
+				return o;
+			}
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			float4 ps_main(PS_INPUT input) : SV_TARGET0 {
+				#if defined(INTERLEAVE_BUFFER)
+					float2 res = input_texture0_size;
+					res.y /= 4;
+
+					uint2 pixel_pos = input.position.xy;
+					uint buff_index = pixel_pos.y*res.x + pixel_pos.x;
+					uint stride = res.x * res.y;
+
+					return float4(input_texture0[buff_index + 0], input_texture0[buff_index + 1 * stride], input_texture0[buff_index + 2 * stride], input_texture0[buff_index + 3 * stride]);
+				#else
+					float2 uv = input.uv;
+					#if defined(CUBE_CAPTURE)
+						uv = uv * 2 - 1;
+						uv *= uv_flip;
+						uv = uv * 0.5 + 0.5;
+					#endif
+
+					float4 c = TEX2D(input_texture0, uv);
+
+					#ifdef ALPHA_TO_RGB
+						c.rgb = c.aaa;
+					#endif
+					#ifdef RED_TO_RGB
+						c.rgb = c.rrr;
+					#endif
+					#ifdef ENCODE_RGBM
+						c = rgbm_encode(c.rgb);
+					#endif
+					#ifdef CLEAR
+						c.argb = float4(0,0,0,0);
+					#endif
+					#if defined(PROJECT_TO_FAR_PLANE)
+						c.rgb = pow(c.rgb, gamma/2.2);
+						#if !defined(D3D11)
+							const bool capture_cubemap = false; 
+						#endif
+						if (!capture_cubemap) {
+							c.rgb /= exposure;
+						}
+					#endif
+					return c;
+				#endif
+			}
+		"""
+	}
+
+	filter_cubemap = {
+		includes = [ "common", "sampling" ]
+
+		stage_conditions = {
+			compute = "true"
+		}
+
+		samplers = {
+			cubemap_sampler = { sampler_states="clamp_linear" }
+		}
+		code="""
+			RWTexture2D<float4> output;
+			TextureCube<float4> input;
+			SamplerState cubemap_sampler;
+
+			CBUFFER_START(c0)
+				float face_index;
+				float mip_roughness;
+			CBUFFER_END
+
+			static const float3x3 face_mapping[] = {
+				// +X
+				{
+					 0,  0, -1,
+					 0, -1,  0,
+					 1,  0,  0
+				},
+				// -X
+				{
+					 0,  0,  1,
+					 0, -1,  0,
+					-1,  0,  0
+				},
+				// +Y
+				{
+					 1,  0,  0,
+					 0,  0,  1,
+					 0,  1,  0
+				},
+				// -Y
+				{
+					 1,  0,  0,
+					 0,  0, -1,
+					 0, -1,  0
+				},
+				// +Z
+				{
+					 1,  0,  0,
+					 0, -1,  0,
+					 0,  0,  1
+				},
+				// -Z
+				{
+					-1,  0,  0,
+					 0, -1,  0,
+					 0,  0, -1
+				},
+			};
+
+			float3 face_to_cube(float2 uv, float face) {
+				float2 st = uv * 2 - 1;
+				return normalize(mul(float3(st, 1), face_mapping[face]));
+			}
+
+			// TODO: optimize somehow?...
+			float2 cube_to_face(float3 cube) {
+				const float3 abs_cube = abs(cube);
+
+				float sc, tc, ma;
+				if (abs_cube.x >= abs_cube.y && abs_cube.x >= abs_cube.z) {
+					if (cube.x > 0) {
+						sc = -cube.z;
+						tc = -cube.y;
+					} else {
+						sc = cube.z;
+						tc = -cube.y;
+					}
+					ma = cube.x;
+				} else if (abs_cube.y >= abs_cube.x && abs_cube.y >= abs_cube.z) {
+					if (cube.y > 0) {
+						sc = cube.x;
+						tc = cube.z;
+					} else {
+						sc = cube.x;
+						tc = -cube.z;
+					}
+					ma = cube.y;
+				} else {
+					if (cube.z > 0) {
+						sc = cube.x;
+						tc = -cube.y;
+					} else {
+						sc = -cube.x;
+						tc = -cube.y;
+					}
+					ma = cube.z;
+				}
+
+				return (float2(sc / abs(ma), tc / abs(ma)) + 1) / 2;
+			}
+
+			#if defined(DIFFUSE)
+				#define N_SAMPLES 32768
+			#elif defined(SPECULAR)
+				#define N_SAMPLES 2048
+			#elif defined(RADIANCE)
+				#define N_SAMPLES 8
+			#endif
+
+			float4 prefilter(float3 R, float roughness, float size) {
+				float3 N = R;
+				float3 V = R;
+
+				float3 color = 0;
+				float weight = 0;
+
+				[loop]
+				for (uint i = 0; i < N_SAMPLES; ++i) {
+					float2 E = hammersley_sequence_2d(i, N_SAMPLES);
+					float3 H = importance_sample_ggx(E, roughness, N);
+					float3 L = 2 * dot(V, H) * H - V;
+					float NL = saturate(dot(N, L));
+
+					if (NL > 0) {
+						color += rgbm_decode(input.SampleLevel(cubemap_sampler, L, 0)) * NL;
+						//color += input.SampleLevel(cubemap_sampler, L, 0) * NL;
+						weight += NL;
+					}
+				}
+				return float4(color / weight, 1);
+			}
+
+			[numthreads(16, 16, 1)]
+			void cs_main(uint3 tid : SV_DispatchThreadID) {
+				uint2 st = tid.xy;
+				uint2 face_size;
+				output.GetDimensions(face_size.x, face_size.y);
+				if (st.x > face_size.x || st.y > face_size.y)
+					return;
+				#ifndef RADIANCE
+					float2 face_uv = (float2(st) + float2(0.5,0.5)) / float2(face_size);
+					float3 dir = face_to_cube(face_uv, face_index);
+					float4 filtered = prefilter(dir, mip_roughness, face_size);
+				#else
+					float4 filtered = float4(0,0,0,0);
+					[unroll]
+					for (uint fy = 0; fy < N_SAMPLES; fy++) {
+						for (uint fx = 0; fx < N_SAMPLES; fx++) {
+							float2 ofs = float2((fx+0.5)/float(N_SAMPLES), (fy+0.5)/float(N_SAMPLES));
+							float2 face_uv = (float2(st) + ofs) / float2(face_size);
+							float3 dir = face_to_cube(face_uv, face_index);
+							filtered += rgbm_decode(input.SampleLevel(cubemap_sampler, dir, 0));
+							//filtered += input.SampleLevel(cubemap_sampler, dir, 0);
+						}
+					}
+					filtered /= N_SAMPLES * N_SAMPLES;
+				#endif
+				output[st] = rgbm_encode(filtered.rgb);
+			}
+		"""
+	}
+}
+
+shaders = {
+	gbuffer_debug = {
+		editor_advanced_mode = true
+
+		contexts = {
+			default = {
+				passes_sort_mode="immediate"
+				passes = [
+					{ hlsl_shader="gbuffer_debug" render_states="gbuffer_debug" }
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				{ defines=[""] }
+			]
+		}
+	}
+
+	clustered_shading_debug = {
+		editor_advanced_mode = true
+
+		contexts = {
+			default = {
+				passes_sort_mode="immediate"
+				passes = [
+					{ hlsl_shader="clustered_shading_debug" render_states="filter" }
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				{ defines=[""] }
+			]
+		}
+	}
+
+	coc_visualization = {
+		editor_advanced_mode = true
+
+		contexts = {
+			default = {
+				passes_sort_mode="immediate"
+				passes = [
+					{ hlsl_shader="coc_visualization" render_states="filter" }
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				{ defines=[""] }
+			]
+		}
+	}
+
+	copy = {
+		editor_advanced_mode = true
+
+		contexts = {
+			default = {
+				passes_sort_mode="immediate"
+				passes = [
+					{ hlsl_shader="copy" render_states="filter" }
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				{ defines=[""] }
+			]
+		}
+	}
+
+	filter_cubemap = {
+		editor_advanced_mode = true
+
+		contexts = {
+			default = {
+				passes_sort_mode="immediate"
+				passes = [
+					{ hlsl_shader="filter_cubemap" }
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				{ defines=[""] }
+			]
+		}
+	}
+}
+
+static_compile= [
+	{ shader="gbuffer_debug" }
+	{ shader="gbuffer_debug" defines=["ALBEDO_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["NORMAL_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["ROUGHNESS_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["SPECULAR_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["METALLIC_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["FILL_UNTOUCHED_PIXELS"] }
+	{ shader="gbuffer_debug" defines=["AMBIENT_DIFFUSE_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["SUN_SHADOW_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["VELOCITY_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["AO_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["SSAO_ENABLED" "AO_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["SSR_VISUALIZATION"] }
+
+	{ shader="copy" }
+	{ shader="copy" defines=["FLIP_Y"] }
+	{ shader="copy" defines=["CLEAR"] }
+	{ shader="copy" defines=["ENCODE_RGBM"] }
+	{ shader="copy" defines=["CUBE_CAPTURE","ENCODE_RGBM"] }
+	{ shader="copy" defines=["CUBE_CAPTURE"] }
+	{ shader="copy" defines=["POINT_SAMPLER"] }
+	{ shader="copy" defines=["ALPHA_TO_RGB"] }
+	{ shader="copy" defines=["PROJECT_TO_FAR_PLANE"] }
+	
+	{ if: "on_renderer(D3D11, D3D12)" shader="filter_cubemap" defines=["DIFFUSE"] }
+	{ if: "on_renderer(D3D11, D3D12)" shader="filter_cubemap" defines=["SPECULAR"] }
+
+	// Fatshark
+	{ shader="gbuffer_debug" defines=["ALBEDO_XYZ_LUMINANCE_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["ALBEDO_XYZ_LUMINANCE_CLIPPING_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["ALBEDO_LAB_LUMINANCE_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["ALBEDO_LAB_LUMINANCE_CLIPPING_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["LINEAR_DEPTH"] }
+	{ shader="gbuffer_debug" defines=["NORMALIZED_VELOCITY_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["OUTLINE_INSIDE"] }
+	{ shader="gbuffer_debug" defines=["OUTLINE_OUTSIDE"] }
+	{ shader="gbuffer_debug" defines=["RADIATION_PROBE_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["RADIATION_WEIGHT_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["REFLECTION_PROBE_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["REFLECTION_WEIGHT_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["SSAO_ONLY" "AO_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["DENSITY_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["SKIN_SSS_VISUALIZATION"] }
+	{ shader="gbuffer_debug" defines=["DIFFUSE_VISUALIZATION"] }
+
+	{ shader="copy" defines=["RED_TO_RGB"] }
+
+	{ shader="coc_visualization" }
+	{ shader="clustered_shading_debug" }
+]

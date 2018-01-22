@@ -1,0 +1,14 @@
+group = "Construct"
+display_name = "Construct Vector2"
+inputs = {
+	"8231a2cb-b751-4ecd-94eb-3e6d048ba173" = { name = "x" display_name = "X" type = "scalar"}
+	"46536067-b418-47a5-bc6b-234972e963e9" = { name = "y" display_name = "Y" type = "scalar"}
+}
+
+output = {
+	type = "float2"
+}
+
+code = """
+	RESULT(float2(x,y));
+"""

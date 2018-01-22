@@ -1,0 +1,27 @@
+group = "Input"
+display_name = "Sun Shadow Mask"
+
+depends_on = ["core/stingray_renderer/output_nodes/standard_base"]
+
+defines = ["NEEDS_SUN_SHADOW_MASK"]
+
+imports = {
+	sun_shadow_mask = {
+		type = "float"
+		domain = "pixel"
+		output_channel = "sun_shadow_mask"
+	}
+}
+
+domain = "pixel"
+output = {
+	type = "float"
+}
+
+code = """
+	#if defined(HAS_SUN_SHADOW_MASK)
+		RESULT(sun_shadow_mask);
+	#else
+		RESULT(1.0);
+	#endif
+"""

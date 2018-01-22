@@ -1,0 +1,15 @@
+group = "Math"
+display_name = "Linear Interpolate"
+inputs = {
+	"995996dc-408e-4e6f-a310-0db5b3276075" = { name = "a" display_name = "A" type = "auto" }
+	"5551ea38-126d-4d89-ab57-14b36b92a93c" = { name = "b" display_name = "B" type = "auto" }
+	"cdc83a63-3365-4c10-9353-79ff5f2fd1f0" = { name = "w" display_name = "Weight" type = "auto" }
+}
+
+output = {
+	type = { largestof: ["a", "b"] }
+}
+
+code = """
+	RESULT(lerp(a, b, w));
+"""

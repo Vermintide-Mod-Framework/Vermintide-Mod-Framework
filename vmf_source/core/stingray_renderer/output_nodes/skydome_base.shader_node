@@ -1,0 +1,207 @@
+group = "Output"
+display_name = "Skydome Base"
+output_node = true
+render_configs = ["core/stingray_renderer/renderer"]
+
+inputs = {
+	"19499850-aa42-40f8-a51e-75abb592e92b" = {
+		name = "base_color"
+		is_required = true
+		display_name = "Base Color"
+		type = { vector3: ["HAS_BASE_COLOR"] }
+		domain = "pixel"
+	}
+}
+
+options = {
+	"582dd9e3-a746-4913-8eae-d8569b6d7b39" = "CAMERA_LOCK_XY"
+	"1e637d96-cadf-4d3c-a1c6-fc31ce81adf8" = "CAMERA_LOCK_Z"
+	"efe865a9-2225-4b9b-92dd-6080d4bfa417" = "SKYDOME_RGBM"
+}
+
+ui = [
+	{ type = "checkbox" display_name = "Lock Camera in XY-plane" 		option = "582dd9e3-a746-4913-8eae-d8569b6d7b39" } 
+	{ type = "checkbox" display_name = "Lock Camera in Z-plane"  		option = "1e637d96-cadf-4d3c-a1c6-fc31ce81adf8" }
+	{ type = "checkbox" display_name = "Skydome Texture RGBM encoded"  	option = "efe865a9-2225-4b9b-92dd-6080d4bfa417" }
+]
+
+render_state = {
+	ambient_no_depth_write = {
+		inherit: ["core/stingray_renderer/shader_libraries/common#ambient"]
+		states = {
+			z_write_enable = "false"
+		}
+	}
+
+	filter = {
+		inherit: ["core/stingray_renderer/shader_libraries/common#default"]
+		states = {
+			cull_mode = "cull_none"
+			z_write_enable = "false"
+			z_enable = "false"
+		}
+	}
+}
+
+sampler_state = { }
+
+channels = 	{
+	"defined(NEEDS_EYE_VECTOR)": {
+		eye_vector = { type = "float3" domain = "vertex" }
+	}
+
+	vertex_position = { type = "float4" domain = "vertex" }
+}
+
+log_permutations = false
+permutation_sets = {
+}
+
+shader_contexts = {
+	material_transfer = {
+		passes_sort_mode = "immediate"
+		compile_with = [
+			{ if: "on_renderer(D3D11, D3D12, GNM, GL)" }
+		]
+
+		passes = [
+			{ code_block="skydome" defines=["MATERIAL_TRANSFER"] render_state="filter" }
+		]
+	}
+
+	default = {
+		passes_sort_mode = "deferred"
+		compile_with = [
+			{ if: "on_renderer(D3D11, D3D12, GNM, GL)" }
+		]
+
+		passes = [
+			{ layer="skydome" code_block="skydome" defines=["PROJECT_TO_FAR_PLANE"] render_state="ambient_no_depth_write" }
+		]
+	}
+}
+
+code_blocks = {
+	skydome = {
+		include:[
+			"core/stingray_renderer/shader_libraries/common#common",
+			"core/stingray_renderer/shader_libraries/common#gbuffer_access"]
+
+		instance_data = {
+		}
+
+		stage_conditions = {
+		}
+
+		samplers = {
+		}
+
+		code = {
+			hlsl = """
+				#if defined(NEEDS_EYE_VECTOR) || defined(CAMERA_LOCK_XY) || defined(CAMERA_LOCK_Z)
+					#define NEEDS_WORLD_SPACE
+				#endif
+
+				struct VS_INPUT {
+					float4 position : POSITION;
+					GRAPH_VERTEX_INPUT
+				};
+
+				struct PS_INPUT {
+					float4 position : SV_POSITION;
+					GRAPH_PIXEL_INPUT
+				};
+
+				CBUFFER_START(c0)
+					#if defined(CAMERA_LOCK_XY) || defined(NEEDS_WORLD_SPACE)
+						float4x4 world;
+					#endif
+					#if defined(CAMERA_LOCK_XY)
+						float4x4 view;
+						float4x4 proj;
+					#endif
+					float4x4 world_view_proj;
+					GRAPH_MATERIAL_EXPORTS
+				CBUFFER_END
+
+				DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+				PS_INPUT vs_main(VS_INPUT input)
+				{
+					PS_INPUT o;
+					float4 p;
+
+					GraphVertexParams params;
+					GraphVertexResults results;
+
+					// Write automatic params
+					GRAPH_VERTEX_WRITE_PARAMS(params, input);
+
+					// Write output channels
+					float4 position = input.position;
+					#if defined(NEEDS_WORLD_SPACE)
+						float4 wp = mul(position, world);
+					#endif
+
+					GRAPH_VERTEX_PARAM(params, vertex_position) = position;
+
+					#if defined(NEEDS_EYE_VECTOR)
+						// TODO: this eye_vector can't be used to calculate distance (length(eye_vector) in this case
+						GRAPH_VERTEX_PARAM(params, eye_vector).rgb = -wp.rgb;
+					#endif
+
+					// Evaluate all pieces of the graph that should run per-vertex.
+					GRAPH_EVALUATE_VERTEX(results, params);
+
+					#if defined(CAMERA_LOCK_XY)
+						#if defined(CAMERA_LOCK_Z)
+							view._m30_m31_m32 = float3(0,0,0);
+						#else
+							view._m30_m31 = float2(0,0);
+						#endif
+						p = mul(mul(wp, view), proj);
+					#else
+						p = mul(position, world_view_proj);
+					#endif
+
+					#if defined(PROJECT_TO_FAR_PLANE)
+						p.z = p.w;
+					#endif
+
+					o.position = p;
+
+					/*
+					// TODO: try import uv again!
+					#if defined(MATERIAL_TRANSFER)
+						float2 tmp = GRAPH_VERTEX_DATA(input, uv);
+						tmp.y = 1 - tmp.y;
+						o.position = float4(tmp * 2 - 1, 0, 1);
+					#endif
+					*/
+
+					// Write results
+					GRAPH_VERTEX_WRITE(o, results, params);
+
+					return o;
+				}
+
+				DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+				half4 ps_main(PS_INPUT input) : SV_TARGET0
+				{
+					GraphPixelParams params;
+					GraphPixelResults graph;
+
+					GRAPH_PIXEL_WRITE_PARAMS(params, input);
+					GRAPH_EVALUATE_PIXEL(graph, params);
+
+					half4 c = half4(graph.base_color, 1.0);
+
+					//#if defined(MATERIAL_TRANSFER)
+					//	c.rgb = pow(c.rgb, 1.f / 2.2f);
+					//#endif
+
+					return c;
+				}
+			"""
+		}
+	}
+}

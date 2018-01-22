@@ -1,0 +1,71 @@
+group = "Sampling"
+display_name = "Projected Texcoord"
+inputs = {
+	"a75dd59e-43f1-4dc8-bdb9-e0ec41e304c2" = { name = "hit_position" display_name = "Hit Position" type = "float4" }
+	"3a1f306e-4d12-45e8-9262-0b709ae4662f" = { name = "hit_normal" display_name = "Hit Normal" type = "float4" }
+	"814da82a-eccb-40b6-b9c2-074ae141ead4" = { name = "hit_tangent" display_name = "Hit Tangent" type = "float4" }
+	"70164922-9e7e-4c74-bbaf-92de6838bb86" = { name = "max_dist" display_name = "Diameter" type = "float" }
+}
+
+defines = ["NEEDS_UNSKINNED_WORLD_POS", "NEEDS_WORLD_POSE"]
+
+domain = "pixel"
+output = {
+	type = "float3"
+}
+
+imports = {
+	wpos = {
+		type = "float3"
+		domain = "vertex"
+		output_channel = "unskinned_world_pos"
+	}
+	normal = {
+		type = "float3"
+		domain = "vertex"
+		output_channel = "unskinned_normal"	
+	}
+	world = {
+		type = "float4x4"
+		domain = "global"
+		source = "engine"
+	}
+}
+
+code = """
+	float3 output = float3(0,0,0);
+	[branch]
+	if( hit_position.w > 0.5 ) {
+		float3 pos = mul(hit_position, world).xyz;
+		float dist = distance(wpos, pos);
+
+		[branch]
+		if( dist < max_dist ) {
+			float3 world_normal = mul(normal, (float3x3)world);
+			float3 hit_normal_world = mul(normalize(hit_normal), world);
+			float side = sqrt( max_dist * max_dist + max_dist * max_dist );
+			float dot_value = dot(hit_normal_world, world_normal );
+
+			[branch]
+			if( dot_value > 0.0 ) {
+				float3 hit_tangent_world = mul(normalize(hit_tangent), world);
+				float3 hit_binormal_world = cross(hit_tangent_world, hit_normal_world);
+
+				float3 t_hit_pos = rotate_point3(pos, (float3)hit_tangent_world, (float3)hit_binormal_world, (float3)hit_normal_world);
+				float3 t_pos = rotate_point3(wpos, (float3)hit_tangent_world, (float3)hit_binormal_world, (float3)hit_normal_world);
+				
+				float offset = side * 0.4;
+				float diff_x = (t_hit_pos.x - t_pos.x);
+				float diff_y = (t_hit_pos.y - t_pos.y);
+				float x = (offset + diff_x)/(offset * 2);
+				float y = (offset + diff_y)/(offset * 2);
+				float valid = clamp(dot_value * 3,0,1);
+				if( abs(diff_x) > offset || abs(diff_y) > offset )
+					valid = 0;
+				output = float3(x,y,valid);
+			}
+		}
+	}
+
+	RESULT(output);
+"""

@@ -1,0 +1,33 @@
+group = "Terrain"
+display_name = "Terrain Height"
+depends_on = ["core/stingray_renderer/output_nodes/terrain_base"]
+
+imports = {
+	uv = {
+		type = "float2"
+		domain = "vertex"
+		output_channel = "terrain_uv"
+	}
+
+	terrain_size = {
+		type = "float3"
+		domain = "global"
+		source = "engine"
+	}
+}
+
+domain = "pixel"
+output = {
+	type = "float"
+}
+
+code_blocks = {	
+	default = {
+		language = "hlsl"
+
+		code = """		
+			float h = TEX2D(hmap, uv).r * terrain_size.z;	
+			RESULT(h);
+		"""
+	}
+}

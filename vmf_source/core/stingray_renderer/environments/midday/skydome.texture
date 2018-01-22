@@ -1,0 +1,47 @@
+android = {
+	output = {
+		mipmap_num_largest_steps_to_discard = 2
+	}
+} 
+common = {
+	input = {
+		filename = "core/stingray_renderer/environments/midday/skydome"
+	}
+	output = {
+		apply_processing = true
+		category = ""
+		srgb = false
+		cut_alpha_threshold = 0.5
+		enable_cut_alpha_threshold = false
+		format = "R16G16B16A16F"
+		mipmap_filter = "box"
+		mipmap_filter_wrap_mode = "mirror"
+		mipmap_keep_original = false
+		mipmap_num_smallest_steps_to_discard = 0
+	}
+}
+ios = {
+	output = {
+		mipmap_num_largest_steps_to_discard = 2
+	}
+}
+macosx = {
+	output = {
+		mipmap_num_largest_steps_to_discard = 0
+	}
+}
+ps4 = {
+	output = {
+		mipmap_num_largest_steps_to_discard = 0
+	}
+}
+win32 = {
+	output = {
+		mipmap_num_largest_steps_to_discard = 0
+	}
+}
+xb1 = {
+	output = {
+		mipmap_num_largest_steps_to_discard = 0
+	}
+}

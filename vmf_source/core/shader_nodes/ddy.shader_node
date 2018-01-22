@@ -1,0 +1,19 @@
+group = "Math"
+display_name = "Ddy"
+inputs = {
+	"FF05235F-0371-4500-8CD3-2B849D67EA92" = { name = "a" display_name = "A" type = "auto" }
+}
+
+domain = "pixel"
+
+output = {
+	type = { typeof: "a" }
+}
+
+code = """
+	#if defined(STAGE_PIXEL)
+		RESULT(ddy(a));
+	#else
+		RESULT(a); // Need a way to splat a vector of 'a_type' to return 0
+	#endif
+"""

@@ -1,0 +1,13 @@
+group = "Math"
+display_name = "Length"
+inputs = {
+	"6fc97f2b-a585-4430-9f2d-93069a891bfc" = { name = "v" display_name = "Vector" type = { vector2:[] vector3:[] vector4:[] } }
+}
+
+output = {
+	type = "float"
+}
+
+code = """
+	RESULT(length(v));
+"""

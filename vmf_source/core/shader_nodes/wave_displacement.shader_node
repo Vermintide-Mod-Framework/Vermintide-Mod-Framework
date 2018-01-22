@@ -1,0 +1,65 @@
+group = "Fatshark/Animation"
+display_name = "Wave Displacement"
+
+inputs = {
+	"f05346d4-d78c-47df-bcc6-0a165227ba0c" = { name = "position" display_name = "Position" type = "vector3" is_required = true }
+}
+
+imports = {
+}
+
+exports = {
+	wave_params = { 
+		display_name = "Wave Dir/Length/Amp/Steep" 
+		type = "float4" 
+		min   = [0 0.01 0.01 0] 
+		max   = [1 200 3 1] 
+		step  = [0.001 0.01 0.01 0.01] 
+		value = [0 100 0.3 0.1] 
+	}
+}
+
+output = {
+	type = "float3"
+}
+
+code_blocks = {
+	wave_displacement = {
+		language = "hlsl"
+		code="""
+			// Gerstner waves
+			// http://http.developer.nvidia.com/GPUGems/gpugems_ch01.html
+			// http://graphics.ucsd.edu/courses/rendering/2005/jdewall/tessendorf.pdf
+			float3 gerstner_wave_displacement( float2 wave_direction, float wave_length, float wave_amplitude, float wave_steepness, float3 wp )
+			{
+				const float GRAVITY = 9.82;
+				const float TWO_PI = 6.28318530718;
+
+				float w = TWO_PI / wave_length; 				// angular frequency
+				float s = sqrt( GRAVITY * w );					// phase animation multiplier
+				float q = wave_steepness/(w*wave_amplitude); 	// steepness 0 -> 1
+				
+				float2 xy = q * wave_amplitude * wave_direction * cos( w * dot( wave_direction, wp.xy ) + s * time );
+				float z = wave_amplitude * sin( w * dot( wave_direction, wp.xy ) + s * time );
+			
+				return float3(xy, z);
+			}
+			
+			float2 wave_direction_to_vector(float dir)
+			{
+				float x = dir < 0.5 ? dir*4-1 : (1-dir)*4-1;
+				float y = dir < 0.5 ? abs(x)-1 : 1-abs(x);
+				
+				return float2(x,y);
+			}
+		"""
+	}
+
+	default = {
+		include: ["wave_displacement"]
+		language = "hlsl"
+		code = """
+			RESULT(gerstner_wave_displacement(wave_direction_to_vector(wave_params.x), wave_params.y, wave_params.z, wave_params.w, position));
+		"""
+	}
+}

@@ -1,0 +1,14 @@
+group = "Math"
+display_name = "Reflect"
+inputs = {
+	"b79bdce4-ed04-4d7c-9f79-cb6174a5e1cc" = { name = "ray" display_name = "Vector" type = { vector2:[] vector3:[] vector4:[] } }
+	"3d065d63-3541-4223-91bf-4db3ecf7d4a6" = { name = "normal" display_name = "Normal" type = { vector2:[] vector3:[] vector4:[] } }
+}
+
+output = {
+	type = { typeof: "ray" }
+}
+
+code = """
+	RESULT(reflect(ray, normal));
+"""

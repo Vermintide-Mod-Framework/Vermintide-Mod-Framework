@@ -1,0 +1,85 @@
+group = "Utility"
+display_name = "Fresnel"
+inputs = {
+	"904B4365-2955-4899-B615-62A05F0D5726" = { name = "custom_min" display_name = "Minimum" is_required = false type = {scalar: ["HAS_FRESNELMIN"]} }
+	"B89878F6-57BC-4491-9825-E28D1A96A519" = { name = "custom_max" display_name = "Maximum / Exponent" is_required = false type = {scalar: ["HAS_FRESNELMAX"]} }
+	"98C44AA8-6F34-4C99-8AD9-CA8A787F12BB" = { name = "custom_normal" display_name = "Normal" is_required = false type = {vector3: ["HAS_CUSTOMNORMAL"]} }
+}
+
+depends_on = ["core/stingray_renderer/output_nodes/standard_base", "core/stingray_renderer/output_nodes/unlit_base", 
+	"core/stingray_renderer/output_nodes/billboard_base", "core/stingray_renderer/output_nodes/billboard_unlit_base"]
+
+output = {
+	type = "float"
+}
+
+defines = ["NEEDS_WORLD_SPACE_NORMAL", "NEEDS_EYE_VECTOR"]
+
+imports = {
+	normal = {
+		type = "float3"
+		domain = "vertex"
+		output_channel = "world_space_normal"
+	}
+	eye_vector = {
+		type = "float3"
+		domain = "vertex"
+		output_channel = "eye_vector"
+	}
+}
+
+options = {
+	"8E67341F-137F-4555-9E8C-FAE0E41D3D0D" = "USE_MINMAX"
+	"9653C6EC-D10A-4EBC-B76F-E2E8EABB9194" = "USE_EXPONENT"
+}
+
+ui = [
+	{
+		type = "drop_down"
+		display_name = "Method"
+		options = {
+			"Use Min/Max" = "8E67341F-137F-4555-9E8C-FAE0E41D3D0D"
+			"Use Exponent" = "9653C6EC-D10A-4EBC-B76F-E2E8EABB9194"
+		}
+		default = "8E67341F-137F-4555-9E8C-FAE0E41D3D0D"
+	}
+]
+
+
+code = """
+	float result = 0.0;
+	#if defined(HAS_FRESNELMAX)
+		float maximum = custom_max;
+	#else
+		float maximum = 1.0;
+	#endif
+
+	#if defined(HAS_CUSTOMNORMAL)
+		float3 n = custom_normal;
+	#else
+		float3 n = normalize(normal);
+	#endif
+
+	// The eye_vector channel is per-vertex, if we interpolate it and use it per-pixel it has to be renormalized.
+	float3 dir = normalize(eye_vector);
+
+	// method 1, artist friendly Fresnel controls:
+	#if defined(USE_MINMAX)
+
+		#if defined(HAS_FRESNELMIN)
+			float minimum = custom_min;
+		#else
+			float minimum = 0.8;
+		#endif
+
+		float v_dot_n = saturate(1.0 - dot(dir, n));
+		float range = max(maximum, minimum) - minimum;
+		result = saturate((v_dot_n - minimum) / range);
+
+	// method 2, classic exponent control:
+	#else
+		result = pow(max(1.0 - abs(dot(n, dir)), 0.0001), maximum);
+	#endif
+
+	RESULT(result);
+"""

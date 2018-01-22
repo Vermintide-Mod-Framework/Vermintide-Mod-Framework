@@ -1,0 +1,51 @@
+group = "Noise (Expensive)"
+display_name = "Noise 4D"
+inputs = {
+	"e339bcc7-ba49-41b4-ac71-d581785422f4" = { name = "uvwx" display_name = "UVWX" is_required = true type = "vector4" domain = "pixel" }
+}
+
+domain = "pixel"
+output = {
+	type = "float"
+}
+
+options = {
+	"8c8ae6d6-a4af-493e-ad52-16c51418000d" = "VALUE_4D"
+	"41aa617b-94b2-4741-91b8-2d51bf66032d" = "PERLIN_4D"
+	"12684be0-1484-4f68-bbe0-176fad7c0307" = "SIMPLEX_PERLIN_4D"
+}
+
+ui = [
+	{
+		type = "drop_down"
+		display_name = "Noise Type"
+		options = {
+			"Value [0, 1]"						= "8c8ae6d6-a4af-493e-ad52-16c51418000d"
+			"Perlin [-1, 1]"					= "41aa617b-94b2-4741-91b8-2d51bf66032d"	
+			"Simplex Perlin [-1, 1]"			= "12684be0-1484-4f68-bbe0-176fad7c0307"		
+		}
+		default = "8c8ae6d6-a4af-493e-ad52-16c51418000d"
+	}
+]
+
+code_blocks = {
+	default = {
+		include:["core/stingray_renderer/shader_libraries/noise#noise_functions"]
+
+		code = {
+			hlsl = """
+				#if defined(VALUE_4D)
+					float result = Value4D(uvwx);
+				#elif defined(PERLIN_4D)
+					float result = Perlin4D(uvwx);
+				#elif defined(SIMPLEX_PERLIN_4D)
+					float result = simplex_noise4D(uvwx);
+				#else
+					float result = 0.0;
+				#endif
+
+				RESULT(result);
+			"""
+		}
+	}
+}

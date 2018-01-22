@@ -1,0 +1,18 @@
+group = "Input"
+display_name = "Camera Position"
+
+imports = {
+	camera_pos = {
+		type = "float3"
+		domain = "global"
+		source = "engine"
+	}
+}
+
+output = {
+	type = { typeof: "camera_pos" }
+}
+
+code = """
+	RESULT(camera_pos);
+"""

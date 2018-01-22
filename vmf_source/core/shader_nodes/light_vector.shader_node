@@ -1,0 +1,19 @@
+group = "Light"
+display_name = "Light Vector"
+depends_on = ["core/stingray_renderer/output_nodes/light_base"]
+
+imports = {
+	light_vector = {
+		type = "float3"
+		domain = "pixel"
+		output_channel = "light_vector"
+	}
+}
+
+output = {
+	type = "float3"
+}
+
+code = """
+	RESULT(light_vector);
+"""

@@ -1,0 +1,20 @@
+group = "Particle Ribbon"
+display_name = "UV Scale"
+
+imports = {
+	uv_scale = { 
+		type = "float2"
+		domain = "vertex"
+		output_channel = "uv_scale"
+	}
+}
+
+defines = ["NEEDS_UV_SCALE"]
+
+output = {
+	type = { typeof: "uv_scale" }
+}
+
+code = """
+	RESULT(uv_scale);
+"""

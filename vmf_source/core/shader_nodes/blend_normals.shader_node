@@ -1,0 +1,49 @@
+group = "Utility"
+display_name = "Blend Normals"
+inputs = {
+	"67493629-fffe-4fe8-bf7c-0c6467b09013" = { name = "base" display_name = "Base" type = "vector3" }
+	"22ed0f5a-9b5c-4e06-80d6-46eec7c75e34" = { name = "detail" display_name = "Detail" type = "vector3" }
+}
+
+output = {
+	type = { typeof: "base" }
+}
+
+options = {
+	"8ad8224b-0141-4598-8240-c9d6fbbd2508" = "WHITEOUT"
+	"f2ff7295-8050-4f0c-ba42-3d1aa83de416" = "IGNOREZ"
+	"bac6bd71-9ed1-4948-886f-00fb6cf48489" = "REORIENTED"
+}
+
+ui = [
+	{
+		type = "drop_down"
+		display_name = "Method"
+		options = {
+			"Whiteout" = "8ad8224b-0141-4598-8240-c9d6fbbd2508"
+			"Ignore Detail Z" = "f2ff7295-8050-4f0c-ba42-3d1aa83de416"
+			"Reoriented" = "bac6bd71-9ed1-4948-886f-00fb6cf48489"
+		}
+		default = "8ad8224b-0141-4598-8240-c9d6fbbd2508"
+	}
+]
+
+code = """
+	// we assume the user has set the sample_texture node to normal_map and 
+	// the decode step (*2 -1) has already happened on our inputs
+	float3 blended_normals;
+	float2 xy = base.xy + detail.xy;
+	#if defined(IGNOREZ)
+		blended_normals = normalize(new_float3(xy.x, xy.y, base.z));
+	#elif defined(REORIENTED)
+		// Since our decode_normal step (*2 -1) already unpacks the normals, we compensate the 
+		// original math below to give the same results
+    	float3 t = new_float3(base.x, base.y, base.z + 1.0);
+		float3 u = detail.xyz * new_float3(-1.0, -1.0, 1.0);
+    	blended_normals = normalize(t*dot(t, u) - u*t.z);
+    #else	// whiteout
+    	blended_normals = normalize(new_float3(xy.x, xy.y, base.z*detail.z));
+	#endif
+	
+	RESULT(blended_normals);
+"""

@@ -1,0 +1,35 @@
+// TODO: We are currently only using these materials as intermediate storage for shader constants, might want something cleaner that this..
+
+global_lighting = {
+	shader = "global_lighting"
+}
+global_shadow_mask_fill = {
+	shader = "sun_shadow_mask:FILL"
+}
+global_shadow_mask_fill_shadow = {
+	shader = "sun_shadow_mask:FILL_SHADOW"
+}
+global_shadow_mask_slice0 = {
+	shader = "sun_shadow_mask"
+}
+global_shadow_mask_slice1= {
+	shader = "sun_shadow_mask"
+}
+global_shadow_mask_slice2 = {
+	shader = "sun_shadow_mask"
+}
+global_shadow_mask_slice3 = {
+	shader = "sun_shadow_mask"
+}
+shadow_cutter_slice0 = {
+	shader = "sun_shadow_cutter"
+}
+shadow_cutter_slice1 = {
+	shader = "sun_shadow_cutter"
+}
+shadow_cutter_slice2 = {
+	shader = "sun_shadow_cutter"
+}
+shadow_cutter_slice3 = {
+	shader = "sun_shadow_cutter"
+}

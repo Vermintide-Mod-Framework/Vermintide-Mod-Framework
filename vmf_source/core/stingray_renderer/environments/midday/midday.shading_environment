@@ -1,0 +1,137 @@
+
+settings = {
+	default = {
+		editor_variables = {
+			shadow_slice_depth_ranges = [
+				0
+				80
+				0.4
+			]
+			sun_shadow_slice_depth_ranges = [
+				0
+				80
+				0.381
+			]
+		}
+		variable_weights = {
+		}
+		variables = {
+			ao_enabled = 1
+			ao_intensity = 0.6
+			ao_quality = 2
+			ao_radius = 0.2
+			bloom_enabled = 1
+			bloom_lens_dirt_amount = 0
+			bloom_threshold_offset = [
+				2.8
+				1
+			]
+			bloom_threshold_offset_falloff = [
+				2
+				1
+				1
+			]
+			bloom_tint = [
+				1
+				1
+				1
+			]
+			color_grading_enabled = 0
+			color_grading_map = "core/stingray_renderer/environments/color_grading_identity"
+			dof_enabled = 0
+			dof_focal_distance = 0.25
+			dof_focal_far_scale = 1
+			dof_focal_near_scale = 1
+			dof_focal_region = 0.1
+			dof_focal_region_end = 0.2
+			dof_focal_region_start = 0.2
+			emissive_particle_intensity = 1
+			exposure = 1.25
+			fog_color = [
+				0.6
+				0.6
+				0.6
+			]
+			fog_depth_range = [
+				100
+				400
+			]
+			fog_enabled = 1
+			fog_sun_blend = [
+				0.997
+				8
+				1
+			]
+			global_diffuse_map = "core/stingray_renderer/environments/midday/diffuse_cube"
+			global_lens_dirt_map = ""
+			global_specular_map = "core/stingray_renderer/environments/midday/specular_cube"
+			ibl_intensity = 1
+			lens_quality_enabled = 0
+			lens_quality_properties = [
+				0
+				0
+				0
+			]
+			motion_blur_amount = 2
+			motion_blur_enabled = 0
+			shadow_slice_depth_ranges = [
+				0
+				8.2590977538167
+				8.2590977538167
+				17.6370562748477
+				17.6370562748477
+				32.9654474234073
+				32.9654474234073
+				79.94
+			]
+			skydome_intensity = 1
+			skydome_map = "core/stingray_renderer/environments/midday/skydome"
+			ssr_angle_facing_camera_threshold = [
+				1
+				1
+			]
+			ssr_dangerous_reflection_angle = [
+				0.01
+				0.01
+			]
+			ssr_enabled = 0
+			ssr_screen_edge_threshold = 0.05
+			ssr_surface_thickness_threshold = [
+				0.001
+				10.0
+			]
+			ssr_up_normal_threshold = [
+				0
+				1
+			]
+			sun_color = [
+				4.59479341998814
+				4.59203760386544
+				4.36054904955738
+			]
+			sun_direction = [
+				-0.393756360085283
+				-0.4391705917301
+				-0.807517876119051
+			]
+			sun_shadow_slice_depth_ranges = [
+				0
+				7.8873025160209
+				7.8873025160209
+				16.9288963902179
+				16.9288963902179
+				32.1093532584819
+				32.1093532584819
+				79.9381
+			]
+			sun_shadows_enabled = 1
+			vignette_enabled = 1
+			vignette_properties = [
+				1
+				0.5
+				1
+			]
+		}
+	}
+}
+template = "core/stingray_renderer/environments/outdoor.shading_environment_template"

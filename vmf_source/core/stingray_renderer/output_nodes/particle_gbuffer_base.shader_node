@@ -1,0 +1,198 @@
+group = "Output/Particles"
+display_name = "GBuffer Base"
+output_node = true
+render_configs = ["core/stingray_renderer/renderer"]
+
+inputs = {
+	"f47209cb-36b0-499c-8c37-857888098e1c" = {
+		name = "base_color"
+		is_required = false
+		display_name = "Base Color"
+		type = { vector3: ["HAS_BASE_COLOR"] }
+		domain = "pixel"
+	}
+
+	"2edbfd6b-4985-4acd-ad0e-cbafb0272a27" = {
+		name = "opacity"
+		is_required = false
+		display_name = "Opacity"
+		type = { scalar: ["HAS_OPACITY"] }
+		domain = "pixel"
+	}
+
+	"9b191b4d-05f1-4f21-b883-d34d9c440b99" = {
+		name = "opacity_threshold"
+		is_required = false
+		display_name = "Opacity Threshold"
+		type = { scalar: ["HAS_OPACITY_THRESHOLD"] }
+		domain = "pixel"
+	}
+
+	"4d3bf516-a2b7-4709-b973-707ebf593845" = {
+		is_required = false
+		name = "normal"
+		display_name = "Normal"
+		type = { vector3: ["HAS_NORMAL"] }
+		domain = "pixel"
+	}
+
+	"98d6ab4a-2569-415d-82c4-ab8115438a28" = {
+		is_required = false
+		name = "metallic"
+		display_name = "Metallic"
+		type = { scalar: ["HAS_METALLIC"] }
+		domain = "pixel"
+	}
+
+	"2a34232c-88b9-485e-b009-9d3470d02943" = {
+		is_required = false
+		name = "roughness"
+		display_name = "Roughness"
+		type = { scalar: ["HAS_ROUGHNESS"] }
+		domain = "pixel"
+	}
+
+	"cfd2c734-e369-47db-b315-41a9bcacc441" = {
+		is_required = false
+		name = "ambient_occlusion"
+		display_name = "Ambient Occlusion"
+		type = { scalar: ["HAS_AMBIENT_OCCLUSION"] }
+		domain = "pixel"
+	}
+}
+
+options = {
+	"2b136447-676e-4943-997b-04a28ae68497" = "WORLD_SPACE_NORMAL"
+	"a5733c57-be1f-457f-a6fc-366d9c0e3c8c" = "EXTERNAL_ROTATION"
+	"d63603f1-8cc0-4b03-a9aa-b787902c6997" = "TANGENT_LOCKED"
+	"f38425db-9f78-4f2c-95ba-634a367b7aed" = "SCREEN_SPACE"
+	"cae9d51b-35c3-40f7-9805-119d7932cfcf" = "PIVOT"
+	"6ce8aa19-350e-49b8-bb39-444a60db482d" = "ROTATION"
+	"3eca2035-4349-4d1a-ae8b-6b1d8b91033f" = "HAS_CUSTOM_FOV"
+}
+
+ui = [
+	{
+		type = "drop_down"
+		display_name = "Normals In"
+		options = {
+			"Tangent Space"	= "00000000-0000-0000-0000-000000000000"
+			"World Space"	= "2b136447-676e-4943-997b-04a28ae68497"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+
+	{
+		type = "drop_down"
+		display_name = "Turn-up Algorithms"
+		options = {
+			"Disabled"		= "00000000-0000-0000-0000-000000000000"
+			"Screen Space"	= "f38425db-9f78-4f2c-95ba-634a367b7aed"
+			"Aligned"		= "d63603f1-8cc0-4b03-a9aa-b787902c6997"
+			"Facing"		= "a5733c57-be1f-457f-a6fc-366d9c0e3c8c"
+		}
+		default = "00000000-0000-0000-0000-000000000000"
+	}
+
+	{ type = "checkbox" display_name = "Pivot" 		option = "cae9d51b-35c3-40f7-9805-119d7932cfcf" }
+	{ type = "checkbox" display_name = "Rotation" 	option = "6ce8aa19-350e-49b8-bb39-444a60db482d" }
+	{ type = "checkbox" display_name = "Custom FOV" option = "3eca2035-4349-4d1a-ae8b-6b1d8b91033f" }
+]
+
+render_state = {
+	gbuffer_material = { 
+		inherit: ["core/stingray_renderer/output_nodes/standard_base#gbuffer_material"]
+	}
+
+	shadow_caster = {
+		inherit: ["core/stingray_renderer/output_nodes/standard_base#shadow_caster"]
+	}
+}
+
+channels = 	{
+	"(defined(HAS_NORMAL) && !defined(WORLD_SPACE_NORMAL)) || defined(NEEDS_TANGENT_SPACE)": {
+		tsm0 = { type = "float3" domains = ["vertex", "pixel"] }
+		tsm1 = { type = "float3" domains = ["vertex", "pixel"] }
+		tsm2 = { type = "float3" domains = ["vertex", "pixel"] }
+	}
+
+	"defined(NEEDS_EYE_VECTOR)": {
+		eye_vector = { type = "float3" domain = "vertex" }
+	}
+
+	"!defined(HAS_NORMAL) || defined(NEEDS_WORLD_SPACE_NORMAL)": {
+		world_space_normal = { type = "float3" domains = ["vertex", "pixel"] }
+	}
+
+	"defined(NEEDS_PIXEL_DEPTH)": {
+		pixel_depth = { type = "float" domain = "pixel" }
+	}
+
+	"defined(NEEDS_SCREEN_POS)": {
+		screen_pos = { type = "float2" domain = "pixel" }
+	}
+
+	"on_platform(GL)": {
+		vertex_corner_info = { type = "float2" semantic = "COLOR1" domain = "vertex" }
+	}
+	"!on_platform(GL)": {
+		vertex_corner_info = { type = "float2" semantic = "POSITION1" domain = "vertex" }
+	}
+	vertex_size = { type = "float2" semantic = "TEXCOORD7" domain = "vertex" }
+	"defined(ROTATION)": {
+		vertex_rotation = { type = "float" semantic = "TEXCOORD1" domains = ["vertex"] }
+	}
+	"defined(NEEDS_UV_SCALE)": {
+		"defined(NEEDS_UV_ANIMATION)": {
+			vertex_uv_data = { type = "float3" semantic = "TEXCOORD0" domains = ["vertex"] }
+			uv_frame = { type = "float" domains = ["vertex"] }
+		}
+		"!defined(NEEDS_UV_ANIMATION)": {
+			vertex_uv_data = { type = "float2" semantic = "TEXCOORD0" domains = ["vertex"] }
+		}
+		uv_scale = { type = "float2" domains = ["vertex"] }
+	}
+	"!defined(NEEDS_UV_SCALE)": {
+		"defined(NEEDS_UV_ANIMATION)": {
+			vertex_uv_frame = { type = "float" semantic = "TEXCOORD0" domains = ["vertex"] }
+			uv_frame = { type = "float" domains = ["vertex"] }
+		}
+	}
+	"defined(PIVOT)": {
+		vertex_pivot = { type = "float2" semantic = "TEXCOORD6" domains = ["vertex"] }
+	}
+	"defined(EXTERNAL_ROTATION) || defined(TANGENT_LOCKED)": {
+		vertex_tangent = { type = "float3" semantic = "TANGENT" domains = ["vertex"] }
+		"defined(EXTERNAL_ROTATION)": {
+			vertex_binormal = { type = "float3" semantic = "BINORMAL" domains = ["vertex"] }
+		}
+	}
+}
+
+shader_contexts = {
+	shadow_caster = {
+		passes_sort_mode = "immediate"
+		compile_with = [
+			{ if: "on_renderer(D3D11, D3D12, GNM, GL)" }
+		]
+
+		passes = [
+			{ code_block="core/stingray_renderer/output_nodes/particle_base#depth_only" define="GBUFFER_PARTICLES" render_state="shadow_caster" }
+		]
+	}
+
+	default = {
+		passes_sort_mode = "deferred"
+		compile_with = [				
+			{ if: "on_renderer(D3D11, D3D12, GNM, GL)" }
+		]
+
+		passes = [	
+			{ if: "defined(HAS_OPACITY)" then: [
+				{ layer="gbuffer_alpha_masked" code_block="core/stingray_renderer/output_nodes/particle_base#billboard" define="GBUFFER_PARTICLES" render_state="gbuffer_material" }
+			] else: [
+				{ layer="gbuffer" code_block="core/stingray_renderer/output_nodes/particle_base#billboard" define="GBUFFER_PARTICLES" render_state="gbuffer_material" }
+			]}
+		]
+	}
+}

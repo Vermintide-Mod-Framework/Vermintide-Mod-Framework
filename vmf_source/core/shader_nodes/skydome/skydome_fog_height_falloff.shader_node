@@ -1,0 +1,19 @@
+group = "Skydome"
+display_name = "Skydome Fog Height/Falloff"
+depends_on = ["core/stingray_renderer/output_nodes/skydome_base"]
+
+imports = {
+	skydome_fog_height_falloff = {
+		type = "float2"
+		domain = "global"
+		source = "shading_environment"
+	}
+}
+
+output = {
+	type = { typeof: "skydome_fog_height_falloff" }
+}
+
+code = """
+	RESULT(skydome_fog_height_falloff);
+"""

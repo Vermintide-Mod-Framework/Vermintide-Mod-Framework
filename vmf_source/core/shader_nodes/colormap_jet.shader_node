@@ -1,0 +1,19 @@
+group = "Color Map"
+display_name = "Jet"
+inputs = {
+	"ff0fa2dd-930d-44f4-ab07-bbf75dd71f2e" = { name = "v" display_name = "A" type = "scalar" }
+}
+
+output = {
+	type = "float3" 
+}
+
+code = """
+	v *= 4.0f;
+	float3 result = float3(
+			saturate(min(v - 1.5f, -v + 4.5f)),
+			saturate(min(v - 0.5f, -v + 3.5f)),
+			saturate(min(v + 0.5f, -v + 2.5f)));
+
+	RESULT(result);
+"""

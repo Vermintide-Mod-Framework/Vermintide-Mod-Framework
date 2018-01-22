@@ -1,0 +1,14 @@
+group = "Math"
+display_name = "Cross Product"
+inputs = {
+	"316b7c7c-7541-4973-ba8d-322cd8525716" = { name = "a" display_name = "A" type = "vector3" }
+	"295b5797-0402-479f-93cc-77708fcd453f" = { name = "b" display_name = "B" type = "vector3" }
+}
+
+output = {
+	type = { typeof: "a" }
+}
+
+code = """
+	RESULT(cross(a,b));
+"""

@@ -1,0 +1,2005 @@
+includes = [ "core/stingray_renderer/shader_libraries/common.shader_source",
+			 "core/stingray_renderer/shader_libraries/lighting_common.shader_source",
+			 "core/stingray_renderer/shader_libraries/shadow_map_common.shader_source",
+			 "core/stingray_renderer/shader_libraries/post_processing_common.shader_source" ]
+
+render_states = {
+	filter = {
+		inherits = "default"
+		states = {
+			z_write_enable = "false"
+			z_enable = "false"
+		}
+	}
+
+	light = {
+		inherits = "default"
+		states = {
+			z_enable = "true"
+			z_write_enable = "false"
+			blend_enable = "true"
+			blend_op = "blend_op_add"
+			dest_blend = "blend_one"
+			src_blend = "blend_one"
+
+			cull_mode = "cull_ccw"
+			z_func = "greater_equal"
+
+			defined_SKIN_MATERIAL_ENABLED = {
+				stencil_enable = "true"
+				stencil_func = "equal"
+				stencil_fail = "stencil_op_keep"
+				stencil_pass = "stencil_op_keep"
+				stencil_z_fail = "stencil_op_keep"
+
+				stencil_func_back_side = "equal"
+				stencil_fail_back_side = "stencil_op_keep"
+				stencil_pass_back_side = "stencil_op_keep"
+				stencil_z_fail_back_side = "stencil_op_keep"
+
+				stencil_mask = "0x18"
+				stencil_write_mask = "0x0"
+				defined_SKIN = {
+					stencil_ref = "0x8"
+				}
+				ndefined_SKIN = {
+					stencil_ref = "0x0"					
+				}
+			}
+			write_mask0 = "red|green|blue"
+		}
+	}
+
+	light_stencil = {
+		inherits = "default"
+		states = {
+			z_enable = "true"
+			z_write_enable = "false"
+			z_func = "less_equal"
+
+			cull_mode = "cull_none"
+
+			write_mask0 = "0x0"
+			write_mask1 = "0x0"
+			write_mask2 = "0x0"
+			write_mask3 = "0x0"
+
+			stencil_enable = "true"
+			stencil_func = "always"
+			stencil_fail = "stencil_op_keep"
+			stencil_pass = "stencil_op_keep"
+			stencil_ref = "0x0"
+			stencil_func_back_side = "always"
+			stencil_fail_back_side = "stencil_op_keep"
+			stencil_pass_back_side = "stencil_op_keep"
+			stencil_z_fail = "stencil_op_incr"
+			stencil_z_fail_back_side = "stencil_op_decr"
+		}
+	}
+
+	global_lighting = {
+		inherits = "filter"
+		states = {
+			z_enable = "true"
+			z_func = "greater"
+			defined_SKIN_MATERIAL_ENABLED = {
+				stencil_enable = "true"
+				stencil_func = "equal"
+				stencil_fail = "stencil_op_keep"
+				stencil_pass = "stencil_op_keep"
+				stencil_z_fail = "stencil_op_keep"
+
+				stencil_func_back_side = "equal"
+				stencil_fail_back_side = "stencil_op_keep"
+				stencil_pass_back_side = "stencil_op_keep"
+				stencil_z_fail_back_side = "stencil_op_keep"
+
+				stencil_mask = "0x18"
+				stencil_write_mask = "0x0"
+				defined_SKIN = {
+					stencil_ref = "0x8"
+					write_mask1 = "red|green|blue|alpha"
+				}
+				ndefined_SKIN = {
+					stencil_ref = "0x0"
+				}
+			}
+			// alpha channel is not used for blending anymore
+			write_mask0 = "red|green|blue|alpha"
+		}
+	}
+
+	sun_shadow_mask = {
+		inherits = "filter"
+		states = {
+			write_mask0 = "red"
+			stencil_enable = "true"
+			stencil_func = "equal"
+			stencil_fail = "stencil_op_keep"
+			stencil_pass = "stencil_op_keep"
+			defined_FILL = {
+				stencil_ref = "0x0"
+			}
+			ndefined_FILL = {
+				defined_FILL_SHADOW = {
+					stencil_ref = "0x0"
+				}
+				ndefined_FILL_SHADOW = {
+					stencil_ref = "0x1"
+				}
+			}
+			
+			stencil_z_fail = "stencil_op_keep"
+			stencil_mask = "0x7"
+			stencil_write_mask = "0x7"
+		}
+	}
+
+	sun_shadow_cutter = {
+		inherits = "default"
+		states = {
+			cull_mode="cull_ccw"
+
+			z_enable = "true"
+			z_write_enable = "false"
+
+			write_mask0 = "0x0"
+			write_mask1 = "0x0"
+			write_mask2 = "0x0"
+			write_mask3 = "0x0"
+
+			stencil_enable = "true"
+			stencil_func = "always"
+			stencil_fail = "stencil_op_keep"
+			stencil_pass = "stencil_op_keep"
+			stencil_ref = "0x0"
+			stencil_z_fail = "stencil_op_incr"
+
+			stencil_func_back_side = "always"
+			stencil_fail_back_side = "stencil_op_keep"
+			stencil_pass_back_side = "stencil_op_keep"
+			stencil_z_fail_back_side = "stencil_op_incr"
+
+			stencil_mask = "0x7"
+			stencil_write_mask = "0x7"
+		}
+	}
+
+	ao_source = {
+		inherits = "default"
+		states = {
+			z_enable = "true"
+			z_func = "greater_equal"
+			z_write_enable = "false"
+			cull_mode = "cull_ccw"
+
+			write_mask0 = "red"
+			blend_enable = "true"
+			blend_op = "blend_op_min"
+			dest_blend = "blend_one"
+			src_blend = "blend_one"
+		}
+	}
+
+	global_indirect_specular_lighting = {
+		inherits = "filter"
+		states = {
+			z_enable = "true"
+			z_func = "greater"
+			
+			blend_enable = "true"
+			blend_op = "blend_op_add"
+			dest_blend = "blend_one"
+			src_blend = "blend_dest_alpha" // The ao and transparency should be in the hdr0 alpha
+		}
+	}
+
+	global_indirect_specular_lighting_and_fog = {
+		inherits = "filter"
+		states = {
+			z_enable = "true"
+			z_func = "greater"
+			
+			blend_enable = "true"
+			blend_op = "blend_op_add"
+			dest_blend = "blend_inv_src_alpha"
+			src_blend = "blend_one"
+
+			write_mask0 = "red|green|blue"
+		}
+	}
+}
+
+sampler_states = {
+	clamp_point_no_mip = {
+		inherits="clamp"
+		states = {
+			defined_RENDERER_GL = {
+				filter = "min_mag_point"
+			}
+			ndefined_RENDERER_GL = {
+				filter = "min_mag_mip_point"
+			}
+		}
+	}
+}
+
+hlsl_shaders = {
+	global_lighting = {
+		includes = [ "common", "gbuffer_access", "brdf", "color_management", "post_processing_common", "taa_offsets", "shadow_bias", "shadow_map_filtering", "clustered_shading" ]
+		samplers = {
+			gbuffer0 = { sampler_states = "clamp_point" }
+			gbuffer1 = { sampler_states = "clamp_point" }
+			gbuffer2 = { sampler_states = "clamp_point" }
+			// gbuffer3 = { sampler_states = "clamp_point" }
+			linear_depth = { sampler_states = "clamp_point" }
+			global_diffuse_map = { sampler_states = "clamp_linear"}
+			global_specular_map = { sampler_states = "clamp_linear"}
+			brdf_lut = { sampler_states = "clamp_linear"}
+			hdr1 = { sampler_states = "clamp_point" }
+			hdr2 = { sampler_states = "clamp_point" }
+			defined_SSR_ENABLED = {
+				hdr0_div2_mip6 = { sampler_states = "clamp_linear" }
+				ldr4_div2 = { sampler_states = "clamp_point" }
+			}			
+			defined_SSAO_ENABLED = {
+				ldr3_div2 = { sampler_states = "clamp_linear" }
+			}
+			defined_SUN = {
+				ldr0 = { sampler_states = "clamp_point" }
+			}
+			defined_RENDERER_GL = {
+				depth_stencil_buffer = { sampler_states = "clamp_point" }
+			}
+
+			//
+			defined_CLUSTERED_SHADING = {
+				local_lights_shadow_atlas = { sampler_states = "shadow_map" }
+			//	cs_cluster_buffer = { sampler_states = "clamp_point_no_mip" }
+			//	cs_light_index_buffer = { sampler_states = "clamp_point_no_mip" }
+			//	cs_light_data_buffer = { sampler_states = "clamp_point_no_mip" }
+			//	cs_light_shadow_matrices_buffer = { sampler_states = "clamp_point_no_mip" }
+			}
+		}
+
+		vp_code = """
+			layout(location = POSITION0) in highp vec4 in_pos;
+			layout(location = TEXCOORD0) in vec2 in_uv0;
+
+			out vec2 v_uv0;
+			out vec4 v_w;
+
+			CBUFFER_START(c0)
+				UNIFORM mat4 world_view_proj;
+			CBUFFER_END
+
+			void main() {
+				v_uv0 = in_uv0;
+				vec4 p = in_pos * world_view_proj;
+				v_w = encode_world_pos(p);
+				p.z = p.w;
+				gl_Position = p;
+			}
+		"""
+
+		fp_code = """
+			DECLARE_SAMPLER_2D(gbuffer0);
+			DECLARE_SAMPLER_2D(gbuffer1);
+			DECLARE_SAMPLER_2D(gbuffer2);
+			DECLARE_SAMPLER_2D(gbuffer3);
+			DECLARE_SAMPLER_2D(ldr0);
+			DECLARE_SAMPLER_CUBE(global_diffuse_map);
+			uniform mediump samplerCube global_specular_map;
+			DECLARE_SAMPLER_2D(brdf_lut);
+
+			uniform highp usampler2D linear_depth;
+
+			CBUFFER_START(c1)
+				#if defined(SUN)
+					UNIFORM vec3 sun_color;
+					UNIFORM vec3 sun_direction;
+				#endif
+				UNIFORM vec3 baked_diffuse_tint;
+				UNIFORM vec3 reflections_tint;
+			CBUFFER_END
+
+			#if defined(CLUSTERED_SHADING)
+				DECLARE_CLUSTER_DATA(cs_cluster_buffer);
+				DECLARE_LIGHT_INDEX_DATA(cs_light_index_buffer);
+				DECLARE_LIGHT_DATA(cs_light_data_buffer);
+				DECLARE_LIGHT_SHADOW_MATRICES(cs_light_shadow_matrices_buffer);
+				DECLARE_COMPARISON_SAMPLER_2D(local_lights_shadow_atlas);
+			#endif
+
+			in vec2 v_uv0;
+			in highp vec4 v_w;
+			layout(location = 0) out mediump vec4 out_base;
+
+			void main() {
+				mediump vec4 gbuffer_0 = TEX2D(gbuffer0, v_uv0);
+				mediump vec4 gbuffer_1 = TEX2D(gbuffer1, v_uv0);
+				mediump vec4 gbuffer_2 = TEX2D(gbuffer2, v_uv0);
+				mediump vec4 gbuffer_3 = TEX2D(gbuffer3, v_uv0);
+				highp float depth = uintBitsToFloat(texture(linear_depth, v_uv0).r);
+
+				mediump vec3 N = normalize(gbuffer_decode_normal(gbuffer_1));
+				mediump float roughness = gbuffer_decode_roughness(gbuffer_1);
+				mediump float ao = gbuffer_decode_ambient_occlusion(gbuffer_2);
+				mediump vec3 base_color = gbuffer_decode_base_color(gbuffer_0);
+				mediump float metallic = gbuffer_decode_metallic_mask(gbuffer_0);
+				mediump vec3 diffuse_color = lerp(base_color, vec3(0, 0, 0), metallic);
+				// 0.04 is taken as a common value for dielectrics. Source: Real-time rendering 3rd edition.
+				mediump vec3 specular_color = lerp(vec3(0.04, 0.04, 0.04), base_color, metallic);
+
+				highp vec3 wp = decode_world_pos(v_w, depth);
+				highp vec3 V = normalize(vec3(camera_world[0].w, camera_world[1].w, camera_world[2].w) - wp);
+
+				mediump vec3 ambient = gbuffer_decode_ambient_diffuse_light(gbuffer_3) * baked_diffuse_tint * diffuse_color;				
+				mediump float mipmap_index = roughness * 7.0;
+
+				mediump vec2 brdf_uv = float2(clamp(dot(N, V), 0.0, 1.0), roughness);
+				mediump vec2 env_brdf = TEX2D(brdf_lut, brdf_uv).xy;
+				
+				mediump vec4 global_spec_rgbm = TEXCUBELOD(global_specular_map, reflect(-V, N), mipmap_index);
+				mediump vec3 global_spec = rgbm_decode(global_spec_rgbm);
+				ambient += global_spec * (specular_color * env_brdf.x + env_brdf.y) * reflections_tint;	
+				ambient *= ao;
+
+				mediump vec3 col = ambient;
+				mediump vec3 acc_diff = vec3(0,0,0);
+				mediump vec3 acc_spec = vec3(0,0,0);
+				mediump vec3 translucency = vec3(0.0f, 0.0f, 0.0f);
+				half density = gbuffer_decode_density(gbuffer_2);
+				#if defined(SUN)
+					mediump vec3 L = normalize(-sun_direction);
+					mediump vec4 aux = TEX2D(ldr0, v_uv0);
+					bsdf(L, V, N, sun_color, diffuse_color, specular_color, roughness, aux.r, acc_diff, acc_spec);
+
+					translucency = calculate_translucency(L, V, N, lerp(lerp(0.5, 1.0, aux.r), saturate(aux.r * TRANSLUCENCY_DIRECTIONAL_SCALE), density), base_color, sun_color, density);
+				#endif
+				#if defined(CLUSTERED_SHADING)
+					clustered_shading(cs_cluster_buffer, cs_light_index_buffer, cs_light_data_buffer, cs_light_shadow_matrices_buffer, local_lights_shadow_atlas, wp, V, N, diffuse_color, specular_color, roughness, gl_FragCoord.xy, depth, density, base_color, acc_diff, acc_spec, translucency);
+				#endif
+				col += (acc_diff + acc_spec + translucency);
+
+				out_base = vec4(col.x,
+					col.y, col.z, 1.0);
+			}
+		"""
+
+		code="""
+			DECLARE_SAMPLER_2D(gbuffer0);
+			DECLARE_SAMPLER_2D(gbuffer1);
+			DECLARE_SAMPLER_2D(gbuffer2);
+			// DECLARE_SAMPLER_2D(gbuffer3);
+			DECLARE_SAMPLER_2D(linear_depth);
+			DECLARE_SAMPLER_CUBE(global_diffuse_map);
+			DECLARE_SAMPLER_CUBE(global_specular_map);
+			DECLARE_SAMPLER_2D(brdf_lut);
+			DECLARE_SAMPLER_2D(hdr1);
+			DECLARE_SAMPLER_2D(hdr2);
+			#if defined(SSR_ENABLED)
+				DECLARE_SAMPLER_2D(hdr0_div2_mip6);
+				DECLARE_SAMPLER_2D(ldr4_div2);
+			#endif
+			#if defined(SSAO_ENABLED)
+				DECLARE_SAMPLER_2D(ldr3_div2);
+			#endif
+			#if defined(SUN)
+				DECLARE_SAMPLER_2D(ldr0);
+			#endif
+			
+			struct VS_INPUT {
+				float4 position : POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				float2 uv : TEXCOORD0;
+				float4 w : TEXCOORD1;
+			};
+
+			CBUFFER_START(c0)
+				float4x4 world_view_proj;
+				#if defined(SUN)
+					// sun parameters from shading environment
+					float3 sun_color;
+					float3 sun_direction;
+				#endif
+				float3 ambient_tint;
+				float ao_enabled;
+
+				float3 ambient_diffuse_fade; // min multiplier, height offset, falloff
+			CBUFFER_END
+
+			#if defined(CLUSTERED_SHADING)
+				DECLARE_CLUSTER_DATA(cs_cluster_buffer);
+				DECLARE_LIGHT_INDEX_DATA(cs_light_index_buffer);
+				DECLARE_LIGHT_DATA(cs_light_data_buffer);
+				DECLARE_LIGHT_SHADOW_MATRICES(cs_light_shadow_matrices_buffer);
+				DECLARE_COMPARISON_SAMPLER_2D(local_lights_shadow_atlas);
+			#endif
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input) {
+				PS_INPUT o;
+				o.position = mul(input.position, world_view_proj);
+				o.uv = input.uv;
+				o.w = encode_world_pos(o.position);
+				o.position.z = o.position.w;
+
+				#if defined(CLUSTERED_SHADING)
+					// When using temporal antialiasing we try to cancel out the jitter
+					// that was introduced in the depth buffer. This is to minimize self occlusion
+					// that can arrise when performing a depth test beween the jittered depth buffer
+					// and a non jittered shadow map.
+					float4 tmp = o.position;
+					float4 view_space = tmp / tmp.w;
+					view_space.xy -= get_vs_halton_offset(frame_number);
+					tmp = view_space * tmp.w;
+					o.w = encode_world_pos(tmp);
+				#endif
+
+				return o;
+			}
+
+			struct PS_OUTPUT {
+				#if defined(SKIN)
+					half4 specular : SV_TARGET0;
+					half4 base : SV_TARGET1;
+				#else
+					half4 base : SV_TARGET0;
+				#endif
+			};
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_OUTPUT ps_main(PS_INPUT input) {
+				PS_OUTPUT o;
+
+				float4 gbuffer_0 = TEX2D(gbuffer0, input.uv);
+				float4 gbuffer_1 = TEX2D(gbuffer1, input.uv);
+				float4 gbuffer_2 = TEX2D(gbuffer2, input.uv);
+				// float4 gbuffer_3 = TEX2D(gbuffer3, input.uv);
+				float ao = gbuffer_decode_ambient_occlusion(gbuffer_2);
+				#if defined(SSAO_ENABLED)
+					#if defined(D3D11)
+						const bool ssao_enabled = ao_enabled && capture_cubemap == 0.0;
+					#else
+						const bool ssao_enabled = ao_enabled;
+					#endif
+					if (ssao_enabled) {
+						float ssao = TEX2D(ldr3_div2, input.uv).r;
+						ao = min(ao, ssao);
+					}
+				#endif
+				float depth = gbuffer_decode_depth(TEX2D(linear_depth, input.uv));
+
+				float3 N = normalize(gbuffer_decode_normal(gbuffer_1));
+				float roughness = gbuffer_decode_roughness(gbuffer_1);
+
+				float3 base_color = gbuffer_decode_base_color(gbuffer_0);
+				float metallic = gbuffer_decode_metallic_mask(gbuffer_0);
+				// 0.04 is taken as a common value for dielectrics. Source: Real-time rendering 3rd edition.
+				float3 specular_color = lerp(float3(0.04,0.04,0.04), base_color, metallic);
+				float3 diffuse_color = lerp(base_color, float3(0,0,0), metallic);
+				
+				#if defined(D3D11)
+					float specular_toggle = 1-capture_cubemap;
+					// If we are currently capturing a reflection probe, use specular F0 as diffuse color for metallics
+					diffuse_color = (specular_toggle == 1) ? diffuse_color : lerp(diffuse_color, specular_color, metallic);
+
+					// Remove ambient tint from cube map baking, since will have an exponential effect on the result.
+					ambient_tint = (specular_toggle == 1) ? ambient_tint : 1.0;
+				#else
+					float specular_toggle = 1.f;
+				#endif
+
+				float3 wp = decode_world_pos(input.w, depth);
+				float3 V = normalize(camera_world._m30_m31_m32 - wp);
+
+				#if defined(AMBIENT_FADE_UP)
+					float3 indirect_light_tint = max(ambient_diffuse_fade.x, 1.0 - exp((wp.z - ambient_diffuse_fade.y)/ambient_diffuse_fade.z)) * ambient_tint;
+				#elif defined(AMBIENT_FADE_DOWN)
+					float3 indirect_light_tint = max(ambient_diffuse_fade.x, 1.0 - exp((ambient_diffuse_fade.y - wp.z)/ambient_diffuse_fade.z)) * ambient_tint;
+				#elif defined(AMBIENT_FADE_MIRROR)
+					float3 indirect_light_tint = max(ambient_diffuse_fade.x, 1.0 - exp(-abs(ambient_diffuse_fade.y - wp.z)/ambient_diffuse_fade.z)) * ambient_tint;
+				#else
+					float3 indirect_light_tint = ambient_tint;
+				#endif
+
+				float4 local_radiation_data = TEX2D(hdr2, input.uv) * specular_toggle;
+				float3 global_radiation_probe_data = rgbm_decode(TEXCUBELOD(global_diffuse_map, N, 0));
+				float3 diffuse_ambient = (local_radiation_data.rgb + (1.0 - local_radiation_data.w) * global_radiation_probe_data)  * indirect_light_tint * diffuse_color;
+
+				float2 scale_bias = TEX2D(brdf_lut, float2(saturate(dot(N, V)), roughness)).xy;
+
+				// Remove energy from the diffuse ambient term from the Fresnel reflections
+				float inv_fresnel = 1.f - scale_bias.y;
+				float diff_attn = lerp(inv_fresnel, inv_fresnel * 0.04, metallic);
+				diffuse_ambient *= diff_attn;	
+
+				// Read all the reflection data
+				float mipmap_index = roughness * 7;
+				float4 local_reflections_data = TEX2D(hdr1, input.uv);
+				float3 global_probe_data = rgbm_decode(TEXCUBELOD(global_specular_map, reflect(-V, N), mipmap_index));
+
+				// Prepare the reflection weight data
+				float local_probe_weight = local_reflections_data.w;
+
+				#if defined(SSR_ENABLED)
+					float ssr_mip_level = TEX2DLOD(ldr4_div2, input.uv, 0).r * SSR_MIPMAP_LEVELS;
+					float4 ssr_data = TEX2DLOD(hdr0_div2_mip6, input.uv, ssr_mip_level);
+					ssr_data.rgb = inv_safe_range_tone_map(ssr_data.rgb);
+	
+					float ssr_weight = ssr_data.a;
+					float3 ssr_influence = ssr_data.rgb * ssr_weight;
+
+					// Distribute the reflection weight (ssr -> local probes -> global probe)
+					local_probe_weight = min(local_probe_weight, 1.0 - ssr_weight);
+					const float global_probe_weight = 1.0 - (ssr_weight + local_probe_weight);
+
+					// adjust local reflection weight with the ssr modification
+					local_reflections_data.rgb = local_reflections_data.rgb * (local_reflections_data.w > 0.0 ? (local_probe_weight / local_reflections_data.w) : 1.0);
+				#else
+					float ssr_weight = 0.0; 
+					float3 ssr_influence = float3(0.0, 0.0, 0.0);
+
+					// Distribute the reflection weight (local probes -> global probe)
+					float global_probe_weight = 1.0 - local_probe_weight;
+				#endif
+
+				// Final reflection influence terms
+				float3 local_probe_influence = local_reflections_data.rgb;
+				float3 global_probe_influence = global_probe_data.rgb * global_probe_weight;
+
+				float3 specular_ambient = (ssr_influence + local_probe_influence + global_probe_influence) * (specular_color * scale_bias.x + scale_bias.y) * indirect_light_tint;
+
+				// If we are currently capturing a reflection probe, mask out all IBL based relfections to avoid feedback loops.
+				specular_ambient *= specular_toggle;
+
+				#if !defined(SKIN)
+					float3 ambient = diffuse_ambient + specular_ambient;
+					ambient *= ao;
+
+					float3 col = ambient;
+					float3 acc_diff = 0;
+					float3 acc_spec = 0;
+					float3 translucency = 0;
+					half density = gbuffer_decode_density(gbuffer_2);
+					#if defined(SUN)
+						float3 L = normalize(-sun_direction);
+						float4 aux = TEX2D(ldr0, input.uv);
+						bsdf(L, V, N, sun_color, diffuse_color, specular_color, roughness, aux.r, acc_diff, acc_spec);
+
+						translucency = calculate_translucency(L, V, N, lerp(lerp(0.5, 1.0, aux.r), saturate(aux.r * TRANSLUCENCY_DIRECTIONAL_SCALE), density), base_color, sun_color, density);
+					#endif
+					#if defined(CLUSTERED_SHADING)
+						clustered_shading(cs_cluster_buffer, cs_light_index_buffer, cs_light_data_buffer, cs_light_shadow_matrices_buffer, local_lights_shadow_atlas, wp, V, N, diffuse_color, specular_color, roughness, input.position.xy, depth, density, base_color, acc_diff, acc_spec, translucency);
+					#endif
+					col += acc_diff + acc_spec * specular_toggle + translucency;
+					o.base = float4(col, 1);
+				#else
+					float3 diffuse_lighting = diffuse_ambient * ao;
+					float3 specular_lighting = specular_ambient * ao;
+					float3 acc_diff = 0;
+					float3 acc_spec = 0;
+					float3 translucency = 0;
+					half density = gbuffer_decode_density(gbuffer_2);
+					#if defined(SUN)
+						float3 L = normalize(-sun_direction);
+						float4 aux = TEX2D(ldr0, input.uv);
+						bsdf(L, V, N, sun_color, diffuse_color, specular_color, roughness, aux.r, acc_diff, acc_spec);
+
+						// TODO: translucency is not supported for skin materials atm, since they share gbuffer channel
+						// translucency = calculate_translucency(L, V, N, lerp(lerp(0.5, 1.0, aux.r), saturate(aux.r * TRANSLUCENCY_DIRECTIONAL_SCALE), density), base_color, sun_color, density);
+					#endif
+					#if defined(CLUSTERED_SHADING)
+						clustered_shading(cs_cluster_buffer, cs_light_index_buffer, cs_light_data_buffer, cs_light_shadow_matrices_buffer, local_lights_shadow_atlas, wp, V, N, diffuse_color, specular_color, roughness, input.position.xy, depth, density, base_color, acc_diff, acc_spec, translucency);
+					#endif
+					
+					diffuse_lighting += acc_diff;// + translucency;
+					specular_lighting += acc_spec * specular_toggle;
+
+					o.specular = float4(specular_lighting, 1.0);
+					o.base = float4(diffuse_lighting, density);
+				#endif
+
+				return o;
+			}
+		"""
+	}
+
+	light_source = {
+		includes = [ "common", "gbuffer_access", "brdf", "shadow_bias", "taa_offsets", "shadow_map_filtering" ]
+
+		samplers = {
+			defined_SHADOW_MAPPING = {
+				local_lights_shadow_atlas = { sampler_states = "shadow_map" }
+			}
+			gbuffer0 = { sampler_states = "clamp_point" }
+			gbuffer1 = { sampler_states = "clamp_point" }
+			gbuffer2 = { sampler_states = "clamp_point" }
+			linear_depth = { sampler_states = "clamp_point" }
+			defined_SPOT = {
+				defined_COOKIE_PROJECTION = {
+					defined_COOKIE_CLAMP_SAMPLER = {
+						ndefined_COOKIE_UV_OFFSET_ANIM = {
+							diffuse_map = { sampler_states = "clamp_linear" }
+						}
+						defined_COOKIE_UV_OFFSET_ANIM = {
+							diffuse_map = { sampler_states = "wrap_linear" }
+						}
+					}
+					ndefined_COOKIE_CLAMP_SAMPLER = {
+						diffuse_map = { sampler_states = "wrap_linear" }
+					}
+				}
+			}
+		}
+
+		vp_code = """
+			layout(location = POSITION0) in highp vec4 in_pos;
+
+			out vec4 v_w;
+
+			CBUFFER_START(c0)
+				UNIFORM mat4 world_view_proj;
+			CBUFFER_END
+
+			CBUFFER_START(light)
+				UNIFORM vec3 light_proxy_scale;
+			CBUFFER_END
+
+			void main() {
+				vec4 p = new_half4_xyz(in_pos.xyz * light_proxy_scale, 1.0) * world_view_proj;
+				v_w = encode_world_pos(p);
+				gl_Position = p;
+			}
+		"""
+
+		fp_code = """
+			DECLARE_SAMPLER_2D(gbuffer0);
+			DECLARE_SAMPLER_2D(gbuffer1);
+			DECLARE_SAMPLER_2D(gbuffer2);
+
+			#if defined(SHADOW_MAPPING)
+				DECLARE_COMPARISON_SAMPLER_2D(local_lights_shadow_atlas);
+			#endif
+
+			uniform highp usampler2D linear_depth;
+
+			#if defined(SPOT)
+				CBUFFER_START(c1)
+					UNIFORM mat4 world;
+				CBUFFER_END
+			#endif
+
+			CBUFFER_START(light)
+				UNIFORM vec3 light_position;
+				UNIFORM vec3 light_color;
+				// start, 1.f/(end-start), exp
+				UNIFORM vec3 light_falloff;
+				#if defined(SPOT)
+					// scale, bias
+					UNIFORM vec2 light_spot_falloff;
+				#endif
+
+				#if defined(SHADOW_MAPPING)
+					#if defined(OMNI)
+						UNIFORM float4x4 world_to_shadow_maps[6];
+					#else
+						UNIFORM float4x4 world_to_shadow_map;
+					#endif
+				#endif
+			CBUFFER_END
+
+			in highp vec4 v_w;
+			layout(location = 0) out vec4 out_base;
+
+			void main() {
+				half2 uv = gl_FragCoord.xy / back_buffer_size;
+				float depth = uintBitsToFloat(texture(linear_depth, uv).r);
+
+				float3 wp = decode_world_pos(v_w, depth);
+				float3 V = normalize(float3(camera_world[0].w, camera_world[1].w, camera_world[2].w) - wp);
+
+				float3 L = light_position - wp;
+				float len_L = length(L) + 0.00001f;
+				float attn = light_attenuation(len_L, light_falloff.x, light_falloff.y);
+				L *= 1.0 / len_L;
+
+				float normalized_distance = (len_L - light_falloff.x) * light_falloff.y;
+				if (normalized_distance > 1.0f) discard;
+
+				#if defined(OMNI) && defined(SHADOW_MAPPING)
+					// The shadows from the faces of an onmni light are populated in the following order and directions.
+					//	float3(-1.0f,  0.0f,  0.0f),
+					//	float3( 1.0f,  0.0f,  0.0f),
+					//	float3( 0.0f, -1.0f,  0.0f),
+					//	float3( 0.0f,  1.0f,  0.0f),
+					//	float3( 0.0f,  0.0f, -1.0f)
+					//	float3( 0.0f,  0.0f,  1.0f),
+
+					// Based on the biggest component of the vector from the shaded position to the light source and its sign, chose the correct
+					// shadow map index to get the correct world position to shadow map matrix.
+					float3 shadow_L = -L;
+					int3 is_positive = int3(greaterThan(shadow_L, float3(0.0, 0.0, 0.0)));
+					float3 abs_shadow_L = abs(shadow_L);
+					int test_index = (abs_shadow_L.x > abs_shadow_L.y && abs_shadow_L.x > abs_shadow_L.z) ? 0 + is_positive[0]: (abs_shadow_L.y > abs_shadow_L.z) ? 2 + is_positive[1] : 4 + is_positive[2];
+
+					// On the cpu side, the whole matrix will be full of zeroes if the face is not casting any shadows. Just test the first element.
+					float shadow_active = world_to_shadow_maps[uint(test_index)][0].x != 0.0f? 1.0f : 0.0f;
+					float4 ls = mul(float4(wp, 1), world_to_shadow_maps[uint(test_index)]);
+				#elif defined(SPOT)
+					float3 spot_dir = float3(world[0].y, world[1].y, world[2].y);
+					float spot_attenuation = spot_angle_attenuation(dot(-L, spot_dir), light_spot_falloff.x, light_spot_falloff.y);
+					if (spot_attenuation == 0.0f) discard;
+					attn *= spot_attenuation;
+				#endif
+
+				float translucency_attn = attn;
+				float shadow_mask = 0.0;
+				#if defined(SHADOW_MAPPING)
+					#if !defined(OMNI)
+						float4 ls = mul(float4(wp, 1), world_to_shadow_map);
+					#endif
+
+					ls.xyz /= ls.w;
+					ls.z = apply_shadow_depth_comparison_bias(depth, ls.z, local_shadow_map_bias);
+					float2 sm_resolution = float2(textureSize(local_lights_shadow_atlas, 0));
+					#if defined(OMNI)
+						half shadow = shadow_active > 0.0f? shadow_intensity_2d(local_lights_shadow_atlas, sm_resolution, ls.xy, ls.z) : 1.0f;
+					#else
+						half shadow = shadow_intensity_2d(local_lights_shadow_atlas, sm_resolution, ls.xy, ls.z);
+					#endif
+					shadow_mask = shadow;
+					attn *= shadow_mask;
+				#endif
+
+				half4 gbuffer_0 = TEX2D(gbuffer0, uv);
+				half4 gbuffer_1 = TEX2D(gbuffer1, uv);
+				half4 gbuffer_2 = TEX2D(gbuffer2, uv);
+
+				float3 N = normalize(gbuffer_decode_normal(gbuffer_1));
+				half roughness = gbuffer_decode_roughness(gbuffer_1);
+
+				float3 base_color = gbuffer_decode_base_color(gbuffer_0);
+				half metallic = gbuffer_decode_metallic_mask(gbuffer_0);
+				// 0.04 is taken as a common value for dielectrics. Source: Real-time rendering 3rd edition.
+				float3 specular_color = lerp(new_half3(0.04, 0.04, 0.04), base_color, metallic);
+				float3 diffuse_color = lerp(base_color, new_half3(0.0, 0.0, 0.0), metallic);
+
+				float3 acc_diff = new_half3(0.0, 0.0, 0.0);
+				float3 acc_spec = new_half3(0.0, 0.0, 0.0);
+				bsdf(L, V, N, light_color, diffuse_color, specular_color, roughness, attn, acc_diff, acc_spec);
+
+				half density = gbuffer_decode_density(gbuffer_2);
+				float3 translucency = calculate_translucency(L, V, N, translucency_attn * lerp(lerp(0.5, 1.0, shadow_mask), shadow_mask, density), base_color, light_color, density);
+
+				float3 col = acc_diff + acc_spec + translucency;
+				out_base = float4(col, 0.0);
+			}
+		"""
+
+		code="""
+			DECLARE_SAMPLER_2D(gbuffer0);
+			DECLARE_SAMPLER_2D(gbuffer1);
+			#if !defined(SKIN)
+				DECLARE_SAMPLER_2D(gbuffer2);
+			#endif
+			DECLARE_SAMPLER_2D(linear_depth);
+			#if defined(COOKIE_PROJECTION) && defined(SPOT)
+				DECLARE_SAMPLER_2D(diffuse_map); // exports={ name="Cookie Projection Map" type="resource" sort_tag="0_DIFFUSE_MAP"}
+			#endif
+
+			#if defined(SHADOW_MAPPING)	&& (defined(D3D11) || defined(D3D12) || defined(GNM))
+				DECLARE_COMPARISON_SAMPLER_2D(local_lights_shadow_atlas);
+			#endif
+
+			struct VS_INPUT {
+				float4 position : POSITION;
+			};
+
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				#if !defined(STENCIL_MARK)
+					float4 w : TEXCOORD1;
+				#endif
+			};
+
+			CBUFFER_START(c0)
+				#if defined(SPOT) || defined(BOX)
+					float4x4 world;
+					float4x4 inv_world;
+				#endif
+				float4x4 world_view_proj;
+			CBUFFER_END
+
+			CBUFFER_START(light)
+				float3 light_position;
+				float3 light_color;
+				
+				#if defined(OMNI) || defined(SPOT)
+					// start, 1.f/(end-start), exp				
+					float3 light_falloff;
+				#endif
+				#if defined(SPOT)
+					#if defined(COOKIE_PROJECTION)
+						// scale, bias, projection_scale
+						float3 light_spot_falloff;
+					#else
+						// scale, bias
+						float2 light_spot_falloff;
+					#endif
+				#endif
+
+				#if defined(SHADOW_MAPPING)
+					#if defined(OMNI)
+						float4x4 world_to_shadow_maps[6];
+					#else
+						float4x4 world_to_shadow_map;
+					#endif
+					float shadow_intensity;
+				#endif
+
+				#if defined(BOX)
+					float3 light_box_min;
+					float3 light_box_max;
+				#endif
+
+				float3 light_proxy_scale;
+				#if defined(COOKIE_PROJECTION) && defined(SPOT)
+					#if defined(COOKIE_UV_OFFSET_ANIM)
+						float2 cookie_uv_speed; // exports={ name="Cookie UV Offset Speed" type="vector2" value=[0.1 0.1] min=[-10.0 -10.0] max=[10.0 10.0] step=[0.001 0.001] }
+					#endif
+					#if defined(COOKIE_UV_OFFSET)
+						float2 cookie_uv_offset; // exports={ name="Cookie UV Offset" type="vector2" value=[0.5 0.5] min=[0 0] max=[1 1] step=[0.001 0.001] }
+					#endif
+					#if defined(COOKIE_UV_ROTATION_ANIM)
+						float2 cookie_uv_rotation_pivot;   // exports={ name="Cookie UV Rotation Pivot" type="vector2" value=[0.5 0.5] min=[-1.0 -1.0] max=[1.0 1.0] step=[0.001 0.001] }
+						float2 cookie_uv_rotation_speed;   // exports={ name="Cookie UV Rotation Speed" type="scalar" value=1.0 min=-50 max=50 step=0.001 }
+					#endif
+					#if defined(COOKIE_UV_SCALE)
+						float2 cookie_uv_scale; // exports={ name="Cookie UV Scale" type="vector2" value=[1 1] min=[0.001 0.001] max=[100 100] step=[0.001 0.001] }
+					#endif
+				#endif
+			CBUFFER_END
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input) {
+				PS_INPUT o;
+				
+				#if defined(BOX)
+					float3 p = input.position.xyz * light_proxy_scale;
+					p += (light_box_max + light_box_min) * 0.5;
+					o.position = mul(float4(p, 1), world_view_proj);
+				#else
+					o.position = mul(float4(input.position.xyz * light_proxy_scale, 1), world_view_proj);
+				#endif
+
+				
+				#if !defined(STENCIL_MARK)
+					#if defined(SHADOW_MAPPING)
+						// When using temporal antialiasing we try to cancel out the jitter
+						// that was introduced in the depth buffer. This is to minimize self occlusion
+						// that can arrise when performing a depth test beween the jittered depth buffer
+						// and a non jittered shadow map.
+						float4 tmp = o.position;
+						float4 view_space = tmp / tmp.w;
+						view_space.xy -= get_vs_halton_offset(frame_number);
+						tmp = view_space * tmp.w;
+						o.w = encode_world_pos(tmp);
+					#else
+						o.w = encode_world_pos(o.position);
+					#endif
+				#endif
+				return o;
+			}
+
+			struct PS_OUTPUT {
+				#if defined(SKIN)
+					half4 specular : SV_TARGET0;
+					half4 base 	: SV_TARGET1;
+				#else
+					half4 base 	: SV_TARGET0;
+				#endif
+			};
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			#if defined(STENCIL_MARK)
+				half4 ps_main() : SV_TARGET0 {
+					return half4(0,0,0,0);
+				}
+			#else
+				PS_OUTPUT ps_main(PS_INPUT input)
+				{
+					PS_OUTPUT o;
+					o.base = half4(0,0,0,0);
+ 
+					half2 uv = input.position.xy / back_buffer_size;
+					float depth = gbuffer_decode_depth(TEX2D(linear_depth, uv));
+
+					#if defined(D3D11)
+						float specular_toggle = 1-capture_cubemap;
+					#else
+						float specular_toggle = 1.f;
+					#endif
+
+					float3 wp = decode_world_pos(input.w, depth);
+					float3 L = float3(0,0,1);
+					float attn = 1.f;
+					#if defined(OMNI) || defined(SPOT)
+						L = light_position - wp;
+						float len_L = length(L) + 0.00001f;
+						attn = light_attenuation(len_L, light_falloff.x, light_falloff.y);
+						L *= 1.0/len_L;
+
+						float normalized_distance = (len_L - light_falloff.x) * light_falloff.y;
+						[branch]
+						if (normalized_distance > 1.0f) discard;
+
+						#if defined(OMNI) && defined(SHADOW_MAPPING)
+							// The shadows from the faces of an onmni light are populated in the following order and directions.
+							//	float3(-1.0f,  0.0f,  0.0f),
+							//	float3( 1.0f,  0.0f,  0.0f),
+							//	float3( 0.0f, -1.0f,  0.0f),
+							//	float3( 0.0f,  1.0f,  0.0f),
+							//	float3( 0.0f,  0.0f, -1.0f)
+							//	float3( 0.0f,  0.0f,  1.0f),
+
+							// Based on the biggest component of the vector from the shaded position to the light source and its sign, chose the correct
+							// shadow map index to get the correct world position to shadow map matrix.
+							const float3 shadow_L = -L;
+							const int3 is_positive = shadow_L > 0;
+							const float3 abs_shadow_L = abs(shadow_L);
+							int test_index = (abs_shadow_L.x > abs_shadow_L.y && abs_shadow_L.x > abs_shadow_L.z) ? 0 + is_positive[0]: (abs_shadow_L.y > abs_shadow_L.z) ? 2 + is_positive[1] : 4 + is_positive[2];
+
+							// On the cpu side, the whole matrix will be full of zeroes if the face is not casting any shadows. Just test the first element.
+							const float shadow_active = world_to_shadow_maps[uint(test_index)]._m00 != 0.0f? 1.0f : 0.0f;
+							float4 ls = mul(float4(wp, 1), world_to_shadow_maps[uint(test_index)]);
+						#elif defined(SPOT)
+							float spot_attenuation = spot_angle_attenuation(dot(-L, world._m10_m11_m12), light_spot_falloff.x, light_spot_falloff.y);
+							if (spot_attenuation == 0.0f) discard;
+							attn *= spot_attenuation;
+						#endif
+					#elif defined(BOX)
+						L = -world._m10_m11_m12;
+						float3 op = mul(float4(wp, 1), inv_world).xyz;
+						float3 containment = (op > light_box_min) * (op < light_box_max);
+						float mask = dot(containment, containment) == 3;
+						attn = light_attenuation(op.y, light_box_min.y, 1.f / (light_box_max.y - light_box_min.x)) * mask;
+					#endif
+
+					#if defined(COOKIE_PROJECTION) && defined(SPOT)
+						float2 cookie_uv = mul(L, (float3x3)inv_world).xz * light_spot_falloff.z;
+
+						#if defined(COOKIE_UV_SCALE)
+							cookie_uv *= cookie_uv_scale;
+						#endif
+
+						#if defined(COOKIE_UV_OFFSET)
+							#if defined(GL2)
+								cookie_uv = cookie_uv * float2(0.5, -0.5) + float2(cookie_uv_offset.x, -cookie_uv_offset.y);
+							#else
+								cookie_uv = cookie_uv * float2(0.5, -0.5) + cookie_uv_offset;
+							#endif
+						#else
+							cookie_uv = cookie_uv * float2(0.5, -0.5) + 0.5;
+						#endif
+
+						#if defined(COOKIE_UV_ROTATION_ANIM)
+							float A = cookie_uv_rotation_speed * time;
+							float C = cos(A);
+							float S = sin(A);
+							float2 center = cookie_uv - cookie_uv_rotation_pivot;
+							float2 result = float2(	(center.x * C + center.y * S) + cookie_uv_rotation_pivot.x,
+													(center.y * C - center.x * S) + cookie_uv_rotation_pivot.y);
+							#if defined(GL2)
+								cookie_uv = float2(result.x, -result.y);
+							#else
+								cookie_uv = result;
+							#endif
+						#endif
+
+						#if defined(COOKIE_UV_OFFSET_ANIM)
+							#if defined(GL2)
+								cookie_uv += float2(cookie_uv_speed.x, -cookie_uv_speed.y) * time;
+							#else
+								cookie_uv += cookie_uv_speed * time;
+							#endif
+						#endif
+
+						light_color *= TEX2D(diffuse_map, cookie_uv);
+					#endif
+
+					float translucency_attn = attn;
+					float shadow_mask = 0.0;
+					#if defined(SHADOW_MAPPING)
+						#if !defined(OMNI)
+							float4 ls = mul(float4(wp,1), world_to_shadow_map);
+						#endif
+
+						#if defined(D3D11) || defined(D3D12) || defined(GNM)
+							ls.xyz /= ls.w;
+							ls.z = apply_shadow_depth_comparison_bias(depth, ls.z, local_shadow_map_bias);
+							float2 sm_resolution;
+							local_lights_shadow_atlas.tex.GetDimensions(sm_resolution.x, sm_resolution.y);
+							#if defined(OMNI)
+								half shadow = shadow_active > 0.0f? shadow_intensity_2d(local_lights_shadow_atlas, sm_resolution, ls.xy, ls.z) : 1.0f;
+							#else
+								half shadow = shadow_intensity_2d(local_lights_shadow_atlas, sm_resolution, ls.xy, ls.z);
+							#endif
+							shadow_mask = shadow;
+							attn *= saturate((shadow_mask - 1.0) * shadow_intensity + 1.0);
+						#endif
+					#endif
+
+					half4 gbuffer_0 = TEX2D(gbuffer0, uv);
+					half4 gbuffer_1 = TEX2D(gbuffer1, uv);
+					#if !defined(SKIN)
+						half4 gbuffer_2 = TEX2D(gbuffer2, uv);
+					#endif
+
+					float3 N = normalize(gbuffer_decode_normal(gbuffer_1));
+					half roughness = gbuffer_decode_roughness(gbuffer_1);
+
+					float3 base_color = gbuffer_decode_base_color(gbuffer_0);
+					half metallic = gbuffer_decode_metallic_mask(gbuffer_0);
+					// 0.04 is taken as a common value for dielectrics. Source: Real-time rendering 3rd edition.
+					float3 specular_color = lerp(float3(0.04,0.04,0.04), base_color, metallic);
+					float3 diffuse_color = lerp(base_color, new_half3(0,0,0), metallic);
+					#if defined(D3D11) || defined(D3D12)
+						// If we are currently capturing a reflection probe, use specular F0 as diffuse color for metallics
+						diffuse_color = (specular_toggle == 1) ? diffuse_color : lerp(diffuse_color, specular_color, metallic);
+					#endif
+
+					float3 V = normalize(camera_world._m30_m31_m32 - wp);
+					float3 acc_diff = 0;
+					float3 acc_spec = 0;
+					bsdf(L, V, N, light_color, diffuse_color, specular_color, roughness, attn, acc_diff, acc_spec);
+
+					#if defined(SKIN)
+						o.specular = half4(acc_spec * specular_toggle, 0);
+						o.base = half4(acc_diff, 0);
+					#else
+						half density = gbuffer_decode_density(gbuffer_2);
+						float3 translucency = calculate_translucency(L, V, N, translucency_attn * lerp(lerp(0.5, 1.0, shadow_mask), shadow_mask, density), base_color, light_color, density);
+						o.base = half4(acc_diff + acc_spec * specular_toggle + translucency, 0);
+					#endif					
+					return o;
+				}
+			#endif
+		"""
+	}
+
+	sun_shadow_mask = {
+		includes = [ "common", "gbuffer_access", "shadow_bias", "shadow_map_filtering", "taa_offsets" ]
+		samplers = {
+			linear_depth = { sampler_states = "clamp_point" }
+
+			input_texture0 = { sampler_states = "shadow_map" }
+			defined_BILLBOARD_SHADOW_CASTING = {
+				shadow_map_color = { sampler_states = "clamp_linear" }
+			}
+	
+		}
+
+		vp_code = """
+			layout(location = POSITION0) in vec4 in_pos;
+			layout(location = TEXCOORD0) in vec2 in_uv;
+
+			CBUFFER_START(c0)
+				UNIFORM mat4 world_view_proj;
+			CBUFFER_END
+
+			#if !defined(FILL)
+				out vec4 v_w;
+				out vec2 v_uv;
+			#endif
+
+			void main() {
+				vec4 pos = in_pos * world_view_proj;
+				gl_Position = pos;
+
+				#if !defined(FILL)
+					v_uv = in_uv;
+					v_w = encode_world_pos(pos);
+				#endif
+			}
+		"""
+
+		fp_code = """
+			out lowp vec4 out_shadow;
+			#if !defined(FILL)
+				uniform highp usampler2D linear_depth;
+				DECLARE_COMPARISON_SAMPLER_2D(input_texture0);
+
+				in highp vec4 v_w;
+				in highp vec2 v_uv;
+
+				CBUFFER_START(c0)
+					UNIFORM mat4 world_to_shadow_map;
+					UNIFORM vec2 input_texture0_size;
+				CBUFFER_END
+			#endif
+
+			void main() {
+				#if defined(FILL)
+					out_shadow = vec4(1.0);
+				#else
+					highp float d = uintBitsToFloat(texture(linear_depth, v_uv).r);
+
+					highp vec3 wp = decode_world_pos(v_w, d);
+					highp vec4 sm_pos = vec4(wp, 1.0) * world_to_shadow_map;
+					sm_pos.z = apply_sun_shadow_depth_comparison_bias(d, sm_pos.z);
+					lowp float shadow = shadow_intensity_2d(input_texture0, input_texture0_size, sm_pos.xy, sm_pos.z);
+					out_shadow = vec4(shadow, shadow, shadow, 0);
+				#endif
+			}
+		"""
+
+		code="""
+			DECLARE_SAMPLER_2D(linear_depth);
+
+			DECLARE_COMPARISON_SAMPLER_2D(input_texture0);
+			#ifdef BILLBOARD_SHADOW_CASTING
+				DECLARE_SAMPLER_2D(shadow_map_color);
+			#endif
+
+			struct VS_INPUT {
+				float4 position : POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				#if !defined(FILL) && !defined(NUKE_HI_STENCIL)
+					float2 uv : TEXCOORD0;
+					float4 w : TEXCOORD1;
+				#endif
+			};
+
+			CBUFFER_START(c0)
+				float4x4 world_view_proj;
+
+				#if defined(FILL)
+					float shadow_fallback_intensity; // exports={ name="Shadow Intensity Fallback" type="scalar" value=1 min=0 max=1 step=0.003 }
+				#else
+					float4x4 world_to_shadow_map;
+				#endif
+				float2 input_texture0_size;
+			CBUFFER_END
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input) {
+				PS_INPUT o;
+				o.position = mul(input.position, world_view_proj);
+				#if !defined(FILL)
+					o.uv = input.uv;
+					// When using temporal antialiasing we try to cancel out the jitter
+					// that was introduced in the depth buffer. This is to minimize self occlusion
+					// that can arrise when performing a depth test beween the jittered depth buffer
+					// and a non jittered shadow map.
+					float4 tmp = o.position;
+					float4 view_space = tmp / tmp.w;
+					view_space.xy -= get_vs_halton_offset(frame_number);
+					tmp = view_space * tmp.w;
+					o.w = encode_world_pos(tmp);
+				#endif
+
+				return o;
+			}
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			#if defined(FILL)
+				half4 ps_main() : SV_TARGET0 {
+					return half4(1,1,1,1);
+				}
+			#else
+				half4 ps_main(PS_INPUT input) : SV_TARGET0 {
+					float d = gbuffer_decode_depth(TEX2D(linear_depth, input.uv));
+					float3 wp = decode_world_pos(input.w, d);
+					float4 sm_pos = mul(float4(wp, 1), world_to_shadow_map);
+					
+					#if defined(FILL_SHADOW)
+						sm_pos.z = apply_shadow_depth_comparison_bias(d, sm_pos.z, ssm_shadow_map_bias);
+					#else
+						sm_pos.z = apply_shadow_depth_comparison_bias(d, sm_pos.z, sun_shadow_map_bias);
+					#endif
+					half shadow = shadow_intensity_2d(input_texture0, input_texture0_size, sm_pos.xy, sm_pos.z);
+					#if defined(FILL_SHADOW)
+						if(sm_pos.x < 0.0 || sm_pos.x > 1.0 ||
+						   sm_pos.y < 0.0 || sm_pos.y > 1.0) {
+						   shadow = 1.0;
+						}
+					#endif
+					return half4(shadow, shadow, shadow, 1);
+				}
+			#endif
+		"""
+	}
+
+	sun_shadow_cutter = {
+		includes = [ "common", "gbuffer_access" ]
+
+		vp_code="""
+			layout(location = POSITION0) in vec4 in_pos;
+
+			CBUFFER_START(c0)
+				UNIFORM mat4 world_view_proj;
+				UNIFORM mat4 box_wtm;
+				UNIFORM vec3 box_scale;
+				UNIFORM vec3 box_translation;
+			CBUFFER_END
+
+			void main() {
+				vec4 p = vec4(vec3(2, 1, 2) * box_scale * in_pos.xyz, in_pos.w);
+				gl_Position = p * box_wtm * world_view_proj;
+			}
+		"""
+
+		fp_code="""
+			void main() {}
+		"""
+
+		code="""
+			struct VS_INPUT {
+				float4 position : POSITION;
+			};
+
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+			};
+
+			CBUFFER_START(c0)
+				float4x4 world_view_proj;
+
+				float4x4 box_wtm;
+				float3 box_scale;
+				float3 box_translation;
+			CBUFFER_END
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input) {
+				PS_INPUT o;
+				float4 p = input.position;
+				p.xyz *= float3(2,1,2);
+				p.xyz = p.xyz * box_scale; // + box_translation;
+				o.position = mul(mul(p, box_wtm), world_view_proj);
+				return o;
+			}
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			half4 ps_main() : SV_TARGET0 {
+				return half4(1,0,0,0.5);
+			}
+		"""
+	}
+
+	linearize_depth	= {
+		includes = [ "common", "gbuffer_access" ]
+		samplers = {
+			input_texture0 = { sampler_states = "clamp_point" }
+		}
+
+		vp_code="""
+			layout(location = POSITION0) in vec4 in_pos;
+			layout(location = TEXCOORD0) in vec2 in_uv;
+			out vec2 v_uv;
+
+			CBUFFER_START(c0)
+				UNIFORM mat4 world_view_proj;
+			CBUFFER_END
+
+			void main() {
+				v_uv = in_uv;
+				gl_Position = in_pos * world_view_proj;
+			}
+		"""
+		fp_code="""
+			in vec2 v_uv;
+			out highp uint out_depth;
+			uniform highp sampler2D input_texture0;
+
+			void main() {
+				highp float clip_depth = TEX2D(input_texture0, v_uv).r;
+				out_depth = floatBitsToUint(linearize_depth(clip_depth));
+			}
+		"""
+
+		code="""
+			DECLARE_SAMPLER_2D(input_texture0);
+
+			struct VS_INPUT {
+				float4 position : POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			CBUFFER_START(c0)
+				float4x4 world_view_proj;
+			CBUFFER_END
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input) {
+				PS_INPUT o;
+				o.position = mul(input.position, world_view_proj);
+				o.uv = input.uv;
+				return o;
+			}
+
+			#if defined(GNM)
+				#pragma PSSL_target_output_format(default FMT_32_ABGR)
+			#endif
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			float4 ps_main(PS_INPUT input) : SV_TARGET0 {
+				float clip_depth = TEX2D(input_texture0, input.uv).r;
+				float d = linearize_depth(clip_depth);
+				return float4(d,0,0,0);
+			}
+		"""
+	}
+
+	brdf_lut = {
+		includes = [ "common", "brdf" ]
+
+		code = """
+			struct VS_INPUT {
+				float4 position : POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			CBUFFER_START(c0)
+				float4x4 world_view_proj;
+			CBUFFER_END
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input) {
+				PS_INPUT o;
+				o.position = mul(input.position, world_view_proj);
+				o.uv = input.uv;
+				return o;
+			}
+
+			float2 preintegrate_gf(float NV, float roughness) {
+				float3 V = float3(sqrt(1.0f - NV * NV), 0.0f, NV);
+
+				float scale = 0.0f;
+				float bias = 0.0f;
+
+				const uint samples = 1024;
+				for (uint i = 0; i < samples; ++i) {
+					float2 E = hammersley_sequence_2d(i, samples);
+					float3 H = importance_sample_ggx(E, roughness, float3(0,0,1));
+
+					float3 L = 2.0f * dot(V, H) * H - V;
+
+					float NL = saturate(L.z);
+					float NH = saturate(H.z);
+					float VH = saturate(dot(V, H));
+
+					if (NL > 0.0f) {
+						float G = g_visibility_schlick_smith(roughness, NV, NL) * (4 * NL * NV);
+						float G_vis = G * VH / (NH * NV);						
+						float F = pow(1 - VH, 5);
+						scale += (1 - F) * G_vis;
+						bias += F * G_vis;
+					}
+				}
+
+				return float2(scale, bias) / samples;
+			}
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			float4 ps_main(PS_INPUT input) : SV_TARGET0 {
+				float NV = input.uv.x;
+				float roughness = input.uv.y;
+				float2 lut = preintegrate_gf(NV, roughness);
+				return float4(lut, 0, 0);
+			}
+		"""
+	}
+
+	// TODO: update using the new local light code
+	ao_source = {
+		includes = [ "common", "gbuffer_access", "brdf" ]
+
+		samplers = {
+			defined_LAMBERTIAN_WEIGHT = {
+				gbuffer1 = { sampler_states = "clamp_point" }
+			}
+			linear_depth = { sampler_states = "clamp_point" }
+		}
+
+		code="""
+			#if defined(LAMBERTIAN_WEIGHT)
+				DECLARE_SAMPLER_2D(gbuffer1);
+			#endif
+			DECLARE_SAMPLER_2D(linear_depth);
+
+			struct VS_INPUT {
+				float4 position : POSITION;
+			};
+
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				float4 w : TEXCOORD1;
+			};
+
+			CBUFFER_START(c0)
+				#if defined(SPOT)
+					float4x4 world;
+				#endif
+				float4x4 world_view_proj;
+			CBUFFER_END
+
+			CBUFFER_START(Light)
+				float3 light_position;
+				float3 light_color;
+				float3 light_falloff;
+				float3 light_proxy_scale;
+				#if defined(SPOT)
+					float2 light_spot_falloff;
+				#endif
+				#if defined(MIN_WEIGHT)
+					float min_weight; // exports = { name="Min Weight" type="scalar" value=0.0 min=0 max=1 step=0.001 }
+				#endif
+			CBUFFER_END
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input) {
+				PS_INPUT o;
+				o.position = mul(float4(input.position.xyz * light_proxy_scale, 1), world_view_proj);
+				o.w = encode_world_pos(o.position, camera_unprojection);
+				return o;
+			}
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			half4 ps_main(PS_INPUT input
+				#if defined(GL2)
+					, float2 wpos : VPOS
+				#endif
+				) : SV_TARGET0
+			{
+				#if defined(GL2)
+					half2 uv = wpos.xy / back_buffer_size;
+				#else
+					half2 uv = input.position.xy / back_buffer_size;
+				#endif
+				// Sample textures
+				float d = gbuffer_decode_depth(TEX2D(linear_depth, uv));
+				#if defined(LAMBERTIAN_WEIGHT)
+					half4 gbuffer_1 = TEX2D(gbuffer1, uv);
+				#endif
+
+				float3 wp = decode_world_pos(input.w, d);
+
+				float3 V = normalize(camera_world._m30_m31_m32 - wp);
+				float3 L = light_position - wp;
+				float len_L = length(L) + 0.00001f;
+				float attn = light_attenuation(len_L, light_falloff.x, light_falloff.y);
+
+				#if defined(SPOT)
+					float spot_angle = 1.0 - dot(L, -world._m10_m11_m12);
+					attn *= (spot_angle > light_spot_falloff.x ? 1-saturate((spot_angle-light_spot_falloff.x)*light_spot_falloff.y) : 1);
+				#endif
+
+				#if defined(LAMBERTIAN_WEIGHT)
+					float3 N = gbuffer_decode_normal(gbuffer_1);
+					#if !defined(HARD_CUT_OFF)
+						L *= 1.0/len_L; // normalize L
+						N = normalize(N);
+					#endif
+					float NL = dot(N, L);
+
+					#if defined(HARD_CUT_OFF)
+						NL = (NL >= 0.0) ? 1.0 : 0.0;
+					#elif defined(MIN_WEIGHT)
+						NL = max(NL, min_weight);
+					#else
+						NL = saturate(NL);
+					#endif
+					attn *= NL;
+				#endif
+
+				attn *= length(light_color);
+
+				return half4(1.0-attn, 0, 0, 0);
+			}
+		"""
+	}
+
+	global_indirect_specular_lighting_and_fog = {
+		includes = [ "common", "gbuffer_access", "brdf", "color_management", "post_processing_common" ]
+		samplers = {
+			gbuffer0 = { sampler_states = "clamp_point" }
+			gbuffer1 = { sampler_states = "clamp_point" }
+			gbuffer2 = { sampler_states = "clamp_point" }
+			defined_SSAO_ENABLED = {
+				ldr3_div2 = { sampler_states = "clamp_linear" }
+			}
+			linear_depth = { sampler_states = "clamp_point" }
+			global_specular_map = { sampler_states = "clamp_linear"}
+			brdf_lut = { sampler_states = "clamp_linear"}
+			hdr1 = { sampler_states = "clamp_point" }
+			defined_SSR_ENABLED = {
+				hdr0_div2_mip6 = { sampler_states = "clamp_linear" }
+				ldr4_div2 = { sampler_states = "clamp_point" }
+			}
+			water_mask = { sampler_states = "clamp_point" }
+		}
+
+		code="""
+			DECLARE_SAMPLER_2D(gbuffer0);
+			DECLARE_SAMPLER_2D(gbuffer1);
+			DECLARE_SAMPLER_2D(gbuffer2);
+			#if defined(SSAO_ENABLED)
+				DECLARE_SAMPLER_2D(ldr3_div2);
+			#endif
+			DECLARE_SAMPLER_2D(linear_depth);
+			DECLARE_SAMPLER_2D(hdr1);
+			DECLARE_SAMPLER_CUBE(global_specular_map);
+			DECLARE_SAMPLER_2D(brdf_lut);
+			#ifdef SSR_ENABLED
+				DECLARE_SAMPLER_2D(hdr0_div2_mip6);
+				DECLARE_SAMPLER_2D(ldr4_div2);
+			#endif
+			DECLARE_SAMPLER_2D(water_mask);
+
+			struct VS_INPUT {
+				float4 position : POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			struct PS_INPUT {
+				float4 position : SV_POSITION;
+				float2 uv : TEXCOORD0;
+				float4 w : TEXCOORD1;
+			};
+
+			CBUFFER_START(c0)
+				float4x4 world_view_proj;
+				float3 ambient_tint;
+				float  ambient_diffuse_fade_type;
+				float3 ambient_diffuse_fade; // min multiplier, height offset, falloff
+				#if defined(FOG_ENABLED)
+					float2 fog_depth_range;
+					float2 height_fog_offset_falloff;
+					float fog_type;
+					float3 fog_color;
+					float3 fog_sun_blend;
+					float3 sun_direction;
+					float3 sun_color;
+					#if defined(CUSTOM_FOG_BLEND)
+						float3 custom_fog_blend_direction;
+						float3 custom_fog_blend_color;
+						float3 custom_fog_blend;
+					#endif
+					#if defined(SECONDARY_SUN_BLEND)
+						float3 secondary_sun_direction;
+						float3 secondary_sun_color;
+						float3 secondary_sun_blend;
+					#endif
+				#endif
+			CBUFFER_END
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			PS_INPUT vs_main(VS_INPUT input) {
+				PS_INPUT o;
+				o.position = mul(input.position, world_view_proj);
+				o.uv = input.uv;
+				o.w = encode_world_pos(o.position);
+				o.position.z = o.position.w;
+				return o;
+			}
+
+			DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+			half4 ps_main(PS_INPUT input) : SV_TARGET0 {
+				float4 gbuffer_0 = TEX2D(gbuffer0, input.uv);
+				float4 gbuffer_1 = TEX2D(gbuffer1, input.uv);
+				float4 gbuffer_2 = TEX2D(gbuffer2, input.uv);
+				float transparency_mask = TEX2D(water_mask, input.uv).r; // this can be used for other transparent materials aswell.
+
+				float ao = gbuffer_decode_ambient_occlusion(gbuffer_2);
+				#if defined(SSAO_ENABLED)
+					float ssao = TEX2D(ldr3_div2, input.uv).r;
+					ao = min(ao, ssao);
+				#endif
+				
+				float depth = gbuffer_decode_depth(TEX2D(linear_depth, input.uv));
+
+				float3 N = normalize(gbuffer_decode_normal(gbuffer_1));
+				float roughness = gbuffer_decode_roughness(gbuffer_1);
+
+				float3 base_color = gbuffer_decode_base_color(gbuffer_0);
+				float metallic = gbuffer_decode_metallic_mask(gbuffer_0);
+				
+				// 0.04 is taken as a common value for dielectrics. Source: Real-time rendering 3rd edition.
+				float3 specular_color = lerp(float3(0.04,0.04,0.04), base_color, metallic);
+
+				#if defined(D3D11)
+					float specular_toggle = 1-capture_cubemap;
+				#else
+					float specular_toggle = 1.f;
+				#endif
+
+				float3 wp = decode_world_pos(input.w, depth);
+				float3 V = normalize(camera_world._m30_m31_m32 - wp);
+
+				float2 scale_bias = TEX2D(brdf_lut, float2(saturate(dot(N, V)), roughness)).xy;				
+
+				float mipmap_index = roughness * 7;
+
+				// Read all the reflection data
+				float4 local_reflections_data = TEX2D(hdr1, input.uv);
+				float3 global_probe_data = rgbm_decode(TEXCUBELOD(global_specular_map, reflect(-V, N), mipmap_index));
+
+				// Prepare the reflection weight data
+				float local_probe_weight = local_reflections_data.w;
+
+				#if defined(SSR_ENABLED)
+					float ssr_mip_level = TEX2DLOD(ldr4_div2, input.uv, 0).r * SSR_MIPMAP_LEVELS;
+					float4 ssr_data = TEX2DLOD(hdr0_div2_mip6, input.uv, ssr_mip_level);
+					ssr_data.rgb = inv_safe_range_tone_map(ssr_data.rgb);
+	
+					float ssr_weight = ssr_data.a;
+					float3 ssr_influence = ssr_data.rgb * ssr_weight;
+
+					// Distribute the reflection weight (ssr -> local probes -> global probe)
+					local_probe_weight = min(local_probe_weight, 1.0 - ssr_weight);
+					float global_probe_weight = 1.0 - (ssr_weight + local_probe_weight);
+				#else 
+					float3 ssr_influence = float3(0.0, 0.0, 0.0);
+
+					// Distribute the reflection weight (local probes -> global probe)
+					float global_probe_weight = 1.0 - local_probe_weight;
+				#endif
+
+				// Final reflection influence terms
+				float3 local_probe_influence = local_reflections_data.rgb * local_probe_weight;
+				float3 global_probe_influence = global_probe_data.rgb * global_probe_weight;
+
+				#if defined(D3D11)
+					ambient_tint = (capture_cubemap == 1) ? 1.0 : ambient_tint;
+				#endif
+
+				float3 indirect_light_tint = ambient_tint;
+				float fade_type = ambient_diffuse_fade_type;
+				float3 fade_params = ambient_diffuse_fade;
+				[branch]
+				if(fade_type != 0.0) {
+					if(fade_type == 1.0) {
+						indirect_light_tint *= max(fade_params.x, 1.0 - exp((wp.z - fade_params.y)/fade_params.z));
+					} else if(fade_type == 2.0) {
+						indirect_light_tint *= max(fade_params.x, 1.0 - exp((fade_params.y - wp.z)/fade_params.z));
+					} else {
+						indirect_light_tint *= max(fade_params.x, 1.0 - exp(-abs(fade_params.y - wp.z)/fade_params.z));
+					}
+				}
+				float3 specular_indirect_lighting = (ssr_influence + local_probe_influence + global_probe_influence) * (specular_color * scale_bias.x + scale_bias.y) * indirect_light_tint * ao * transparency_mask;
+				
+				// If we are currently capturing a reflection probe, mask out all IBL based relfections to avoid feedback loops.
+				specular_indirect_lighting *= specular_toggle;
+
+				#if defined(FOG_ENABLED)
+					float start = fog_depth_range.x;
+					float end = fog_depth_range.y;	
+
+					float inv_fog_range = 1.0 / (end-start);
+					float fog_strength = (depth - start) * inv_fog_range;
+
+					float sun_blend = 0.0;
+					float3 color = fog_color;
+
+					#if defined(SECONDARY_SUN_BLEND)
+						sun_blend = secondary_sun_blend.x * pow(saturate(dot(V, secondary_sun_direction)), secondary_sun_blend.y);
+						color = lerp(color, secondary_sun_blend.z * secondary_sun_color, sun_blend);
+					#endif	
+
+					#if defined(CUSTOM_FOG_BLEND)
+						sun_blend = custom_fog_blend.x * pow(saturate(dot(V, custom_fog_blend_direction)), custom_fog_blend.y);
+						color = lerp(color, custom_fog_blend.z * custom_fog_blend_color, sun_blend);
+					#endif
+
+					#define DEFAULT_EXP_HEIGHT 	0
+					#define EXP_HEIGHT			1
+					#define EXP					2
+					#define LINEAR	 			3
+
+					// TODO: branch in render config
+					float fog_blend = 0.0;
+					[branch]
+					if (fog_type == DEFAULT_EXP_HEIGHT) {
+						fog_blend = saturate(exp(-camera_world._m32 * inv_fog_range) * (1.0 - exp(-fog_strength * -V.z)) / -V.z);
+					} else if (fog_type == EXP_HEIGHT) {
+						fog_blend = saturate(exp((height_fog_offset_falloff.x - wp.z)/height_fog_offset_falloff.y) * (1.0 - exp(-fog_strength)));
+					} else if (fog_type == EXP) {
+						fog_blend = 1.0 - saturate(exp(-fog_strength));
+					} else { // linear
+						fog_blend = saturate(fog_strength);
+					}
+					fog_blend = depth > start ? fog_blend : 0.0;
+
+					sun_blend = fog_sun_blend.x * pow(saturate(dot(V, sun_direction)), fog_sun_blend.y);
+					color = lerp(color, fog_sun_blend.z * sun_color, sun_blend);
+
+					return half4(lerp(specular_indirect_lighting, color, fog_blend), fog_blend);
+				#else
+					return half4(specular_indirect_lighting, 0.0);
+				#endif
+			}
+		"""
+	}
+}
+
+
+shaders = {
+	global_lighting = {
+		editor_advanced_mode = true
+
+		contexts = {
+			default = {
+				passes_sort_mode="immediate"
+				passes = [
+					{ hlsl_shader="global_lighting" render_states="global_lighting" }
+					{ defined="SKIN_MATERIAL_ENABLED"
+						pass = [		
+							{ hlsl_shader="global_lighting" defines=["SKIN"] render_states="global_lighting" }
+						]
+					}
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				{ if: "on_renderer(D3D11, D3D12, GNM) && render_setting(ao_enabled, skin_material_enabled)" defines=["SSAO_ENABLED" "SKIN_MATERIAL_ENABLED"] }
+				{ if: "on_renderer(D3D11, D3D12, GNM) && render_setting(skin_material_enabled)" defines=["SKIN_MATERIAL_ENABLED"] }
+				{ if: "on_renderer(D3D11, D3D12, GNM) && render_setting(ao_enabled)" defines=["SSAO_ENABLED"] }
+				{ defines=[""] }
+			]
+		}
+	}
+
+	sun_shadow_mask = {
+		editor_advanced_mode = true
+
+		contexts = {
+			default = {
+				passes_sort_mode="immediate"
+				passes = [
+					{ hlsl_shader="sun_shadow_mask" render_states="sun_shadow_mask" }
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				{ if: "on_renderer(D3D11, D3D12, GNM)" render_settings={ sun_shadow_map_filter_quality="high" } defines=["PCF_5X5"] }
+				{ defines=[] }
+			]
+		}
+	}
+
+	sun_shadow_cutter = {
+		editor_advanced_mode = true
+
+		contexts = {
+			default = {
+				passes_sort_mode="immediate"
+				passes = [
+					{ hlsl_shader="sun_shadow_cutter" render_states="sun_shadow_cutter" }
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				{ defines="" }
+			]
+		}
+	}
+
+	brdf_lut = {
+		editor_advanced_mode = true
+
+		contexts = {
+			default = {
+				passes_sort_mode="immediate"
+				passes = [
+					{ hlsl_shader="brdf_lut" render_states="filter" }
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				{ defines="" }
+			]
+		}
+	}
+
+	light_source = {
+		editor_advanced_mode = false
+
+		editor_options = [
+			{
+				name="Light Type"
+				options = [
+					{ name="Omni" define="OMNI" }
+					{ name="Spot" define="SPOT" }
+				]
+			}
+			{
+				name="Cookie Projection"
+				options = [
+					{ name="Enable Cookie Projection" 	define="COOKIE_PROJECTION" 			condition="SPOT" }
+					{ name="Clamp Texture Sampler" 		define="COOKIE_CLAMP_SAMPLER" 		condition="SPOT" }
+					{ name="UV Offset" 					define="COOKIE_UV_OFFSET" 			condition="SPOT" }
+					{ name="UV Scale" 					define="COOKIE_UV_SCALE" 			condition="SPOT" }
+					{ name="UV Offset Animation" 		define="COOKIE_UV_OFFSET_ANIM" 		condition="SPOT" }
+					{ name="UV Rotation" 				define="COOKIE_UV_ROTATION_ANIM" 	condition="SPOT" }
+				]
+			}
+			{
+				name="Properties"
+				options = [
+					{ name="Cast Shadows" define="SHADOW_MAPPING" }
+				]
+			}
+		]
+
+		contexts = {
+			default = {
+				passes_sort_mode="immediate"
+				passes = [
+					{ hlsl_shader="light_source" render_states="light" }
+					{ defined="SKIN_MATERIAL_ENABLED"
+						pass = [		
+							{ hlsl_shader="light_source" defines=["SKIN"] render_states="light" }
+						]
+					}
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				 // TODO: this syntax is broken!
+				//{ if: "on_renderer(D3D11, GNM)" render_settings={ local_lights_shadow_map_filter_quality="high", skin_material_enabled=true } defines=["PCF_5X5" "SKIN_MATERIAL_ENABLED"] }
+				//{ if: "on_renderer(D3D11, GNM) && render_setting(skin_material_enabled)" defines=["SKIN_MATERIAL_ENABLED"] }
+				//{ if: "on_renderer(D3D11, GNM)" render_settings={ local_lights_shadow_map_filter_quality="high" } defines=["PCF_5X5"] }
+				{ if: "on_renderer(D3D11, D3D12, GNM) && render_setting(skin_material_enabled)" defines=["SKIN_MATERIAL_ENABLED"] }
+				{ defines=[""] }
+			]
+		}
+	}
+
+	linearize_depth = {
+		editor_advanced_mode = true
+
+		contexts = {
+			default = {
+				passes_sort_mode="immediate"
+				passes = [
+					{ hlsl_shader="linearize_depth" render_states="filter" }
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				{ defines = [] }
+			]
+		}
+	}
+
+	// TODO: Make spot light work too
+	ao_source = {
+		editor_options = [
+			{
+				name="Other"
+				options = [
+					{ name="Lambertian Weight" define="LAMBERTIAN_WEIGHT" tool_tip="Uses the normal to remove ao from back-facing triangles." }
+					{ name=" - Min Weight" define="MIN_WEIGHT" condition="LAMBERTIAN_WEIGHT && !HARD_CUT_OFF" }
+					{ name=" - Hard Cut-Off" define="HARD_CUT_OFF" condition="LAMBERTIAN_WEIGHT && !MIN_WEIGHT" }
+				]
+			}
+		]
+
+		contexts = {
+			default = {
+				passes = [
+					{ layer="ao_sources" hlsl_shader="ao_source" defines="OMNI" render_states="ao_source" }
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				{ defines="" platforms = "D3D11 D3D12 GL2 GNM"}
+			]
+		}
+	}
+	
+	global_indirect_specular_lighting_and_fog = {
+		editor_advanced_mode = true
+
+		contexts = {
+			default = {
+				passes_sort_mode="immediate"
+				passes = [
+					{ hlsl_shader="global_indirect_specular_lighting_and_fog" render_states="global_indirect_specular_lighting_and_fog" }
+				]
+			}
+		}
+
+		compile = {
+			default = [
+				{ if: "on_renderer(D3D11, D3D12, GNM) && render_setting(ao_enabled)" defines=["SSAO_ENABLED"] }
+				{ defines=[""] }
+			]
+		}
+	}
+}
+
+static_compile= [
+	{ shader="global_lighting" }
+	{ shader="global_lighting" defines=["CLUSTERED_SHADING"] }
+	{ shader="global_lighting" defines=["SUN"] }
+	{ shader="global_lighting" defines=["SUN" "CLUSTERED_SHADING"] }
+	{ shader="global_lighting" defines=["SSR_ENABLED"] }
+	{ shader="global_lighting" defines=["SSR_ENABLED" "CLUSTERED_SHADING"] }
+	{ shader="global_lighting" defines=["SUN" "SSR_ENABLED"] }
+	{ shader="global_lighting" defines=["SUN" "SSR_ENABLED" "CLUSTERED_SHADING"] }
+	{ shader="sun_shadow_mask" }
+	{ shader="sun_shadow_mask" defines=["FILL"] }
+	{ shader="sun_shadow_mask" defines=["FILL_SHADOW"] }
+	{ shader="sun_shadow_cutter" }
+	{ shader="linearize_depth" }
+	{ if: "!on_renderer(GL)" shader="brdf_lut" }
+
+	{ shader="light_source" defines=["OMNI"] }
+	{ shader="light_source" defines=["OMNI" "SHADOW_MAPPING"] }
+	{ shader="light_source" defines=["SPOT"] }
+	{ shader="light_source" defines=["SPOT" "SHADOW_MAPPING"] }
+	{ shader="light_source" defines=["BOX"] }
+	{ shader="light_source" defines=["BOX" "SHADOW_MAPPING"] }
+
+	// Fatshark
+	{ shader="global_lighting" defines=["AMBIENT_FADE_UP"] }
+	{ shader="global_lighting" defines=["AMBIENT_FADE_DOWN"] }
+	{ shader="global_lighting" defines=["AMBIENT_FADE_MIRROR"] }
+	{ shader="global_lighting" defines=["SSR_ENABLED" "AMBIENT_FADE_UP"] }
+	{ shader="global_lighting" defines=["SSR_ENABLED" "AMBIENT_FADE_DOWN"] }
+	{ shader="global_lighting" defines=["SSR_ENABLED" "AMBIENT_FADE_MIRROR"] }
+	{ shader="global_lighting" defines=["SUN" "AMBIENT_FADE_UP"] }
+	{ shader="global_lighting" defines=["SUN" "AMBIENT_FADE_DOWN"] }
+	{ shader="global_lighting" defines=["SUN" "AMBIENT_FADE_MIRROR"] }
+	{ shader="global_lighting" defines=["SUN" "SSR_ENABLED" "AMBIENT_FADE_UP"] }
+	{ shader="global_lighting" defines=["SUN" "SSR_ENABLED" "AMBIENT_FADE_DOWN"] }
+	{ shader="global_lighting" defines=["SUN" "SSR_ENABLED" "AMBIENT_FADE_MIRROR"] }
+	{ shader="global_lighting" defines=["CLUSTERED_SHADING" "AMBIENT_FADE_UP"] }
+	{ shader="global_lighting" defines=["CLUSTERED_SHADING" "AMBIENT_FADE_DOWN"] }
+	{ shader="global_lighting" defines=["CLUSTERED_SHADING" "AMBIENT_FADE_MIRROR"] }
+	{ shader="global_lighting" defines=["SUN" "CLUSTERED_SHADING" "AMBIENT_FADE_UP"] }
+	{ shader="global_lighting" defines=["SUN" "CLUSTERED_SHADING" "AMBIENT_FADE_DOWN"] }
+	{ shader="global_lighting" defines=["SUN" "CLUSTERED_SHADING" "AMBIENT_FADE_MIRROR"] }
+	{ shader="global_lighting" defines=["SSR_ENABLED" "CLUSTERED_SHADING" "AMBIENT_FADE_UP"] }
+	{ shader="global_lighting" defines=["SSR_ENABLED" "CLUSTERED_SHADING" "AMBIENT_FADE_DOWN"] }
+	{ shader="global_lighting" defines=["SSR_ENABLED" "CLUSTERED_SHADING" "AMBIENT_FADE_MIRROR"] }
+	{ shader="global_lighting" defines=["SUN" "SSR_ENABLED" "CLUSTERED_SHADING" "AMBIENT_FADE_UP"] }
+	{ shader="global_lighting" defines=["SUN" "SSR_ENABLED" "CLUSTERED_SHADING" "AMBIENT_FADE_DOWN"] }
+	{ shader="global_lighting" defines=["SUN" "SSR_ENABLED" "CLUSTERED_SHADING" "AMBIENT_FADE_MIRROR"] }
+]

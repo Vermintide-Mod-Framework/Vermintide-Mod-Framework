@@ -1,0 +1,14 @@
+group = "Math"
+display_name = "Distance"
+inputs = {
+	"4baab897-370b-4def-9790-ece5b1abf91f" = { name = "a" display_name = "A" type = { vector2:[] vector3:[] vector4:[] } }
+	"6fc97f2b-a585-4430-9f2d-93069a891bfc" = { name = "b" display_name = "B" type = { vector2:[] vector3:[] vector4:[] } }
+}
+
+output = {
+	type = "float"
+}
+
+code = """
+	RESULT(distance(a, b));
+"""

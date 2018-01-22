@@ -1,0 +1,65 @@
+group = "Utility"
+display_name = "Parallax / Bump Offset"
+
+// scale and bias map the height value into a range that better represents the physical properties (size) of the surface
+inputs = {
+	"95FB056C-9DDF-434C-8D8E-A03F30F5C42D" = { name = "uv" display_name = "UV" type = "vector2"}
+	"B897C7FC-96E3-45D9-9AF1-A1C797386C61" = { name = "height" display_name = "Height" type = "scalar"}
+	"6046b049-ae9d-49f6-9f75-58a34a3bac15" = { name = "scale" display_name = "Parallax Scale" is_required = false type = { scalar: ["HAS_SCALE"] }}
+	"ed989589-8b44-4ec4-b5a7-8fb5cd739854" = { name = "bias" display_name = "Parallax Bias" is_required = false type = { scalar: ["HAS_BIAS"] }}
+}
+
+defines = ["NEEDS_TANGENT_SPACE", "NEEDS_EYE_VECTOR"]
+
+imports = {
+	eye_vector = {
+		type = "float3"
+		domain = "vertex"
+		output_channel = "eye_vector"
+	}
+	tsm0 = {
+		type = "float3"
+		domain = "vertex"
+		output_channel = "tsm0"
+	}
+	tsm1 = {
+		type = "float3"
+		domain = "vertex"
+		output_channel = "tsm1"
+	}
+	tsm2 = {
+		type = "float3"
+		domain = "vertex"
+		output_channel = "tsm2"
+	}
+}
+
+output = {
+	type = { typeof: "uv" }
+}
+
+code = """
+	float3 dir = normalize(eye_vector);
+
+	// Get camera vector in tangent space
+	float3 dir_ts = new_float3(
+		dot(dir, float3(tsm0.x, tsm1.x, tsm2.x)),
+		dot(dir, float3(tsm0.y, tsm1.y, tsm2.y)),
+		dot(dir, float3(tsm0.z, tsm1.z, tsm2.z)));
+
+	float2 norm_dir_ts = normalize(dir_ts).xy;
+
+	#if defined(HAS_SCALE)
+		float scale_value = scale;
+	#else
+		float scale_value = 0.04;
+	#endif
+
+	#if defined(HAS_BIAS)
+		float bias_value = bias;
+	#else
+		float bias_value = 0.02;
+	#endif
+
+	RESULT(uv + float2(norm_dir_ts.x, -norm_dir_ts.y) * (height*scale_value - bias_value));
+"""

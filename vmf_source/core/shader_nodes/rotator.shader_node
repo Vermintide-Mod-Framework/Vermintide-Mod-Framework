@@ -1,0 +1,41 @@
+group = "Utility"
+display_name = "Rotator"
+inputs = {
+	"96650519-54EC-47A2-B34E-3B1989F56BB3" = { name = "uv" display_name = "UV" type = "vector2" }
+	"178ABCED-40BA-40B1-BAA4-FB5F9732353B" = { name = "time" display_name = "Time" type = "scalar" }
+	"ffac2478-636b-4b9b-95b9-cd504781e2c2" = { name = "pivot" display_name = "Pivot" is_required = false type = { vector2: ["HAS_PIVOT"] }}
+	"399aba19-4e60-4287-b1d3-ee2acb8fd406" = { name = "speed" display_name = "Speed" is_required = false type = { scalar: ["HAS_SPEED"] }}
+}
+
+output = {
+	type = { typeof: "uv" }
+}
+
+code = """
+	#ifdef HAS_SPEED
+		float speed_value = speed;
+	#else
+		float speed_value = 0.1;
+	#endif
+
+	#ifdef HAS_PIVOT
+		float2 pivot_value = pivot;
+	#else
+		float2 pivot_value = float2(0.5, 0.5);
+	#endif
+
+	time_type t = time * speed_value;
+	time_type cos_t = cos(t);
+	time_type sin_t = sin(t);
+
+	// rotate vector around a pivot
+	#if defined(RENDERER_GL)
+		// gl constructs matrices in columns.
+		float2x2 rot_matrix = float2x2(cos_t, sin_t, -sin_t, cos_t);
+	#else
+		// hlsl constructs matrices in rows.
+		float2x2 rot_matrix = float2x2(cos_t, -sin_t, sin_t, cos_t);
+	#endif
+	RESULT( pivot_value + mul(uv - pivot_value, rot_matrix) );
+"""
+

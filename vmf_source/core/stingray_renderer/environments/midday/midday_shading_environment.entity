@@ -1,0 +1,164 @@
+components = {
+	"06c78e06-c921-4208-8069-d377b6415d30" = {
+		component = {
+			"$resource_name" = "core/stingray_renderer/shading_environment_components/fog"
+			"$resource_type" = "component"
+		}
+		data = {
+			fog_enabled = true
+			fog_color = {
+				rgb = [0.6, 0.6, 0.6]
+				alpha = 1
+				intensity = 1
+			}
+			fog_depth_range = [
+				100
+				400
+			]
+			fog_sun_blend = 0.997
+			fog_sun_exponent = 8
+			fog_sun_strength = 1
+		}
+	}
+	"a9f83eb8-b54a-4c45-bf62-4fe7e02a8ce4" = {
+		component = {
+			"$resource_name" = "core/stingray_renderer/shading_environment_components/ssao"
+			"$resource_type" = "component"
+		}
+		data = {
+			ao_enabled = true
+			ao_intensity = 0.6
+			ao_quality = 2
+			ao_radius = 0.2
+		}
+	}
+	"778c5da5-eaa2-4a5f-951f-8c8bf13a2a6e" = {
+		component = {
+			"$resource_name" = "core/stingray_renderer/shading_environment_components/dof"
+			"$resource_type" = "component"
+		}
+		data = {
+			dof_enabled = false
+			dof_focal_distance = 0.25
+			dof_focal_far_scale = 1
+			dof_focal_near_scale = 1
+			dof_focal_region = 0.1
+			dof_focal_region_end = 0.2
+			dof_focal_region_start = 0.2
+		}
+	}
+	"3eb1ba63-3a53-4846-970b-57e3d4d75d2b" = {
+		component = {
+			"$resource_name" = "core/stingray_renderer/shading_environment_components/global_lighting"
+			"$resource_type" = "component"
+		}
+		data = {
+			skydome_intensity = 1
+			skydome_map = {
+				"$resource_name" = "core/stingray_renderer/environments/midday/skydome"
+				"$resource_type" = "texture"
+			}
+			global_diffuse_map = {
+				"$resource_name" = "core/stingray_renderer/environments/midday/diffuse_cube"
+				"$resource_type" = "texture"
+			}
+			global_specular_map = {
+				"$resource_name" = "core/stingray_renderer/environments/midday/specular_cube"
+				"$resource_type" = "texture"
+			}
+			emissive_particle_intensity = 1
+		}
+	}
+	"fd909d00-3e4d-4339-b1a9-784c7d6a60ad" = {
+		component = {
+			"$resource_name" = "core/stingray_renderer/shading_environment_components/bloom"
+			"$resource_type" = "component"
+		}
+		data = {
+			bloom_enabled = true
+			bloom_lens_dirt_amount = 0
+			bloom_threshold = 2
+			bloom_offset = 1
+			bloom_falloff = 1
+			bloom_tint = {
+				rgb = [1, 1, 1]
+				alpha = 1
+				intensity = 1
+			}
+			global_lens_dirt_map = null
+		}
+	}
+	"cd8f2898-5821-4e3f-8348-a7d2f3c869d2" = {
+		component = {
+			"$resource_name" = "core/stingray_renderer/shading_environment_components/motion_blur"
+			"$resource_type" = "component"
+		}
+		data = {
+			motion_blur_enabled = true
+			motion_blur_amount = 2
+		}
+	}
+	"04d5202f-c4cb-45b5-8e0f-4c5605fb7533" = {
+		component = {
+			"$resource_name" = "core/stingray_renderer/shading_environment_components/color_grading"
+			"$resource_type" = "component"
+		}
+		data = {
+			color_grading_enabled = false
+			color_grading_map = {
+				"$resource_name" = "core/stingray_renderer/environments/color_grading_identity"
+				"$resource_type" = "texture"
+			}
+		}
+	}
+	"6d36e8c5-dac7-4e28-b873-c4555b95e2bf" = {
+		component = {
+			"$resource_name" = "core/stingray_renderer/shading_environment_components/lens_quality"
+			"$resource_type" = "component"
+		}
+		data = {
+			lens_quality_enabled = false
+			lens_quality_distortion = 0
+			lens_quality_fringe_color = 0
+			lens_quality_fringe_intensity = 0
+		}
+	}
+	"dd1dccf2-6f2f-4b8c-9199-290c069ab62b" = {
+		component = {
+			"$resource_name" = "core/stingray_renderer/shading_environment_components/vignette"
+			"$resource_type" = "component"
+		}
+		data = {
+			vignette_enabled = true
+			vignette_radius = 1
+			vignette_falloff = 0.5
+			vignette_opacity = 1
+		}
+	}
+	"8386face-d486-49d6-9b8b-6d8cba24d4f7" = {
+		component = {
+			"$resource_name" = "core/stingray_renderer/shading_environment_components/ssr"
+			"$resource_type" = "component"
+		}
+		data = {
+			ssr_enabled = false
+			ssr_screen_edge_threshold = 0.05
+			ssr_surface_thickness_threshold = [0.001, 10]
+		}
+	}
+	"68333c83-9659-4d2e-b664-35790e366f08" = {
+		component = {
+			"$resource_name" = "core/stingray_renderer/shading_environment_components/exposure"
+			"$resource_type" = "component"
+		}
+		data = {
+			exposure = 1.25
+		}
+	}
+	"597d400f-c916-454b-9912-b9bb35e6e689" = {
+		component = {
+			"$resource_name" = "core/stingray_renderer/shading_environment_components/cascaded_shadow_mapping"
+			"$resource_type" = "component"
+		}
+	}
+}

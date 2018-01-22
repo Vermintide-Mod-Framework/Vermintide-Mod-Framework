@@ -1,0 +1,29 @@
+group = "Particle Ribbon"
+display_name = "Ribbon UV"
+
+imports = {
+	strip_info = { type = "float" semantic = "POSITION1" domain = "vertex" }
+	ribbon_distance = { type = "float" semantic = "TEXCOORD6" domain = "vertex" }
+}
+
+options = {
+	"10abb86e-61d5-4927-9d22-6e87ce3b85ba" = "FLIP_TEXCOORDS"
+}
+
+ui = [
+	{ type = "checkbox" display_name = "flip texcoords"			option = "10abb86e-61d5-4927-9d22-6e87ce3b85ba" } 
+]
+
+
+domain = "vertex"
+output = {
+	type = "float2"
+}
+
+code = """
+#if defined(FLIP_TEXCOORDS)
+	RESULT(float2(strip_info * 0.5 + 0.5, ribbon_distance));
+#else
+	RESULT(float2(ribbon_distance, strip_info * 0.5 + 0.5));
+#endif
+"""

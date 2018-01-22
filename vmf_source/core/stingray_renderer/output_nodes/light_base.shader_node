@@ -1,0 +1,434 @@
+group = "Output"
+display_name = "Light Base"
+output_node = true
+render_configs = ["core/stingray_renderer/renderer"]
+
+inputs = {
+	"c09a9bb3-95e4-41b6-92af-33c5865fc691" = {
+		name = "light_color"
+		is_required = false
+		display_name = "Light Color"
+		type = { vector3: ["HAS_LIGHT_COLOR"] }
+		domain = "pixel"
+	}
+}
+
+options = {
+}
+
+ui = [
+]
+
+render_state = {
+	light_source = {		
+		inherit: ["core/stingray_renderer/shader_libraries/common#default"]		
+		state: {
+			z_enable = "true"
+			z_write_enable = "false"
+			z_func = "greater_equal"
+
+			cull_mode = "cull_ccw"
+
+			blend_enable = "true"
+			blend_op = "blend_op_add"
+			dest_blend = "blend_one"
+			src_blend = "blend_one"
+		}
+	}
+
+	light_shadow_mask_write = {
+		inherit: ["core/stingray_renderer/shader_libraries/common#default"]
+		state: {
+			z_enable = "true"
+			z_write_enable = "false"
+			z_func = "greater_equal"
+			cull_mode = "cull_ccw"
+
+			blend_enable = "false"
+
+			"defined(WRITE_R)" = {
+				write_mask0 = "red"
+			}
+			"defined(WRITE_G)" = {
+				write_mask0 = "green"
+			}
+			"defined(WRITE_B)" = {
+				write_mask0 = "blue"
+			}
+			"defined(WRITE_A)" = {
+				write_mask0 = "alpha"
+			}
+		}
+	}
+
+	light_stencil = {
+		inherit: ["core/stingray_renderer/shader_libraries/common#default"]
+		state: {
+			z_enable = "true"
+			z_write_enable = "false"
+			z_func = "less_equal"
+
+			cull_mode = "cull_none"
+
+			write_mask0 = "0x0"
+			write_mask1 = "0x0"
+			write_mask2 = "0x0"
+			write_mask3 = "0x0"
+
+			stencil_enable = "true"
+			stencil_func = "always"
+			stencil_fail = "stencil_op_keep"
+			stencil_pass = "stencil_op_keep"
+			stencil_ref = "0x0"
+			stencil_func_back_side = "always"
+			stencil_fail_back_side = "stencil_op_keep"
+			stencil_pass_back_side = "stencil_op_keep"
+			stencil_z_fail = "stencil_op_incr"
+			stencil_z_fail_back_side = "stencil_op_decr"
+		}
+	}
+}
+
+channels = 	{
+	vertex_position = { type = "float4" domain = "vertex" }
+	light_vector = { type="float3" domain="pixel" }
+}
+
+permutation_sets = {
+	shadow_modifiers = [
+		{ if: "light_cast_shadows() == true" define: ["SHADOW_MAPPING"] }
+		{ default = true }
+	]
+
+	default = [
+		{ if: "light_type() == omni" define: ["OMNI"] permute_with: "shadow_modifiers" }
+		{ if: "light_type() == spot" define: ["SPOT"] permute_with: "shadow_modifiers" }
+		{ if: "light_type() == box" define: ["BOX"] permute_with: "shadow_modifiers" }
+	]
+}
+
+shader_contexts = {	
+	default = {
+		passes_sort_mode = "immediate"
+		compile_with = [
+			{ if: "on_renderer(D3D11, D3D12, GNM)" permute_with: "default" }
+		]
+
+		passes = [
+			// TODO: skin shading
+			{ code_block="light_source" render_state="light_source" }
+		]
+	}
+}
+
+code_blocks = {
+	light_source = {
+		include:[
+			"core/stingray_renderer/shader_libraries/common#common",
+			"core/stingray_renderer/shader_libraries/common#gbuffer_access",
+			"core/stingray_renderer/shader_libraries/lighting_common#brdf",
+			"core/stingray_renderer/shader_libraries/shadow_map_common#shadow_bias",
+			"core/stingray_renderer/shader_libraries/shadow_map_common#shadow_map_filtering",
+			"core/stingray_renderer/shader_libraries/common#taa_offsets"
+			]
+
+		samplers = {
+			gbuffer0 = { 
+				sampler_state = "core/stingray_renderer/shader_libraries/common#clamp_point"
+				source = "resource_set"
+				slot_name = "gbuffer0"
+				type = "2d"				
+			}
+
+			gbuffer1 = { 
+				sampler_state = "core/stingray_renderer/shader_libraries/common#clamp_point"
+				source = "resource_set"
+				slot_name = "gbuffer1"
+				type = "2d"				
+			}
+
+			linear_depth = { 
+				sampler_state = "core/stingray_renderer/shader_libraries/common#clamp_point"
+				source = "resource_set"
+				slot_name = "linear_depth"
+				type = "2d"				
+			}
+
+			local_lights_shadow_atlas = {
+				sampler_state = "core/stingray_renderer/shader_libraries/shadow_map_common#shadow_map" 
+				slot_name = "shadow_map_sampler"
+				type = "2d"
+			}
+
+			fullscreen_shadow_mask = { 
+				sampler_state = "core/stingray_renderer/shader_libraries/common#clamp_point"
+				source = "resource_set"
+				slot_name = "fullscreen_shadow_mask"
+				type = "2d"
+			}
+		}
+
+		code = {
+			hlsl = """
+				DECLARE_SAMPLER_2D(gbuffer0);
+				DECLARE_SAMPLER_2D(gbuffer1);
+				DECLARE_SAMPLER_2D(linear_depth);
+
+				#if defined(SHADOW_MASK)
+					DECLARE_SAMPLER_2D(fullscreen_shadow_mask);
+				#endif
+
+				#if defined(SHADOW_MAPPING)	&& (defined(D3D11) || defined(D3D12) || defined(GNM))
+					DECLARE_COMPARISON_SAMPLER_2D(local_lights_shadow_atlas);
+				#endif
+
+				struct VS_INPUT {
+					float4 position : POSITION;
+					GRAPH_VERTEX_INPUT
+				};				
+
+				struct PS_INPUT {
+					float4 position : SV_POSITION;
+					#if !defined(STENCIL_MARK)
+						float4 w : TEXCOORD1;
+					#endif
+					GRAPH_PIXEL_INPUT
+				};
+
+				CBUFFER_START(c0)
+					#if defined(SPOT) || defined(BOX) || defined(NEEDS_WORLD_POSE)
+						float4x4 world;
+					#endif
+					#if defined(SPOT) || defined(BOX) || defined(NEEDS_INVERSE_WORLD_POSE)
+						float4x4 inv_world;
+					#endif
+					float4x4 world_view_proj;
+					GRAPH_MATERIAL_EXPORTS
+				CBUFFER_END
+
+				CBUFFER_START(light)
+					float3 light_position;
+					float3 light_color;
+					#if defined(OMNI) || defined(SPOT) || defined(PYRAMID)
+						// start, 1.f/(end-start), exp				
+						float3 light_falloff;
+					#endif
+					
+					#if defined(SPOT)
+						// scale + bias
+						float2 light_spot_falloff;
+					#endif
+					
+					#if defined(SHADOW_MAPPING)
+						#if defined(OMNI)
+							float4x4 world_to_shadow_maps[6];
+						#else
+							float4x4 world_to_shadow_map;
+						#endif
+					#endif
+					
+					#if defined(SHADOW_MASK)
+						float4 shadow_mask;
+					#endif
+
+					#if defined(PYRAMID)
+						float3 face_normal_right;
+						float3 face_normal_left;
+						float3 face_normal_up;
+						float3 face_normal_down;
+					#endif
+
+					#if defined(BOX)
+						float3 light_box_min;
+						float3 light_box_max;
+					#endif
+
+					float3 light_proxy_scale;
+				CBUFFER_END
+				
+				DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+				PS_INPUT vs_main(VS_INPUT input) {
+					PS_INPUT o;
+
+					GraphVertexParams params;
+					GraphVertexResults results;
+
+					// Write automatic params
+					GRAPH_VERTEX_WRITE_PARAMS(params, input);					
+
+					float4 position;
+					#if defined(BOX)
+						float3 p = input.position.xyz * light_proxy_scale;
+						p += (light_box_max + light_box_min) * 0.5;
+						position = mul(float4(p, 1), world_view_proj);
+					#else
+						position = mul(float4(input.position.xyz * light_proxy_scale, 1), world_view_proj);
+					#endif
+
+					GRAPH_VERTEX_PARAM(params, vertex_position) = position;
+
+					o.position = position;
+					#if !defined(STENCIL_MARK)
+						#if defined(SHADOW_MAPPING)
+							// When using temporal antialiasing we try to cancel out the jitter
+							// that was introduced in the depth buffer. This is to minimize self occlusion
+							// that can arrise when performing a depth test beween the jittered depth buffer
+							// and a non jittered shadow map.
+							float4 tmp = o.position;
+							float4 view_space = tmp / tmp.w;
+							view_space.xy -= get_vs_halton_offset(frame_number);
+							tmp = view_space * tmp.w;
+							o.w = encode_world_pos(tmp);
+						#else
+							o.w = encode_world_pos(o.position);
+						#endif
+					#endif
+
+					// Evaluate all pieces of the graph that should run per-vertex.
+					GRAPH_EVALUATE_VERTEX(results, params);
+
+					// Write results
+					GRAPH_VERTEX_WRITE(o, results, params);
+
+					return o;
+				}
+
+				struct PS_OUTPUT {
+					half4 base : SV_TARGET0;
+				};
+
+				#if defined(STENCIL_MARK)
+					DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+					half4 ps_main(PS_INPUT input) : SV_TARGET0 {
+						return half4(0,0,0,0);
+					}
+				#else
+					DEFAULT_ROOT_SIGNATURE_ATTRIBUTE
+					PS_OUTPUT ps_main(PS_INPUT input
+						#if defined(GL2)
+							, float2 wpos : VPOS
+						#endif
+						)
+					{
+						PS_OUTPUT o;
+						o.base = half4(0,0,0,0);
+
+						half2 uv = input.position.xy / back_buffer_size;
+						float d = gbuffer_decode_depth(TEX2D(linear_depth, uv));
+
+						float3 wp = decode_world_pos(input.w, d);
+						float3 V = normalize(camera_world._m30_m31_m32 - wp);
+						float3 L = float3(0,0,1);
+						float attn = 1.f;
+
+						#if defined(OMNI) || defined(SPOT)
+							L = light_position - wp;
+							float len_L = length(L) + 0.00001f;
+							attn = light_attenuation(len_L, light_falloff.x, light_falloff.y);
+							L *= 1.0/len_L;
+
+							float normalized_distance = (len_L - light_falloff.x) * light_falloff.y;
+							[branch]
+							if (normalized_distance > 1.0f) discard;
+
+							#if defined(OMNI) && defined(SHADOW_MAPPING)
+								// The shadows from the faces of an onmni light are populated in the following order and directions.
+								//	float3(-1.0f,  0.0f,  0.0f),
+								//	float3( 1.0f,  0.0f,  0.0f),
+								//	float3( 0.0f, -1.0f,  0.0f),
+								//	float3( 0.0f,  1.0f,  0.0f),
+								//	float3( 0.0f,  0.0f, -1.0f)
+								//	float3( 0.0f,  0.0f,  1.0f),
+
+								// Based on the biggest component of the vector from the shaded position to the light source and its sign, chose the correct
+								// shadow map index to get the correct world position to shadow map matrix.
+								const float3 shadow_L = -L;
+								const int3 is_positive = shadow_L > 0;
+								const float3 abs_shadow_L = abs(shadow_L);
+								int test_index = (abs_shadow_L.x > abs_shadow_L.y && abs_shadow_L.x > abs_shadow_L.z) ? 0 + is_positive[0]: (abs_shadow_L.y > abs_shadow_L.z) ? 2 + is_positive[1] : 4 + is_positive[2];
+
+								// On the cpu side, the whole matrix will be full of zeroes if the face is not casting any shadows. Just test the first element.
+								const float shadow_active = world_to_shadow_maps[uint(test_index)]._m00 != 0.0f? 1.0f : 0.0f;
+								float4 ls = mul(float4(wp, 1), world_to_shadow_maps[uint(test_index)]);
+							#elif defined(SPOT)
+								float spot_attenuation = spot_angle_attenuation(dot(-L, world._m10_m11_m12), light_spot_falloff.x, light_spot_falloff.y);
+								if (spot_attenuation == 0.0f) discard;
+								attn *= spot_attenuation;
+							#endif
+						#elif defined(BOX)
+							L = -world._m10_m11_m12;
+							float3 op = mul(float4(wp, 1), inv_world).xyz;
+							float3 containment = (op > light_box_min) * (op < light_box_max);
+							float mask = dot(containment, containment) == 3;
+							attn = light_attenuation(op.y, light_box_min.y, 1.f / (light_box_max.y - light_box_min.x)) * mask;
+						#endif
+
+						#if defined(SHADOW_MAPPING)
+							#if !defined(OMNI)
+								float4 ls = mul(float4(wp,1), world_to_shadow_map);
+							#endif						
+
+							#if defined(D3D11) || defined(D3D12) || defined(GNM)
+								ls.xyz /= ls.w;
+								ls.z = apply_shadow_depth_comparison_bias(d, ls.z, local_shadow_map_bias);
+								float2 sm_resolution;
+								local_lights_shadow_atlas.tex.GetDimensions(sm_resolution.x, sm_resolution.y);
+								float2 tscale = float2(1.f / sm_resolution.x, 1.f / sm_resolution.y);
+								half shadow = shadow_intensity_2d(local_lights_shadow_atlas, sm_resolution, ls.xy, ls.z);
+								#if defined(OMNI)
+									shadow = (1.0f - shadow_active) + (shadow * 0.25f * shadow_active);
+								#else
+									shadow = (shadow * 0.25);
+								#endif
+							#endif
+						#endif
+						#if defined(SHADOW_MASK)
+							attn *= dot(TEX2D(fullscreen_shadow_mask, uv), shadow_mask);
+						#elif defined(SHADOW_MAPPING)
+							attn *= shadow;
+						#endif
+
+						#if defined(WRITE_R) || defined(WRITE_G)|| defined(WRITE_B)|| defined(WRITE_A)
+							o.base = shadow * 0.25;
+						#else
+							GraphPixelParams params;
+							GraphPixelResults graph;
+
+							GRAPH_PIXEL_PARAM(params, light_vector) = L;
+
+							#if defined(HAS_LIGHT_COLOR)
+								GRAPH_PIXEL_WRITE_PARAMS(params, input);
+								GRAPH_EVALUATE_PIXEL(graph, params);
+								
+								float3 light_col = graph.light_color;
+							#else
+								float3 light_col = light_color;
+							#endif
+
+							half4 gbuffer_0 = TEX2D(gbuffer0, uv);
+							half4 gbuffer_1 = TEX2D(gbuffer1, uv);
+
+							float3 N = normalize(gbuffer_decode_normal(gbuffer_1));
+							half roughness = gbuffer_decode_roughness(gbuffer_1);
+
+							float3 base_color = gbuffer_decode_base_color(gbuffer_0);
+							half metallic = gbuffer_decode_metallic_mask(gbuffer_0);
+							// 0.04 is taken as a common value for dielectrics. Source: Real-time rendering 3rd edition.
+							float3 specular_color = lerp(float3(0.04,0.04,0.04), base_color, metallic);
+							float3 diffuse_color = lerp(base_color, new_half3(0,0,0), metallic);
+
+							float3 acc_diff = float3(0,0,0);
+							float3 acc_spec = float3(0,0,0);
+
+							bsdf(L, V, N, light_col, diffuse_color, specular_color, roughness, attn, acc_diff, acc_spec);
+
+							o.base = half4(acc_diff + acc_spec, 0);
+						#endif
+
+						return o;
+					}
+				#endif				
+			"""
+		}
+	}
+}

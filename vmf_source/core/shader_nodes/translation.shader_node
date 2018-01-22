@@ -1,0 +1,21 @@
+group = "Transform"
+display_name = "Translation"
+depends_on = ["core/stingray_renderer/output_nodes/standard_base", "core/stingray_renderer/output_nodes/light_base", "core/stingray_renderer/output_nodes/unlit_base", "core/stingray_renderer/output_nodes/terrain_base"]
+
+defines = ["NEEDS_WORLD_POSE"]
+
+imports = {
+	world = {
+		type = "float4x4"
+		domain = "global"
+		source = "engine"
+	}
+}
+
+output = {
+	type = "float3"
+}
+
+code = """
+	RESULT(world._m30_m31_m32);
+"""

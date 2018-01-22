@@ -1,0 +1,22 @@
+group = "Decal"
+display_name = "Decal World Position"
+depends_on = ["core/stingray_renderer/output_nodes/decal_base"]
+
+
+defines = ["NEEDS_WORLD_SPACE_POSITION"]
+
+imports = {
+	world_position = {
+		type = "float3"
+		domain = "pixel"
+		output_channel = "world_position"
+	}
+}
+
+output = {
+	type = "float3"
+}
+
+code = """
+	RESULT(world_position);
+"""

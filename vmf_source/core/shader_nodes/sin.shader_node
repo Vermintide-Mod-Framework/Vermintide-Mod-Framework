@@ -1,0 +1,13 @@
+group = "Math"
+display_name = "Sine"
+inputs = {
+	"0505200e-439a-476b-b6a6-d643cf80e20b" = { name = "a" display_name = "Angle" type = "auto" }
+}
+
+output = {
+	type = { typeof: "a" }
+}
+
+code = """
+	RESULT(sin(a)); 
+"""

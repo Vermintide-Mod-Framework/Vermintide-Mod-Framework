@@ -1,0 +1,38 @@
+group = "Utility"
+display_name = "HSV to RGB"
+inputs = {
+	"BCBF488E-5D40-43DF-A021-0762C58443EB" = { name = "hsv" display_name = "HSV" type = "vector3" }
+}
+
+output = {
+	type = { typeof: "hsv" }
+}
+
+code_blocks = {
+	hsv_to_rgb_block = {
+		code = """
+
+		// Convert pure hue to RGB
+		inline float3 hue_to_rgb( float h ) {
+			float r = abs(h * 6.0 - 3.0) - 1.0;
+			float g = 2.0 - abs(h * 6.0 - 2.0);
+			float b = 2.0 - abs(h * 6.0 - 4.0);
+			return saturate(float3(r,g,b));
+		}
+
+		// HSV to RGB conversion based on work by Sam Hocevar and Emil Persson
+		// explanation: http://chilliant.blogspot.ca/2014/04/rgbhsv-in-hlsl-5.html
+		inline float3 hsv_to_rgb( float3 hsv ) {
+    		float3 rgb = hue_to_rgb(hsv.x);
+    		return ((rgb - 1.0) * hsv.y + 1.0) * hsv.z;
+		}
+		"""
+	}
+
+	default = {
+		include: ["hsv_to_rgb_block"]
+		code = """
+			RESULT(hsv_to_rgb(hsv));
+		"""
+	}
+}

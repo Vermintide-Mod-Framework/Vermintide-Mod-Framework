@@ -1,0 +1,84 @@
+hlsl_shaders = {
+	random = {
+		code="""
+			// from http://www.reedbeta.com/blog/2013/01/12/quick-and-easy-gpu-random-numbers-in-d3d11/
+			// (which in turn reference http://www.burtleburtle.net/bob/hash/integer.html)
+			uint wang_hash(uint seed) {
+				seed = (seed ^ 61) ^ (seed >> 16);
+				seed *= 9;
+				seed = seed ^ (seed >> 4);
+				seed *= 0x27d4eb2d;
+				seed = seed ^ (seed >> 15);
+				return seed;
+			}
+
+			float noise2d(float2 uv) {
+				return frac(sin(dot(uv, float2(12.9898,78.233)*2.0)) * 43758.5453);
+			}
+
+			static const uint shuffle_frames16[16] = {13,7,5,10,12,4,11,3,14,9,2,0,8,6,1,15 };
+		"""
+	}
+	sampling = {
+		code="""
+			float2 hammersley_sequence_2d(uint i, uint n) {
+				return float2((float)i / n, reversebits(i) * 2.3283064365386963e-10);
+			}
+
+			float3 orient_frame(float3 n, float3 p) {
+				float3 up = abs(n.z) < 0.999 ? float3(0.0,0.0,1.0) : float3(1.0,0.0,0.0);
+				float3 uu = normalize(cross(up, n));
+				float3 vv = cross(n, uu);
+				return float3(p.x*uu + p.y*vv + p.z*n);
+			}
+
+			float3 importance_sample_ggx(float2 rnd, float roughness, float3 normal) {
+				float a = roughness*roughness;
+				float a2 = a*a;
+
+				float phi = 2 * PI * rnd.x;
+				float cos_phi = cos(phi);
+				float sin_phi = sin(phi);
+				float cos_theta = sqrt((1 - rnd.y) / ((a2 - 1) * rnd.y + 1));
+				float sin_theta = sqrt(1 - cos_theta * cos_theta);
+				float3 h = float3(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta);
+
+				return orient_frame(normal, h);
+			}
+
+			float3 random_point_on_oriented_disc(float3 normal, float radius, float2 rnd) {
+				float r = rnd.x;
+				float t = rnd.y * 2.0 * PI;
+				float rr = sqrt(r) * radius;
+				float x = rr * cos(t);
+				float y = rr * sin(t);
+				return orient_frame(normal, float3(x, y, 0));
+			}
+
+			float3 cos_weighted_random_hemisphere_direction_hammersley(float3 n, uint sample_index, uint max_samples, float scramble_rotation) {
+				float2 rnd = hammersley_sequence_2d(sample_index, max_samples);
+				float phi = 2 * PI * rnd.x;
+				float cos_theta = sqrt(1.f - rnd.y);
+				float sin_theta = sqrt(1.f - cos_theta * cos_theta);
+
+				float cos_phi = cos(phi + scramble_rotation);
+				float sin_phi = sin(phi + scramble_rotation);
+				float3 rr = float3(cos_phi * sin_theta, sin_phi * sin_theta, cos_theta);
+				return orient_frame(n, rr);
+			}
+
+			float3 cos_weighted_random_hemisphere_direction_fibonacci(float3 n, uint sample_index, uint max_samples, float scramble_rotation) {
+				// spherical fibonacci
+				float z = 1.0 - (sample_index + 0.5) / max_samples;
+				float phi = sample_index * (float)(PI * (3.0-sqrt(5.0)));
+				float cos_theta = sqrt(z);
+				float sin_theta = sqrt(1-z);
+
+				float cos_phi = cos(phi + scramble_rotation);
+				float sin_phi = sin(phi + scramble_rotation);
+				float3 rr = float3(cos_phi * sin_theta, sin_phi * sin_theta, cos_theta);
+				return orient_frame(n, rr);
+			}
+		"""
+	}
+}

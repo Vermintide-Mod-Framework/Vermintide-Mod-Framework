@@ -1,0 +1,18 @@
+group = "Vertex Inputs"
+display_name = "Binormal"
+
+imports = {
+	binormal = { 
+		type = "float3"
+		semantic = "BINORMAL"
+		domain = "vertex"
+	}
+}
+
+output = {
+	type = { typeof: "binormal" }
+}
+
+code = """
+	RESULT(binormal);
+"""

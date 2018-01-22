@@ -1,0 +1,21 @@
+
+
+group = "Vertex Inputs"
+display_name = "Instance Id"
+
+imports = {
+	instance_id = {
+		type = "uint"
+		semantic = "SV_InstanceID"
+		domain = "vertex"
+	}
+}
+
+output = {
+	type = "float"
+}
+
+code = """
+	RESULT((float)instance_id);
+"""
+
