@@ -1638,6 +1638,14 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
 end
 
 
+VMFMod.is_suspended = function (self)
+
+  local mod_suspend_state_list = vmf:get("mod_suspend_state_list")
+
+  return mod_suspend_state_list[self._name]
+end
+
+
 -- table.insert(t, new, table.remove(t,old))
 
 --  mod:create_options(options_widgets, true, "Readable Mod Name", "Mod description")
