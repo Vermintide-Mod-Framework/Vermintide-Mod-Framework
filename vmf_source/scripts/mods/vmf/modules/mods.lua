@@ -85,3 +85,12 @@ vmf.mods_update = function(dt)
     end
   end
 end
+
+-- call 'game_state_changed' for every mod which definded it
+vmf.mods_game_state_changed = function(status, state)
+  for _, mod in pairs(MODS) do --@TODO: maybe ipairs?
+    if mod.game_state_changed then
+      mod.game_state_changed(status, state)
+    end
+  end
+end

@@ -36,6 +36,7 @@ return{
 
 	on_game_state_changed = function(object, status, state)
 		print("VMF:ON_GAME_STATE_CHANGED(), status: " .. tostring(status) .. ", state: " .. tostring(state))
+		object.vmf.mods_game_state_changed(status, state)
 		object.vmf.save_unsaved_settings_to_file()
 	end
 }
