@@ -1,7 +1,7 @@
 return{
 	init = function(object)
 
-		dofile("scripts/mods/vmf/modules/old_hook_and_console")
+		dofile("scripts/mods/vmf/modules/dev_console")
 		dofile("scripts/mods/vmf/modules/mods")
 		dofile("scripts/mods/vmf/modules/hooks")
 		dofile("scripts/mods/vmf/modules/gui")
