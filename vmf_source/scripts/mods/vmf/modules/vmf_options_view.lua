@@ -1744,13 +1744,13 @@ local view_data = {
     end,
     active = {
       inn = true,
-      ingame = false
+      ingame = true
     },
     blocked_transitions = {
       inn = {},
       ingame = {
-        vmf_options_view = true,
-        vmf_options_view_force = true
+        --vmf_options_view = true,
+        --vmf_options_view_force = true
       }
     },
     hotkey_mapping = { --@TODO: find out what the hell is this -> 'IngameUI.handle_menu_hotkeys' (only in inn -> useless)
