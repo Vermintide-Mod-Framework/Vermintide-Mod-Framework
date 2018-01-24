@@ -1279,7 +1279,11 @@ VMFOptionsView.callback_mod_suspend_state_changed = function (self, mod_name, is
 
   local mod_suspend_state_list = vmf:get("mod_suspend_state_list")
 
-  mod_suspend_state_list[mod_name] = is_suspended
+  if is_suspended then
+    mod_suspend_state_list[mod_name] = true
+  else
+    mod_suspend_state_list[mod_name] = nil
+  end
 
   vmf:set("mod_suspend_state_list", mod_suspend_state_list)
 
@@ -1358,15 +1362,7 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
 
         loaded_setting_value = vmf:get("mod_suspend_state_list")
 
-        local is_mod_suspended = loaded_setting_value[widget_content.mod_name]
-        if type(is_mod_suspended) == "boolean" then
-          widget_content.is_checkbox_checked = not is_mod_suspended
-        else
-          -- @TODO: echo error?
-          widget_content.is_checkbox_checked            = true
-          loaded_setting_value[widget_content.mod_name] = true
-          vmf:set("mod_suspend_state_list", loaded_setting_value)
-        end
+        widget_content.is_checkbox_checked = not loaded_setting_value[widget_content.mod_name]
       end
     end
   end
@@ -1638,6 +1634,10 @@ end
 -- ##### VMFMod #######################################################################################################
 -- ####################################################################################################################
 
+if not vmf:get("mod_suspend_state_list") then
+  vmf:set("mod_suspend_state_list", {})
+end
+
 local function check_widget_definition(mod, widget)
 
 end
@@ -1676,14 +1676,6 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
 
   if mod_collapsed_widgets then
     new_widget_definition.is_widget_collapsed = mod_collapsed_widgets[self._name]
-  end
-
-  -- @TODO: wtf?
-  local mod_suspend_state_list = vmf:get("mod_suspend_state_list")
-  mod_suspend_state_list = (type(mod_suspend_state_list) == "table") and mod_suspend_state_list or {}
-  if type(mod_suspend_state_list[self._name]) == "nil" then
-    mod_suspend_state_list[self._name] = false
-    vmf:set("mod_suspend_state_list", mod_suspend_state_list)
   end
 
   table.insert(mod_settings_list_widgets_definitions, new_widget_definition)
