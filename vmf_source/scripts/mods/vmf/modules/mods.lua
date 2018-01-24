@@ -62,6 +62,18 @@ VMFMod.pcall = function (self, ...)
 end
 
 
+VMFMod.dofile = function (self, script_path)
+
+  local status, value = pcall(dofile, script_path)
+
+  if not status then
+    self:echo("ERROR(loadfile): " .. value.error, true)
+
+    print("\nTRACEBACK:\n\n" .. value.traceback .. "\nLOCALS:\n\n" .. value.locals)
+  end
+
+  return value
+end
 -- ####################################################################################################################
 -- ##### Event functions ##############################################################################################
 -- ####################################################################################################################
