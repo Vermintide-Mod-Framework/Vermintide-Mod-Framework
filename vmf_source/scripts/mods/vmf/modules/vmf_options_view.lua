@@ -242,7 +242,6 @@ table.remove(menu_widgets_definition.scrollbar.element.passes, 7)
 table.remove(menu_widgets_definition.scrollbar.element.passes, 7)
 table.remove(menu_widgets_definition.scrollbar.element.passes, 8)
 table.remove(menu_widgets_definition.scrollbar.element.passes, 8)
---table.remove(menu_widgets_definition.scrollbar.element.passes, 7)
 
 
 
@@ -1058,8 +1057,8 @@ VMFOptionsView.build_header_widget = function (self, definition, scenegraph_id, 
 
   local widget = create_header_widget(definition, scenegraph_id, offset_y)
   local content = widget.content
-  content.is_checkbox_checked = true
-  content.is_checkbox_visible = true
+  content.is_checkbox_checked = definition.is_mod_toggable
+  content.is_checkbox_visible = definition.is_mod_toggable
 
   content.callback_mod_suspend_state_changed = callback(self, "callback_mod_suspend_state_changed")
 
@@ -1128,7 +1127,7 @@ end
 
 
 VMFOptionsView.callback_setting_changed = function (self, mod_name, setting_name, old_value, new_value)
-  vmf:echo("CHANGED: " .. mod_name .. " " .. setting_name .. " " .. tostring(old_value) .. " " .. tostring(new_value))
+  --vmf:echo("CHANGED: " .. mod_name .. " " .. setting_name .. " " .. tostring(old_value) .. " " .. tostring(new_value))
 
   if self.is_setting_changes_applied_immidiately then
     get_mod(mod_name):set(setting_name, new_value, true)
@@ -1139,7 +1138,7 @@ VMFOptionsView.callback_setting_changed = function (self, mod_name, setting_name
 end
 
 VMFOptionsView.callback_mod_suspend_state_changed = function (self, mod_name, is_suspended)
-  vmf:echo("SUSPENDED: " .. mod_name .. " " .. tostring(is_suspended))
+  --vmf:echo("SUSPENDED: " .. mod_name .. " " .. tostring(is_suspended))
 
   local mod_suspend_state_list = vmf:get("mod_suspend_state_list")
 
@@ -1510,7 +1509,7 @@ end
 --]]
 VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, readable_mod_name, mod_description)
   -- Yeah, it's kinda complicated, but it's working, mkay?
-  table.dump(widgets_definition, "options_widgets", 3) -- @TODO: remove it later
+  --table.dump(widgets_definition, "options_widgets", 3) -- @TODO: remove it later
 
   local mod_settings_list_widgets_definitions = {}
 
@@ -1529,6 +1528,7 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
   new_widget_definition.readable_mod_name = readable_mod_name or self._name
   new_widget_definition.tooltip           = mod_description
   new_widget_definition.default           = true
+  new_widget_definition.is_mod_toggable   = is_mod_toggable
 
   local mod_suspend_state_list = vmf:get("mod_suspend_state_list")
   mod_suspend_state_list = (type(mod_suspend_state_list) == "table") and mod_suspend_state_list or {}
