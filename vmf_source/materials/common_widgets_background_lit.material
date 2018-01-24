@@ -1,4 +1,4 @@
-header_background_lit = {
+common_widgets_background_lit = {
 	material_contexts = {
 		surface_material = ""
 	}
@@ -6,7 +6,7 @@ header_background_lit = {
 	shader = "gui_gradient:DIFFUSE_MAP:MASKED"
 
 	textures = {
-		diffuse_map = "gui/header_background_lit"
+		diffuse_map = "gui/common_widgets_background_lit"
 	}
 
 	variables = {

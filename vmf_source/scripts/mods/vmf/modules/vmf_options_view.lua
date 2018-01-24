@@ -1,15 +1,17 @@
 --[[
   Don't set settings to the values which aren't defined in options
 
+  Glitch I won't fix soon: widget is collapsed, setting were changed not from .. whatever
 
 
 
   VMFOptionsView.update_picked_option_for_settings_list_widgets
 ]]
-local vmf = get_mod("VMF") -- @TODO: replace it with VMF later
+local vmf = get_mod("VMF")
 
 inject_material("materials/header_background", "header_background", "ingame_ui")
 inject_material("materials/header_background_lit", "header_background_lit", "ingame_ui")
+inject_material("materials/common_widgets_background_lit", "common_widgets_background_lit", "ingame_ui")
 
 --███████╗ ██████╗███████╗███╗   ██╗███████╗ ██████╗ ██████╗  █████╗ ██████╗ ██╗  ██╗███████╗
 --██╔════╝██╔════╝██╔════╝████╗  ██║██╔════╝██╔════╝ ██╔══██╗██╔══██╗██╔══██╗██║  ██║██╔════╝
@@ -329,7 +331,15 @@ local function create_header_widget(widget_definition, scenegraph_id, offset_y)
 
           offset_function = function (ui_scenegraph, ui_style, ui_content, ui_renderer)
 
+            if ui_content.highlight_hotspot.on_release and not ui_content.checkbox_hotspot.on_release then
+              ui_content.callback_hide_sub_widgets(ui_content)
+            end
+
             if ui_content.checkbox_hotspot.on_release then
+
+              if ui_content.is_widget_collapsed then
+                ui_content.callback_hide_sub_widgets(ui_content)
+              end
 
               local mod_name         = ui_content.mod_name
               local is_mod_suspended = ui_content.is_checkbox_checked
@@ -339,6 +349,7 @@ local function create_header_widget(widget_definition, scenegraph_id, offset_y)
               ui_content.callback_mod_suspend_state_changed(mod_name, is_mod_suspended)
             end
 
+            ui_content.background_texture = ui_content.is_widget_collapsed and "header_background_lit" or "header_background"
             ui_content.checkbox_texture = ui_content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
           end
         },
@@ -368,6 +379,7 @@ local function create_header_widget(widget_definition, scenegraph_id, offset_y)
       is_checkbox_checked = true,
       is_checkbox_visible = false,
       is_widget_visible = true, -- for header it will always be 'true', but I need this variable anyways
+      is_widget_collapsed = widget_definition.is_widget_collapsed,
 
       checkbox_texture   = "checkbox_unchecked",
       highlight_texture  = "playerlist_hover",
@@ -379,7 +391,6 @@ local function create_header_widget(widget_definition, scenegraph_id, offset_y)
       text = widget_definition.readable_mod_name,
 
       mod_name = widget_definition.mod_name,
-      setting_name = widget_definition.setting_name,
       widget_type = widget_definition.widget_type,
     },
     style = {
@@ -388,19 +399,18 @@ local function create_header_widget(widget_definition, scenegraph_id, offset_y)
 
       background = {
         size = {widget_size[1], widget_size[2] - 3},
-        offset = {0, offset_y + 1, 1},
-        masked = true
+        offset = {0, offset_y + 1, 1}
       },
 
       highlight_texture = {
         size = {widget_size[1], widget_size[2] - 3},
-        offset = {0, offset_y + 1, 1},
+        offset = {0, offset_y + 1, 2},
         color = {255, 255, 255, 255},
         masked = true
       },
 
       text = {
-        offset = {60, offset_y + 18, 2},
+        offset = {60, offset_y + 18, 3},
         font_size = 28,
         font_type = "hell_shark_masked",
         dynamic_font = true,
@@ -409,7 +419,7 @@ local function create_header_widget(widget_definition, scenegraph_id, offset_y)
 
       checkbox = {
         size = {30, 30},
-        offset = {widget_size[1] - 180, offset_y + 25, 2},
+        offset = {widget_size[1] - 180, offset_y + 25, 3},
         masked = true
       },
 
@@ -466,6 +476,16 @@ local function create_checkbox_widget(widget_definition, scenegraph_id, offset_y
         {
           pass_type = "texture",
 
+          style_id   = "background",
+          texture_id = "background_texture",
+
+          content_check_function = function (content)
+            return content.is_widget_collapsed
+          end
+        },
+        {
+          pass_type = "texture",
+
           style_id = "highlight_texture",
           texture_id = "highlight_texture",
           content_check_function = function (content)
@@ -502,7 +522,16 @@ local function create_checkbox_widget(widget_definition, scenegraph_id, offset_y
 
           offset_function = function (ui_scenegraph, ui_style, ui_content, ui_renderer)
 
+            if ui_content.highlight_hotspot.on_release and not ui_content.checkbox_hotspot.on_release then
+              ui_content.callback_hide_sub_widgets(ui_content)
+            end
+
             if ui_content.checkbox_hotspot.on_release then
+
+              if ui_content.is_widget_collapsed then
+                ui_content.callback_hide_sub_widgets(ui_content)
+              end
+
               local mod_name = ui_content.mod_name
               local setting_name = ui_content.setting_name
               local old_value = ui_content.is_checkbox_checked
@@ -548,9 +577,11 @@ local function create_checkbox_widget(widget_definition, scenegraph_id, offset_y
     content = {
       is_checkbox_checked = false,
       is_widget_visible = true,
+      is_widget_collapsed = widget_definition.is_widget_collapsed,
 
-      checkbox_texture = "checkbox_unchecked", -- texture name
-      highlight_texture = "playerlist_hover", -- texture name
+      checkbox_texture = "checkbox_unchecked",
+      highlight_texture = "playerlist_hover",
+      background_texture = "common_widgets_background_lit",
 
       checkbox_hotspot = {},
       highlight_hotspot = {},
@@ -567,15 +598,19 @@ local function create_checkbox_widget(widget_definition, scenegraph_id, offset_y
     style = {
 
       -- VISUALS
+      background = {
+        size = {widget_size[1], widget_size[2] - 3},
+        offset = {0, offset_y + 1, 0}
+      },
 
       highlight_texture = {
         size = {widget_size[1], widget_size[2] - 3},
-        offset = {0, offset_y + 1, 0},
+        offset = {0, offset_y + 1, 1},
         masked = true
       },
 
       text = {
-        offset = {60 + widget_definition.widget_level * 40, offset_y + 5, 0},
+        offset = {60 + widget_definition.widget_level * 40, offset_y + 5, 2},
         font_size = 28,
         font_type = "hell_shark_masked",
         dynamic_font = true,
@@ -663,6 +698,16 @@ local function create_stepper_widget(widget_definition, scenegraph_id, offset_y,
         {
           pass_type = "texture",
 
+          style_id   = "background",
+          texture_id = "background_texture",
+
+          content_check_function = function (content)
+            return content.is_widget_collapsed
+          end
+        },
+        {
+          pass_type = "texture",
+
           style_id = "highlight_texture",
           texture_id = "highlight_texture",
           content_check_function = function (content)
@@ -716,10 +761,17 @@ local function create_stepper_widget(widget_definition, scenegraph_id, offset_y,
           pass_type = "local_offset",
 
           offset_function = function (ui_scenegraph, ui_style, ui_content, ui_renderer)
-            ui_content.left_arrow_texture = ui_content.left_arrow_hotspot.is_hover and "settings_arrow_clicked" or "settings_arrow_normal"
-            ui_content.right_arrow_texture = ui_content.right_arrow_hotspot.is_hover and "settings_arrow_clicked" or "settings_arrow_normal"
+
+            if ui_content.highlight_hotspot.on_release and not ui_content.left_arrow_hotspot.on_release and not ui_content.right_arrow_hotspot.on_release then
+              ui_content.callback_hide_sub_widgets(ui_content)
+            end
 
             if ui_content.left_arrow_hotspot.on_release or ui_content.right_arrow_hotspot.on_release then
+
+              if ui_content.is_widget_collapsed then
+                ui_content.callback_hide_sub_widgets(ui_content)
+              end
+
               local mod_name     = ui_content.mod_name
               local setting_name = ui_content.setting_name
               local old_value    = ui_content.options_values[ui_content.current_option_number]
@@ -737,6 +789,9 @@ local function create_stepper_widget(widget_definition, scenegraph_id, offset_y,
               local new_value = ui_content.options_values[new_option_number]
               ui_content.callback_setting_changed(mod_name, setting_name, old_value, new_value)
             end
+
+            ui_content.left_arrow_texture = ui_content.left_arrow_hotspot.is_hover and "settings_arrow_clicked" or "settings_arrow_normal"
+            ui_content.right_arrow_texture = ui_content.right_arrow_hotspot.is_hover and "settings_arrow_clicked" or "settings_arrow_normal"
           end
         },
         -- DEBUG
@@ -770,10 +825,12 @@ local function create_stepper_widget(widget_definition, scenegraph_id, offset_y,
     },
     content = {
       is_widget_visible = true,
+      is_widget_collapsed = widget_definition.is_widget_collapsed,
 
       highlight_texture = "playerlist_hover", -- texture name
       left_arrow_texture = "settings_arrow_normal",
       right_arrow_texture = "settings_arrow_normal",
+      background_texture = "common_widgets_background_lit",
 
       highlight_hotspot = {},
       left_arrow_hotspot = {},
@@ -797,6 +854,11 @@ local function create_stepper_widget(widget_definition, scenegraph_id, offset_y,
     style = {
 
       -- VISUALS
+
+      background = {
+        size = {widget_size[1], widget_size[2] - 3},
+        offset = {0, offset_y + 1, 0}
+      },
 
       highlight_texture = {
         size = {widget_size[1], widget_size[2] - 3},
@@ -1061,6 +1123,7 @@ VMFOptionsView.build_header_widget = function (self, definition, scenegraph_id, 
   content.is_checkbox_visible = definition.is_mod_toggable
 
   content.callback_mod_suspend_state_changed = callback(self, "callback_mod_suspend_state_changed")
+  content.callback_hide_sub_widgets = callback(self, "callback_hide_sub_widgets")
 
   return widget
 end
@@ -1071,6 +1134,7 @@ VMFOptionsView.build_stepper_widget = function (self, definition, scenegraph_id,
   local content = widget.content
 
   content.callback_setting_changed = callback(self, "callback_setting_changed")
+  content.callback_hide_sub_widgets = callback(self, "callback_hide_sub_widgets")
 
   return widget
 end
@@ -1081,6 +1145,7 @@ VMFOptionsView.build_checkbox_widget = function (self, definition, scenegraph_id
   local content = widget.content
 
   content.callback_setting_changed = callback(self, "callback_setting_changed")
+  content.callback_hide_sub_widgets = callback(self, "callback_hide_sub_widgets")
 
   return widget
 end
@@ -1125,6 +1190,78 @@ VMFOptionsView.rearrange_settings_list = function (self)
 end
 
 
+VMFOptionsView.callback_hide_sub_widgets = function (self, widget_content)
+
+  local mod_name               = widget_content.mod_name
+  local setting_name           = widget_content.setting_name
+  local is_widget_collapsed = widget_content.is_widget_collapsed
+
+  local widget_number = not setting_name and 1 -- if (setting_name == nil) -> it's header -> #1
+
+  local are_there_visible_sub_widgets = false
+
+  if not is_widget_collapsed then
+
+    for _, mod_widgets in ipairs(self.settings_list_widgets) do
+
+      if mod_widgets[1].content.mod_name == mod_name then
+
+        for i, widget in ipairs(mod_widgets) do
+
+          if widget_number then
+            if widget.content.parent_widget_number == widget_number then
+              --vmf:echo(tostring(i))
+              are_there_visible_sub_widgets = are_there_visible_sub_widgets or widget.content.is_widget_visible
+            end
+          else
+            if widget.content.setting_name == setting_name then
+              widget_number = i
+            end
+          end
+        end
+      end
+    end
+  end
+
+  widget_content.is_widget_collapsed = not is_widget_collapsed and are_there_visible_sub_widgets
+
+
+  setting_name = setting_name or mod_name -- header
+
+  local all_collapsed_widgets = vmf:get("options_menu_collapsed_widgets")
+  all_collapsed_widgets = all_collapsed_widgets or {}
+
+  local mod_collapsed_widgets = all_collapsed_widgets[mod_name]
+
+  if widget_content.is_widget_collapsed then
+
+    mod_collapsed_widgets = mod_collapsed_widgets or {}
+    mod_collapsed_widgets[setting_name] = true
+
+    all_collapsed_widgets[mod_name] = mod_collapsed_widgets
+  else
+    if mod_collapsed_widgets then
+      mod_collapsed_widgets[setting_name] = nil
+
+      local is_collapsed_widgets_list_empty = true
+
+      for _, _ in pairs(mod_collapsed_widgets) do
+        is_collapsed_widgets_list_empty = false
+      end
+
+      if is_collapsed_widgets_list_empty then
+        all_collapsed_widgets[mod_name] = nil
+      end
+    end
+  end
+
+  vmf:set("options_menu_collapsed_widgets", all_collapsed_widgets)
+
+  --vmf:echo(tostring(are_there_visible_sub_widgets))
+
+  self:update_settings_list_widgets_visibility(mod_name)
+  self:rearrange_settings_list()
+end
 
 VMFOptionsView.callback_setting_changed = function (self, mod_name, setting_name, old_value, new_value)
   --vmf:echo("CHANGED: " .. mod_name .. " " .. setting_name .. " " .. tostring(old_value) .. " " .. tostring(new_value))
@@ -1235,6 +1372,7 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
   end
 end
 
+
 VMFOptionsView.update_settings_list_widgets_visibility = function (self, mod_name)
 
   --table.dump(self.settings_list_widgets, "WIDGETSSSSSSSS", 3)
@@ -1251,12 +1389,12 @@ VMFOptionsView.update_settings_list_widgets_visibility = function (self, mod_nam
           -- if 'header' or 'checkbox'
           if parent_widget.style.checkbox then
 
-            widget.content.is_widget_visible = parent_widget.content.is_checkbox_checked and parent_widget.content.is_widget_visible
+            widget.content.is_widget_visible = parent_widget.content.is_checkbox_checked and parent_widget.content.is_widget_visible and not parent_widget.content.is_widget_collapsed
 
           -- if 'stepper'
           else
             if widget.content.show_widget_condition then
-              widget.content.is_widget_visible = widget.content.show_widget_condition[parent_widget.content.current_option_number] and parent_widget.content.is_widget_visible
+              widget.content.is_widget_visible = widget.content.show_widget_condition[parent_widget.content.current_option_number] and parent_widget.content.is_widget_visible and not parent_widget.content.is_widget_collapsed
             else
               get_mod(widget.content.mod_name):echo("ERROR: the stepper widget in the options menu has sub_widgets, but some of its sub_widgets doesn't have 'show_widget_condition'", true)
             end
@@ -1516,6 +1654,12 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
   local new_widget_definition = nil
   local new_widget_index      = nil
 
+  local options_menu_collapsed_widgets = vmf:get("options_menu_collapsed_widgets")
+  local mod_collapsed_widgets = nil
+  if options_menu_collapsed_widgets then
+    mod_collapsed_widgets = options_menu_collapsed_widgets[self._name]
+  end
+
   -- defining header widget
 
   new_widget_index = 1
@@ -1530,6 +1674,11 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
   new_widget_definition.default           = true
   new_widget_definition.is_mod_toggable   = is_mod_toggable
 
+  if mod_collapsed_widgets then
+    new_widget_definition.is_widget_collapsed = mod_collapsed_widgets[self._name]
+  end
+
+  -- @TODO: wtf?
   local mod_suspend_state_list = vmf:get("mod_suspend_state_list")
   mod_suspend_state_list = (type(mod_suspend_state_list) == "table") and mod_suspend_state_list or {}
   if type(mod_suspend_state_list[self._name]) == "nil" then
@@ -1571,6 +1720,10 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
       new_widget_definition.default_value = current_widget.default_value
       new_widget_definition.show_widget_condition = current_widget.show_widget_condition
       new_widget_definition.parent_widget_number  = parent_number
+
+      if mod_collapsed_widgets then
+        new_widget_definition.is_widget_collapsed = mod_collapsed_widgets[current_widget.setting_name]
+      end
 
       check_widget_definition(self, new_widget_definition)
 

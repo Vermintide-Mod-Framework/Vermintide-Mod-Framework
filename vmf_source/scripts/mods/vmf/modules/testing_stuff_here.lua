@@ -65,7 +65,17 @@ local options_widgets = {
           ["text"] = "Warn joining players about game mode",
           ["tooltip"] = "You don't want others to ruin your game," .. "\n" ..
                         "do you?",
-          ["default_value"] = true -- Default first option is enabled. In this case Below
+          ["default_value"] = true, -- Default first option is enabled. In this case Below
+          ["sub_widgets"] = {
+            {
+              ["setting_name"] = "whatever",
+              ["widget_type"] = "checkbox",
+              ["text"] = "Whatever",
+              ["tooltip"] = "Whatever," .. "\n" ..
+                            "whatever",
+              ["default_value"] = true -- Default first option is enabled. In this case Below
+            }
+          }
         }
       }
     },

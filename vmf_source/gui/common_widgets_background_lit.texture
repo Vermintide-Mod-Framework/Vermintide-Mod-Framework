@@ -1,6 +1,6 @@
 common = {
 	input = {
-		filename = "gui/header_background_lit"
+		filename = "gui/common_widgets_background_lit"
 	}
 	output = {
 		apply_processing = true

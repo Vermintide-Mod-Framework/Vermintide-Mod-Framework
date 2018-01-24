@@ -136,12 +136,11 @@ With this event you won't need to repeatedly check if some option is changed. By
 
 
 
-Localization  
 Gui (WIP)  
 Options menu (WIP)  
 Keybindings (Will do)  
 Network (Will do)  
 Actions  
-Chat  
+Localization  
 Game modes  
 Debug modules

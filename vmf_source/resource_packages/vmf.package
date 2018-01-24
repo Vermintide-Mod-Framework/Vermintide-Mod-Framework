@@ -9,6 +9,7 @@ package = [
 material = [
 	"materials/header_background"
 	"materials/header_background_lit"
+	"materials/common_widgets_background_lit"
 ]
 
 lua = [
