@@ -296,6 +296,16 @@ local function create_header_widget(widget_definition, scenegraph_id, offset_y)
           end
         },
         {
+          pass_type = "texture",
+
+          style_id   = "fav_icon",
+          texture_id = "fav_icon_texture",
+
+          content_check_function = function (content)
+            return content.is_favorited or content.highlight_hotspot.is_hover
+          end
+        },
+        {
           pass_type = "text",
 
           style_id = "text",
@@ -312,6 +322,16 @@ local function create_header_widget(widget_definition, scenegraph_id, offset_y)
           end
         },
         -- HOTSPOTS
+        {
+          pass_type = "hotspot",
+
+          style_id   = "fav_icon_hotspot",
+          content_id = "fav_icon_hotspot",
+
+          content_check_function = function (content)
+            return content.parent.is_checkbox_visible
+          end
+        },
         {
           pass_type = "hotspot",
 
@@ -333,8 +353,12 @@ local function create_header_widget(widget_definition, scenegraph_id, offset_y)
 
           offset_function = function (ui_scenegraph, ui_style, ui_content, ui_renderer)
 
-            if ui_content.highlight_hotspot.on_release and not ui_content.checkbox_hotspot.on_release then
+            if ui_content.highlight_hotspot.on_release and not ui_content.checkbox_hotspot.on_release and not ui_content.fav_icon_hotspot.on_release then
               ui_content.callback_hide_sub_widgets(ui_content)
+            end
+
+            if ui_content.fav_icon_hotspot.on_release then
+              ui_content.callback_favorite(ui_content)
             end
 
             if ui_content.checkbox_hotspot.on_release then
@@ -351,6 +375,7 @@ local function create_header_widget(widget_definition, scenegraph_id, offset_y)
               ui_content.callback_mod_suspend_state_changed(mod_name, is_mod_suspended)
             end
 
+            ui_content.fav_icon_texture = ui_content.is_favorited and "header_fav_icon_lit" or "header_fav_icon"
             ui_content.background_texture = ui_content.is_widget_collapsed and "header_background_lit" or "header_background"
             ui_content.checkbox_texture = ui_content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
           end
@@ -382,11 +407,14 @@ local function create_header_widget(widget_definition, scenegraph_id, offset_y)
       is_checkbox_visible = false,
       is_widget_visible = true, -- for header it will always be 'true', but I need this variable anyways
       is_widget_collapsed = widget_definition.is_widget_collapsed,
+      is_favorited = widget_definition.is_favorited,
 
+      fav_icon_texture   = "header_fav_icon",
       checkbox_texture   = "checkbox_unchecked",
       highlight_texture  = "playerlist_hover",
       background_texture = "header_background",
 
+      fav_icon_hotspot  = {},
       checkbox_hotspot  = {},
       highlight_hotspot = {},
 
@@ -411,6 +439,11 @@ local function create_header_widget(widget_definition, scenegraph_id, offset_y)
         masked = true
       },
 
+      fav_icon = {
+        size = {30, 30},
+        offset = {15, offset_y + 25, 3}
+      },
+
       text = {
         offset = {60, offset_y + 18, 3},
         font_size = 28,
@@ -426,6 +459,11 @@ local function create_header_widget(widget_definition, scenegraph_id, offset_y)
       },
 
       -- HOTSPOTS
+
+      fav_icon_hotspot = {
+        size = {30, 30},
+        offset = {15, offset_y + 25, 3}
+      },
 
       checkbox_hotspot = {
         size = {80, 80},
@@ -1124,6 +1162,7 @@ VMFOptionsView.build_header_widget = function (self, definition, scenegraph_id, 
   content.is_checkbox_checked = definition.is_mod_toggable
   content.is_checkbox_visible = definition.is_mod_toggable
 
+  content.callback_favorite = callback(self, "callback_favorite")
   content.callback_mod_suspend_state_changed = callback(self, "callback_mod_suspend_state_changed")
   content.callback_hide_sub_widgets = callback(self, "callback_hide_sub_widgets")
 
@@ -1189,6 +1228,31 @@ VMFOptionsView.rearrange_settings_list = function (self)
   if is_scrolling_enabled then
     self:calculate_scrollbar_size()
   end
+end
+
+VMFOptionsView.callback_favorite = function (self, widget_content)
+
+  local mod_name = widget_content.mod_name
+  local is_favorited = not widget_content.is_favorited
+
+
+  local favorite_mods_list = vmf:get("options_menu_favorite_mods")
+  favorite_mods_list = favorite_mods_list or {}
+
+  if is_favorited then
+    table.insert(favorite_mods_list, mod_name)
+  else
+    for i, current_mod_name in pairs(favorite_mods_list) do
+      if current_mod_name == mod_name then
+        table.remove(favorite_mods_list, i)
+        break
+      end
+    end
+  end
+
+  vmf:set("options_menu_favorite_mods", favorite_mods_list)
+
+  widget_content.is_favorited = is_favorited
 end
 
 
@@ -1656,11 +1720,13 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
   local new_widget_definition = nil
   local new_widget_index      = nil
 
+  local options_menu_favorite_mods     = vmf:get("options_menu_favorite_mods")
   local options_menu_collapsed_widgets = vmf:get("options_menu_collapsed_widgets")
   local mod_collapsed_widgets = nil
   if options_menu_collapsed_widgets then
     mod_collapsed_widgets = options_menu_collapsed_widgets[self._name]
   end
+
 
   -- defining header widget
 
@@ -1678,6 +1744,15 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
 
   if mod_collapsed_widgets then
     new_widget_definition.is_widget_collapsed = mod_collapsed_widgets[self._name]
+  end
+
+  if options_menu_favorite_mods then
+    for _, current_mod_name in pairs(options_menu_favorite_mods) do
+      if current_mod_name == self._name then
+        new_widget_definition.is_favorited = true
+        break
+      end
+    end
   end
 
   table.insert(mod_settings_list_widgets_definitions, new_widget_definition)
