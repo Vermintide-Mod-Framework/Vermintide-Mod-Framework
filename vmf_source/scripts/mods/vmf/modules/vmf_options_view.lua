@@ -270,10 +270,10 @@ local SETTINGS_LIST_REGULAR_WIDGET_SIZE = {1194, 50}
 --╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝
 
 
-local function create_header_widget(widget_definition, scenegraph_id, offset_y)
+local function create_header_widget(widget_definition, scenegraph_id)
 
   local widget_size = SETTINGS_LIST_BIG_WIDGET_SIZE
-  offset_y = offset_y - widget_size[2]
+  local offset_y = - widget_size[2]
 
   local definition = {
     element = {
@@ -496,10 +496,10 @@ end
 -- ╚██████╗██║  ██║███████╗╚██████╗██║  ██╗██████╔╝╚██████╔╝██╔╝ ██╗
 --  ╚═════╝╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚═╝  ╚═╝
 
-local function create_checkbox_widget(widget_definition, scenegraph_id, offset_y)
+local function create_checkbox_widget(widget_definition, scenegraph_id)
 
   local widget_size = SETTINGS_LIST_REGULAR_WIDGET_SIZE
-  offset_y = offset_y - widget_size[2]
+  local offset_y = - widget_size[2]
 
   local show_widget_condition = nil
   if widget_definition.show_widget_condition then
@@ -710,10 +710,10 @@ end
       new_widget_definition.parent_widget_number  = parent_number
 ]]
 
-local function create_stepper_widget(widget_definition, scenegraph_id, offset_y, options)
+local function create_stepper_widget(widget_definition, scenegraph_id)
 
   local widget_size = SETTINGS_LIST_REGULAR_WIDGET_SIZE
-  offset_y = offset_y - widget_size[2]
+  local offset_y = - widget_size[2]
 
   local show_widget_condition = nil
   if widget_definition.show_widget_condition then
@@ -1086,17 +1086,16 @@ VMFOptionsView.build_settings_list = function (self)
 
     for _, definition in ipairs(mod_settings_list_definition) do
 
-      local offset_y = -list_size_y
       local widget = nil
       local size_y = 0
       local widget_type = definition.widget_type
 
       if widget_type == "checkbox" then
-        widget = self:build_checkbox_widget(definition, scenegraph_id_start, offset_y)
+        widget = self:build_checkbox_widget(definition, scenegraph_id_start)
       elseif widget_type == "stepper" then
-        widget = self:build_stepper_widget(definition, scenegraph_id_start, offset_y)
+        widget = self:build_stepper_widget(definition, scenegraph_id_start)
       elseif widget_type == "header" then
-        widget = self:build_header_widget(definition, scenegraph_id_start, offset_y)
+        widget = self:build_header_widget(definition, scenegraph_id_start)
       end
 
       if widget then
@@ -1155,9 +1154,9 @@ VMFOptionsView.build_settings_list = function (self)
   return all_widgets
 end
 
-VMFOptionsView.build_header_widget = function (self, definition, scenegraph_id, offset_y)
+VMFOptionsView.build_header_widget = function (self, definition, scenegraph_id)
 
-  local widget = create_header_widget(definition, scenegraph_id, offset_y)
+  local widget = create_header_widget(definition, scenegraph_id)
   local content = widget.content
   content.is_checkbox_checked = definition.is_mod_toggable
   content.is_checkbox_visible = definition.is_mod_toggable
@@ -1169,9 +1168,9 @@ VMFOptionsView.build_header_widget = function (self, definition, scenegraph_id, 
   return widget
 end
 
-VMFOptionsView.build_stepper_widget = function (self, definition, scenegraph_id, offset_y)
+VMFOptionsView.build_stepper_widget = function (self, definition, scenegraph_id)
 
-  local widget = create_stepper_widget(definition, scenegraph_id, offset_y)
+  local widget = create_stepper_widget(definition, scenegraph_id)
   local content = widget.content
 
   content.callback_setting_changed = callback(self, "callback_setting_changed")
@@ -1180,9 +1179,9 @@ VMFOptionsView.build_stepper_widget = function (self, definition, scenegraph_id,
   return widget
 end
 
-VMFOptionsView.build_checkbox_widget = function (self, definition, scenegraph_id, offset_y)
+VMFOptionsView.build_checkbox_widget = function (self, definition, scenegraph_id)
 
-  local widget = create_checkbox_widget(definition, scenegraph_id, offset_y)
+  local widget = create_checkbox_widget(definition, scenegraph_id)
   local content = widget.content
 
   content.callback_setting_changed = callback(self, "callback_setting_changed")
@@ -1198,14 +1197,14 @@ VMFOptionsView.rearrange_settings_list = function (self)
   for _, mod_widgets in ipairs(self.settings_list_widgets) do
     for _, widget in ipairs(mod_widgets) do
       if widget.content.is_widget_visible then
-        widget.offset[2] = offset_y
-      else
+
+        widget.offset[2] = -offset_y
         offset_y = offset_y + ((widget.content.widget_type == "header") and SETTINGS_LIST_BIG_WIDGET_SIZE[2] or SETTINGS_LIST_REGULAR_WIDGET_SIZE[2])
       end
     end
   end
 
-  local list_size_y = self.original_settings_list_size_y - offset_y
+  local list_size_y = offset_y
   local mask_size_y = self.setting_list_mask_size_y
   local is_scrolling_enabled = false
   local max_offset_y = 0
