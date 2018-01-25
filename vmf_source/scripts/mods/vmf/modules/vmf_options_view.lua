@@ -1229,11 +1229,57 @@ VMFOptionsView.rearrange_settings_list = function (self)
   end
 end
 
+
+VMFOptionsView.sort_settings_list_widgets = function (self)
+
+  local sorted_settings_list_widgets = {}
+
+  local favorited_mods_widgets = {}
+  local favorited_mods_names = {}
+  local regular_mods_widgets = {}
+  local regular_mods_names = {}
+
+  for _, mod_widgets in ipairs(self.settings_list_widgets) do
+
+    if mod_widgets[1].content.is_favorited then
+      favorited_mods_widgets[mod_widgets[1].content.mod_name] = mod_widgets
+      table.insert(favorited_mods_names, mod_widgets[1].content.mod_name)
+    else
+      regular_mods_widgets[mod_widgets[1].content.text] = mod_widgets
+      table.insert(regular_mods_names, mod_widgets[1].content.text)
+    end
+  end
+
+  -- favorite mods sorting + cleaning up the favs list
+
+  local favorite_mods_list     = vmf:get("options_menu_favorite_mods")
+  local new_favorite_mods_list = {}
+
+  for _, mod_name in ipairs(favorite_mods_list) do
+      if favorited_mods_widgets[mod_name] then
+        table.insert(sorted_settings_list_widgets, favorited_mods_widgets[mod_name])
+        table.insert(new_favorite_mods_list, mod_name)
+      end
+  end
+
+  vmf:set("options_menu_favorite_mods", new_favorite_mods_list)
+
+  -- regular mods sorting (ABC order)
+
+  table.sort(regular_mods_names, function(a, b) return a:upper() < b:upper() end)
+
+  for _, mod_name in ipairs(regular_mods_names) do
+    table.insert(sorted_settings_list_widgets, regular_mods_widgets[mod_name])
+  end
+
+  self.settings_list_widgets = sorted_settings_list_widgets
+end
+
+
 VMFOptionsView.callback_favorite = function (self, widget_content)
 
   local mod_name = widget_content.mod_name
   local is_favorited = not widget_content.is_favorited
-
 
   local favorite_mods_list = vmf:get("options_menu_favorite_mods")
   favorite_mods_list = favorite_mods_list or {}
@@ -1241,7 +1287,7 @@ VMFOptionsView.callback_favorite = function (self, widget_content)
   if is_favorited then
     table.insert(favorite_mods_list, mod_name)
   else
-    for i, current_mod_name in pairs(favorite_mods_list) do
+    for i, current_mod_name in ipairs(favorite_mods_list) do
       if current_mod_name == mod_name then
         table.remove(favorite_mods_list, i)
         break
@@ -1252,6 +1298,9 @@ VMFOptionsView.callback_favorite = function (self, widget_content)
   vmf:set("options_menu_favorite_mods", favorite_mods_list)
 
   widget_content.is_favorited = is_favorited
+
+  self:sort_settings_list_widgets()
+  self:rearrange_settings_list()
 end
 
 
@@ -1639,6 +1688,7 @@ VMFOptionsView.on_enter = function (self)
 
   self.menu_active = true
 
+  self:sort_settings_list_widgets()
   self:update_picked_option_for_settings_list_widgets()
   self:update_settings_list_widgets_visibility()
   self:rearrange_settings_list()
