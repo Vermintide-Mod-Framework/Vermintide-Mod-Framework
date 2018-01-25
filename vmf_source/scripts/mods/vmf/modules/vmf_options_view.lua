@@ -14,6 +14,7 @@ inject_material("materials/header_background_lit", "header_background_lit", "ing
 inject_material("materials/common_widgets_background_lit", "common_widgets_background_lit", "ingame_ui")
 inject_material("materials/header_fav_icon", "header_fav_icon", "ingame_ui")
 inject_material("materials/header_fav_icon_lit", "header_fav_icon_lit", "ingame_ui")
+inject_material("materials/header_fav_arrow", "header_fav_arrow", "ingame_ui")
 
 --███████╗ ██████╗███████╗███╗   ██╗███████╗ ██████╗ ██████╗  █████╗ ██████╗ ██╗  ██╗███████╗
 --██╔════╝██╔════╝██╔════╝████╗  ██║██╔════╝██╔════╝ ██╔══██╗██╔══██╗██╔══██╗██║  ██║██╔════╝
@@ -306,6 +307,26 @@ local function create_header_widget(widget_definition, scenegraph_id)
           end
         },
         {
+          pass_type = "texture",
+
+          style_id   = "fav_arrow_up",
+          texture_id = "fav_arrow_texture",
+
+          content_check_function = function (content)
+            return content.is_favorited and content.highlight_hotspot.is_hover
+          end
+        },
+        {
+          pass_type = "rotated_texture",
+
+          style_id   = "fav_arrow_down",
+          texture_id = "fav_arrow_texture",
+
+          content_check_function = function (content)
+            return content.is_favorited and content.highlight_hotspot.is_hover
+          end
+        },
+        {
           pass_type = "text",
 
           style_id = "text",
@@ -326,10 +347,26 @@ local function create_header_widget(widget_definition, scenegraph_id)
           pass_type = "hotspot",
 
           style_id   = "fav_icon_hotspot",
-          content_id = "fav_icon_hotspot",
+          content_id = "fav_icon_hotspot"
+        },
+        {
+          pass_type = "hotspot",
+
+          style_id   = "fav_arrow_up_hotspot",
+          content_id = "fav_arrow_up_hotspot",
 
           content_check_function = function (content)
-            return content.parent.is_checkbox_visible
+            return content.parent.is_favorited
+          end
+        },
+        {
+          pass_type = "hotspot",
+
+          style_id   = "fav_arrow_down_hotspot",
+          content_id = "fav_arrow_down_hotspot",
+
+          content_check_function = function (content)
+            return content.parent.is_favorited
           end
         },
         {
@@ -353,13 +390,24 @@ local function create_header_widget(widget_definition, scenegraph_id)
 
           offset_function = function (ui_scenegraph, ui_style, ui_content, ui_renderer)
 
-            if ui_content.highlight_hotspot.on_release and not ui_content.checkbox_hotspot.on_release and not ui_content.fav_icon_hotspot.on_release then
+            if ui_content.highlight_hotspot.on_release and not ui_content.checkbox_hotspot.on_release and not ui_content.fav_icon_hotspot.on_release
+              and not ui_content.fav_arrow_up_hotspot.on_release and not ui_content.fav_arrow_down_hotspot.on_release then
+
               ui_content.callback_hide_sub_widgets(ui_content)
             end
 
             if ui_content.fav_icon_hotspot.on_release then
               ui_content.callback_favorite(ui_content)
             end
+
+            if ui_content.fav_arrow_up_hotspot.on_release then
+              ui_content.callback_move_favorite(ui_content, true)
+            end
+
+            if ui_content.fav_arrow_down_hotspot.on_release then
+              ui_content.callback_move_favorite(ui_content, false)
+            end
+
 
             if ui_content.checkbox_hotspot.on_release then
 
@@ -378,6 +426,8 @@ local function create_header_widget(widget_definition, scenegraph_id)
             ui_content.fav_icon_texture = ui_content.is_favorited and "header_fav_icon_lit" or "header_fav_icon"
             ui_content.background_texture = ui_content.is_widget_collapsed and "header_background_lit" or "header_background"
             ui_content.checkbox_texture = ui_content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
+            ui_style.fav_arrow_up.color[1] = ui_content.fav_arrow_up_hotspot.is_hover and 255 or 90
+            ui_style.fav_arrow_down.color[1] = ui_content.fav_arrow_down_hotspot.is_hover and 255 or 90
           end
         },
         -- DEBUG
@@ -413,10 +463,13 @@ local function create_header_widget(widget_definition, scenegraph_id)
       checkbox_texture   = "checkbox_unchecked",
       highlight_texture  = "playerlist_hover",
       background_texture = "header_background",
+      fav_arrow_texture  = "header_fav_arrow",
 
-      fav_icon_hotspot  = {},
-      checkbox_hotspot  = {},
-      highlight_hotspot = {},
+      fav_icon_hotspot        = {},
+      fav_arrow_up_hotspot    = {},
+      fav_arrow_down_hotspot  = {},
+      checkbox_hotspot        = {},
+      highlight_hotspot       = {},
 
       text = widget_definition.readable_mod_name,
 
@@ -444,6 +497,20 @@ local function create_header_widget(widget_definition, scenegraph_id)
         offset = {15, offset_y + 25, 3}
       },
 
+      fav_arrow_up = {
+        size = {20, 20},
+        offset = {20, offset_y + 57, 3},
+        color = {90, 255, 255, 255}
+      },
+
+      fav_arrow_down = {
+        size = {20, 20},
+        offset = {20, offset_y + 3, 3},
+        angle = math.pi,
+        pivot = {10, 10},
+        color = {90, 255, 255, 255}
+      },
+
       text = {
         offset = {60, offset_y + 18, 3},
         font_size = 28,
@@ -463,6 +530,16 @@ local function create_header_widget(widget_definition, scenegraph_id)
       fav_icon_hotspot = {
         size = {30, 30},
         offset = {15, offset_y + 25, 3}
+      },
+
+      fav_arrow_up_hotspot = {
+        size = {20, 20},
+        offset = {20, offset_y + 60, 3}
+      },
+
+      fav_arrow_down_hotspot = {
+        size = {20, 20},
+        offset = {20, offset_y, 3}
       },
 
       checkbox_hotspot = {
@@ -1162,6 +1239,7 @@ VMFOptionsView.build_header_widget = function (self, definition, scenegraph_id)
   content.is_checkbox_visible = definition.is_mod_toggable
 
   content.callback_favorite = callback(self, "callback_favorite")
+  content.callback_move_favorite = callback(self, "callback_move_favorite")
   content.callback_mod_suspend_state_changed = callback(self, "callback_mod_suspend_state_changed")
   content.callback_hide_sub_widgets = callback(self, "callback_hide_sub_widgets")
 
@@ -1304,6 +1382,32 @@ VMFOptionsView.callback_favorite = function (self, widget_content)
 end
 
 
+VMFOptionsView.callback_move_favorite = function (self, widget_content, is_moved_up)
+
+  local mod_name = widget_content.mod_name
+
+  local new_index = nil
+
+  local favorite_mods_list = vmf:get("options_menu_favorite_mods")
+
+  for i, current_mod_name in ipairs(favorite_mods_list) do
+    if current_mod_name == mod_name then
+
+      new_index = is_moved_up and (i - 1) or (i + 1)
+      new_index = math.min(math.max(new_index, 1), #favorite_mods_list)
+
+      table.insert(favorite_mods_list, new_index, table.remove(favorite_mods_list, i))
+      break
+    end
+  end
+
+  vmf:set("options_menu_favorite_mods", favorite_mods_list)
+
+  self:sort_settings_list_widgets()
+  self:rearrange_settings_list()
+end
+
+
 VMFOptionsView.callback_hide_sub_widgets = function (self, widget_content)
 
   local mod_name               = widget_content.mod_name
@@ -1379,7 +1483,7 @@ end
 
 VMFOptionsView.callback_setting_changed = function (self, mod_name, setting_name, old_value, new_value)
   --vmf:echo("CHANGED: " .. mod_name .. " " .. setting_name .. " " .. tostring(old_value) .. " " .. tostring(new_value))
-
+vmf:echo("whatever")
   if self.is_setting_changes_applied_immidiately then
     get_mod(mod_name):set(setting_name, new_value, true)
   end
