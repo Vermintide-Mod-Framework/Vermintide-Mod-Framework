@@ -10,6 +10,8 @@ material = [
 	"materials/header_background"
 	"materials/header_background_lit"
 	"materials/common_widgets_background_lit"
+	"materials/header_fav_icon"
+	"materials/header_fav_icon_lit"
 ]
 
 lua = [

@@ -12,6 +12,8 @@ local vmf = get_mod("VMF")
 inject_material("materials/header_background", "header_background", "ingame_ui")
 inject_material("materials/header_background_lit", "header_background_lit", "ingame_ui")
 inject_material("materials/common_widgets_background_lit", "common_widgets_background_lit", "ingame_ui")
+inject_material("materials/header_fav_icon", "header_fav_icon", "ingame_ui")
+inject_material("materials/header_fav_icon_lit", "header_fav_icon_lit", "ingame_ui")
 
 --███████╗ ██████╗███████╗███╗   ██╗███████╗ ██████╗ ██████╗  █████╗ ██████╗ ██╗  ██╗███████╗
 --██╔════╝██╔════╝██╔════╝████╗  ██║██╔════╝██╔════╝ ██╔══██╗██╔══██╗██╔══██╗██║  ██║██╔════╝
