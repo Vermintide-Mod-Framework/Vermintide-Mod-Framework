@@ -1682,102 +1682,104 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
 
   -- defining its subwidgets
 
-  local level                = 1
-  local parent_number        = new_widget_index
-  local parent_widget        = {["widget_type"] = "header", ["sub_widgets"] = widgets_definition}
-  local current_widget       = widgets_definition[1]
-  local current_widget_index = 1
+  if widgets_definition then
 
-  local parent_number_stack        = {}
-  local parent_widget_stack        = {}
-  local current_widget_index_stack = {}
+    local level                = 1
+    local parent_number        = new_widget_index
+    local parent_widget        = {["widget_type"] = "header", ["sub_widgets"] = widgets_definition}
+    local current_widget       = widgets_definition[1]
+    local current_widget_index = 1
 
-  while new_widget_index <= 256 do
+    local parent_number_stack        = {}
+    local parent_widget_stack        = {}
+    local current_widget_index_stack = {}
 
-    -- if 'nil', we reached the end of the current level widgets list and need to go up
-    if current_widget then
+    while new_widget_index <= 256 do
 
-      new_widget_index = new_widget_index + 1
+      -- if 'nil', we reached the end of the current level widgets list and need to go up
+      if current_widget then
 
-      new_widget_definition = {}
+        new_widget_index = new_widget_index + 1
 
-      new_widget_definition.widget_type   = current_widget.widget_type
-      new_widget_definition.widget_index  = new_widget_index
-      new_widget_definition.widget_level  = level
-      new_widget_definition.mod_name      = self._name
-      new_widget_definition.setting_name  = current_widget.setting_name
-      new_widget_definition.text          = current_widget.text
-      new_widget_definition.tooltip       = current_widget.tooltip
-      new_widget_definition.options       = current_widget.options
-      new_widget_definition.default_value = current_widget.default_value
-      new_widget_definition.show_widget_condition = current_widget.show_widget_condition
-      new_widget_definition.parent_widget_number  = parent_number
+        new_widget_definition = {}
 
-      if mod_collapsed_widgets then
-        new_widget_definition.is_widget_collapsed = mod_collapsed_widgets[current_widget.setting_name]
-      end
+        new_widget_definition.widget_type   = current_widget.widget_type
+        new_widget_definition.widget_index  = new_widget_index
+        new_widget_definition.widget_level  = level
+        new_widget_definition.mod_name      = self._name
+        new_widget_definition.setting_name  = current_widget.setting_name
+        new_widget_definition.text          = current_widget.text
+        new_widget_definition.tooltip       = current_widget.tooltip
+        new_widget_definition.options       = current_widget.options
+        new_widget_definition.default_value = current_widget.default_value
+        new_widget_definition.show_widget_condition = current_widget.show_widget_condition
+        new_widget_definition.parent_widget_number  = parent_number
 
-      check_widget_definition(self, new_widget_definition)
-
-      if type(self:get(current_widget.setting_name)) == "nil" then
-        self:set(current_widget.setting_name, current_widget.default_value)
-      end
-
-      table.insert(mod_settings_list_widgets_definitions, new_widget_definition)
-    end
-
-    if current_widget and (current_widget.widget_type == "header" or current_widget.widget_type == "checkbox"
-      or current_widget.widget_type == "stepper") and current_widget.sub_widgets then
-
-      -- going down to the first subwidget
-
-      level = level + 1
-
-      table.insert(parent_number_stack, parent_number)
-      parent_number = new_widget_index
-
-      table.insert(parent_widget_stack, parent_widget)
-      parent_widget = current_widget
-
-      table.insert(current_widget_index_stack, current_widget_index)
-      current_widget_index = 1
-      current_widget = current_widget.sub_widgets[1]
-
-    else
-      current_widget_index = current_widget_index + 1
-
-      if parent_widget.sub_widgets[current_widget_index] then
-        -- going to the next widget
-        current_widget = parent_widget.sub_widgets[current_widget_index]
-      else
-
-        -- going up to the widget next to the parent one
-
-        level = level - 1
-
-        parent_number = table.remove(parent_number_stack)
-
-        parent_widget = table.remove(parent_widget_stack)
-
-        current_widget_index = table.remove(current_widget_index_stack)
-
-        if not current_widget_index then
-          break
+        if mod_collapsed_widgets then
+          new_widget_definition.is_widget_collapsed = mod_collapsed_widgets[current_widget.setting_name]
         end
 
+        check_widget_definition(self, new_widget_definition)
+
+        if type(self:get(current_widget.setting_name)) == "nil" then
+          self:set(current_widget.setting_name, current_widget.default_value)
+        end
+
+        table.insert(mod_settings_list_widgets_definitions, new_widget_definition)
+      end
+
+      if current_widget and (current_widget.widget_type == "header" or current_widget.widget_type == "checkbox"
+        or current_widget.widget_type == "stepper") and current_widget.sub_widgets then
+
+        -- going down to the first subwidget
+
+        level = level + 1
+
+        table.insert(parent_number_stack, parent_number)
+        parent_number = new_widget_index
+
+        table.insert(parent_widget_stack, parent_widget)
+        parent_widget = current_widget
+
+        table.insert(current_widget_index_stack, current_widget_index)
+        current_widget_index = 1
+        current_widget = current_widget.sub_widgets[1]
+
+      else
         current_widget_index = current_widget_index + 1
 
-        -- widget next to parent one, or 'nil', if there are no more widgets on this level
-        current_widget = parent_widget.sub_widgets[current_widget_index]
+        if parent_widget.sub_widgets[current_widget_index] then
+          -- going to the next widget
+          current_widget = parent_widget.sub_widgets[current_widget_index]
+        else
+
+          -- going up to the widget next to the parent one
+
+          level = level - 1
+
+          parent_number = table.remove(parent_number_stack)
+
+          parent_widget = table.remove(parent_widget_stack)
+
+          current_widget_index = table.remove(current_widget_index_stack)
+
+          if not current_widget_index then
+            break
+          end
+
+          current_widget_index = current_widget_index + 1
+
+          -- widget next to parent one, or 'nil', if there are no more widgets on this level
+          current_widget = parent_widget.sub_widgets[current_widget_index]
+        end
       end
     end
-  end
 
-  if new_widget_index == 257 then -- @TODO: remove it later
-    vmf:echo("The limit of options was reached. Something's wrong")
+    if new_widget_index == 257 then -- @TODO: remove it later
+      vmf:echo("The limit of options was reached. Something's wrong")
+    end
   end
-
-  table.dump(mod_settings_list_widgets_definitions, "mod_settings_list_widgets_definitions", 3) -- @TODO: remove it later
+  --table.dump(mod_settings_list_widgets_definitions, "mod_settings_list_widgets_definitions", 3) -- @TODO: remove it later
 
   table.insert(SETTINGS_LIST_WIDGETS_DEFINITIONS, mod_settings_list_widgets_definitions)
 end
