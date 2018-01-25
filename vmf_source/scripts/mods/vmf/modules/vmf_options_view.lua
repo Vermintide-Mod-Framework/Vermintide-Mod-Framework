@@ -281,6 +281,51 @@ local function create_header_widget(widget_definition, scenegraph_id)
       passes = {
         -- VISUALS
         {
+          pass_type = "local_offset",
+
+          offset_function = function (ui_scenegraph, ui_style, ui_content, ui_renderer)
+
+            if ui_content.highlight_hotspot.on_release and not ui_content.checkbox_hotspot.on_release and not ui_content.fav_icon_hotspot.on_release
+              and not ui_content.fav_arrow_up_hotspot.on_release and not ui_content.fav_arrow_down_hotspot.on_release then
+
+              ui_content.callback_hide_sub_widgets(ui_content)
+            end
+
+            if ui_content.fav_icon_hotspot.on_release then
+              ui_content.callback_favorite(ui_content)
+            end
+
+            if ui_content.fav_arrow_up_hotspot.on_release then
+              ui_content.callback_move_favorite(ui_content, true)
+            end
+
+            if ui_content.fav_arrow_down_hotspot.on_release then
+              ui_content.callback_move_favorite(ui_content, false)
+            end
+
+
+            if ui_content.checkbox_hotspot.on_release then
+
+              if ui_content.is_widget_collapsed then
+                ui_content.callback_hide_sub_widgets(ui_content)
+              end
+
+              local mod_name         = ui_content.mod_name
+              local is_mod_suspended = ui_content.is_checkbox_checked
+
+              ui_content.is_checkbox_checked = not ui_content.is_checkbox_checked
+
+              ui_content.callback_mod_suspend_state_changed(mod_name, is_mod_suspended)
+            end
+
+            ui_content.fav_icon_texture = ui_content.is_favorited and "header_fav_icon_lit" or "header_fav_icon"
+            ui_content.background_texture = ui_content.is_widget_collapsed and "header_background_lit" or "header_background"
+            ui_content.checkbox_texture = ui_content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
+            ui_style.fav_arrow_up.color[1] = ui_content.fav_arrow_up_hotspot.is_hover and 255 or 90
+            ui_style.fav_arrow_down.color[1] = ui_content.fav_arrow_down_hotspot.is_hover and 255 or 90
+          end
+        },
+        {
           pass_type = "texture",
 
           style_id   = "background",
@@ -385,51 +430,6 @@ local function create_header_widget(widget_definition, scenegraph_id)
           content_id = "highlight_hotspot"
         },
         -- PROCESSING
-        {
-          pass_type = "local_offset",
-
-          offset_function = function (ui_scenegraph, ui_style, ui_content, ui_renderer)
-
-            if ui_content.highlight_hotspot.on_release and not ui_content.checkbox_hotspot.on_release and not ui_content.fav_icon_hotspot.on_release
-              and not ui_content.fav_arrow_up_hotspot.on_release and not ui_content.fav_arrow_down_hotspot.on_release then
-
-              ui_content.callback_hide_sub_widgets(ui_content)
-            end
-
-            if ui_content.fav_icon_hotspot.on_release then
-              ui_content.callback_favorite(ui_content)
-            end
-
-            if ui_content.fav_arrow_up_hotspot.on_release then
-              ui_content.callback_move_favorite(ui_content, true)
-            end
-
-            if ui_content.fav_arrow_down_hotspot.on_release then
-              ui_content.callback_move_favorite(ui_content, false)
-            end
-
-
-            if ui_content.checkbox_hotspot.on_release then
-
-              if ui_content.is_widget_collapsed then
-                ui_content.callback_hide_sub_widgets(ui_content)
-              end
-
-              local mod_name         = ui_content.mod_name
-              local is_mod_suspended = ui_content.is_checkbox_checked
-
-              ui_content.is_checkbox_checked = not ui_content.is_checkbox_checked
-
-              ui_content.callback_mod_suspend_state_changed(mod_name, is_mod_suspended)
-            end
-
-            ui_content.fav_icon_texture = ui_content.is_favorited and "header_fav_icon_lit" or "header_fav_icon"
-            ui_content.background_texture = ui_content.is_widget_collapsed and "header_background_lit" or "header_background"
-            ui_content.checkbox_texture = ui_content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
-            ui_style.fav_arrow_up.color[1] = ui_content.fav_arrow_up_hotspot.is_hover and 255 or 90
-            ui_style.fav_arrow_down.color[1] = ui_content.fav_arrow_down_hotspot.is_hover and 255 or 90
-          end
-        },
         -- DEBUG
         {
           pass_type = "border",
@@ -1330,17 +1330,21 @@ VMFOptionsView.sort_settings_list_widgets = function (self)
 
   -- favorite mods sorting + cleaning up the favs list
 
-  local favorite_mods_list     = vmf:get("options_menu_favorite_mods")
-  local new_favorite_mods_list = {}
+  local favorite_mods_list = vmf:get("options_menu_favorite_mods")
+  if favorite_mods_list then
 
-  for _, mod_name in ipairs(favorite_mods_list) do
-      if favorited_mods_widgets[mod_name] then
-        table.insert(sorted_settings_list_widgets, favorited_mods_widgets[mod_name])
-        table.insert(new_favorite_mods_list, mod_name)
-      end
-  end
+    local new_favorite_mods_list = {}
+
+    for _, mod_name in ipairs(favorite_mods_list) do
+        if favorited_mods_widgets[mod_name] then
+          table.insert(sorted_settings_list_widgets, favorited_mods_widgets[mod_name])
+          table.insert(new_favorite_mods_list, mod_name)
+        end
+    end
 
   vmf:set("options_menu_favorite_mods", new_favorite_mods_list)
+  end
+
 
   -- regular mods sorting (ABC order)
 
