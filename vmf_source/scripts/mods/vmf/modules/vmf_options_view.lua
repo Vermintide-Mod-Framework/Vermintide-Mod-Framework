@@ -1314,6 +1314,7 @@ VMFOptionsView.sort_settings_list_widgets = function (self)
 
   local favorited_mods_widgets = {}
   local favorited_mods_names = {}
+
   local regular_mods_widgets = {}
   local regular_mods_names = {}
 
@@ -1323,8 +1324,17 @@ VMFOptionsView.sort_settings_list_widgets = function (self)
       favorited_mods_widgets[mod_widgets[1].content.mod_name] = mod_widgets
       table.insert(favorited_mods_names, mod_widgets[1].content.mod_name)
     else
+
+    -- if there are 2 (or more) mods with the absolutely same name
+    if regular_mods_widgets[mod_widgets[1].content.text] then
+      local random_number = tostring(math.random(10000))
+
+      regular_mods_widgets[mod_widgets[1].content.text .. random_number] = mod_widgets
+      table.insert(regular_mods_names, mod_widgets[1].content.text .. random_number)
+    else
       regular_mods_widgets[mod_widgets[1].content.text] = mod_widgets
       table.insert(regular_mods_names, mod_widgets[1].content.text)
+    end
     end
   end
 
@@ -1342,7 +1352,7 @@ VMFOptionsView.sort_settings_list_widgets = function (self)
         end
     end
 
-  vmf:set("options_menu_favorite_mods", new_favorite_mods_list)
+    vmf:set("options_menu_favorite_mods", new_favorite_mods_list)
   end
 
 
@@ -1487,7 +1497,7 @@ end
 
 VMFOptionsView.callback_setting_changed = function (self, mod_name, setting_name, old_value, new_value)
   --vmf:echo("CHANGED: " .. mod_name .. " " .. setting_name .. " " .. tostring(old_value) .. " " .. tostring(new_value))
-vmf:echo("whatever")
+
   if self.is_setting_changes_applied_immidiately then
     get_mod(mod_name):set(setting_name, new_value, true)
   end
