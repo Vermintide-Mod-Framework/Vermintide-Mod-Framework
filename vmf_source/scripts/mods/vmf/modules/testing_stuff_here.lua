@@ -88,7 +88,7 @@ local options_widgets = {
       ["default_value"] = true -- Default first option is enabled. In this case Below
     }
   }
-
+--[[
   mod:create_options(options_widgets, true, "Salvage on the Loottable", "Mod description")
 
   local mod = new_mod("test_mod2")
@@ -105,3 +105,4 @@ local options_widgets = {
 
   local mod = new_mod("test_mod6")
   mod:create_options(options_widgets, true, "Kick & Ban", "Mod description")
+  ]]
