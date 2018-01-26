@@ -273,20 +273,12 @@ end)
 ------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------
 
-local mod = new_mod("DisableThings")
+local mod = new_mod("SkipSplashScreen")
 
 mod:hook("StateSplashScreen.on_enter", function(func, self)
   self._skip_splash = true
   func(self)
 end)
-
-mod:hook("SplashView.init", function(self, input_manager, world)
-  return
-end)
-mod:hook("SplashView.set_index", function(self, index)
-  return
-end)
-
 
 mod:hook("StateSplashScreen.setup_splash_screen_view", function(func, self)
   func(self)
