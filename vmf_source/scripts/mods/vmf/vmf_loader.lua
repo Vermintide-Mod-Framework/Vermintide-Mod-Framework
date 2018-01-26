@@ -4,6 +4,7 @@ return{
 		dofile("scripts/mods/vmf/modules/dev_console")
 		dofile("scripts/mods/vmf/modules/mods")
 		dofile("scripts/mods/vmf/modules/hooks")
+		dofile("scripts/mods/vmf/modules/chat")
 		dofile("scripts/mods/vmf/modules/gui")
 		dofile("scripts/mods/vmf/modules/settings")
 		dofile("scripts/mods/vmf/modules/vmf_options_view")
@@ -38,5 +39,9 @@ return{
 		print("VMF:ON_GAME_STATE_CHANGED(), status: " .. tostring(status) .. ", state: " .. tostring(state))
 		object.vmf.mods_game_state_changed(status, state)
 		object.vmf.save_unsaved_settings_to_file()
+
+		if status == "exit" and state == "StateTitleScreen" then
+			object.vmf.hook_chat_manager()
+		end
 	end
 }

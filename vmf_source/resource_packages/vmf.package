@@ -20,6 +20,7 @@ lua = [
   "scripts/mods/vmf/modules/dev_console"
   "scripts/mods/vmf/modules/mods"
   "scripts/mods/vmf/modules/hooks"
+  "scripts/mods/vmf/modules/chat"
   "scripts/mods/vmf/modules/settings"
   "scripts/mods/vmf/modules/gui"
   "scripts/mods/vmf/modules/vmf_options_view"

@@ -42,11 +42,14 @@ VMFMod.echo = function (self, message, show_mod_name)
 
   print("[ECHO][" .. self._name .. "] " .. message)
 
+  if show_mod_name then
+    message = "[" .. self._name .. "] " .. message
+  end
+
   if Managers.chat and Managers.chat:has_channel(1) then
-    if show_mod_name then
-      message = "[" .. self._name .. "] " .. message
-    end
     Managers.chat:add_local_system_message(1, message, true)
+  else
+    table.insert(vmf.unsended_chat_messages, message)
   end
 end
 
@@ -75,10 +78,16 @@ VMFMod.dofile = function (self, script_path)
   return value
 end
 -- ####################################################################################################################
--- ##### Event functions ##############################################################################################
+-- ##### VMF Initialization ###########################################################################################
 -- ####################################################################################################################
 
 vmf = new_mod("VMF")
+
+vmf.unsended_chat_messages = {}
+
+-- ####################################################################################################################
+-- ##### Event functions ##############################################################################################
+-- ####################################################################################################################
 
 -- call 'unload' for every mod which definded it
 vmf.mods_unload = function()
