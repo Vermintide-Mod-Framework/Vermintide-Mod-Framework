@@ -8,10 +8,10 @@ set TEMP_DIR=.\TEMP
 set ORIGINAL_VMF_BUNDLE_FILE_NAME=98161451961848df
 set NEW_VMF_BUNDLE_FILE_NAME=000_VMF_Main_Bundle
 
-:: default paths (in case this batch file won't be able to find steam installation folders) [you can change them :D]
+:: manual setting pathes (in case this batch file won't be able to find steam installation folders) [you can change them :D]
 
-set MODS_DIR=C:\Program Files (x86)\Steam\steamapps\common\Warhammer End Times Vermintide\bundle\mods
-set STINGRAY_EXE=C:\Program Files (x86)\Steam\steamapps\common\Warhammer End Times Vermintide Mod Tools\bin\stingray_win64_dev_x64.exe
+set MANUAL_MODS_DIR=C:\Program Files (x86)\Steam\steamapps\common\Warhammer End Times Vermintide\bundle\mods
+set MANUAL_STINGRAY_EXE=C:\Program Files (x86)\Steam\steamapps\common\Warhammer End Times Vermintide Mod Tools\bin\stingray_win64_dev_x64.exe
 
 :: find Vermintide folder
 
@@ -34,25 +34,29 @@ FOR /F "usebackq skip=2 tokens=1-2*" %%A in (`REG QUERY %KEY_NAME% /v %VALUE_NAM
 
 :: checking if Vermintide mods folder and Sringray binary exist
 
+if not exist "%MODS_DIR%" set MODS_DIR=%MANUAL_MODS_DIR%
+
 if not exist "%MODS_DIR%" (
-  @echo ERROR: Vermintide install location not found. Script execution aborted.
+  echo ERROR: Vermintide install location not found. Script execution aborted.
   pause
   exit
 )
 
+if not exist "%STINGRAY_EXE%" set MODS_DIR=%MANUAL_STINGRAY_EXE%
+
 if not exist "%STINGRAY_EXE%" (
-  @echo ERROR: stingray_win64_dev_x64.exe not found. Script execution aborted.
+  echo ERROR: stingray_win64_dev_x64.exe not found. Script execution aborted.
   pause
   exit
 )
 
 ::compiling
 
-@echo Starting...
+echo Starting...
 
 "%STINGRAY_EXE%" --compile-for win32 --source-dir "%SOUCE_CODE_DIR%" --data-dir "%TEMP_DIR%\compile" --bundle-dir "%TEMP_DIR%\bundle"
 
-@echo Done.
+echo Done.
 
 ::moving compiled file to the mods directory (overwritting if needed)
 
