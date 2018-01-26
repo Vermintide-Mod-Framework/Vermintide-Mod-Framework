@@ -9,7 +9,7 @@ HOOKED_FUNCTIONS = HOOKED_FUNCTIONS or {} -- global, because 'loadstring' doesn'
 
 local function get_function_by_name(function_name)
 
-  local _, value = vmf:pcall(loadstring("return " .. function_name))
+  local _, value = pcall(loadstring("return " .. function_name))
   -- no need to check status of 'pcall' - if there will be error, it's gonna be string instead of function
   -- also, it can be anything else instead of function, even if 'loadstring' run will be successful, so check it
   if type(value) == "function" then
