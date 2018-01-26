@@ -281,51 +281,6 @@ local function create_header_widget(widget_definition, scenegraph_id)
       passes = {
         -- VISUALS
         {
-          pass_type = "local_offset",
-
-          offset_function = function (ui_scenegraph, ui_style, ui_content, ui_renderer)
-
-            if ui_content.highlight_hotspot.on_release and not ui_content.checkbox_hotspot.on_release and not ui_content.fav_icon_hotspot.on_release
-              and not ui_content.fav_arrow_up_hotspot.on_release and not ui_content.fav_arrow_down_hotspot.on_release then
-
-              ui_content.callback_hide_sub_widgets(ui_content)
-            end
-
-            if ui_content.fav_icon_hotspot.on_release then
-              ui_content.callback_favorite(ui_content)
-            end
-
-            if ui_content.fav_arrow_up_hotspot.on_release then
-              ui_content.callback_move_favorite(ui_content, true)
-            end
-
-            if ui_content.fav_arrow_down_hotspot.on_release then
-              ui_content.callback_move_favorite(ui_content, false)
-            end
-
-
-            if ui_content.checkbox_hotspot.on_release then
-
-              if ui_content.is_widget_collapsed then
-                ui_content.callback_hide_sub_widgets(ui_content)
-              end
-
-              local mod_name         = ui_content.mod_name
-              local is_mod_suspended = ui_content.is_checkbox_checked
-
-              ui_content.is_checkbox_checked = not ui_content.is_checkbox_checked
-
-              ui_content.callback_mod_suspend_state_changed(mod_name, is_mod_suspended)
-            end
-
-            ui_content.fav_icon_texture = ui_content.is_favorited and "header_fav_icon_lit" or "header_fav_icon"
-            ui_content.background_texture = ui_content.is_widget_collapsed and "header_background_lit" or "header_background"
-            ui_content.checkbox_texture = ui_content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
-            ui_style.fav_arrow_up.color[1] = ui_content.fav_arrow_up_hotspot.is_hover and 255 or 90
-            ui_style.fav_arrow_down.color[1] = ui_content.fav_arrow_down_hotspot.is_hover and 255 or 90
-          end
-        },
-        {
           pass_type = "texture",
 
           style_id   = "background",
@@ -429,6 +384,56 @@ local function create_header_widget(widget_definition, scenegraph_id)
 
           content_id = "highlight_hotspot"
         },
+        -- PROCESSING
+        {
+          pass_type = "local_offset",
+
+          offset_function = function (ui_scenegraph, ui_style, ui_content, ui_renderer)
+
+            if ui_content.highlight_hotspot.is_hover and ui_content.tooltip_text then
+              ui_style.tooltip_text.cursor_offset = ui_content.callback_fit_tooltip_to_the_screen(ui_content, ui_style.tooltip_text, ui_renderer)
+            end
+
+            if ui_content.highlight_hotspot.on_release and not ui_content.checkbox_hotspot.on_release and not ui_content.fav_icon_hotspot.on_release
+              and not ui_content.fav_arrow_up_hotspot.on_release and not ui_content.fav_arrow_down_hotspot.on_release then
+
+              ui_content.callback_hide_sub_widgets(ui_content)
+            end
+
+            if ui_content.fav_icon_hotspot.on_release then
+              ui_content.callback_favorite(ui_content)
+            end
+
+            if ui_content.fav_arrow_up_hotspot.on_release then
+              ui_content.callback_move_favorite(ui_content, true)
+            end
+
+            if ui_content.fav_arrow_down_hotspot.on_release then
+              ui_content.callback_move_favorite(ui_content, false)
+            end
+
+
+            if ui_content.checkbox_hotspot.on_release then
+
+              if ui_content.is_widget_collapsed then
+                ui_content.callback_hide_sub_widgets(ui_content)
+              end
+
+              local mod_name         = ui_content.mod_name
+              local is_mod_suspended = ui_content.is_checkbox_checked
+
+              ui_content.is_checkbox_checked = not ui_content.is_checkbox_checked
+
+              ui_content.callback_mod_suspend_state_changed(mod_name, is_mod_suspended)
+            end
+
+            ui_content.fav_icon_texture = ui_content.is_favorited and "header_fav_icon_lit" or "header_fav_icon"
+            ui_content.background_texture = ui_content.is_widget_collapsed and "header_background_lit" or "header_background"
+            ui_content.checkbox_texture = ui_content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
+            ui_style.fav_arrow_up.color[1] = ui_content.fav_arrow_up_hotspot.is_hover and 255 or 90
+            ui_style.fav_arrow_down.color[1] = ui_content.fav_arrow_down_hotspot.is_hover and 255 or 90
+          end
+        },
         -- TOOLTIP
         {
           pass_type = "tooltip_text",
@@ -439,7 +444,6 @@ local function create_header_widget(widget_definition, scenegraph_id)
             return content.tooltip_text and content.highlight_hotspot.is_hover
           end
         },
-        -- PROCESSING
         -- DEBUG
         {
           pass_type = "border",
@@ -562,12 +566,14 @@ local function create_header_widget(widget_definition, scenegraph_id)
 
       tooltip_text = {
         font_type = "hell_shark",
-        font_size = 24,
+        font_size = 18,
         horizontal_alignment = "left",
         vertical_alignment = "top",
-        cursor_side = "left",
+        cursor_side = "right",
         max_width = 600,
-        cursor_offset = {-10, -27},
+        cursor_offset = {27, 27},
+        cursor_offset_bottom = {27, 27},
+        cursor_offset_top = {27, -27},
         line_colors = {
           Colors.get_color_table_with_alpha("cheeseburger", 255),
           Colors.get_color_table_with_alpha("white", 255)
@@ -660,21 +666,15 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
 
           content_id = "highlight_hotspot"
         },
-        -- TOOLTIP
-        {
-          pass_type = "tooltip_text",
-
-          text_id  = "tooltip_text",
-          style_id = "tooltip_text",
-          content_check_function = function (content)
-            return content.tooltip_text and content.highlight_hotspot.is_hover
-          end
-        },
         -- PROCESSING
         {
           pass_type = "local_offset",
 
           offset_function = function (ui_scenegraph, ui_style, ui_content, ui_renderer)
+
+            if ui_content.highlight_hotspot.is_hover and ui_content.tooltip_text then
+              ui_style.tooltip_text.cursor_offset = ui_content.callback_fit_tooltip_to_the_screen(ui_content, ui_style.tooltip_text, ui_renderer)
+            end
 
             if ui_content.highlight_hotspot.on_release and not ui_content.checkbox_hotspot.on_release then
               ui_content.callback_hide_sub_widgets(ui_content)
@@ -697,6 +697,16 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
             end
 
             ui_content.checkbox_texture = ui_content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
+          end
+        },
+        -- TOOLTIP
+        {
+          pass_type = "tooltip_text",
+
+          text_id  = "tooltip_text",
+          style_id = "tooltip_text",
+          content_check_function = function (content)
+            return content.tooltip_text and content.highlight_hotspot.is_hover
           end
         },
         -- DEBUG
@@ -789,12 +799,14 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
 
       tooltip_text = {
         font_type = "hell_shark",
-        font_size = 24,
+        font_size = 18,
         horizontal_alignment = "left",
         vertical_alignment = "top",
-        cursor_side = "left",
+        cursor_side = "right",
         max_width = 600,
-        cursor_offset = {-10, -27},
+        cursor_offset = {27, 27},
+        cursor_offset_bottom = {27, 27},
+        cursor_offset_top = {27, -27},
         line_colors = {
           Colors.get_color_table_with_alpha("cheeseburger", 255),
           Colors.get_color_table_with_alpha("white", 255)
@@ -927,21 +939,15 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
           style_id = "right_arrow_hotspot",
           content_id = "right_arrow_hotspot"
         },
-        -- TOOLTIP
-        {
-          pass_type = "tooltip_text",
-
-          text_id  = "tooltip_text",
-          style_id = "tooltip_text",
-          content_check_function = function (content)
-            return content.tooltip_text and content.highlight_hotspot.is_hover
-          end
-        },
         -- PROCESSING
         {
           pass_type = "local_offset",
 
           offset_function = function (ui_scenegraph, ui_style, ui_content, ui_renderer)
+
+            if ui_content.highlight_hotspot.is_hover and ui_content.tooltip_text then
+              ui_style.tooltip_text.cursor_offset = ui_content.callback_fit_tooltip_to_the_screen(ui_content, ui_style.tooltip_text, ui_renderer)
+            end
 
             if ui_content.highlight_hotspot.on_release and not ui_content.left_arrow_hotspot.on_release and not ui_content.right_arrow_hotspot.on_release then
               ui_content.callback_hide_sub_widgets(ui_content)
@@ -973,6 +979,16 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
 
             ui_content.left_arrow_texture = ui_content.left_arrow_hotspot.is_hover and "settings_arrow_clicked" or "settings_arrow_normal"
             ui_content.right_arrow_texture = ui_content.right_arrow_hotspot.is_hover and "settings_arrow_clicked" or "settings_arrow_normal"
+          end
+        },
+        -- TOOLTIP
+        {
+          pass_type = "tooltip_text",
+
+          text_id  = "tooltip_text",
+          style_id = "tooltip_text",
+          content_check_function = function (content, style)
+            return content.tooltip_text and content.highlight_hotspot.is_hover
           end
         },
         -- DEBUG
@@ -1096,12 +1112,14 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
 
       tooltip_text = {
         font_type = "hell_shark",
-        font_size = 24,
+        font_size = 18,
         horizontal_alignment = "left",
         vertical_alignment = "top",
-        cursor_side = "left",
+        cursor_side = "right",
         max_width = 600,
-        cursor_offset = {-10, -27},
+        cursor_offset = {27, 27},
+        cursor_offset_bottom = {27, 27},
+        cursor_offset_top = {27, -27},
         line_colors = {
           Colors.get_color_table_with_alpha("cheeseburger", 255),
           Colors.get_color_table_with_alpha("white", 255)
@@ -1323,6 +1341,7 @@ VMFOptionsView.build_header_widget = function (self, definition, scenegraph_id)
   content.callback_move_favorite = callback(self, "callback_move_favorite")
   content.callback_mod_suspend_state_changed = callback(self, "callback_mod_suspend_state_changed")
   content.callback_hide_sub_widgets = callback(self, "callback_hide_sub_widgets")
+  content.callback_fit_tooltip_to_the_screen = callback(self, "callback_fit_tooltip_to_the_screen")
 
   return widget
 end
@@ -1334,6 +1353,7 @@ VMFOptionsView.build_stepper_widget = function (self, definition, scenegraph_id)
 
   content.callback_setting_changed = callback(self, "callback_setting_changed")
   content.callback_hide_sub_widgets = callback(self, "callback_hide_sub_widgets")
+  content.callback_fit_tooltip_to_the_screen = callback(self, "callback_fit_tooltip_to_the_screen")
 
   return widget
 end
@@ -1345,6 +1365,7 @@ VMFOptionsView.build_checkbox_widget = function (self, definition, scenegraph_id
 
   content.callback_setting_changed = callback(self, "callback_setting_changed")
   content.callback_hide_sub_widgets = callback(self, "callback_hide_sub_widgets")
+  content.callback_fit_tooltip_to_the_screen = callback(self, "callback_fit_tooltip_to_the_screen")
 
   return widget
 end
@@ -1446,6 +1467,49 @@ VMFOptionsView.sort_settings_list_widgets = function (self)
   end
 
   self.settings_list_widgets = sorted_settings_list_widgets
+end
+
+
+VMFOptionsView.callback_fit_tooltip_to_the_screen = function (self, widget_content, widget_style, ui_renderer)
+
+  local cursor_offset_bottom = widget_style.cursor_offset_bottom
+
+  if ui_renderer.input_service then
+
+    local cursor_position = UIInverseScaleVectorToResolution(ui_renderer.input_service.get(ui_renderer.input_service, "cursor"))
+    if cursor_position then
+
+      local text = widget_content.tooltip_text
+      local max_width = widget_style.max_width
+
+      local font, font_size = UIFontByResolution(widget_style)
+      local font_name = font[3]
+      local font_material = font[1]
+
+      local _, font_min, font_max = UIGetFontHeight(ui_renderer.gui, font_name, font_size)
+
+
+
+      local texts = UIRenderer.word_wrap(ui_renderer, text, font_material, font_size, max_width)
+      local num_texts = #texts
+      local full_font_height = (font_max + math.abs(font_min)) * RESOLUTION_LOOKUP.inv_scale
+
+      local tooltip_height = full_font_height * num_texts
+
+      if((cursor_offset_bottom[2] / UIResolutionScale() + tooltip_height) > cursor_position[2]) then
+
+        local cursor_offset_top = {}
+        cursor_offset_top[1] = widget_style.cursor_offset_top[1]
+        cursor_offset_top[2] = widget_style.cursor_offset_top[2] - (tooltip_height * UIResolutionScale())
+
+        return cursor_offset_top
+      else
+        return cursor_offset_bottom
+      end
+    end
+  end
+
+  return cursor_offset_bottom
 end
 
 
