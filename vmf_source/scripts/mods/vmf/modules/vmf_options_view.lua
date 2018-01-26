@@ -429,6 +429,16 @@ local function create_header_widget(widget_definition, scenegraph_id)
 
           content_id = "highlight_hotspot"
         },
+        -- TOOLTIP
+        {
+          pass_type = "tooltip_text",
+
+          text_id  = "tooltip_text",
+          style_id = "tooltip_text",
+          content_check_function = function (content)
+            return content.tooltip_text and content.highlight_hotspot.is_hover
+          end
+        },
         -- PROCESSING
         -- DEBUG
         {
@@ -472,6 +482,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
       highlight_hotspot       = {},
 
       text = widget_definition.readable_mod_name,
+      tooltip_text = widget_definition.tooltip,
 
       mod_name = widget_definition.mod_name,
       widget_type = widget_definition.widget_type,
@@ -545,6 +556,22 @@ local function create_header_widget(widget_definition, scenegraph_id)
       checkbox_hotspot = {
         size = {80, 80},
         offset = {widget_size[1] - 205, offset_y, 0}
+      },
+
+      -- TOOLTIP
+
+      tooltip_text = {
+        font_type = "hell_shark",
+        font_size = 24,
+        horizontal_alignment = "left",
+        vertical_alignment = "top",
+        cursor_side = "left",
+        max_width = 600,
+        cursor_offset = {-10, -27},
+        line_colors = {
+          Colors.get_color_table_with_alpha("cheeseburger", 255),
+          Colors.get_color_table_with_alpha("white", 255)
+        }
       },
 
       -- DEBUG
@@ -633,6 +660,16 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
 
           content_id = "highlight_hotspot"
         },
+        -- TOOLTIP
+        {
+          pass_type = "tooltip_text",
+
+          text_id  = "tooltip_text",
+          style_id = "tooltip_text",
+          content_check_function = function (content)
+            return content.tooltip_text and content.highlight_hotspot.is_hover
+          end
+        },
         -- PROCESSING
         {
           pass_type = "local_offset",
@@ -704,6 +741,7 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
       highlight_hotspot = {},
 
       text = widget_definition.text,
+      tooltip_text = widget_definition.tooltip,
 
       mod_name = widget_definition.mod_name,
       setting_name = widget_definition.setting_name,
@@ -745,6 +783,22 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
       checkbox_hotspot = {
         size = {30, 30},
         offset = {widget_size[1] - 180, offset_y + 10, 0},
+      },
+
+      -- TOOLTIP
+
+      tooltip_text = {
+        font_type = "hell_shark",
+        font_size = 24,
+        horizontal_alignment = "left",
+        vertical_alignment = "top",
+        cursor_side = "left",
+        max_width = 600,
+        cursor_offset = {-10, -27},
+        line_colors = {
+          Colors.get_color_table_with_alpha("cheeseburger", 255),
+          Colors.get_color_table_with_alpha("white", 255)
+        }
       },
 
       -- DEBUG
@@ -873,6 +927,16 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
           style_id = "right_arrow_hotspot",
           content_id = "right_arrow_hotspot"
         },
+        -- TOOLTIP
+        {
+          pass_type = "tooltip_text",
+
+          text_id  = "tooltip_text",
+          style_id = "tooltip_text",
+          content_check_function = function (content)
+            return content.tooltip_text and content.highlight_hotspot.is_hover
+          end
+        },
         -- PROCESSING
         {
           pass_type = "local_offset",
@@ -954,6 +1018,7 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
       right_arrow_hotspot = {},
 
       text = widget_definition.text,
+      tooltip_text = widget_definition.tooltip,
 
       mod_name = widget_definition.mod_name,
       setting_name = widget_definition.setting_name,
@@ -1025,6 +1090,22 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
       right_arrow_hotspot = {
         size = {28, 34},
         offset = {widget_size[1] - 60, offset_y + 7, 0}
+      },
+
+      -- TOOLTIP
+
+      tooltip_text = {
+        font_type = "hell_shark",
+        font_size = 24,
+        horizontal_alignment = "left",
+        vertical_alignment = "top",
+        cursor_side = "left",
+        max_width = 600,
+        cursor_offset = {-10, -27},
+        line_colors = {
+          Colors.get_color_table_with_alpha("cheeseburger", 255),
+          Colors.get_color_table_with_alpha("white", 255)
+        }
       },
 
       -- DEBUG
