@@ -148,9 +148,9 @@ VMFMod.register_new_view = function (self, new_view_data)
       ingame_ui.blocked_transitions[blocked_transition_name] = true
     end
 
-    vmf:echo("INGAME_UI EXISTS")
+    --vmf:echo("INGAME_UI EXISTS")
   else
-    vmf:echo("INGAME_UI DOESN'T EXIST")
+    --vmf:echo("INGAME_UI DOESN'T EXIST")
   end
 end
 
