@@ -85,9 +85,7 @@ vmf:hook("UIRenderer.create", function(func, world, ...)
 
   table.dump(ui_renderer_materials, "UI_RENDERER MATERIALS", 2) -- @DEBUG
 
-  local wtf = func(world, unpack(ui_renderer_materials))
-  print (tostring(wtf))
-  return wtf
+  return func(world, unpack(ui_renderer_materials))
 end)
 
 
