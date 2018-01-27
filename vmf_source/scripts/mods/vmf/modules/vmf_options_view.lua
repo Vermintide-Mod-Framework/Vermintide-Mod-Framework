@@ -573,11 +573,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
         max_width = 600,
         cursor_offset = {27, 27},
         cursor_offset_bottom = {27, 27},
-        cursor_offset_top = {27, -27},
-        line_colors = {
-          Colors.get_color_table_with_alpha("cheeseburger", 255),
-          Colors.get_color_table_with_alpha("white", 255)
-        }
+        cursor_offset_top = {27, -27}
       },
 
       -- DEBUG
