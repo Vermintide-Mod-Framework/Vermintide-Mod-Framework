@@ -10,7 +10,7 @@ local hook_send_unsent_messages = function (func, self, channel_id, members_func
   func(self, channel_id, members_func)
 
   if channel_id == 1 then
-    for _, message in ipairs(vmf.unsended_chat_messages) do
+    for _, message in ipairs(vmf.unsent_chat_messages) do
       self:add_local_system_message(1, message, true)
     end
   end

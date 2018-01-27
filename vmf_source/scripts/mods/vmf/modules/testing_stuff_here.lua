@@ -88,21 +88,76 @@ local options_widgets = {
       ["default_value"] = true -- Default first option is enabled. In this case Below
     }
   }
+
+  local lots_of_widgets = {}
+
+--vermintide stress test
 --[[
-  mod:create_options(options_widgets, true, "Salvage on the Loottable", "Mod description")
+  for i = 1,256 do
+    local some_widget =     {
+      ["setting_name"] = "game_mode" .. tostring(i),
+      ["widget_type"] = "stepper",
+      ["text"] = "Game mode" .. tostring(i),
+      ["tooltip"] = "Pick the goddamn game mode" .. "\n" ..
+                    "you litle bitch",
+      ["options"] = {
+        {text = "Vanilla",       value = "vanilla"},
+        {text = "Onslaught",     value = "onslaught"},
+        {text = "Hide'and'Seek", value = "hide_n_seek"},
+        {text = "Death Wish",    value = "deathwish"},
+        {text = "Legendary",     value = "legendary"},
+      },
+      ["default_value"] = "hide_n_seek",
+      ["sub_widgets"] = {
+        {
+          ["show_widget_condition"] = {3, 4, 5},
+
+          ["setting_name"] = "enable_god_mode" .. tostring(i),
+          ["widget_type"] = "checkbox",
+          ["text"] = "Enable God Mode",
+          ["tooltip"] = "Can't do it without cheats," .. "\n" ..
+                        "you poor guy?",
+          ["default_value"] = false
+        },
+        {
+          ["show_widget_condition"] = {2, 3, 4, 5},
+
+          ["setting_name"] = "warn_others" .. tostring(i),
+          ["widget_type"] = "checkbox",
+          ["text"] = "Warn joining players about game mode",
+          ["tooltip"] = "You don't want others to ruin your game," .. "\n" ..
+                        "do you?",
+          ["default_value"] = true, -- Default first option is enabled. In this case Below
+          ["sub_widgets"] = {
+            {
+              ["setting_name"] = "whatever" .. tostring(i),
+              ["widget_type"] = "checkbox",
+              ["text"] = "Whatever",
+              ["tooltip"] = "Whatever," .. "\n" ..
+                            "whatever",
+              ["default_value"] = true -- Default first option is enabled. In this case Below
+            }
+          }
+        }
+      }
+    }
+    table.insert(lots_of_widgets, some_widget)
+  end]]
+--[[
+  mod:create_options(lots_of_widgets, true, "Salvage on the Loottable", "Mod description")
 
   local mod = new_mod("test_mod2")
-  mod:create_options(options_widgets, true, "Bots Improvements", "Mod description")
+  mod:create_options(lots_of_widgets, true, "Bots Improvements", "Mod description")
 
   local mod = new_mod("test_mod3")
-  mod:create_options(options_widgets, true, "Show Healhbars", "Mod description")
+  mod:create_options(lots_of_widgets, true, "Show Healhbars", "Mod description")
 
   local mod = new_mod("test_mod4")
-  mod:create_options(options_widgets, true, "Ammo Meter", "Mod description")
+  mod:create_options(lots_of_widgets, true, "Ammo Meter", "Mod description")
 
   local mod = new_mod("test_mod5")
-  mod:create_options(options_widgets, true, "Show Damage", "Mod description")
+  mod:create_options(lots_of_widgets, true, "Show Damage", "Mod description")
 
   local mod = new_mod("test_mod6")
-  mod:create_options(options_widgets, true, "Kick & Ban", "Mod description")
-  ]]
+  mod:create_options(lots_of_widgets, true, "Kick & Ban", "Mod description")
+]]

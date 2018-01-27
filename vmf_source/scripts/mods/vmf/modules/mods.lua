@@ -49,7 +49,7 @@ VMFMod.echo = function (self, message, show_mod_name)
   if Managers.chat and Managers.chat:has_channel(1) then
     Managers.chat:add_local_system_message(1, message, true)
   else
-    table.insert(vmf.unsended_chat_messages, message)
+    table.insert(vmf.unsent_chat_messages, message)
   end
 end
 
@@ -83,7 +83,7 @@ end
 
 vmf = new_mod("VMF")
 
-vmf.unsended_chat_messages = {}
+vmf.unsent_chat_messages = {}
 
 -- ####################################################################################################################
 -- ##### Event functions ##############################################################################################

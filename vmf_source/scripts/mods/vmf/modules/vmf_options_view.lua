@@ -1,13 +1,9 @@
 --[[
   Don't set settings to the values which aren't defined in options
-
-  Glitch I won't fix soon: widget is collapsed, setting were changed not from .. whatever
-
-
-
-  VMFOptionsView.update_picked_option_for_settings_list_widgets
 ]]
 local vmf = get_mod("VMF")
+
+
 
 inject_material("materials/header_background", "header_background", "ingame_ui")
 inject_material("materials/header_background_lit", "header_background_lit", "ingame_ui")
@@ -15,6 +11,12 @@ inject_material("materials/common_widgets_background_lit", "common_widgets_backg
 inject_material("materials/header_fav_icon", "header_fav_icon", "ingame_ui")
 inject_material("materials/header_fav_icon_lit", "header_fav_icon_lit", "ingame_ui")
 inject_material("materials/header_fav_arrow", "header_fav_arrow", "ingame_ui")
+
+
+-- ####################################################################################################################
+-- ##### MENU WIDGETS DEFINITIONS #####################################################################################
+-- ####################################################################################################################
+
 
 --███████╗ ██████╗███████╗███╗   ██╗███████╗ ██████╗ ██████╗  █████╗ ██████╗ ██╗  ██╗███████╗
 --██╔════╝██╔════╝██╔════╝████╗  ██║██╔════╝██╔════╝ ██╔══██╗██╔══██╗██╔══██╗██║  ██║██╔════╝
@@ -26,7 +28,7 @@ inject_material("materials/header_fav_arrow", "header_fav_arrow", "ingame_ui")
 local scenegraph_definition = {
 
   sg_root = {
-    size = {1920, 1080},
+    size     = {1920, 1080},
     position = {0, 0, UILayer.default + 10},
     is_root = true
   },
@@ -102,9 +104,8 @@ local scenegraph_definition = {
 --██║ ╚═╝ ██║███████╗██║ ╚████║╚██████╔╝    ╚███╔███╔╝██║██████╔╝╚██████╔╝███████╗   ██║   ███████║
 --╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝ ╚═════╝      ╚══╝╚══╝ ╚═╝╚═════╝  ╚═════╝ ╚══════╝   ╚═╝   ╚══════╝
 
+
 local menu_widgets_definition = {
-
-
   static_menu_elements = {
     scenegraph_id = "sg_root",
     element = {
@@ -207,15 +208,12 @@ local menu_widgets_definition = {
       passes = {
         {
           pass_type = "scroll",
-          -- the function is being called only during scrolls
-          scroll_function = function (ui_scenegraph, ui_style, ui_content, input_service, scroll_axis)
-            local scroll_step          = ui_content.scroll_step
-            local current_scroll_value = ui_content.internal_scroll_value
+          -- the function is called only during scrolls
+          scroll_function = function (ui_scenegraph, style, content, input_service, scroll_axis)
+            local scroll_step          = content.scroll_step
+            local current_scroll_value = content.internal_scroll_value
 
-            --current_scroll_value = current_scroll_value + scroll_step*-scroll_axis.y
-            --ui_content.internal_scroll_value = math.clamp(current_scroll_value, 0, 1)
-
-            ui_content.internal_scroll_value = ui_content.internal_scroll_value - scroll_axis.y
+            content.internal_scroll_value = content.internal_scroll_value - scroll_axis.y
           end
         }
       }
@@ -230,7 +228,6 @@ local menu_widgets_definition = {
 
   scrollbar = UIWidgets.create_scrollbar(scenegraph_definition.sg_scrollbar.size[2], "sg_scrollbar")
 }
-
 
 -- @TODO: make scrollbar full windowed o_O
 
@@ -253,27 +250,29 @@ table.remove(menu_widgets_definition.scrollbar.element.passes, 8)
 
 
 
-
+-- ####################################################################################################################
+-- ##### SETTINGS LIST WIDGETS DEFINITIONS ############################################################################
+-- ####################################################################################################################
 
 script_data.ui_debug_hover = false
 
 local DEBUG_WIDGETS = false
 
-local SETTINGS_LIST_BIG_WIDGET_SIZE = {1194, 80}
+local SETTINGS_LIST_HEADER_WIDGET_SIZE = {1194, 80}
 local SETTINGS_LIST_REGULAR_WIDGET_SIZE = {1194, 50}
 
 
---██╗  ██╗███████╗ █████╗ ██████╗ ███████╗██████╗
---██║  ██║██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗
---███████║█████╗  ███████║██║  ██║█████╗  ██████╔╝
---██╔══██║██╔══╝  ██╔══██║██║  ██║██╔══╝  ██╔══██╗
---██║  ██║███████╗██║  ██║██████╔╝███████╗██║  ██║
---╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝
+-- ██╗  ██╗███████╗ █████╗ ██████╗ ███████╗██████╗
+-- ██║  ██║██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗
+-- ███████║█████╗  ███████║██║  ██║█████╗  ██████╔╝
+-- ██╔══██║██╔══╝  ██╔══██║██║  ██║██╔══╝  ██╔══██╗
+-- ██║  ██║███████╗██║  ██║██████╔╝███████╗██║  ██║
+-- ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝
 
 
 local function create_header_widget(widget_definition, scenegraph_id)
 
-  local widget_size = SETTINGS_LIST_BIG_WIDGET_SIZE
+  local widget_size = SETTINGS_LIST_HEADER_WIDGET_SIZE
   local offset_y = - widget_size[2]
 
   local definition = {
@@ -388,50 +387,50 @@ local function create_header_widget(widget_definition, scenegraph_id)
         {
           pass_type = "local_offset",
 
-          offset_function = function (ui_scenegraph, ui_style, ui_content, ui_renderer)
+          offset_function = function (ui_scenegraph, style, content, ui_renderer)
 
-            if ui_content.highlight_hotspot.is_hover and ui_content.tooltip_text then
-              ui_style.tooltip_text.cursor_offset = ui_content.callback_fit_tooltip_to_the_screen(ui_content, ui_style.tooltip_text, ui_renderer)
+            if content.highlight_hotspot.is_hover and content.tooltip_text then
+              style.tooltip_text.cursor_offset = content.callback_fit_tooltip_to_the_screen(content, style.tooltip_text, ui_renderer)
             end
 
-            if ui_content.highlight_hotspot.on_release and not ui_content.checkbox_hotspot.on_release and not ui_content.fav_icon_hotspot.on_release
-              and not ui_content.fav_arrow_up_hotspot.on_release and not ui_content.fav_arrow_down_hotspot.on_release then
+            if content.highlight_hotspot.on_release and not content.checkbox_hotspot.on_release and not content.fav_icon_hotspot.on_release
+              and not content.fav_arrow_up_hotspot.on_release and not content.fav_arrow_down_hotspot.on_release then
 
-              ui_content.callback_hide_sub_widgets(ui_content)
+              content.callback_hide_sub_widgets(content)
             end
 
-            if ui_content.fav_icon_hotspot.on_release then
-              ui_content.callback_favorite(ui_content)
+            if content.fav_icon_hotspot.on_release then
+              content.callback_favorite(content)
             end
 
-            if ui_content.fav_arrow_up_hotspot.on_release then
-              ui_content.callback_move_favorite(ui_content, true)
+            if content.fav_arrow_up_hotspot.on_release then
+              content.callback_move_favorite(content, true)
             end
 
-            if ui_content.fav_arrow_down_hotspot.on_release then
-              ui_content.callback_move_favorite(ui_content, false)
+            if content.fav_arrow_down_hotspot.on_release then
+              content.callback_move_favorite(content, false)
             end
 
 
-            if ui_content.checkbox_hotspot.on_release then
+            if content.checkbox_hotspot.on_release then
 
-              if ui_content.is_widget_collapsed then
-                ui_content.callback_hide_sub_widgets(ui_content)
+              if content.is_widget_collapsed then
+                content.callback_hide_sub_widgets(content)
               end
 
-              local mod_name         = ui_content.mod_name
-              local is_mod_suspended = ui_content.is_checkbox_checked
+              local mod_name         = content.mod_name
+              local is_mod_suspended = content.is_checkbox_checked
 
-              ui_content.is_checkbox_checked = not ui_content.is_checkbox_checked
+              content.is_checkbox_checked = not content.is_checkbox_checked
 
-              ui_content.callback_mod_suspend_state_changed(mod_name, is_mod_suspended)
+              content.callback_mod_suspend_state_changed(mod_name, is_mod_suspended)
             end
 
-            ui_content.fav_icon_texture = ui_content.is_favorited and "header_fav_icon_lit" or "header_fav_icon"
-            ui_content.background_texture = ui_content.is_widget_collapsed and "header_background_lit" or "header_background"
-            ui_content.checkbox_texture = ui_content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
-            ui_style.fav_arrow_up.color[1] = ui_content.fav_arrow_up_hotspot.is_hover and 255 or 90
-            ui_style.fav_arrow_down.color[1] = ui_content.fav_arrow_down_hotspot.is_hover and 255 or 90
+            content.fav_icon_texture = content.is_favorited and "header_fav_icon_lit" or "header_fav_icon"
+            content.background_texture = content.is_widget_collapsed and "header_background_lit" or "header_background"
+            content.checkbox_texture = content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
+            style.fav_arrow_up.color[1] = content.fav_arrow_up_hotspot.is_hover and 255 or 90
+            style.fav_arrow_down.color[1] = content.fav_arrow_down_hotspot.is_hover and 255 or 90
           end
         },
         -- TOOLTIP
@@ -666,33 +665,33 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
         {
           pass_type = "local_offset",
 
-          offset_function = function (ui_scenegraph, ui_style, ui_content, ui_renderer)
+          offset_function = function (ui_scenegraph, style, content, ui_renderer)
 
-            if ui_content.highlight_hotspot.is_hover and ui_content.tooltip_text then
-              ui_style.tooltip_text.cursor_offset = ui_content.callback_fit_tooltip_to_the_screen(ui_content, ui_style.tooltip_text, ui_renderer)
+            if content.highlight_hotspot.is_hover and content.tooltip_text then
+              style.tooltip_text.cursor_offset = content.callback_fit_tooltip_to_the_screen(content, style.tooltip_text, ui_renderer)
             end
 
-            if ui_content.highlight_hotspot.on_release and not ui_content.checkbox_hotspot.on_release then
-              ui_content.callback_hide_sub_widgets(ui_content)
+            if content.highlight_hotspot.on_release and not content.checkbox_hotspot.on_release then
+              content.callback_hide_sub_widgets(content)
             end
 
-            if ui_content.checkbox_hotspot.on_release then
+            if content.checkbox_hotspot.on_release then
 
-              if ui_content.is_widget_collapsed then
-                ui_content.callback_hide_sub_widgets(ui_content)
+              if content.is_widget_collapsed then
+                content.callback_hide_sub_widgets(content)
               end
 
-              local mod_name = ui_content.mod_name
-              local setting_name = ui_content.setting_name
-              local old_value = ui_content.is_checkbox_checked
+              local mod_name = content.mod_name
+              local setting_name = content.setting_name
+              local old_value = content.is_checkbox_checked
               local new_value = not old_value
 
-              ui_content.is_checkbox_checked = new_value
+              content.is_checkbox_checked = new_value
 
-              ui_content.callback_setting_changed(mod_name, setting_name, old_value, new_value)
+              content.callback_setting_changed(mod_name, setting_name, old_value, new_value)
             end
 
-            ui_content.checkbox_texture = ui_content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
+            content.checkbox_texture = content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
           end
         },
         -- TOOLTIP
@@ -939,42 +938,42 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
         {
           pass_type = "local_offset",
 
-          offset_function = function (ui_scenegraph, ui_style, ui_content, ui_renderer)
+          offset_function = function (ui_scenegraph, style, content, ui_renderer)
 
-            if ui_content.highlight_hotspot.is_hover and ui_content.tooltip_text then
-              ui_style.tooltip_text.cursor_offset = ui_content.callback_fit_tooltip_to_the_screen(ui_content, ui_style.tooltip_text, ui_renderer)
+            if content.highlight_hotspot.is_hover and content.tooltip_text then
+              style.tooltip_text.cursor_offset = content.callback_fit_tooltip_to_the_screen(content, style.tooltip_text, ui_renderer)
             end
 
-            if ui_content.highlight_hotspot.on_release and not ui_content.left_arrow_hotspot.on_release and not ui_content.right_arrow_hotspot.on_release then
-              ui_content.callback_hide_sub_widgets(ui_content)
+            if content.highlight_hotspot.on_release and not content.left_arrow_hotspot.on_release and not content.right_arrow_hotspot.on_release then
+              content.callback_hide_sub_widgets(content)
             end
 
-            if ui_content.left_arrow_hotspot.on_release or ui_content.right_arrow_hotspot.on_release then
+            if content.left_arrow_hotspot.on_release or content.right_arrow_hotspot.on_release then
 
-              if ui_content.is_widget_collapsed then
-                ui_content.callback_hide_sub_widgets(ui_content)
+              if content.is_widget_collapsed then
+                content.callback_hide_sub_widgets(content)
               end
 
-              local mod_name     = ui_content.mod_name
-              local setting_name = ui_content.setting_name
-              local old_value    = ui_content.options_values[ui_content.current_option_number]
+              local mod_name     = content.mod_name
+              local setting_name = content.setting_name
+              local old_value    = content.options_values[content.current_option_number]
               local new_option_number = nil
 
-              if ui_content.left_arrow_hotspot.on_release then
-                new_option_number = ((ui_content.current_option_number - 1) == 0) and ui_content.total_options_number or (ui_content.current_option_number - 1)
+              if content.left_arrow_hotspot.on_release then
+                new_option_number = ((content.current_option_number - 1) == 0) and content.total_options_number or (content.current_option_number - 1)
               else
-                new_option_number = ((ui_content.current_option_number + 1) == (ui_content.total_options_number + 1)) and 1 or (ui_content.current_option_number + 1)
+                new_option_number = ((content.current_option_number + 1) == (content.total_options_number + 1)) and 1 or (content.current_option_number + 1)
               end
 
-              ui_content.current_option_number = new_option_number
-              ui_content.current_option_text = ui_content.options_texts[new_option_number]
+              content.current_option_number = new_option_number
+              content.current_option_text = content.options_texts[new_option_number]
 
-              local new_value = ui_content.options_values[new_option_number]
-              ui_content.callback_setting_changed(mod_name, setting_name, old_value, new_value)
+              local new_value = content.options_values[new_option_number]
+              content.callback_setting_changed(mod_name, setting_name, old_value, new_value)
             end
 
-            ui_content.left_arrow_texture = ui_content.left_arrow_hotspot.is_hover and "settings_arrow_clicked" or "settings_arrow_normal"
-            ui_content.right_arrow_texture = ui_content.right_arrow_hotspot.is_hover and "settings_arrow_clicked" or "settings_arrow_normal"
+            content.left_arrow_texture = content.left_arrow_hotspot.is_hover and "settings_arrow_clicked" or "settings_arrow_normal"
+            content.right_arrow_texture = content.right_arrow_hotspot.is_hover and "settings_arrow_clicked" or "settings_arrow_normal"
           end
         },
         -- TOOLTIP
@@ -1154,28 +1153,6 @@ end
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 -- ██████╗██╗      █████╗ ███████╗███████╗
 --██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
 --██║     ██║     ███████║███████╗███████╗
@@ -1186,18 +1163,18 @@ end
 local SETTINGS_LIST_WIDGETS_DEFINITIONS = {} -- numerical sorting [ipairs]
 
 
+-- ####################################################################################################################
+-- ##### INITIALIZATION ###############################################################################################
+-- ####################################################################################################################
+
+
 VMFOptionsView = class(VMFOptionsView)
 VMFOptionsView.init = function (self, ingame_ui_context)
 
-  self.current_setting_list_offset_y = 0 -- [int]
-  self.max_setting_list_offset_y = nil   -- [int]
-  self.setting_list_mask_size_y = nil    -- [int]
-  self.scroll_step = 40                  -- [int]
+  self.current_setting_list_offset_y = 0
+  self.scroll_step = 40
 
   self.is_setting_changes_applied_immidiately = true
-
-  self.menu_widgets = nil                -- [table]
-  self.settings_list_widgets = nil       -- [table]
 
   self.definitions = {}
   self.definitions.scenegraph            = scenegraph_definition
@@ -1225,6 +1202,11 @@ VMFOptionsView.init = function (self, ingame_ui_context)
 end
 
 
+-- ####################################################################################################################
+-- ##### INITIALIZATION: UI ELEMENTS ##################################################################################
+-- ####################################################################################################################
+
+
 VMFOptionsView.create_ui_elements = function (self)
 
   self.menu_widgets = {}
@@ -1233,17 +1215,19 @@ VMFOptionsView.create_ui_elements = function (self)
     self.menu_widgets[name] = UIWidget.init(definition)
   end
 
-  self.settings_list_widgets = self:build_settings_list()
+  self.settings_list_widgets = self:initialize_settings_list_widgets()
 
   self.ui_scenegraph = UISceneGraph.init_scenegraph(self.definitions.scenegraph)
 
   self.setting_list_mask_size_y = self.ui_scenegraph.sg_settings_list_mask.size[2]
 
-  self:calculate_scrollbar_size()
+  if self.is_scrolling_enabled then
+    self:calculate_scrollbar_size()
+  end
 end
 
 
-VMFOptionsView.build_settings_list = function (self)
+VMFOptionsView.initialize_settings_list_widgets = function (self)
 
   local scenegraph_id = "sg_settings_list"
   local scenegraph_id_start = "sg_settings_list_start"
@@ -1252,22 +1236,22 @@ VMFOptionsView.build_settings_list = function (self)
   local all_widgets = {}
   local mod_widgets = nil
 
-  for _, mod_settings_list_definition in ipairs(self.definitions.settings_list_widgets) do
+  for _, mod_settings_list_definitions in ipairs(self.definitions.settings_list_widgets) do
 
     mod_widgets = {}
 
-    for _, definition in ipairs(mod_settings_list_definition) do
+    for _, definition in ipairs(mod_settings_list_definitions) do
 
       local widget = nil
       local size_y = 0
       local widget_type = definition.widget_type
 
       if widget_type == "checkbox" then
-        widget = self:build_checkbox_widget(definition, scenegraph_id_start)
+        widget = self:initialize_checkbox_widget(definition, scenegraph_id_start)
       elseif widget_type == "stepper" then
-        widget = self:build_stepper_widget(definition, scenegraph_id_start)
+        widget = self:initialize_stepper_widget(definition, scenegraph_id_start)
       elseif widget_type == "header" then
-        widget = self:build_header_widget(definition, scenegraph_id_start)
+        widget = self:initialize_header_widget(definition, scenegraph_id_start)
       end
 
       if widget then
@@ -1286,7 +1270,7 @@ VMFOptionsView.build_settings_list = function (self)
 
   self.definitions.scenegraph[scenegraph_id] = {
     size = {mask_size_x, list_size_y},
-    position = {0, 0, -1}, -- changed -1 to 100. nothing changed. seems like it doesn't matter
+    position = {0, 0, 0},
     offset = {0, 0, 0},
 
     vertical_alignment = "top",
@@ -1326,9 +1310,10 @@ VMFOptionsView.build_settings_list = function (self)
   return all_widgets
 end
 
-VMFOptionsView.build_header_widget = function (self, definition, scenegraph_id)
 
-  local widget = create_header_widget(definition, scenegraph_id)
+VMFOptionsView.initialize_header_widget = function (self, definition, scenegraph_id)
+
+  local widget  = create_header_widget(definition, scenegraph_id)
   local content = widget.content
   content.is_checkbox_checked = definition.is_mod_toggable
   content.is_checkbox_visible = definition.is_mod_toggable
@@ -1342,7 +1327,8 @@ VMFOptionsView.build_header_widget = function (self, definition, scenegraph_id)
   return widget
 end
 
-VMFOptionsView.build_stepper_widget = function (self, definition, scenegraph_id)
+
+VMFOptionsView.initialize_stepper_widget = function (self, definition, scenegraph_id)
 
   local widget = create_stepper_widget(definition, scenegraph_id)
   local content = widget.content
@@ -1354,7 +1340,8 @@ VMFOptionsView.build_stepper_widget = function (self, definition, scenegraph_id)
   return widget
 end
 
-VMFOptionsView.build_checkbox_widget = function (self, definition, scenegraph_id)
+
+VMFOptionsView.initialize_checkbox_widget = function (self, definition, scenegraph_id)
 
   local widget = create_checkbox_widget(definition, scenegraph_id)
   local content = widget.content
@@ -1366,103 +1353,53 @@ VMFOptionsView.build_checkbox_widget = function (self, definition, scenegraph_id
   return widget
 end
 
-VMFOptionsView.rearrange_settings_list = function (self)
 
-  local offset_y = 0
+-- ####################################################################################################################
+-- ##### CALLBACKS ####################################################################################################
+-- ####################################################################################################################
 
-  for _, mod_widgets in ipairs(self.settings_list_widgets) do
-    for _, widget in ipairs(mod_widgets) do
-      if widget.content.is_widget_visible then
 
-        widget.offset[2] = -offset_y
-        offset_y = offset_y + ((widget.content.widget_type == "header") and SETTINGS_LIST_BIG_WIDGET_SIZE[2] or SETTINGS_LIST_REGULAR_WIDGET_SIZE[2])
-      end
-    end
+VMFOptionsView.callback_setting_changed = function (self, mod_name, setting_name, old_value, new_value)
+
+  if self.is_setting_changes_applied_immidiately and old_value ~= new_value then
+    get_mod(mod_name):set(setting_name, new_value, true)
   end
 
-  local list_size_y = offset_y
-  local mask_size_y = self.setting_list_mask_size_y
-  local is_scrolling_enabled = false
-  local max_offset_y = 0
-
-  if mask_size_y < list_size_y then
-    is_scrolling_enabled = true
-    max_offset_y = list_size_y - mask_size_y
-  end
-
-  self.ui_scenegraph[self.settings_list_scenegraph_id].size[2] = list_size_y
-
-  self.max_setting_list_offset_y = max_offset_y
-  self.settings_list_size_y = list_size_y
-  self.current_setting_list_offset_y = math.clamp(self.current_setting_list_offset_y, 0, max_offset_y)
-
-
-  self.menu_widgets["scrollbar"].content.visible = is_scrolling_enabled
-  self.menu_widgets["mousewheel_scroll_area"].content.visible = is_scrolling_enabled
-
-  if is_scrolling_enabled then
-    self:calculate_scrollbar_size()
-  end
+  self:update_settings_list_widgets_visibility(mod_name)
+  self:readjust_visible_settings_list_widgets_position()
 end
 
 
-VMFOptionsView.sort_settings_list_widgets = function (self)
+VMFOptionsView.callback_mod_suspend_state_changed = function (self, mod_name, is_suspended)
 
-  local sorted_settings_list_widgets = {}
+  local mod_suspend_state_list = vmf:get("mod_suspend_state_list")
 
-  local favorited_mods_widgets = {}
-  local favorited_mods_names = {}
+  if is_suspended then
+    mod_suspend_state_list[mod_name] = true
+  else
+    mod_suspend_state_list[mod_name] = nil
+  end
 
-  local regular_mods_widgets = {}
-  local regular_mods_names = {}
+  vmf:set("mod_suspend_state_list", mod_suspend_state_list)
 
-  for _, mod_widgets in ipairs(self.settings_list_widgets) do
+  local mod = get_mod(mod_name)
 
-    if mod_widgets[1].content.is_favorited then
-      favorited_mods_widgets[mod_widgets[1].content.mod_name] = mod_widgets
-      table.insert(favorited_mods_names, mod_widgets[1].content.mod_name)
+  if is_suspended then
+    if mod.suspended then
+      mod.suspended()
     else
-
-    -- if there are 2 (or more) mods with the absolutely same name
-    if regular_mods_widgets[mod_widgets[1].content.text] then
-      local random_number = tostring(math.random(10000))
-
-      regular_mods_widgets[mod_widgets[1].content.text .. random_number] = mod_widgets
-      table.insert(regular_mods_names, mod_widgets[1].content.text .. random_number)
+      mod:echo("ERROR: suspending from options menu is specified, but function 'mod.suspended()' is not defined", true)
+    end
+  else
+    if mod.unsuspended then
+      mod.unsuspended()
     else
-      regular_mods_widgets[mod_widgets[1].content.text] = mod_widgets
-      table.insert(regular_mods_names, mod_widgets[1].content.text)
-    end
+      mod:echo("ERROR: suspending from options menu is specified, but function 'mod.unsuspended()' is not defined", true)
     end
   end
 
-  -- favorite mods sorting + cleaning up the favs list
-
-  local favorite_mods_list = vmf:get("options_menu_favorite_mods")
-  if favorite_mods_list then
-
-    local new_favorite_mods_list = {}
-
-    for _, mod_name in ipairs(favorite_mods_list) do
-        if favorited_mods_widgets[mod_name] then
-          table.insert(sorted_settings_list_widgets, favorited_mods_widgets[mod_name])
-          table.insert(new_favorite_mods_list, mod_name)
-        end
-    end
-
-    vmf:set("options_menu_favorite_mods", new_favorite_mods_list)
-  end
-
-
-  -- regular mods sorting (ABC order)
-
-  table.sort(regular_mods_names, function(a, b) return a:upper() < b:upper() end)
-
-  for _, mod_name in ipairs(regular_mods_names) do
-    table.insert(sorted_settings_list_widgets, regular_mods_widgets[mod_name])
-  end
-
-  self.settings_list_widgets = sorted_settings_list_widgets
+  self:update_settings_list_widgets_visibility(mod_name)
+  self:readjust_visible_settings_list_widgets_position()
 end
 
 
@@ -1483,8 +1420,6 @@ VMFOptionsView.callback_fit_tooltip_to_the_screen = function (self, widget_conte
       local font_material = font[1]
 
       local _, font_min, font_max = UIGetFontHeight(ui_renderer.gui, font_name, font_size)
-
-
 
       local texts = UIRenderer.word_wrap(ui_renderer, text, font_material, font_size, max_width)
       local num_texts = #texts
@@ -1515,7 +1450,6 @@ VMFOptionsView.callback_favorite = function (self, widget_content)
   local is_favorited = not widget_content.is_favorited
 
   local favorite_mods_list = vmf:get("options_menu_favorite_mods")
-  favorite_mods_list = favorite_mods_list or {}
 
   if is_favorited then
     table.insert(favorite_mods_list, mod_name)
@@ -1533,7 +1467,7 @@ VMFOptionsView.callback_favorite = function (self, widget_content)
   widget_content.is_favorited = is_favorited
 
   self:sort_settings_list_widgets()
-  self:rearrange_settings_list()
+  self:readjust_visible_settings_list_widgets_position()
 end
 
 
@@ -1545,21 +1479,24 @@ VMFOptionsView.callback_move_favorite = function (self, widget_content, is_moved
 
   local favorite_mods_list = vmf:get("options_menu_favorite_mods")
 
-  for i, current_mod_name in ipairs(favorite_mods_list) do
+  for current_index, current_mod_name in ipairs(favorite_mods_list) do
     if current_mod_name == mod_name then
 
-      new_index = is_moved_up and (i - 1) or (i + 1)
-      new_index = math.min(math.max(new_index, 1), #favorite_mods_list)
+      new_index = is_moved_up and (current_index - 1) or (current_index + 1)
+      new_index = math.clamp(new_index, 1, #favorite_mods_list)
 
-      table.insert(favorite_mods_list, new_index, table.remove(favorite_mods_list, i))
-      break
+      if current_index ~= new_index then
+        table.insert(favorite_mods_list, new_index, table.remove(favorite_mods_list, current_index))
+
+        vmf:set("options_menu_favorite_mods", favorite_mods_list)
+
+        self:sort_settings_list_widgets()
+        self:readjust_visible_settings_list_widgets_position()
+
+        return
+      end
     end
   end
-
-  vmf:set("options_menu_favorite_mods", favorite_mods_list)
-
-  self:sort_settings_list_widgets()
-  self:rearrange_settings_list()
 end
 
 
@@ -1583,7 +1520,6 @@ VMFOptionsView.callback_hide_sub_widgets = function (self, widget_content)
 
           if widget_number then
             if widget.content.parent_widget_number == widget_number then
-              --vmf:echo(tostring(i))
               are_there_visible_sub_widgets = are_there_visible_sub_widgets or widget.content.is_widget_visible
             end
           else
@@ -1602,7 +1538,6 @@ VMFOptionsView.callback_hide_sub_widgets = function (self, widget_content)
   setting_name = setting_name or mod_name -- header
 
   local all_collapsed_widgets = vmf:get("options_menu_collapsed_widgets")
-  all_collapsed_widgets = all_collapsed_widgets or {}
 
   local mod_collapsed_widgets = all_collapsed_widgets[mod_name]
 
@@ -1630,54 +1565,72 @@ VMFOptionsView.callback_hide_sub_widgets = function (self, widget_content)
 
   vmf:set("options_menu_collapsed_widgets", all_collapsed_widgets)
 
-  --vmf:echo(tostring(are_there_visible_sub_widgets))
-
   self:update_settings_list_widgets_visibility(mod_name)
-  self:rearrange_settings_list()
+  self:readjust_visible_settings_list_widgets_position()
 end
 
-VMFOptionsView.callback_setting_changed = function (self, mod_name, setting_name, old_value, new_value)
-  --vmf:echo("CHANGED: " .. mod_name .. " " .. setting_name .. " " .. tostring(old_value) .. " " .. tostring(new_value))
 
-  if self.is_setting_changes_applied_immidiately then
-    get_mod(mod_name):set(setting_name, new_value, true)
-  end
+-- ####################################################################################################################
+-- ##### MISCELLANEOUS: SETTINGS LIST WIDGETS #########################################################################
+-- ####################################################################################################################
 
-  self:update_settings_list_widgets_visibility(mod_name)
-  self:rearrange_settings_list()
-end
 
-VMFOptionsView.callback_mod_suspend_state_changed = function (self, mod_name, is_suspended)
-  --vmf:echo("SUSPENDED: " .. mod_name .. " " .. tostring(is_suspended))
+VMFOptionsView.sort_settings_list_widgets = function (self)
 
-  local mod_suspend_state_list = vmf:get("mod_suspend_state_list")
+  local sorted_settings_list_widgets = {}
 
-  if is_suspended then
-    mod_suspend_state_list[mod_name] = true
-  else
-    mod_suspend_state_list[mod_name] = nil
-  end
+  local favorited_mods_widgets = {}
+  local favorited_mods_names = {}
 
-  vmf:set("mod_suspend_state_list", mod_suspend_state_list)
+  local regular_mods_widgets = {}
+  local regular_mods_names = {}
 
-  local mod = get_mod(mod_name)
+  for _, mod_widgets in ipairs(self.settings_list_widgets) do
 
-  if is_suspended then
-    if mod.suspended then
-      mod.suspended()
+    if mod_widgets[1].content.is_favorited then
+      favorited_mods_widgets[mod_widgets[1].content.mod_name] = mod_widgets
+      table.insert(favorited_mods_names, mod_widgets[1].content.mod_name)
     else
-      mod:echo("ERROR: suspending from options menu is specified, but function 'mod.suspended()' is not defined", true)
+
+    -- if there are 2 (or more) mods with the same (readable) name
+    if regular_mods_widgets[mod_widgets[1].content.text] then
+      local random_number = tostring(math.random(10000))
+
+      regular_mods_widgets[mod_widgets[1].content.text .. random_number] = mod_widgets
+      table.insert(regular_mods_names, mod_widgets[1].content.text .. random_number)
+    else
+      regular_mods_widgets[mod_widgets[1].content.text] = mod_widgets
+      table.insert(regular_mods_names, mod_widgets[1].content.text)
     end
-  else
-    if mod.unsuspended then
-      mod.unsuspended()
-    else
-      mod:echo("ERROR: suspending from options menu is specified, but function 'mod.unsuspended()' is not defined", true)
     end
   end
 
-  self:update_settings_list_widgets_visibility(mod_name)
-  self:rearrange_settings_list()
+  -- favorite mods sorting + cleaning up the favs list setting
+
+  local favorite_mods_list = vmf:get("options_menu_favorite_mods")
+  if favorite_mods_list then
+
+    local new_favorite_mods_list = {}
+
+    for _, mod_name in ipairs(favorite_mods_list) do
+        if favorited_mods_widgets[mod_name] then
+          table.insert(sorted_settings_list_widgets, favorited_mods_widgets[mod_name])
+          table.insert(new_favorite_mods_list, mod_name)
+        end
+    end
+
+    vmf:set("options_menu_favorite_mods", new_favorite_mods_list)
+  end
+
+  -- regular mods sorting (ABC order)
+
+  table.sort(regular_mods_names, function(a, b) return a:upper() < b:upper() end)
+
+  for _, mod_name in ipairs(regular_mods_names) do
+    table.insert(sorted_settings_list_widgets, regular_mods_widgets[mod_name])
+  end
+
+  self.settings_list_widgets = sorted_settings_list_widgets
 end
 
 
@@ -1700,7 +1653,10 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
         if type(loaded_setting_value) == "boolean" then
           widget_content.is_checkbox_checked = loaded_setting_value
         else
-          -- @TODO: echo error?
+          if type(loaded_setting_value) ~= "nil" then
+            -- @TODO: warning: variable of wrong type in config
+          end
+
           widget_content.is_checkbox_checked = widget_content.default_value
           get_mod(widget_content.mod_name):set(widget_content.setting_name, widget_content.default_value)
         end
@@ -1709,25 +1665,26 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
 
         loaded_setting_value = get_mod(widget_content.mod_name):get(widget_content.setting_name)
 
-        local success = false
-
         for i, option_value in ipairs(widget_content.options_values) do
 
           if loaded_setting_value == option_value then
             widget_content.current_option_number = i
             widget_content.current_option_text   = widget_content.options_texts[i]
-            success = true
+
+            break
           end
         end
 
-        if not success then
-          for i, option_value in ipairs(widget_content.options_values) do
+        if type(loaded_setting_value) ~= "nil" then
+          -- @TODO: warning: variable which is not in the stepper options list in config
+        end
 
-            if widget_content.default_value == option_value then
-              widget_content.current_option_number = i
-              widget_content.current_option_text   = widget_content.options_texts[i]
-              get_mod(widget_content.mod_name):set(widget_content.setting_name, widget_content.default_value)
-            end
+        for i, option_value in ipairs(widget_content.options_values) do
+
+          if widget_content.default_value == option_value then
+            widget_content.current_option_number = i
+            widget_content.current_option_text   = widget_content.options_texts[i]
+            get_mod(widget_content.mod_name):set(widget_content.setting_name, widget_content.default_value)
           end
         end
 
@@ -1743,8 +1700,6 @@ end
 
 
 VMFOptionsView.update_settings_list_widgets_visibility = function (self, mod_name)
-
-  --table.dump(self.settings_list_widgets, "WIDGETSSSSSSSS", 3)
 
   for _, mod_widgets in ipairs(self.settings_list_widgets) do
 
@@ -1769,18 +1724,112 @@ VMFOptionsView.update_settings_list_widgets_visibility = function (self, mod_nam
             end
           end
         end
-
       end
     end
-
   end
 end
 
 
+VMFOptionsView.readjust_visible_settings_list_widgets_position = function (self)
+
+  local offset_y = 0
+
+  for _, mod_widgets in ipairs(self.settings_list_widgets) do
+    for _, widget in ipairs(mod_widgets) do
+      if widget.content.is_widget_visible then
+
+        widget.offset[2] = -offset_y
+        offset_y = offset_y + ((widget.content.widget_type == "header") and SETTINGS_LIST_HEADER_WIDGET_SIZE[2] or SETTINGS_LIST_REGULAR_WIDGET_SIZE[2])
+      end
+    end
+  end
+
+  local list_size_y = offset_y
+  local mask_size_y = self.setting_list_mask_size_y
+  local is_scrolling_enabled = false
+  local max_offset_y = 0
+
+  if mask_size_y < list_size_y then
+    is_scrolling_enabled = true
+    max_offset_y = list_size_y - mask_size_y
+  end
+
+  self.ui_scenegraph[self.settings_list_scenegraph_id].size[2] = list_size_y
+
+  self.max_setting_list_offset_y = max_offset_y
+  self.settings_list_size_y = list_size_y
+  self.current_setting_list_offset_y = math.clamp(self.current_setting_list_offset_y, 0, max_offset_y)
 
 
+  self.menu_widgets["scrollbar"].content.visible = is_scrolling_enabled
+  self.menu_widgets["mousewheel_scroll_area"].content.visible = is_scrolling_enabled
+
+  if is_scrolling_enabled then
+    self:calculate_scrollbar_size()
+    self:update_scrollbar_position()
+  end
+end
 
 
+-- ####################################################################################################################
+-- ##### MISCELLANEOUS: SCROLLING'N'STUFF #############################################################################
+-- ####################################################################################################################
+
+
+VMFOptionsView.calculate_scrollbar_size = function (self)
+
+  local widget_content = self.menu_widgets["scrollbar"].content
+
+  local percentage = self.setting_list_mask_size_y / self.settings_list_size_y
+
+  widget_content.scroll_bar_info.bar_height_percentage = percentage
+end
+
+
+VMFOptionsView.update_mousewheel_scroll_area_input = function (self)
+  local widget_content = self.menu_widgets["mousewheel_scroll_area"].content
+
+  local mouse_scroll_value = widget_content.internal_scroll_value
+
+  if mouse_scroll_value ~= 0 then
+
+    local new_offset = self.current_setting_list_offset_y + mouse_scroll_value * self.scroll_step
+
+    self.current_setting_list_offset_y = math.clamp(new_offset, 0, self.max_setting_list_offset_y)
+
+    widget_content.internal_scroll_value = 0
+
+    self:update_scrollbar_position()
+  end
+end
+
+
+VMFOptionsView.update_scrollbar_input = function (self)
+  local scrollbar_info = self.menu_widgets["scrollbar"].content.scroll_bar_info
+  local value = scrollbar_info.value
+  local old_value = scrollbar_info.old_value
+
+  if value ~= old_value then
+    self.current_setting_list_offset_y = self.max_setting_list_offset_y * value
+    scrollbar_info.old_value = value
+  end
+end
+
+
+VMFOptionsView.update_scrollbar_position = function (self)
+
+  local widget_content = self.menu_widgets["scrollbar"].content
+
+  local percentage = self.current_setting_list_offset_y / self.max_setting_list_offset_y
+
+  widget_content.scroll_bar_info.value = percentage
+  widget_content.scroll_bar_info.old_value = percentage
+end
+
+
+-- ####################################################################################################################
+-- ##### UPDATE #######################################################################################################
+-- ####################################################################################################################
 
 
 VMFOptionsView.update = function (self, dt)
@@ -1789,23 +1838,18 @@ VMFOptionsView.update = function (self, dt)
   end
 
   if self.is_scrolling_enabled then
-    self:update_scrollbar()
-
-    self:update_mouse_scroll_input(false)
+    self:update_scrollbar_input()
+    self:update_mousewheel_scroll_area_input()
   end
 
   self.draw_widgets(self, dt)
 
-
-
+  -- @TODO: get rid of this shit later. I guess
   local input_manager = self.input_manager
   local input_service = input_manager:get_service("vmf_options_menu")
   if input_service.get(input_service, "toggle_menu") then
-    --self.ingame_ui:transition_with_fade("ingame_menu")
     self.ingame_ui:handle_transition("exit_menu")
   end
-
-  return
 end
 
 
@@ -1823,31 +1867,24 @@ VMFOptionsView.draw_widgets = function (self, dt)
     UIRenderer.draw_widget(ui_renderer, widget)
   end
 
-  self:update_settings_list(self.settings_list_widgets, ui_renderer, ui_scenegraph, input_service, dt)
+  self:update_settings_list(self.settings_list_widgets, ui_renderer, ui_scenegraph)
 
 
   UIRenderer.end_pass(ui_renderer)
 end
 
 
+-- update settings list widgets position, and draw widget which are inside the visible area
+VMFOptionsView.update_settings_list = function (self, settings_list_widgets, ui_renderer, ui_scenegraph)
 
-VMFOptionsView.update_settings_list = function (self, settings_list_widgets, ui_renderer, ui_scenegraph, input_service, dt)
-
-  --self.update_scrollbar(self, settings_list, ui_scenegraph)
-
-
-  -- instead of self.update_scrollbar:
   local scenegraph = ui_scenegraph[self.settings_list_scenegraph_id]
   scenegraph.offset[2] = self.current_setting_list_offset_y
-  ------------------------------------
-  local temp_pos_table = {x = 0, y = 0}
-
-
 
   local scenegraph_id_start = self.settings_list_scenegraph_id_start
   local list_position = UISceneGraph.get_world_position(ui_scenegraph, scenegraph_id_start)
   local mask_pos = Vector3.deprecated_copy(UISceneGraph.get_world_position(ui_scenegraph, "sg_settings_list_mask"))
   local mask_size = UISceneGraph.get_size(ui_scenegraph, "sg_settings_list_mask")
+  local temp_pos_table = {x = 0, y = 0}
 
   for _, mod_widgets in ipairs(settings_list_widgets) do
     for _, widget in ipairs(mod_widgets) do
@@ -1856,7 +1893,7 @@ VMFOptionsView.update_settings_list = function (self, settings_list_widgets, ui_
         local widget_name = widget.name
         local size = style.size
         local offset = style.offset
-        --offset[2] = offset[2] + widget.offset[2]
+
         temp_pos_table.x = list_position[1] + offset[1]
         temp_pos_table.y = list_position[2] + offset[2] + widget.offset[2]
         local lower_visible = math.point_is_inside_2d_box(temp_pos_table, mask_pos, mask_size)
@@ -1864,8 +1901,8 @@ VMFOptionsView.update_settings_list = function (self, settings_list_widgets, ui_
         local middle_visible = math.point_is_inside_2d_box(temp_pos_table, mask_pos, mask_size)
         temp_pos_table.y = temp_pos_table.y + size[2]/2
         local top_visible = math.point_is_inside_2d_box(temp_pos_table, mask_pos, mask_size)
+
         local visible = lower_visible or top_visible
-        --widget.content.visible = visible
         if visible then
           UIRenderer.draw_widget(ui_renderer, widget)
         end
@@ -1874,67 +1911,11 @@ VMFOptionsView.update_settings_list = function (self, settings_list_widgets, ui_
   end
 end
 
---@TODO: refactor
--- 'ignore_mousewheel_scroll' - 'true' if user is changing the scrollbar in the meantime
-VMFOptionsView.update_mouse_scroll_input = function (self, ignore_mousewheel_scroll)
-  local widget_content = self.menu_widgets["mousewheel_scroll_area"].content
 
-  local mouse_scroll_value = widget_content.internal_scroll_value
+-- ####################################################################################################################
+-- ##### SOME OTHER STUFF #############################################################################################
+-- ####################################################################################################################
 
-  if mouse_scroll_value ~= 0 then
-
-    local new_offset = self.current_setting_list_offset_y + mouse_scroll_value * self.scroll_step
-
-    self.current_setting_list_offset_y = math.clamp(new_offset, 0, self.max_setting_list_offset_y)
-
-    widget_content.internal_scroll_value = 0
-
-    self:set_scrollbar_value()
-  end
-end
-
--- @TODO: refactor
-VMFOptionsView.set_scrollbar_value = function (self)
-
-  local widget_content = self.menu_widgets["scrollbar"].content
-
-  local percentage = self.current_setting_list_offset_y / self.max_setting_list_offset_y
-
-  widget_content.scroll_bar_info.value = percentage
-  widget_content.scroll_bar_info.old_value = percentage
-end
-
--- @TODO: refactor
-
-VMFOptionsView.calculate_scrollbar_size = function (self)
-
-  local widget_content = self.menu_widgets["scrollbar"].content
-
-  local percentage = self.setting_list_mask_size_y / self.settings_list_size_y
-
-  widget_content.scroll_bar_info.bar_height_percentage = percentage
-end
-
--- if scrollbar was moved, change offset_y
-VMFOptionsView.update_scrollbar = function (self)
-  local scrollbar_info = self.menu_widgets["scrollbar"].content.scroll_bar_info
-  local value = scrollbar_info.value
-  local old_value = scrollbar_info.old_value
-
-  if value ~= old_value then
-    self.current_setting_list_offset_y = self.max_setting_list_offset_y * value
-    scrollbar_info.old_value = value
-  end
-
-  return
-end
-
-
-
-
-VMFOptionsView.input_service = function (self)
-  return self.input_manager:get_service("vmf_options_menu")
-end
 
 VMFOptionsView.on_enter = function (self)
 
@@ -1945,37 +1926,40 @@ VMFOptionsView.on_enter = function (self)
 
   WwiseWorld.trigger_event(self.wwise_world, "Play_hud_map_open")
 
-  self.menu_active = true
-
   self:sort_settings_list_widgets()
   self:update_picked_option_for_settings_list_widgets()
   self:update_settings_list_widgets_visibility()
-  self:rearrange_settings_list()
+  self:readjust_visible_settings_list_widgets_position()
 end
 
 VMFOptionsView.on_exit = function (self)
-
   WwiseWorld.trigger_event(self.wwise_world, "Play_hud_map_close")
 
   self.exiting = nil
-  self.menu_active = nil
-
-  return
 end
 
+
+-- IngameUI.handle_menu_hotkeys
+-- Will see if I need it when I'll work on keybinds and gui module.
 VMFOptionsView.exit = function (self, return_to_game)
+
+  vmf:echo("exit!")
 
   local exit_transition = (return_to_game and "exit_menu") or "ingame_menu"
 
   self.ingame_ui:transition_with_fade(exit_transition)
 
   self.exiting = true
-
-  return
 end
 
 
--- i'm not really sure if suspend and unsuspend are needed:
+-- default event, is used by IngameUI
+VMFOptionsView.input_service = function (self)
+  return self.input_manager:get_service("vmf_options_menu")
+end
+
+
+-- I'm not really sure if suspend and unsuspend are needed.
 --
 -- StateInGameRunning.gm_event_end_conditions_met ->
 -- IngameUI.suspend_active_view ->
@@ -1986,8 +1970,6 @@ VMFOptionsView.suspend = function (self)
   self.input_manager:device_unblock_all_services("keyboard", 1)
   self.input_manager:device_unblock_all_services("mouse", 1)
   self.input_manager:device_unblock_all_services("gamepad", 1)
-
-  return
 end
 VMFOptionsView.unsuspend = function (self)
   self.suspended = nil
@@ -1995,9 +1977,15 @@ VMFOptionsView.unsuspend = function (self)
   self.input_manager:block_device_except_service("vmf_options_menu", "keyboard", 1)
   self.input_manager:block_device_except_service("vmf_options_menu", "mouse", 1)
   self.input_manager:block_device_except_service("vmf_options_menu", "gamepad", 1)
-
-  return
 end
+
+
+
+
+
+
+
+
 
 
 
@@ -2008,20 +1996,12 @@ end
 -- ##### VMFMod #######################################################################################################
 -- ####################################################################################################################
 
-if not vmf:get("mod_suspend_state_list") then
-  vmf:set("mod_suspend_state_list", {})
-end
-
 local function check_widget_definition(mod, widget)
 
 end
 
---[[
 
---]]
 VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, readable_mod_name, mod_description)
-  -- Yeah, it's kinda complicated, but it's working, mkay?
-  --table.dump(widgets_definition, "options_widgets", 3) -- @TODO: remove it later
 
   local mod_settings_list_widgets_definitions = {}
 
@@ -2034,7 +2014,6 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
   if options_menu_collapsed_widgets then
     mod_collapsed_widgets = options_menu_collapsed_widgets[self._name]
   end
-
 
   -- defining header widget
 
@@ -2160,11 +2139,10 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
       end
     end
 
-    if new_widget_index == 257 then -- @TODO: remove it later
-      vmf:echo("The limit of options was reached. Something's wrong")
+    if new_widget_index == 257 then
+      vmf:echo("The limit of 256 options widgets was reached. You can't add any more widgets.")
     end
   end
-  --table.dump(mod_settings_list_widgets_definitions, "mod_settings_list_widgets_definitions", 3) -- @TODO: remove it later
 
   table.insert(SETTINGS_LIST_WIDGETS_DEFINITIONS, mod_settings_list_widgets_definitions)
 end
@@ -2178,26 +2156,6 @@ VMFMod.is_suspended = function (self)
 end
 
 
--- table.insert(t, new, table.remove(t,old))
-
---  mod:create_options(options_widgets, true, "Readable Mod Name", "Mod description")
-
-
-
-
-
-
-
-  --[[
-    local t = {10,20,30,40,50,60}
-    print(table.concat(t, ',')) -- 10,20,30,40,50,60
-    table.move(t, 2, 5)
-    print(table.concat(t, ',')) -- 10,30,40,50,20,60
-
-  table.move = function(t, old_index, new_index)
-    return table.insert(t, new_index, table.remove(t, old_index))
-  end
-]]
 
 
 
@@ -2230,6 +2188,17 @@ end
 
 
 
+if  type(vmf:get("mod_suspend_state_list")) ~= "table" then
+  vmf:set("mod_suspend_state_list", {})
+end
+
+if type(vmf:get("options_menu_favorite_mods")) ~= "table" then
+  vmf:set("options_menu_favorite_mods", {})
+end
+
+if type(vmf:get("options_menu_collapsed_widgets")) ~= "table" then
+  vmf:set("options_menu_collapsed_widgets", {})
+end
 
 
 
@@ -2326,30 +2295,3 @@ local ingame_ui_exists, ingame_ui = pcall(function () return Managers.player.net
 if ingame_ui_exists then
   ingame_ui.handle_transition(ingame_ui, "leave_group")
 end
-
-
---vmf:set("what if", {255,10,10,10})
-
---[[
-vmf:hook("OptionsView.update", function(func, self, dt)
-  func(self, dt)
-  --self.scroll_field_widget.style.edge_fade_bottom_id.color = {0,0,0,0}
-  self.scroll_field_widget.style.edge_fade_bottom_id.color = {0,0,0,0}
-  self.ui_scenegraph["list_mask"].size[2] = 850
-end)
-
-
-vmf:hook("InputManager.change_keybinding", function(func, self, keybinding_table_name, keybinding_table_key, keymap_name, new_button_index, new_device_type, new_state_type)
-  vmf:echo("keybinding_table_name: " .. keybinding_table_name)
-  vmf:echo("keybinding_table_key: " .. keybinding_table_key)
-  vmf:echo("keymap_name: " .. keymap_name)
-  vmf:echo("new_button_index: " .. new_button_index)
-  vmf:echo("new_device_type: " .. new_device_type)
-  vmf:echo("new_state_type: " .. new_state_type)
-
-  local keymaps_data = self.keymaps_data(self, keybinding_table_name)
-
-  --table.dump(keymaps_data, "keymaps_data", 2)
-
-  func(self, keybinding_table_name, keybinding_table_key, keymap_name, new_button_index, new_device_type, new_state_type)
-end)]]
