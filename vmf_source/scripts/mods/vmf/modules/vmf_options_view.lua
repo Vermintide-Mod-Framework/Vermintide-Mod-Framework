@@ -1665,26 +1665,30 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
 
         loaded_setting_value = get_mod(widget_content.mod_name):get(widget_content.setting_name)
 
+        local setting_not_found = true
         for i, option_value in ipairs(widget_content.options_values) do
 
           if loaded_setting_value == option_value then
             widget_content.current_option_number = i
             widget_content.current_option_text   = widget_content.options_texts[i]
 
-            return
+            setting_not_found = false
+            break
           end
         end
 
-        if type(loaded_setting_value) ~= "nil" then
-          -- @TODO: warning: variable which is not in the stepper options list in config
-        end
+        if setting_not_found then
+          if type(loaded_setting_value) ~= "nil" then
+            -- @TODO: warning: variable which is not in the stepper options list in config
+          end
 
-        for i, option_value in ipairs(widget_content.options_values) do
+          for i, option_value in ipairs(widget_content.options_values) do
 
-          if widget_content.default_value == option_value then
-            widget_content.current_option_number = i
-            widget_content.current_option_text   = widget_content.options_texts[i]
-            get_mod(widget_content.mod_name):set(widget_content.setting_name, widget_content.default_value)
+            if widget_content.default_value == option_value then
+              widget_content.current_option_number = i
+              widget_content.current_option_text   = widget_content.options_texts[i]
+              get_mod(widget_content.mod_name):set(widget_content.setting_name, widget_content.default_value)
+            end
           end
         end
 
