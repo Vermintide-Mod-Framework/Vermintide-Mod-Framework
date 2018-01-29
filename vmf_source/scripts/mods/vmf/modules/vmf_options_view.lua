@@ -1671,7 +1671,7 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
             widget_content.current_option_number = i
             widget_content.current_option_text   = widget_content.options_texts[i]
 
-            break
+            return
           end
         end
 
