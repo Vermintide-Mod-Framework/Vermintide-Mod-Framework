@@ -92,9 +92,7 @@ local function update_function_hook_chain(hooked_function_name)
           return hook_entry.hook_function(hooked_function_entry.original_function, ...)
         end
       else
-        hook_entry.exec_function = function(...)
-          return hooked_function_entry.original_function
-        end
+        hook_entry.exec_function = hooked_function_entry.original_function
       end
     else
       if hook_entry.is_enabled then
@@ -102,9 +100,7 @@ local function update_function_hook_chain(hooked_function_name)
           return hook_entry.hook_function(hooked_function_entry.hooks[i - 1].exec_function, ...)
         end
       else
-        hook_entry.exec_function = function(...)
-          return hooked_function_entry.hooks[i - 1].exec_function
-        end
+        hook_entry.exec_function = hooked_function_entry.hooks[i - 1].exec_function
       end
     end
   end
