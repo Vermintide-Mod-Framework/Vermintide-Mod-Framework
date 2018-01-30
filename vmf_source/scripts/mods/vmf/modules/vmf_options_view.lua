@@ -1,5 +1,16 @@
 --[[
-  Don't set settings to the values which aren't defined in options
+  * If you're changing settings defined in widget via mod:set don't use values which aren't defined in widget
+  * Don't use tables in settings defined in widgets. You can do it, but it will affect performance. The widgets are build to work with
+  basic datatypes (with exception of keybind widgets, but they are working differently)
+  * Using tables in mod:get and mod:set for the settings that are not defined in widgets is fine though,
+  but keep in mind, that every time you do it, this table will be cloned, so don't do it very frequently,
+  especially if the tables are big
+  * No external config files. Everything should be stored via mod:set
+
+
+  @TODO: clone in setting menu
+  @TODO: migrate all settings to 1 table
+  @TODO: move suspending list to vmf_options_menu
 ]]
 local vmf = get_mod("VMF")
 
@@ -273,7 +284,7 @@ local SETTINGS_LIST_REGULAR_WIDGET_SIZE = {1194, 50}
 local function create_header_widget(widget_definition, scenegraph_id)
 
   local widget_size = SETTINGS_LIST_HEADER_WIDGET_SIZE
-  local offset_y = - widget_size[2]
+  local offset_y = -widget_size[2]
 
   local definition = {
     element = {
@@ -488,7 +499,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
       tooltip_text = widget_definition.tooltip,
 
       mod_name = widget_definition.mod_name,
-      widget_type = widget_definition.widget_type,
+      widget_type = widget_definition.widget_type
     },
     style = {
 
@@ -604,7 +615,7 @@ end
 local function create_checkbox_widget(widget_definition, scenegraph_id)
 
   local widget_size = SETTINGS_LIST_REGULAR_WIDGET_SIZE
-  local offset_y = - widget_size[2]
+  local offset_y = -widget_size[2]
 
   local show_widget_condition = nil
   if widget_definition.show_widget_condition then
@@ -753,7 +764,7 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
       widget_type = widget_definition.widget_type,
       default_value = widget_definition.default_value,
       parent_widget_number = widget_definition.parent_widget_number,
-      show_widget_condition = show_widget_condition,
+      show_widget_condition = show_widget_condition
     },
     style = {
 
@@ -835,23 +846,10 @@ end
 --███████║   ██║   ███████╗██║     ██║     ███████╗██║  ██║
 --╚══════╝   ╚═╝   ╚══════╝╚═╝     ╚═╝     ╚══════╝╚═╝  ╚═╝
 
---[[
-      new_widget_definition.widget_index = new_widget_index
-      new_widget_definition.widget_level = level
-      new_widget_definition.mod_name     = self._name
-      new_widget_definition.setting_name = current_widget.setting_name
-      new_widget_definition.text         = current_widget.text
-      new_widget_definition.tooltip      = current_widget.tooltip
-      new_widget_definition.options      = current_widget.options
-      new_widget_definition.default      = current_widget.default
-      new_widget_definition.show_widget_condition = current_widget.show_widget_condition
-      new_widget_definition.parent_widget_number  = parent_number
-]]
-
 local function create_stepper_widget(widget_definition, scenegraph_id)
 
   local widget_size = SETTINGS_LIST_REGULAR_WIDGET_SIZE
-  local offset_y = - widget_size[2]
+  local offset_y = -widget_size[2]
 
   local show_widget_condition = nil
   if widget_definition.show_widget_condition then
@@ -1042,7 +1040,7 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
       current_option_text = options_texts[1],
       default_value = widget_definition.default_value,
       parent_widget_number = widget_definition.parent_widget_number,
-      show_widget_condition = show_widget_condition,
+      show_widget_condition = show_widget_condition
     },
     style = {
 
@@ -1070,7 +1068,6 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
       left_arrow = {
         size = {28, 34},
         offset = {widget_size[1] - 300, offset_y + 8, 2},
-        --color = {255, 255, 255, 255},
         masked = true
       },
 
@@ -1078,7 +1075,6 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
         size = {28, 34},
         offset = {widget_size[1] - 60, offset_y + 8, 2},
         masked = true,
-        --color = {255, 255, 255, 255},
         angle = math.pi,
         pivot = {14, 17}
       },
@@ -1091,6 +1087,7 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
         dynamic_font = true,
         text_color = Colors.get_color_table_with_alpha("cheeseburger", 255)
       },
+
       -- HOTSPOTS
 
       left_arrow_hotspot = {
@@ -1141,6 +1138,259 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
 end
 
 
+-- ██╗  ██╗███████╗██╗   ██╗██████╗ ██╗███╗   ██╗██████╗
+-- ██║ ██╔╝██╔════╝╚██╗ ██╔╝██╔══██╗██║████╗  ██║██╔══██╗
+-- █████╔╝ █████╗   ╚████╔╝ ██████╔╝██║██╔██╗ ██║██║  ██║
+-- ██╔═██╗ ██╔══╝    ╚██╔╝  ██╔══██╗██║██║╚██╗██║██║  ██║
+-- ██║  ██╗███████╗   ██║   ██████╔╝██║██║ ╚████║██████╔╝
+-- ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═════╝ ╚═╝╚═╝  ╚═══╝╚═════╝
+
+
+local function build_keybind_string(keys)
+
+  local keybind_string = ""
+
+  for i, key in ipairs(keys) do
+    if i == 1 then
+      keybind_string = keybind_string .. vmf.readable_key_names[key]
+    else
+      keybind_string = keybind_string .. " + " .. vmf.readable_key_names[key]
+    end
+  end
+
+  return keybind_string
+end
+
+
+local function create_keybind_widget(widget_definition, scenegraph_id)
+
+  local widget_size = SETTINGS_LIST_REGULAR_WIDGET_SIZE
+  local offset_y = -widget_size[2]
+
+  local show_widget_condition = nil
+  if widget_definition.show_widget_condition then
+    show_widget_condition = {}
+    for _, i in ipairs(widget_definition.show_widget_condition) do
+      show_widget_condition[i] = true
+    end
+  end
+
+  local definition = {
+    element = {
+      passes = {
+        -- VISUALS
+        {
+          pass_type = "texture",
+
+          style_id   = "background",
+          texture_id = "background_texture",
+
+          content_check_function = function (content)
+            return content.is_widget_collapsed
+          end
+        },
+        {
+          pass_type = "texture",
+
+          style_id = "highlight_texture",
+          texture_id = "highlight_texture",
+          content_check_function = function (content)
+            return content.highlight_hotspot.is_hover
+          end
+        },
+        {
+          pass_type = "text",
+
+          style_id = "text",
+          text_id = "text"
+        },
+        {
+          pass_type = "text",
+
+          style_id = "keybind_text",
+          text_id = "keybind_text"
+        },
+        -- HOTSPOTS
+        {
+          pass_type = "hotspot",
+
+          content_id = "highlight_hotspot"
+        },
+        {
+          pass_type = "hotspot",
+
+          style_id = "keybind_text_hotspot",
+          content_id = "keybind_text_hotspot"
+        },
+        -- PROCESSING
+        {
+          pass_type = "local_offset",
+
+          offset_function = function (ui_scenegraph, style, content, ui_renderer)
+
+            if content.highlight_hotspot.is_hover and content.tooltip_text then
+              style.tooltip_text.cursor_offset = content.callback_fit_tooltip_to_the_screen(content, style.tooltip_text, ui_renderer)
+            end
+
+            if content.highlight_hotspot.on_release and not content.keybind_text_hotspot.on_release then
+              content.callback_hide_sub_widgets(content)
+            end
+
+            if content.highlight_hotspot.is_hover and content.tooltip_text then
+              style.tooltip_text.cursor_offset = content.callback_fit_tooltip_to_the_screen(content, style.tooltip_text, ui_renderer)
+            end
+
+            if content.keybind_text_hotspot.on_release then
+              content.callback_start_setting_keybind(content, style)
+            end
+
+            if content.is_setting_keybind then
+              if content.callback_setting_keybind(content, style) then
+                content.callback_setting_changed(content.mod_name, content.setting_name, nil, content.keys)
+              end
+              return
+            end
+
+            style.keybind_text.text_color = content.keybind_text_hotspot.is_hover and Colors.get_color_table_with_alpha("white", 255) or Colors.get_color_table_with_alpha("cheeseburger", 255)
+          end
+        },
+        -- TOOLTIP
+        {
+          pass_type = "tooltip_text",
+
+          text_id  = "tooltip_text",
+          style_id = "tooltip_text",
+          content_check_function = function (content, style)
+            return content.tooltip_text and content.highlight_hotspot.is_hover
+          end
+        },
+        -- DEBUG
+        {
+          pass_type = "rect",
+
+          content_check_function = function (content)
+            return DEBUG_WIDGETS
+          end
+        },
+        {
+          pass_type = "border",
+
+          content_check_function = function (content, style)
+            if DEBUG_WIDGETS then
+              style.thickness = 1
+            end
+
+            return DEBUG_WIDGETS
+          end
+        },
+        {
+          pass_type = "rect",
+
+          style_id = "debug_middle_line",
+          content_check_function = function (content)
+            return DEBUG_WIDGETS
+          end
+        }
+      }
+    },
+    content = {
+      is_widget_visible = true,
+      is_widget_collapsed = widget_definition.is_widget_collapsed,
+
+      highlight_texture = "playerlist_hover", -- texture name
+      background_texture = "common_widgets_background_lit",
+
+      highlight_hotspot = {},
+      keybind_text_hotspot = {},
+
+      text = widget_definition.text,
+      tooltip_text = widget_definition.tooltip,
+
+      mod_name = widget_definition.mod_name,
+      setting_name = widget_definition.setting_name,
+      widget_type = widget_definition.widget_type,
+
+      action = widget_definition.action,
+      keybind_text = widget_definition.keybind_text,
+      default_value = widget_definition.default_value,
+      parent_widget_number = widget_definition.parent_widget_number,
+      show_widget_condition = show_widget_condition
+    },
+    style = {
+
+      -- VISUALS
+
+      background = {
+        size = {widget_size[1], widget_size[2] - 3},
+        offset = {0, offset_y + 1, 0}
+      },
+
+      highlight_texture = {
+        size = {widget_size[1], widget_size[2] - 3},
+        offset = {0, offset_y + 1, 0},
+        masked = true
+      },
+
+      text = {
+        offset = {60 + widget_definition.widget_level * 40, offset_y + 5, 2},
+        font_size = 28,
+        font_type = "hell_shark_masked",
+        dynamic_font = true,
+        text_color = Colors.get_color_table_with_alpha("white", 255)
+      },
+
+      keybind_text = {
+        offset = {widget_size[1] - 165, offset_y + 4, 3},
+        horizontal_alignment = "center",
+        font_size = 24,
+        font_type = "hell_shark_masked",
+        dynamic_font = true,
+        text_color = Colors.get_color_table_with_alpha("cheeseburger", 255)
+      },
+
+      -- HOTSPOTS
+
+      keybind_text_hotspot = {
+        size = {260, 34},
+        offset = {widget_size[1] - 300, offset_y + 7, 0}
+      },
+
+      -- TOOLTIP
+
+      tooltip_text = {
+        font_type = "hell_shark",
+        font_size = 18,
+        horizontal_alignment = "left",
+        vertical_alignment = "top",
+        cursor_side = "right",
+        max_width = 600,
+        cursor_offset = {27, 27},
+        cursor_offset_bottom = {27, 27},
+        cursor_offset_top = {27, -27},
+        line_colors = {
+          Colors.get_color_table_with_alpha("cheeseburger", 255),
+          Colors.get_color_table_with_alpha("white", 255)
+        }
+      },
+
+      -- DEBUG
+
+      debug_middle_line = {
+        size = {widget_size[1], 2},
+        offset = {0, (offset_y + widget_size[2]/2) - 1, 10},
+        color = {200, 0, 255, 0}
+      },
+
+      offset = {0, offset_y, 0},
+      size = {widget_size[1], widget_size[2]},
+      color = {50, 255, 255, 255}
+    },
+    scenegraph_id = scenegraph_id,
+    offset = {0, 0, 0}
+  }
+
+  return UIWidget.init(definition)
+end
 
 
 
@@ -1192,7 +1442,15 @@ VMFOptionsView.init = function (self, ingame_ui_context)
   input_manager:map_device_to_service("vmf_options_menu", "keyboard")
   input_manager:map_device_to_service("vmf_options_menu", "mouse")
   input_manager:map_device_to_service("vmf_options_menu", "gamepad")
+
+  input_manager:create_input_service("changing_setting", "IngameMenuKeymaps")
+  input_manager:map_device_to_service("changing_setting", "keyboard")
+  input_manager:map_device_to_service("changing_setting", "mouse")
+  input_manager:map_device_to_service("changing_setting", "gamepad")
   self.input_manager = input_manager
+
+
+
 
   -- wwise_world is used for making sounds (for opening menu, closing menu, etc.)
   local world = ingame_ui_context.world_manager:world("music_world")
@@ -1250,6 +1508,8 @@ VMFOptionsView.initialize_settings_list_widgets = function (self)
         widget = self:initialize_checkbox_widget(definition, scenegraph_id_start)
       elseif widget_type == "stepper" then
         widget = self:initialize_stepper_widget(definition, scenegraph_id_start)
+      elseif widget_type == "keybind" then
+        widget = self:initialize_keybind_widget(definition, scenegraph_id_start)
       elseif widget_type == "header" then
         widget = self:initialize_header_widget(definition, scenegraph_id_start)
       end
@@ -1328,6 +1588,19 @@ VMFOptionsView.initialize_header_widget = function (self, definition, scenegraph
 end
 
 
+VMFOptionsView.initialize_checkbox_widget = function (self, definition, scenegraph_id)
+
+  local widget = create_checkbox_widget(definition, scenegraph_id)
+  local content = widget.content
+
+  content.callback_setting_changed = callback(self, "callback_setting_changed")
+  content.callback_hide_sub_widgets = callback(self, "callback_hide_sub_widgets")
+  content.callback_fit_tooltip_to_the_screen = callback(self, "callback_fit_tooltip_to_the_screen")
+
+  return widget
+end
+
+
 VMFOptionsView.initialize_stepper_widget = function (self, definition, scenegraph_id)
 
   local widget = create_stepper_widget(definition, scenegraph_id)
@@ -1341,14 +1614,16 @@ VMFOptionsView.initialize_stepper_widget = function (self, definition, scenegrap
 end
 
 
-VMFOptionsView.initialize_checkbox_widget = function (self, definition, scenegraph_id)
+VMFOptionsView.initialize_keybind_widget = function (self, definition, scenegraph_id)
 
-  local widget = create_checkbox_widget(definition, scenegraph_id)
+  local widget = create_keybind_widget(definition, scenegraph_id)
   local content = widget.content
 
   content.callback_setting_changed = callback(self, "callback_setting_changed")
   content.callback_hide_sub_widgets = callback(self, "callback_hide_sub_widgets")
   content.callback_fit_tooltip_to_the_screen = callback(self, "callback_fit_tooltip_to_the_screen")
+  content.callback_start_setting_keybind = callback(self, "callback_start_setting_keybind")
+  content.callback_setting_keybind = callback(self, "callback_setting_keybind")
 
   return widget
 end
@@ -1570,6 +1845,114 @@ VMFOptionsView.callback_hide_sub_widgets = function (self, widget_content)
 end
 
 
+VMFOptionsView.callback_start_setting_keybind = function (self, widget_content, widget_style)
+
+  self.input_manager:device_unblock_all_services("keyboard", 1)
+  self.input_manager:device_unblock_all_services("mouse", 1)
+  self.input_manager:device_unblock_all_services("gamepad", 1)
+
+  self.input_manager:block_device_except_service("changing_setting", "keyboard", 1, "keybind")
+  self.input_manager:block_device_except_service("changing_setting", "mouse", 1, "keybind")
+  self.input_manager:block_device_except_service("changing_setting", "gamepad", 1, "keybind")
+
+  WwiseWorld.trigger_event(self.wwise_world, "Play_hud_select")
+
+  widget_content.is_setting_keybind = true
+  widget_content.keybind_text = "_"
+  widget_style.keybind_text.text_color[1] = 100
+end
+
+
+VMFOptionsView.callback_setting_keybind = function (self, widget_content, widget_style)
+
+  if (Mouse.any_released() and "mouse_" .. Mouse.button_name(Mouse.any_released()) == widget_content.first_pressed_button) or
+    (Keyboard.any_released() and Keyboard.button_name(Keyboard.any_released()) == widget_content.first_pressed_button) or
+    Keyboard.button(Keyboard.button_index("esc")) == 1 then
+
+    local keybind_string = ""
+    local first_key = true
+
+    widget_content.keybind_text = build_keybind_string(widget_content.keys)
+    widget_style.keybind_text.text_color[2] = 255
+
+    widget_content.first_pressed_button = nil
+    widget_content.first_pressed_button_type = nil
+    widget_content.is_setting_keybind = false
+
+    self.input_manager:device_unblock_all_services("keyboard", 1)
+    self.input_manager:device_unblock_all_services("mouse", 1)
+    self.input_manager:device_unblock_all_services("gamepad", 1)
+    self.input_manager:block_device_except_service("vmf_options_menu", "keyboard", 1)
+    self.input_manager:block_device_except_service("vmf_options_menu", "mouse", 1)
+    self.input_manager:block_device_except_service("vmf_options_menu", "gamepad", 1)
+
+    WwiseWorld.trigger_event(self.wwise_world, "Play_hud_select")
+
+    get_mod(widget_content.mod_name):keybind(widget_content.setting_name, widget_content.action, widget_content.keys)
+
+    return true
+  end
+
+  if Mouse.any_pressed() or Keyboard.any_pressed() then
+
+    local pressed_buttons = {}
+
+    if not widget_content.first_pressed_button then
+
+      local first_pressed_button_info = nil
+
+      if Keyboard.any_pressed() then
+        if Keyboard.button(Keyboard.button_index("left ctrl")) +
+          Keyboard.button(Keyboard.button_index("left alt")) +
+          Keyboard.button(Keyboard.button_index("left shift")) > 0 then
+          return
+        end
+        first_pressed_button_info = vmf.keys.keyboard[Keyboard.any_pressed()]
+
+      elseif Mouse.any_pressed() then
+
+        first_pressed_button_info = vmf.keys.mouse[Mouse.any_pressed()]
+      end
+
+      if not first_pressed_button_info then
+        return
+      end
+
+      widget_content.first_pressed_button = first_pressed_button_info[2]
+    end
+
+
+    table.insert(pressed_buttons, widget_content.first_pressed_button)
+
+    local preview_string = vmf.readable_key_names[widget_content.first_pressed_button]
+
+    local special_buttons_pressed = false
+    if Keyboard.button(Keyboard.button_index("left ctrl")) == 1 then
+      preview_string = preview_string .. " + Ctrl"
+      special_buttons_pressed = true
+      table.insert(pressed_buttons, "ctrl")
+    end
+    if Keyboard.button(Keyboard.button_index("left alt")) == 1 then
+      preview_string = preview_string .. " + Alt"
+      special_buttons_pressed = true
+      table.insert(pressed_buttons, "alt")
+    end
+    if Keyboard.button(Keyboard.button_index("left shift")) == 1 then
+      preview_string = preview_string .. " + Shift"
+      special_buttons_pressed = true
+      table.insert(pressed_buttons, "shift")
+    end
+
+    if not special_buttons_pressed then
+      preview_string = preview_string .. " + [Ctrl/Alt/Shift]"
+    end
+
+    widget_content.keys = pressed_buttons
+    widget_content.keybind_text = preview_string
+  end
+end
+
+
 -- ####################################################################################################################
 -- ##### MISCELLANEOUS: SETTINGS LIST WIDGETS #########################################################################
 -- ####################################################################################################################
@@ -1697,6 +2080,17 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
         loaded_setting_value = vmf:get("mod_suspend_state_list")
 
         widget_content.is_checkbox_checked = not loaded_setting_value[widget_content.mod_name]
+
+      elseif widget_type == "keybind" then
+
+        loaded_setting_value = get_mod(widget_content.mod_name):get(widget_content.setting_name)
+
+        if type(loaded_setting_value) == "table" then
+          widget_content.keys = loaded_setting_value
+        else
+          -- @TODO: warning:
+          widget_content.keys = widget_content.default_value
+        end
       end
     end
   end
@@ -2080,6 +2474,7 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
         new_widget_definition.tooltip       = current_widget.tooltip
         new_widget_definition.options       = current_widget.options
         new_widget_definition.default_value = current_widget.default_value
+        new_widget_definition.action        = current_widget.action
         new_widget_definition.show_widget_condition = current_widget.show_widget_condition
         new_widget_definition.parent_widget_number  = parent_number
 
@@ -2091,6 +2486,12 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
 
         if type(self:get(current_widget.setting_name)) == "nil" then
           self:set(current_widget.setting_name, current_widget.default_value)
+        end
+
+        if current_widget.widget_type == "keybind" then
+          local keybind = self:get(current_widget.setting_name)
+          new_widget_definition.keybind_text = build_keybind_string(keybind)
+          self:keybind(self._name, current_widget.action, keybind)
         end
 
         table.insert(mod_settings_list_widgets_definitions, new_widget_definition)

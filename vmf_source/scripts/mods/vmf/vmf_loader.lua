@@ -1,12 +1,13 @@
-return{
+return {
 	init = function(object)
 
 		dofile("scripts/mods/vmf/modules/dev_console")
 		dofile("scripts/mods/vmf/modules/mods")
 		dofile("scripts/mods/vmf/modules/hooks")
 		dofile("scripts/mods/vmf/modules/chat")
-		dofile("scripts/mods/vmf/modules/gui")
 		dofile("scripts/mods/vmf/modules/settings")
+		dofile("scripts/mods/vmf/modules/keybindings")
+		dofile("scripts/mods/vmf/modules/gui")
 		dofile("scripts/mods/vmf/modules/vmf_options_view")
 
 		--Application.set_user_setting("mod_developer_mode", true)
@@ -19,8 +20,16 @@ return{
 	end,
 
 	update = function(object, dt)
-		--print("UPDATE: " .. tostring(dt))
+
 		object.vmf.mods_update(dt)
+		object.vmf.check_pressed_keybinds()
+
+		if not object.vmf.all_mods_were_loaded and Managers.mod._state == "done" then
+
+			object.vmf.initialize_keybinds()
+
+			object.vmf.all_mods_were_loaded = true
+		end
 	end,
 
 	on_unload = function(object)
@@ -30,6 +39,7 @@ return{
 
 	on_reload = function(object)
 		print("VMF:ON_RELOAD()")
+		object.vmf.delete_keybinds()
 		object.vmf.mods_unload()
 		object.vmf.hooks_unload()
 		object.vmf.save_unsaved_settings_to_file()
@@ -42,6 +52,10 @@ return{
 
 		if status == "exit" and state == "StateTitleScreen" then
 			object.vmf.hook_chat_manager()
+		end
+
+		if status == "enter" and state == "StateIngame" then
+			object.vmf.initialize_keybinds()
 		end
 	end
 }

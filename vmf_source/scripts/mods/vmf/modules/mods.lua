@@ -40,6 +40,8 @@ end
 
 VMFMod.echo = function (self, message, show_mod_name)
 
+  message = tostring(message)
+
   print("[ECHO][" .. self._name .. "] " .. message)
 
   if show_mod_name then

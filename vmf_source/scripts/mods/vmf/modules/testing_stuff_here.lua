@@ -4,7 +4,21 @@ local mod = new_mod("test_mod")
       func(self, unit, input, dt, context, t)
       print("333")
       end)
-    --mod:hook_disable("GenericAmmoUserExtension.update")
+    mod:hook_disable("GenericAmmoUserExtension.update")
+
+    mod:hook("MatchmakingManager.all_peers_ready", function(func, ...)
+  --if not mod:is_suspended() then
+  --  return true
+  --else
+  --  return func(...)
+  --end
+  mod:echo("whatever")
+  return true
+end)
+    mod:disable_all_hooks()
+]]
+
+--[[
     --mod:hook_enable("GenericAmmoUserExtension.update")
     --mod:hook_disable("GenericAmmoUserExtension.update")
     --mod:hook_remove("GenericAmmoUserExtension.update")
@@ -65,7 +79,7 @@ local options_widgets = {
           ["text"] = "Warn joining players about game mode",
           ["tooltip"] = "You don't want others to ruin your game," .. "\n" ..
                         "do you?",
-          ["default_value"] = true, -- Default first option is enabled. In this case Below
+          ["default_value"] = true,
           ["sub_widgets"] = {
             {
               ["setting_name"] = "whatever",
@@ -73,8 +87,16 @@ local options_widgets = {
               ["text"] = "Whatever",
               ["tooltip"] = "Whatever," .. "\n" ..
                             "whatever",
-              ["default_value"] = true -- Default first option is enabled. In this case Below
-            }
+              ["default_value"] = true
+            },
+            {
+              ["setting_name"] = "the_keybind",
+              ["widget_type"] = "keybind",
+              ["text"] = "Some keybind",
+              ["tooltip"] = "Probably keybind",
+              ["default_value"] = {"b"},
+              ["action"] = "whatever"
+            },
           }
         }
       }
@@ -85,14 +107,21 @@ local options_widgets = {
       ["text"] = "Git Gut",
       ["tooltip"] = "Get better at this game," .. "\n" ..
                     "mkay?",
-      ["default_value"] = true -- Default first option is enabled. In this case Below
+      ["default_value"] = true
     }
   }
 
+  mod:create_options(options_widgets, true, "Test your keybind", "Mod description")
+
+  mod.whatever = function()
+    mod:echo("It is working, my dudes!")
+  end
+
+--[[
+--vermintide stress test
+
   local lots_of_widgets = {}
 
---vermintide stress test
---[[
   for i = 1,256 do
     local some_widget =     {
       ["setting_name"] = "game_mode" .. tostring(i),
@@ -143,21 +172,30 @@ local options_widgets = {
     }
     table.insert(lots_of_widgets, some_widget)
   end]]
+
 --[[
-  mod:create_options(lots_of_widgets, true, "Salvage on the Loottable", "Mod description")
+  mod:keybind("show_message", "show_message", {"s", "ctrl", "alt", "shift"})
+  mod:keybind("ohh", "show_message", {"g"})
 
   local mod = new_mod("test_mod2")
-  mod:create_options(lots_of_widgets, true, "Bots Improvements", "Mod description")
+  mod:keybind("show_message", "show_message", {"browser forward"})
+  mod.show_message = function()
+    mod:echo("YAY")
+  end]]
+
+--[[
+  local mod = new_mod("test_mod2")
+  mod:create_options(options_widgets, true, "Bots Improvements", "Mod description")
 
   local mod = new_mod("test_mod3")
-  mod:create_options(lots_of_widgets, true, "Show Healhbars", "Mod description")
+  mod:create_options(options_widgets, true, "Show Healhbars", "Mod description")
 
   local mod = new_mod("test_mod4")
-  mod:create_options(lots_of_widgets, true, "Ammo Meter", "Mod description")
+  mod:create_options(options_widgets, true, "Ammo Meter", "Mod description")
 
   local mod = new_mod("test_mod5")
-  mod:create_options(lots_of_widgets, true, "Show Damage", "Mod description")
+  mod:create_options(options_widgets, true, "Show Damage", "Mod description")
 
   local mod = new_mod("test_mod6")
-  mod:create_options(lots_of_widgets, true, "Kick & Ban", "Mod description")
+  mod:create_options(options_widgets, true, "Kick & Ban", "Mod description")
 ]]
