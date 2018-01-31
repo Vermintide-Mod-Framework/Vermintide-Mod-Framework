@@ -1644,6 +1644,8 @@ VMFOptionsView.callback_setting_changed = function (self, mod_name, setting_name
     get_mod(mod_name):set(setting_name, new_value, true)
   end
 
+  WwiseWorld.trigger_event(self.wwise_world, "Play_hud_select")
+
   self:update_settings_list_widgets_visibility(mod_name)
   self:readjust_visible_settings_list_widgets_position()
 end
@@ -1676,6 +1678,8 @@ VMFOptionsView.callback_mod_suspend_state_changed = function (self, mod_name, is
       mod:echo("ERROR: suspending from options menu is specified, but function 'mod.unsuspended()' is not defined", true)
     end
   end
+
+  WwiseWorld.trigger_event(self.wwise_world, "Play_hud_select")
 
   self:update_settings_list_widgets_visibility(mod_name)
   self:readjust_visible_settings_list_widgets_position()
@@ -1745,6 +1749,8 @@ VMFOptionsView.callback_favorite = function (self, widget_content)
 
   widget_content.is_favorited = is_favorited
 
+  WwiseWorld.trigger_event(self.wwise_world, "Play_hud_select")
+
   self:sort_settings_list_widgets()
   self:readjust_visible_settings_list_widgets_position()
 end
@@ -1769,6 +1775,8 @@ VMFOptionsView.callback_move_favorite = function (self, widget_content, is_moved
 
         vmf:set("options_menu_favorite_mods", favorite_mods_list)
 
+        WwiseWorld.trigger_event(self.wwise_world, "Play_hud_select")
+
         self:sort_settings_list_widgets()
         self:readjust_visible_settings_list_widgets_position()
 
@@ -1781,8 +1789,8 @@ end
 
 VMFOptionsView.callback_hide_sub_widgets = function (self, widget_content)
 
-  local mod_name               = widget_content.mod_name
-  local setting_name           = widget_content.setting_name
+  local mod_name            = widget_content.mod_name
+  local setting_name        = widget_content.setting_name
   local is_widget_collapsed = widget_content.is_widget_collapsed
 
   local widget_number = not setting_name and 1 -- if (setting_name == nil) -> it's header -> #1
@@ -1811,7 +1819,15 @@ VMFOptionsView.callback_hide_sub_widgets = function (self, widget_content)
     end
   end
 
-  widget_content.is_widget_collapsed = not is_widget_collapsed and are_there_visible_sub_widgets
+  local is_widget_collapsed_new = not is_widget_collapsed and are_there_visible_sub_widgets
+
+  if is_widget_collapsed_new and not is_widget_collapsed then
+    WwiseWorld.trigger_event(self.wwise_world, "Play_hud_map_close")
+  elseif not is_widget_collapsed_new and is_widget_collapsed then
+    WwiseWorld.trigger_event(self.wwise_world, "Play_hud_map_open")
+  end
+
+  widget_content.is_widget_collapsed = is_widget_collapsed_new
 
 
   setting_name = setting_name or mod_name -- header
@@ -1869,6 +1885,7 @@ VMFOptionsView.callback_change_setting_keybind_state = function (self, widget_co
     self.input_manager:device_unblock_all_services("keyboard", 1)
     self.input_manager:device_unblock_all_services("mouse", 1)
     self.input_manager:device_unblock_all_services("gamepad", 1)
+
     self.input_manager:block_device_except_service("vmf_options_menu", "keyboard", 1)
     self.input_manager:block_device_except_service("vmf_options_menu", "mouse", 1)
     self.input_manager:block_device_except_service("vmf_options_menu", "gamepad", 1)
@@ -1876,8 +1893,6 @@ VMFOptionsView.callback_change_setting_keybind_state = function (self, widget_co
     widget_content.is_setting_keybind = false
     widget_style.keybind_text.text_color[2] = 255
   end
-
-  WwiseWorld.trigger_event(self.wwise_world, "Play_hud_select")
 end
 
 VMFOptionsView.callback_setting_keybind = function (self, widget_content, widget_style)
@@ -2337,7 +2352,7 @@ VMFOptionsView.on_enter = function (self)
   input_manager.block_device_except_service(input_manager, "vmf_options_menu", "mouse", 1)
   input_manager.block_device_except_service(input_manager, "vmf_options_menu", "gamepad", 1)
 
-  WwiseWorld.trigger_event(self.wwise_world, "Play_hud_map_open")
+  WwiseWorld.trigger_event(self.wwise_world, "Play_hud_button_open")
 
   self:sort_settings_list_widgets()
   self:update_picked_option_for_settings_list_widgets()
@@ -2346,7 +2361,7 @@ VMFOptionsView.on_enter = function (self)
 end
 
 VMFOptionsView.on_exit = function (self)
-  WwiseWorld.trigger_event(self.wwise_world, "Play_hud_map_close")
+  WwiseWorld.trigger_event(self.wwise_world, "Play_hud_button_close")
 
   self.exiting = nil
 end
