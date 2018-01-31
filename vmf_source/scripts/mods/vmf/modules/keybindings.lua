@@ -279,12 +279,13 @@ vmf.check_pressed_keybinds = function()
     for key, key_bindings in pairs(optimized_keybinds) do
       if input_service:get(key) then
         for _, binding_info in ipairs(key_bindings) do
-          if (not binding_info[3] or binding_info[3] and input_service:get(binding_info[3])) and
-            (not binding_info[4] or binding_info[4] and input_service:get(binding_info[4])) and
-            (not binding_info[5] or binding_info[5] and input_service:get(binding_info[5])) then
+          if (not binding_info[3] and not input_service:get(binding_info[3]) or binding_info[3] and input_service:get(binding_info[3])) and
+            (not binding_info[4] and not input_service:get(binding_info[4]) or binding_info[4] and input_service:get(binding_info[4])) and
+            (not binding_info[5] and not input_service:get(binding_info[5]) or binding_info[5] and input_service:get(binding_info[5])) then
               get_mod(binding_info[1])[binding_info[2]]()
 
               vmf.activated_pressed_key = key
+              return
           end
         end
       end
