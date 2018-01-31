@@ -1960,7 +1960,9 @@ VMFOptionsView.callback_setting_keybind = function (self, widget_content, widget
       widget_content.first_pressed_button_index = nil
       widget_content.first_pressed_button_type  = nil
 
-      get_mod(widget_content.mod_name):keybind(widget_content.setting_name, widget_content.action, widget_content.keys)
+      if widget_content.action then
+        get_mod(widget_content.mod_name):keybind(widget_content.setting_name, widget_content.action, widget_content.keys)
+      end
 
       self:callback_change_setting_keybind_state(widget_content, widget_style)
 
@@ -1973,7 +1975,9 @@ VMFOptionsView.callback_setting_keybind = function (self, widget_content, widget
 
       widget_content.keybind_text = build_keybind_string(widget_content.keys)
 
-      get_mod(widget_content.mod_name):keybind(widget_content.setting_name, widget_content.action, widget_content.keys)
+      if widget_content.action then
+        get_mod(widget_content.mod_name):keybind(widget_content.setting_name, widget_content.action, widget_content.keys)
+      end
 
       self:callback_change_setting_keybind_state(widget_content, widget_style)
 
@@ -2521,7 +2525,9 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
         if current_widget.widget_type == "keybind" then
           local keybind = self:get(current_widget.setting_name)
           new_widget_definition.keybind_text = build_keybind_string(keybind)
-          self:keybind(current_widget.setting_name, current_widget.action, keybind)
+          if current_widget.action then
+            self:keybind(current_widget.setting_name, current_widget.action, keybind)
+          end
         end
 
         table.insert(mod_settings_list_widgets_definitions, new_widget_definition)
