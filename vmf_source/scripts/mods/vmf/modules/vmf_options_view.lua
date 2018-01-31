@@ -1158,6 +1158,10 @@ local function build_keybind_string(keys)
     end
   end
 
+  if keybind_string == "" then
+    keybind_string = "<unassigned>"
+  end
+
   return keybind_string
 end
 
