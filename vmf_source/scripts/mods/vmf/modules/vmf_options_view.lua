@@ -1245,7 +1245,7 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
             end
 
             if content.keybind_text_hotspot.on_release then
-              content.callback_start_setting_keybind(content, style)
+              content.callback_change_setting_keybind_state(content, style)
             end
 
             if content.is_setting_keybind then
@@ -1626,7 +1626,7 @@ VMFOptionsView.initialize_keybind_widget = function (self, definition, scenegrap
   content.callback_setting_changed = callback(self, "callback_setting_changed")
   content.callback_hide_sub_widgets = callback(self, "callback_hide_sub_widgets")
   content.callback_fit_tooltip_to_the_screen = callback(self, "callback_fit_tooltip_to_the_screen")
-  content.callback_start_setting_keybind = callback(self, "callback_start_setting_keybind")
+  content.callback_change_setting_keybind_state = callback(self, "callback_change_setting_keybind_state")
   content.callback_setting_keybind = callback(self, "callback_setting_keybind")
 
   return widget
@@ -1849,39 +1849,22 @@ VMFOptionsView.callback_hide_sub_widgets = function (self, widget_content)
 end
 
 
-VMFOptionsView.callback_start_setting_keybind = function (self, widget_content, widget_style)
+VMFOptionsView.callback_change_setting_keybind_state = function (self, widget_content, widget_style)
 
-  self.input_manager:device_unblock_all_services("keyboard", 1)
-  self.input_manager:device_unblock_all_services("mouse", 1)
-  self.input_manager:device_unblock_all_services("gamepad", 1)
+  if not widget_content.is_setting_keybind then
+    self.input_manager:device_unblock_all_services("keyboard", 1)
+    self.input_manager:device_unblock_all_services("mouse", 1)
+    self.input_manager:device_unblock_all_services("gamepad", 1)
 
-  self.input_manager:block_device_except_service("changing_setting", "keyboard", 1, "keybind")
-  self.input_manager:block_device_except_service("changing_setting", "mouse", 1, "keybind")
-  self.input_manager:block_device_except_service("changing_setting", "gamepad", 1, "keybind")
+    self.input_manager:block_device_except_service("changing_setting", "keyboard", 1, "keybind")
+    self.input_manager:block_device_except_service("changing_setting", "mouse", 1, "keybind")
+    self.input_manager:block_device_except_service("changing_setting", "gamepad", 1, "keybind")
 
-  WwiseWorld.trigger_event(self.wwise_world, "Play_hud_select")
+    WwiseWorld.trigger_event(self.wwise_world, "Play_hud_select")
 
-  widget_content.is_setting_keybind = true
-  widget_content.keybind_text = "_"
-  widget_style.keybind_text.text_color[1] = 100
-end
-
-
-VMFOptionsView.callback_setting_keybind = function (self, widget_content, widget_style)
-
-  if (Mouse.any_released() and "mouse_" .. Mouse.button_name(Mouse.any_released()) == widget_content.first_pressed_button) or
-    (Keyboard.any_released() and Keyboard.button_name(Keyboard.any_released()) == widget_content.first_pressed_button) or
-    Keyboard.button(Keyboard.button_index("esc")) == 1 then
-
-    local keybind_string = ""
-    local first_key = true
-
-    widget_content.keybind_text = build_keybind_string(widget_content.keys)
-    widget_style.keybind_text.text_color[2] = 255
-
-    widget_content.first_pressed_button = nil
-    widget_content.first_pressed_button_type = nil
-    widget_content.is_setting_keybind = false
+    widget_content.is_setting_keybind = true
+    widget_style.keybind_text.text_color[1] = 100
+  else
 
     self.input_manager:device_unblock_all_services("keyboard", 1)
     self.input_manager:device_unblock_all_services("mouse", 1)
@@ -1890,69 +1873,97 @@ VMFOptionsView.callback_setting_keybind = function (self, widget_content, widget
     self.input_manager:block_device_except_service("vmf_options_menu", "mouse", 1)
     self.input_manager:block_device_except_service("vmf_options_menu", "gamepad", 1)
 
-    WwiseWorld.trigger_event(self.wwise_world, "Play_hud_select")
-
-    get_mod(widget_content.mod_name):keybind(widget_content.setting_name, widget_content.action, widget_content.keys)
-
-    return true
+    widget_content.is_setting_keybind = false
+    widget_style.keybind_text.text_color[2] = 255
   end
 
-  if Mouse.any_pressed() or Keyboard.any_pressed() then
+  WwiseWorld.trigger_event(self.wwise_world, "Play_hud_select")
+end
 
-    local pressed_buttons = {}
+VMFOptionsView.callback_setting_keybind = function (self, widget_content, widget_style)
 
-    if not widget_content.first_pressed_button then
+  if not widget_content.first_pressed_button and (Keyboard.any_pressed() or Mouse.any_pressed()) then
 
-      local first_pressed_button_info = nil
+    local first_pressed_button_info  = nil
+    local first_pressed_button_index = nil
+    local first_pressed_button_type  = nil
 
-      if Keyboard.any_pressed() then
-        if Keyboard.button(Keyboard.button_index("left ctrl")) +
-          Keyboard.button(Keyboard.button_index("left alt")) +
-          Keyboard.button(Keyboard.button_index("left shift")) > 0 then
-          return
-        end
-        first_pressed_button_info = vmf.keys.keyboard[Keyboard.any_pressed()]
+    if Keyboard.any_pressed() then
 
-      elseif Mouse.any_pressed() then
+      first_pressed_button_info  = vmf.keys.keyboard[Keyboard.any_pressed()]
+      first_pressed_button_index = Keyboard.any_pressed()
+      first_pressed_button_type  = "keyboard"
 
-        first_pressed_button_info = vmf.keys.mouse[Mouse.any_pressed()]
-      end
+    elseif Mouse.any_pressed() then
 
-      if not first_pressed_button_info then
-        return
-      end
-
-      widget_content.first_pressed_button = first_pressed_button_info[2]
+      first_pressed_button_info  = vmf.keys.mouse[Mouse.any_pressed()]
+      first_pressed_button_index = Mouse.any_pressed()
+      first_pressed_button_type  = "mouse"
     end
 
+    if first_pressed_button_info then
+      widget_content.first_pressed_button       = first_pressed_button_info[2]
+      widget_content.first_pressed_button_index = first_pressed_button_index
+      widget_content.first_pressed_button_type  = first_pressed_button_type
+    end
+  end
 
+  local pressed_buttons = {}
+  local preview_string = ""
+
+  if widget_content.first_pressed_button then
     table.insert(pressed_buttons, widget_content.first_pressed_button)
+    preview_string = vmf.readable_key_names[widget_content.first_pressed_button]
+  end
+  if Keyboard.button(Keyboard.button_index("left ctrl")) == 1 then
+    preview_string = preview_string .. " + Ctrl"
+    table.insert(pressed_buttons, "ctrl")
+  end
+  if Keyboard.button(Keyboard.button_index("left alt")) == 1 then
+    preview_string = preview_string .. " + Alt"
+    table.insert(pressed_buttons, "alt")
+  end
+  if Keyboard.button(Keyboard.button_index("left shift")) == 1 then
+    preview_string = preview_string .. " + Shift"
+    table.insert(pressed_buttons, "shift")
+  end
 
-    local preview_string = vmf.readable_key_names[widget_content.first_pressed_button]
-
-    local special_buttons_pressed = false
-    if Keyboard.button(Keyboard.button_index("left ctrl")) == 1 then
-      preview_string = preview_string .. " + Ctrl"
-      special_buttons_pressed = true
-      table.insert(pressed_buttons, "ctrl")
-    end
-    if Keyboard.button(Keyboard.button_index("left alt")) == 1 then
-      preview_string = preview_string .. " + Alt"
-      special_buttons_pressed = true
-      table.insert(pressed_buttons, "alt")
-    end
-    if Keyboard.button(Keyboard.button_index("left shift")) == 1 then
-      preview_string = preview_string .. " + Shift"
-      special_buttons_pressed = true
-      table.insert(pressed_buttons, "shift")
-    end
-
-    if not special_buttons_pressed then
-      preview_string = preview_string .. " + [Ctrl/Alt/Shift]"
-    end
-
+  if preview_string ~= "" then
     widget_content.keys = pressed_buttons
     widget_content.keybind_text = preview_string
+  else
+    widget_content.keybind_text = "_"
+  end
+
+  if widget_content.first_pressed_button then
+    if (widget_content.first_pressed_button_type == "keyboard" and Keyboard.released(widget_content.first_pressed_button_index) or
+       widget_content.first_pressed_button_type == "mouse" and Mouse.released(widget_content.first_pressed_button_index)) then
+
+      widget_content.keybind_text = build_keybind_string(widget_content.keys)
+
+      widget_content.first_pressed_button       = nil
+      widget_content.first_pressed_button_index = nil
+      widget_content.first_pressed_button_type  = nil
+
+      get_mod(widget_content.mod_name):keybind(widget_content.setting_name, widget_content.action, widget_content.keys)
+
+      self:callback_change_setting_keybind_state(widget_content, widget_style)
+
+      return true
+    end
+  else
+    if Keyboard.released(Keyboard.button_index("esc")) then
+
+      widget_content.keys = {}
+
+      widget_content.keybind_text = build_keybind_string(widget_content.keys)
+
+      get_mod(widget_content.mod_name):keybind(widget_content.setting_name, widget_content.action, widget_content.keys)
+
+      self:callback_change_setting_keybind_state(widget_content, widget_style)
+
+      return true
+    end
   end
 end
 
@@ -2495,7 +2506,7 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
         if current_widget.widget_type == "keybind" then
           local keybind = self:get(current_widget.setting_name)
           new_widget_definition.keybind_text = build_keybind_string(keybind)
-          self:keybind(self._name, current_widget.action, keybind)
+          self:keybind(current_widget.setting_name, current_widget.action, keybind)
         end
 
         table.insert(mod_settings_list_widgets_definitions, new_widget_definition)

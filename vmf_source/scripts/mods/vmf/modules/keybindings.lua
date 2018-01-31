@@ -9,7 +9,6 @@ vmf.keys = {
     [9]   = {"Tab",                 "tab",               keyboard_buton_name(9)},
     [13]  = {"Enter",               "enter",             keyboard_buton_name(13)},
     [20]  = {"Caps Lock",           "caps lock",         keyboard_buton_name(20)},
-    [27]  = {"Esc",                 "esc",               keyboard_buton_name(27)},
     [32]  = {"Space",               "space",             keyboard_buton_name(32)},
     [33]  = {"Page Up",             "page up",           keyboard_buton_name(33)},
     [34]  = {"Page Down",           "page down",         keyboard_buton_name(34)},
@@ -121,15 +120,15 @@ vmf.keys = {
     [256] = {"Num Enter",           "numpad enter",      keyboard_buton_name(256)}
   },
   mouse = {
-    [0]  = {"Mouse Left",        "mouse_left",        mouse_buton_name(0)},
-    [1]  = {"Mouse Right",       "mouse_right",       mouse_buton_name(1)},
-    [2]  = {"Mouse Middle",      "mouse_middle",      mouse_buton_name(2)},
-    [3]  = {"Mouse Extra 1",     "mouse_extra_1",     mouse_buton_name(3)},
-    [4]  = {"Mouse Extra 2",     "mouse_extra_2",     mouse_buton_name(4)},
-    [10] = {"Mouse Wheel Up",    "mouse_wheel_up",    mouse_buton_name(10)},
-    [11] = {"Mouse Wheel Down",  "mouse_wheel_down",  mouse_buton_name(11)},
-    [12] = {"Mouse Wheel Left",  "mouse_wheel_left",  mouse_buton_name(12)},
-    [13] = {"Mouse Wheel Right", "mouse_wheel_right", mouse_buton_name(13)}
+    [0]  = {"Mouse Left",        "mouse left",        mouse_buton_name(0)},
+    [1]  = {"Mouse Right",       "mouse right",       mouse_buton_name(1)},
+    [2]  = {"Mouse Middle",      "mouse middle",      mouse_buton_name(2)},
+    [3]  = {"Mouse Extra 1",     "mouse extra 1",     mouse_buton_name(3)},
+    [4]  = {"Mouse Extra 2",     "mouse extra 2",     mouse_buton_name(4)},
+    [10] = {"Mouse Wheel Up",    "mouse wheel up",    mouse_buton_name(10)},
+    [11] = {"Mouse Wheel Down",  "mouse wheel down",  mouse_buton_name(11)},
+    [12] = {"Mouse Wheel Left",  "mouse wheel left",  mouse_buton_name(12)},
+    [13] = {"Mouse Wheel Right", "mouse wheel right", mouse_buton_name(13)}
   },--[[ -- will work on this if it will be needed
   gamepad = {
     [0] = {"", "d_up", gamepad_buton_name(0)},
@@ -215,14 +214,6 @@ local function apply_keybinds()
       table.insert(optimized_keybinds[primary_key], {mod_name, action_name, key2, key3, key4})
     end
   end
-
-  --VMFModsKeyMap.win32["whatever"] = {"keyboard", "'", "held"}
-
-  --Managers.input.stored_keymaps_data["VMFModsKeyMap"] = nil
-  --Managers.input.add_keymaps_data(Managers.input, VMFModsKeyMap, "VMFModsKeyMap")
-
-  table.dump(optimized_keybinds, "optimized_keybinds", 3)
-
 end
 
 -- use it directly only for dedugging purposes, otherwise use keybind widget
