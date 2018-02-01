@@ -110,31 +110,58 @@ end)
 ------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------
 
--- @TODO: close and unload menu on_reload
--- something for hotkeys
---IngameUI.init to make hotkeys? no
+
+local ingame_ui = nil
+
+-- needed to protect opened menus from being closed right away and vice versa
+local closing_keybind_is_pressed = false
+local opening_keybind_is_pressed = true
 
 local views_settings = {}
-local transitions = {}
 
 VMFMod.register_new_view = function (self, new_view_data)
+
+  new_view_data.view_settings.mod_name = self._name
+
   views_settings[new_view_data.view_name] = new_view_data.view_settings
+
+  -- there's no direct access to local variable 'transitions' in ingame_ui
+  local transitions = require("scripts/ui/views/ingame_ui_settings").transitions
 
   for transition_name, transition_function in pairs(new_view_data.view_transitions) do
     transitions[transition_name] = transition_function
   end
 
-  -- @TODO: maybe there's better way to do this?
-  -- can be called only on reloading vmf
-  local ingame_ui_exists, ingame_ui = pcall(function () return Managers.player.network_manager.matchmaking_manager.matchmaking_ui.ingame_ui end)
+  if new_view_data.view_settings.hotkey_action_name then
+    -- create function mod.hotkey_action_name()
+    -- so the menu will open when the keybind is pressed
+    self[new_view_data.view_settings.hotkey_action_name] = function()
 
-  if ingame_ui_exists then
+      if not closing_keybind_is_pressed and ingame_ui and not ingame_ui:pending_transition() and not ingame_ui:end_screen_active() and not ingame_ui.menu_active and not ingame_ui.leave_game and not ingame_ui.return_to_title_screen and not ingame_ui.popup_join_lobby_handler.visible then
+        ingame_ui:handle_transition(new_view_data.view_settings.hotkey_transition_name)
+      end
+
+      closing_keybind_is_pressed = false
+    end
+  end
+
+  -- if reloading mods, ingame_ui exists and hook "IngameUI.setup_views" won't work
+  -- so set new variables and create new menu manually
+  if ingame_ui then
 
     -- set 'ingame_ui.views'
     local new_view_name = new_view_data.view_name
     local new_view_init_function = new_view_data.view_settings.init_view_function
 
     if not ingame_ui.views[new_view_name] then --@TODO: since I do this check, close and unload custom menus while reloading
+
+      if ingame_ui.views[new_view_name] then
+        if new_view_name == ingame_ui.current_view then
+          ingame_ui:handle_transition("exit_menu")
+        end
+        ingame_ui.views[new_view_name]:destroy()
+      end
+
       ingame_ui.views[new_view_name] = new_view_init_function(ingame_ui.ingame_ui_context)
     end
 
@@ -145,16 +172,10 @@ VMFMod.register_new_view = function (self, new_view_data)
     for blocked_transition_name, _ in pairs(current_blocked_transitions) do
       ingame_ui.blocked_transitions[blocked_transition_name] = true
     end
-
-    --vmf:echo("INGAME_UI EXISTS")
-  else
-    --vmf:echo("INGAME_UI DOESN'T EXIST")
   end
 end
 
 
-
---@TODO: hotkey_mapping
 vmf:hook("IngameUI.setup_views", function(func, self, ingame_ui_context)
   func(self, ingame_ui_context)
 
@@ -163,7 +184,6 @@ vmf:hook("IngameUI.setup_views", function(func, self, ingame_ui_context)
     if self.is_in_inn then
       if view_settings.active.inn then
         self.views[view_name] = view_settings.init_view_function(ingame_ui_context)
-        --self.hotkey_mapping = view_settings.hotkey_mapping
       end
 
       for blocked_transition_name, _ in pairs(view_settings.blocked_transitions.inn) do
@@ -172,94 +192,85 @@ vmf:hook("IngameUI.setup_views", function(func, self, ingame_ui_context)
     else
       if view_settings.active.ingame then
         self.views[view_name] = view_settings.init_view_function(ingame_ui_context)
-        --self.hotkey_mapping = view_settings.hotkey_mapping
       end
 
       for blocked_transition_name, _ in pairs(view_settings.blocked_transitions.ingame) do
         self.blocked_transitions[blocked_transition_name] = true
       end
     end
-
   end
 end)
 
+vmf:hook("IngameUI.init", function(func, self, ingame_ui_context)
+  func(self, ingame_ui_context)
 
-vmf:hook("IngameUI.handle_transition", function(func, self, new_transition, ...)
+  ingame_ui = self
+end)
 
-  local successful_execution = pcall(func, self, new_transition, ...)
-  if successful_execution then
-    return
-  else
-    if not transitions[new_transition] then -- @TODO: is it right?
-      vmf:echo("Some mod is trying to use non existing view transition: " .. new_transition)
-      return
-    end
+vmf:hook("IngameUI.destroy", function(func, self)
+  func(self)
 
-    -- this block is pure copypasta from 'IngameUI.handle_transition'
-    local blocked_transitions = self.blocked_transitions
+  ingame_ui = nil
+end)
 
-    if blocked_transitions and blocked_transitions[new_transition] then
-      return
-    end
+vmf.check_custom_menus_close_keybinds = function(dt)
+  if ingame_ui then
+    if views_settings[ingame_ui.current_view] then
+      local opened_view_settings = views_settings[ingame_ui.current_view]
+      local mod_name = opened_view_settings.mod_name
+      local hotkey_name = opened_view_settings.hotkey_name
 
-    local previous_transition = self._previous_transition
-
-    if not self.is_transition_allowed(self, new_transition) or (previous_transition and previous_transition == new_transition) then
-      return
-    end
-
-    local transition_params = {
-      ...
-    }
-
-    if self.new_transition_old_view then
-      return
-    end
-
-    local old_view = self.current_view
-
-    transitions[new_transition](self, unpack(transition_params))
-
-    local new_view = self.current_view
-
-    if old_view ~= new_view then
-      if self.views[old_view] and self.views[old_view].on_exit then
-        printf("[IngameUI] menu view on_exit %s", old_view)
-        self.views[old_view]:on_exit(unpack(transition_params))
+      if not hotkey_name then
+        return
       end
 
-      if new_view and self.views[new_view] and self.views[new_view].on_enter then
-        printf("[IngameUI] menu view on_enter %s", new_view)
-        self.views[new_view]:on_enter(unpack(transition_params))
-        Managers.state.event:trigger("ingame_ui_view_on_enter", new_view)
+      local close_keybind = get_mod(mod_name):get(hotkey_name)
+
+      -- vmf keybinds input service
+      local input_service = Managers.input:get_service("VMFMods")
+      local original_is_blocked = input_service:is_blocked()
+
+      if original_is_blocked then
+        Managers.input:device_unblock_service("keyboard", 1, "VMFMods")
       end
+
+      if opening_keybind_is_pressed and not input_service:get(close_keybind[1]) then
+        opening_keybind_is_pressed = false
+      end
+
+      local close_menu = false
+      if not opening_keybind_is_pressed then
+        if input_service:get(close_keybind[1]) and
+          (not close_keybind[3] and not input_service:get("ctrl") or close_keybind[3] and input_service:get("ctrl")) and
+          (not close_keybind[4] and not input_service:get("alt") or close_keybind[4] and input_service:get("alt")) and
+          (not close_keybind[5] and not input_service:get("shift") or close_keybind[5] and input_service:get("shift")) then
+
+          close_menu = not ingame_ui.views[ingame_ui.current_view]:input_service():is_blocked()
+        end
+      end
+
+      if original_is_blocked then
+        Managers.input:device_block_service("keyboard", 1, "VMFMods")
+      end
+
+      if close_menu then
+        ingame_ui:handle_transition("exit_menu")
+
+        closing_keybind_is_pressed = true
+      end
+    else
+      opening_keybind_is_pressed = true
     end
-
-    self.new_transition = new_transition
-    self.new_transition_old_view = old_view
-    self.transition_params = transition_params
-    self._previous_transition = new_transition
-
-
   end
-end)
+end
 
---[[
-Mods.hook.set("whatever", "IngameUI.update", function(func, self, dt, t, disable_ingame_ui, end_of_level_ui)
-  func(self, dt, t, disable_ingame_ui, end_of_level_ui)
-
-  local end_screen_active = self.end_screen_active(self)
-  local gdc_build = Development.parameter("gdc")
-  local input_service = self.input_manager:get_service("ingame_menu")
-
-  if not self.pending_transition(self) and not end_screen_active and not self.menu_active and not self.leave_game and not self.return_to_title_screen and not gdc_build and not self.popup_join_lobby_handler.visible and input_service.get(input_service, "cancel_matchmaking", true) then
-    self.handle_transition(self, "vmf_options_view_force")
-
-    --MOOD_BLACKBOARD.menu = true
+-- if reloading mods
+if not ingame_ui then
+  local ingame_ui_exists, ingame_ui_return = pcall(function () return Managers.player.network_manager.matchmaking_manager.matchmaking_ui.ingame_ui end)
+  if ingame_ui_exists then
+    ingame_ui = ingame_ui_return
   end
-
-end)
-]]
+end
 
 ------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------

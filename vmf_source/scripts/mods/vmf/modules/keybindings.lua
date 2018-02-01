@@ -206,12 +206,25 @@ local function apply_keybinds()
     for setting_name, keybind in pairs(mod_keybinds) do
       local action_name = keybind[1]
       local primary_key = keybind[2][1]
-      local key2        = keybind[2][2]
-      local key3        = keybind[2][3]
-      local key4        = keybind[2][4]
+
+      local special_key1 = keybind[2][2]
+      local special_key2 = keybind[2][3]
+      local special_key3 = keybind[2][4]
+
+      local special_keys = {}
+
+      if special_key1 then
+        special_keys[special_key1] = true
+      end
+      if special_key2 then
+        special_keys[special_key2] = true
+      end
+      if special_key3 then
+        special_keys[special_key3] = true
+      end
 
       optimized_keybinds[primary_key] = optimized_keybinds[primary_key] or {}
-      table.insert(optimized_keybinds[primary_key], {mod_name, action_name, key2, key3, key4})
+      table.insert(optimized_keybinds[primary_key], {mod_name, action_name, special_keys["ctrl"], special_keys["alt"], special_keys["shift"]})
     end
   end
 end
@@ -253,12 +266,13 @@ vmf.initialize_keybinds = function()
 
   apply_keybinds()
 end
-
+vmf:echo("hmm")
 vmf.check_pressed_keybinds = function()
 
   local input_service = vmf.keybind_input_service
   if input_service then
 
+    -- don't check for the pressed keybindings until player will release already pressed keybind
     if vmf.activated_pressed_key then
       if input_service:get(vmf.activated_pressed_key) then
         return
@@ -267,17 +281,30 @@ vmf.check_pressed_keybinds = function()
       end
     end
 
+    local key_has_active_keybind = false
+
     for key, key_bindings in pairs(optimized_keybinds) do
       if input_service:get(key) then
         for _, binding_info in ipairs(key_bindings) do
-          if (not binding_info[3] and not input_service:get(binding_info[3]) or binding_info[3] and input_service:get(binding_info[3])) and
-            (not binding_info[4] and not input_service:get(binding_info[4]) or binding_info[4] and input_service:get(binding_info[4])) and
-            (not binding_info[5] and not input_service:get(binding_info[5]) or binding_info[5] and input_service:get(binding_info[5])) then
-              get_mod(binding_info[1])[binding_info[2]]()
+          if (not binding_info[3] and not input_service:get("ctrl") or binding_info[3] and input_service:get("ctrl")) and
+            (not binding_info[4] and not input_service:get("alt") or binding_info[4] and input_service:get("alt")) and
+            (not binding_info[5] and not input_service:get("shift") or binding_info[5] and input_service:get("shift")) then
+              --@TODO: add pcall, also check for suspending, and perhaps add "toggle" event
+              if not pcall(get_mod(binding_info[1])[binding_info[2]]) then
+                get_mod(binding_info[1]):echo("ERROR(keybindings): function '" .. tostring(binding_info[2]) .. "' wasn't found.", true)
+              end
+
+              key_has_active_keybind = true
+
+              --table.dump(optimized_keybinds, "optimized_keybinds", 2)
 
               vmf.activated_pressed_key = key
-              return
           end
+        end
+
+        -- return here because some other mods can have the same keybind which also need to be executed
+        if key_has_active_keybind then
+          return
         end
       end
     end
@@ -287,3 +314,7 @@ end
 vmf.delete_keybinds = function()
   VMFModsKeyMap = {}
 end
+
+local something = false and 1 + 1
+print("SADASDASDASDASDASDASDASDASDASD: " .. tostring(something))
+print("SADASDASDASDASDASDASDASDASDASD: ")

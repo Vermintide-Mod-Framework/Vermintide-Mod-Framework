@@ -23,6 +23,7 @@ return {
 
 		object.vmf.mods_update(dt)
 		object.vmf.check_pressed_keybinds()
+		object.vmf.check_custom_menus_close_keybinds(dt)
 
 		if not object.vmf.all_mods_were_loaded and Managers.mod._state == "done" then
 

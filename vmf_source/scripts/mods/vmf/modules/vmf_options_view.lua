@@ -15,7 +15,6 @@
 local vmf = get_mod("VMF")
 
 
-
 inject_material("materials/header_background", "header_background", "ingame_ui")
 inject_material("materials/header_background_lit", "header_background_lit", "ingame_ui")
 inject_material("materials/common_widgets_background_lit", "common_widgets_background_lit", "ingame_ui")
@@ -2645,6 +2644,18 @@ end
 
 
 
+local options_widgets = {
+  {
+    ["setting_name"] = "open_vmf_options",
+    ["widget_type"] = "keybind",
+    ["text"] = "Open menu hotkey",
+    ["tooltip"] = "Probably keybind",
+    ["default_value"] = {"f5"},
+    ["action"] = "open_vmf_options"
+  }
+}
+
+vmf:create_options(options_widgets, true, "Vermintide Mod Framework", ":D")
 
 
 
@@ -2653,29 +2664,6 @@ end
 
 
 
-
-
-vmf:hook("IngameUI.update", function(func, self, dt, t, disable_ingame_ui, end_of_level_ui)
-  func(self, dt, t, disable_ingame_ui, end_of_level_ui)
-
-  local end_screen_active = self.end_screen_active(self)
-  local gdc_build = Development.parameter("gdc")
-  local input_service = self.input_manager:get_service("ingame_menu")
-
-  if not self.pending_transition(self) and not end_screen_active and not self.menu_active and not self.leave_game and not self.return_to_title_screen and not gdc_build and not self.popup_join_lobby_handler.visible and input_service.get(input_service, "open_vmf_options", true) then
-    self.handle_transition(self, "vmf_options_view_force")
-    --vmf:echo("F10")
-    --MOOD_BLACKBOARD.menu = true
-  end
---vmf:echo("F10")
-end)
---vmf:echo("F10")
-
-IngameMenuKeymaps.win32.open_vmf_options = {
-      "keyboard",
-      "f4",
-      "pressed"
-    }
 
 
 local view_data = {
@@ -2695,18 +2683,9 @@ local view_data = {
         --vmf_options_view_force = true
       }
     },
-    hotkey_mapping = { --@TODO: find out what the hell is this -> 'IngameUI.handle_menu_hotkeys' (only in inn -> useless)
-      --view = "inventory_view",
-      --error_message = "matchmaking_ready_interaction_message_inventory",
-      --in_transition = "inventory_view_force", --opening from hotkey
-      --in_transition_menu = "inventory_view" -- opening from esc menu
-    },
     hotkey_name = "open_vmf_options",
-    hotkey = {
-      "keyboard",
-      "f9",
-      "pressed"
-    },
+    hotkey_action_name = "open_vmf_options",
+    hotkey_transition_name = "vmf_options_view_force",
     transition_fade = false
   },
   view_transitions = {
