@@ -266,7 +266,7 @@ vmf.initialize_keybinds = function()
 
   apply_keybinds()
 end
-vmf:echo("hmm")
+
 vmf.check_pressed_keybinds = function()
 
   local input_service = vmf.keybind_input_service

@@ -2650,7 +2650,7 @@ local options_widgets = {
     ["widget_type"] = "keybind",
     ["text"] = "Open menu hotkey",
     ["tooltip"] = "Probably keybind",
-    ["default_value"] = {"f5"},
+    ["default_value"] = {"f4"},
     ["action"] = "open_vmf_options"
   }
 }
