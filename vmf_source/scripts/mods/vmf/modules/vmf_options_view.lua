@@ -302,7 +302,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           texture_id = "highlight_texture",
 
           content_check_function = function (content)
-            return content.highlight_hotspot.is_hover
+            return content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
           end
         },
         {
@@ -312,7 +312,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           texture_id = "fav_icon_texture",
 
           content_check_function = function (content)
-            return content.is_favorited or content.highlight_hotspot.is_hover
+            return content.is_favorited or content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
           end
         },
         {
@@ -322,7 +322,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           texture_id = "fav_arrow_texture",
 
           content_check_function = function (content)
-            return content.is_favorited and content.highlight_hotspot.is_hover
+            return content.is_favorited and content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
           end
         },
         {
@@ -332,7 +332,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           texture_id = "fav_arrow_texture",
 
           content_check_function = function (content)
-            return content.is_favorited and content.highlight_hotspot.is_hover
+            return content.is_favorited and content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
           end
         },
         {
@@ -399,48 +399,53 @@ local function create_header_widget(widget_definition, scenegraph_id)
 
           offset_function = function (ui_scenegraph, style, content, ui_renderer)
 
-            if content.highlight_hotspot.is_hover and content.tooltip_text then
-              style.tooltip_text.cursor_offset = content.callback_fit_tooltip_to_the_screen(content, style.tooltip_text, ui_renderer)
-            end
+            local is_interactable = content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
 
-            if content.highlight_hotspot.on_release and not content.checkbox_hotspot.on_release and not content.fav_icon_hotspot.on_release
-              and not content.fav_arrow_up_hotspot.on_release and not content.fav_arrow_down_hotspot.on_release then
+            if is_interactable then
 
-              content.callback_hide_sub_widgets(content)
-            end
+              if content.tooltip_text then
+                style.tooltip_text.cursor_offset = content.callback_fit_tooltip_to_the_screen(content, style.tooltip_text, ui_renderer)
+              end
 
-            if content.fav_icon_hotspot.on_release then
-              content.callback_favorite(content)
-            end
+              if content.highlight_hotspot.on_release and not content.checkbox_hotspot.on_release and not content.fav_icon_hotspot.on_release
+                and not content.fav_arrow_up_hotspot.on_release and not content.fav_arrow_down_hotspot.on_release then
 
-            if content.fav_arrow_up_hotspot.on_release then
-              content.callback_move_favorite(content, true)
-            end
-
-            if content.fav_arrow_down_hotspot.on_release then
-              content.callback_move_favorite(content, false)
-            end
-
-
-            if content.checkbox_hotspot.on_release then
-
-              if content.is_widget_collapsed then
                 content.callback_hide_sub_widgets(content)
               end
 
-              local mod_name         = content.mod_name
-              local is_mod_suspended = content.is_checkbox_checked
+              if content.fav_icon_hotspot.on_release then
+                content.callback_favorite(content)
+              end
 
-              content.is_checkbox_checked = not content.is_checkbox_checked
+              if content.fav_arrow_up_hotspot.on_release then
+                content.callback_move_favorite(content, true)
+              end
 
-              content.callback_mod_suspend_state_changed(mod_name, is_mod_suspended)
+              if content.fav_arrow_down_hotspot.on_release then
+                content.callback_move_favorite(content, false)
+              end
+
+
+              if content.checkbox_hotspot.on_release then
+
+                if content.is_widget_collapsed then
+                  content.callback_hide_sub_widgets(content)
+                end
+
+                local mod_name         = content.mod_name
+                local is_mod_suspended = content.is_checkbox_checked
+
+                content.is_checkbox_checked = not content.is_checkbox_checked
+
+                content.callback_mod_suspend_state_changed(mod_name, is_mod_suspended)
+              end
             end
 
             content.fav_icon_texture = content.is_favorited and "header_fav_icon_lit" or "header_fav_icon"
             content.background_texture = content.is_widget_collapsed and "header_background_lit" or "header_background"
             content.checkbox_texture = content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
-            style.fav_arrow_up.color[1] = content.fav_arrow_up_hotspot.is_hover and 255 or 90
-            style.fav_arrow_down.color[1] = content.fav_arrow_down_hotspot.is_hover and 255 or 90
+            style.fav_arrow_up.color[1] = is_interactable and content.fav_arrow_up_hotspot.is_hover and 255 or 90
+            style.fav_arrow_down.color[1] = is_interactable and content.fav_arrow_down_hotspot.is_hover and 255 or 90
           end
         },
         -- TOOLTIP
@@ -450,7 +455,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           text_id  = "tooltip_text",
           style_id = "tooltip_text",
           content_check_function = function (content)
-            return content.tooltip_text and content.highlight_hotspot.is_hover
+            return content.tooltip_text and content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
           end
         },
         -- DEBUG
@@ -644,7 +649,7 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
           style_id = "highlight_texture",
           texture_id = "highlight_texture",
           content_check_function = function (content)
-            return content.highlight_hotspot.is_hover
+            return content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
           end
         },
         {
@@ -677,28 +682,33 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
 
           offset_function = function (ui_scenegraph, style, content, ui_renderer)
 
-            if content.highlight_hotspot.is_hover and content.tooltip_text then
-              style.tooltip_text.cursor_offset = content.callback_fit_tooltip_to_the_screen(content, style.tooltip_text, ui_renderer)
-            end
+            local is_interactable = content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
 
-            if content.highlight_hotspot.on_release and not content.checkbox_hotspot.on_release then
-              content.callback_hide_sub_widgets(content)
-            end
+            if is_interactable then
 
-            if content.checkbox_hotspot.on_release then
+              if content.tooltip_text then
+                style.tooltip_text.cursor_offset = content.callback_fit_tooltip_to_the_screen(content, style.tooltip_text, ui_renderer)
+              end
 
-              if content.is_widget_collapsed then
+              if content.highlight_hotspot.on_release and not content.checkbox_hotspot.on_release then
                 content.callback_hide_sub_widgets(content)
               end
 
-              local mod_name = content.mod_name
-              local setting_name = content.setting_name
-              local old_value = content.is_checkbox_checked
-              local new_value = not old_value
+              if content.checkbox_hotspot.on_release then
 
-              content.is_checkbox_checked = new_value
+                if content.is_widget_collapsed then
+                  content.callback_hide_sub_widgets(content)
+                end
 
-              content.callback_setting_changed(mod_name, setting_name, old_value, new_value)
+                local mod_name = content.mod_name
+                local setting_name = content.setting_name
+                local old_value = content.is_checkbox_checked
+                local new_value = not old_value
+
+                content.is_checkbox_checked = new_value
+
+                content.callback_setting_changed(mod_name, setting_name, old_value, new_value)
+              end
             end
 
             content.checkbox_texture = content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
@@ -711,7 +721,7 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
           text_id  = "tooltip_text",
           style_id = "tooltip_text",
           content_check_function = function (content)
-            return content.tooltip_text and content.highlight_hotspot.is_hover
+            return content.tooltip_text and content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
           end
         },
         -- DEBUG
@@ -886,7 +896,7 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
           style_id = "highlight_texture",
           texture_id = "highlight_texture",
           content_check_function = function (content)
-            return content.highlight_hotspot.is_hover
+            return content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
           end
         },
         {
@@ -937,40 +947,45 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
 
           offset_function = function (ui_scenegraph, style, content, ui_renderer)
 
-            if content.highlight_hotspot.is_hover and content.tooltip_text then
-              style.tooltip_text.cursor_offset = content.callback_fit_tooltip_to_the_screen(content, style.tooltip_text, ui_renderer)
-            end
+            local is_interactable = content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
 
-            if content.highlight_hotspot.on_release and not content.left_arrow_hotspot.on_release and not content.right_arrow_hotspot.on_release then
-              content.callback_hide_sub_widgets(content)
-            end
+            if is_interactable then
 
-            if content.left_arrow_hotspot.on_release or content.right_arrow_hotspot.on_release then
+              if content.tooltip_text then
+                style.tooltip_text.cursor_offset = content.callback_fit_tooltip_to_the_screen(content, style.tooltip_text, ui_renderer)
+              end
 
-              if content.is_widget_collapsed then
+              if content.highlight_hotspot.on_release and not content.left_arrow_hotspot.on_release and not content.right_arrow_hotspot.on_release then
                 content.callback_hide_sub_widgets(content)
               end
 
-              local mod_name     = content.mod_name
-              local setting_name = content.setting_name
-              local old_value    = content.options_values[content.current_option_number]
-              local new_option_number = nil
+              if content.left_arrow_hotspot.on_release or content.right_arrow_hotspot.on_release then
 
-              if content.left_arrow_hotspot.on_release then
-                new_option_number = ((content.current_option_number - 1) == 0) and content.total_options_number or (content.current_option_number - 1)
-              else
-                new_option_number = ((content.current_option_number + 1) == (content.total_options_number + 1)) and 1 or (content.current_option_number + 1)
+                if content.is_widget_collapsed then
+                  content.callback_hide_sub_widgets(content)
+                end
+
+                local mod_name     = content.mod_name
+                local setting_name = content.setting_name
+                local old_value    = content.options_values[content.current_option_number]
+                local new_option_number = nil
+
+                if content.left_arrow_hotspot.on_release then
+                  new_option_number = ((content.current_option_number - 1) == 0) and content.total_options_number or (content.current_option_number - 1)
+                else
+                  new_option_number = ((content.current_option_number + 1) == (content.total_options_number + 1)) and 1 or (content.current_option_number + 1)
+                end
+
+                content.current_option_number = new_option_number
+                content.current_option_text = content.options_texts[new_option_number]
+
+                local new_value = content.options_values[new_option_number]
+                content.callback_setting_changed(mod_name, setting_name, old_value, new_value)
               end
-
-              content.current_option_number = new_option_number
-              content.current_option_text = content.options_texts[new_option_number]
-
-              local new_value = content.options_values[new_option_number]
-              content.callback_setting_changed(mod_name, setting_name, old_value, new_value)
             end
 
-            content.left_arrow_texture = content.left_arrow_hotspot.is_hover and "settings_arrow_clicked" or "settings_arrow_normal"
-            content.right_arrow_texture = content.right_arrow_hotspot.is_hover and "settings_arrow_clicked" or "settings_arrow_normal"
+            content.left_arrow_texture = is_interactable and content.left_arrow_hotspot.is_hover and "settings_arrow_clicked" or "settings_arrow_normal"
+            content.right_arrow_texture = is_interactable and content.right_arrow_hotspot.is_hover and "settings_arrow_clicked" or "settings_arrow_normal"
           end
         },
         -- TOOLTIP
@@ -980,7 +995,7 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
           text_id  = "tooltip_text",
           style_id = "tooltip_text",
           content_check_function = function (content, style)
-            return content.tooltip_text and content.highlight_hotspot.is_hover
+            return content.tooltip_text and content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
           end
         },
         -- DEBUG
@@ -1198,7 +1213,7 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
           style_id = "highlight_texture",
           texture_id = "highlight_texture",
           content_check_function = function (content)
-            return content.highlight_hotspot.is_hover
+            return content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
           end
         },
         {
@@ -1231,20 +1246,25 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
 
           offset_function = function (ui_scenegraph, style, content, ui_renderer)
 
-            if content.highlight_hotspot.is_hover and content.tooltip_text then
-              style.tooltip_text.cursor_offset = content.callback_fit_tooltip_to_the_screen(content, style.tooltip_text, ui_renderer)
-            end
+            local is_interactable = content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
 
-            if content.highlight_hotspot.on_release and not content.keybind_text_hotspot.on_release then
-              content.callback_hide_sub_widgets(content)
-            end
+            if is_interactable then
 
-            if content.highlight_hotspot.is_hover and content.tooltip_text then
-              style.tooltip_text.cursor_offset = content.callback_fit_tooltip_to_the_screen(content, style.tooltip_text, ui_renderer)
-            end
+              if content.highlight_hotspot.is_hover and content.tooltip_text then
+                style.tooltip_text.cursor_offset = content.callback_fit_tooltip_to_the_screen(content, style.tooltip_text, ui_renderer)
+              end
 
-            if content.keybind_text_hotspot.on_release then
-              content.callback_change_setting_keybind_state(content, style)
+              if content.highlight_hotspot.on_release and not content.keybind_text_hotspot.on_release then
+                content.callback_hide_sub_widgets(content)
+              end
+
+              if content.highlight_hotspot.is_hover and content.tooltip_text then
+                style.tooltip_text.cursor_offset = content.callback_fit_tooltip_to_the_screen(content, style.tooltip_text, ui_renderer)
+              end
+
+              if content.keybind_text_hotspot.on_release then
+                content.callback_change_setting_keybind_state(content, style)
+              end
             end
 
             if content.is_setting_keybind then
@@ -1254,7 +1274,7 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
               return
             end
 
-            style.keybind_text.text_color = content.keybind_text_hotspot.is_hover and Colors.get_color_table_with_alpha("white", 255) or Colors.get_color_table_with_alpha("cheeseburger", 255)
+            style.keybind_text.text_color = is_interactable and content.keybind_text_hotspot.is_hover and Colors.get_color_table_with_alpha("white", 255) or Colors.get_color_table_with_alpha("cheeseburger", 255)
           end
         },
         -- TOOLTIP
@@ -1264,7 +1284,7 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
           text_id  = "tooltip_text",
           style_id = "tooltip_text",
           content_check_function = function (content, style)
-            return content.tooltip_text and content.highlight_hotspot.is_hover
+            return content.tooltip_text and content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
           end
         },
         -- DEBUG
@@ -1586,6 +1606,7 @@ VMFOptionsView.initialize_header_widget = function (self, definition, scenegraph
   content.callback_mod_suspend_state_changed = callback(self, "callback_mod_suspend_state_changed")
   content.callback_hide_sub_widgets = callback(self, "callback_hide_sub_widgets")
   content.callback_fit_tooltip_to_the_screen = callback(self, "callback_fit_tooltip_to_the_screen")
+  content.callback_is_cursor_inside_settings_list = callback(self, "callback_is_cursor_inside_settings_list")
 
   return widget
 end
@@ -1599,6 +1620,7 @@ VMFOptionsView.initialize_checkbox_widget = function (self, definition, scenegra
   content.callback_setting_changed = callback(self, "callback_setting_changed")
   content.callback_hide_sub_widgets = callback(self, "callback_hide_sub_widgets")
   content.callback_fit_tooltip_to_the_screen = callback(self, "callback_fit_tooltip_to_the_screen")
+  content.callback_is_cursor_inside_settings_list = callback(self, "callback_is_cursor_inside_settings_list")
 
   return widget
 end
@@ -1612,6 +1634,7 @@ VMFOptionsView.initialize_stepper_widget = function (self, definition, scenegrap
   content.callback_setting_changed = callback(self, "callback_setting_changed")
   content.callback_hide_sub_widgets = callback(self, "callback_hide_sub_widgets")
   content.callback_fit_tooltip_to_the_screen = callback(self, "callback_fit_tooltip_to_the_screen")
+  content.callback_is_cursor_inside_settings_list = callback(self, "callback_is_cursor_inside_settings_list")
 
   return widget
 end
@@ -1627,6 +1650,7 @@ VMFOptionsView.initialize_keybind_widget = function (self, definition, scenegrap
   content.callback_fit_tooltip_to_the_screen = callback(self, "callback_fit_tooltip_to_the_screen")
   content.callback_change_setting_keybind_state = callback(self, "callback_change_setting_keybind_state")
   content.callback_setting_keybind = callback(self, "callback_setting_keybind")
+  content.callback_is_cursor_inside_settings_list = callback(self, "callback_is_cursor_inside_settings_list")
 
   return widget
 end
@@ -1682,6 +1706,23 @@ VMFOptionsView.callback_mod_suspend_state_changed = function (self, mod_name, is
 
   self:update_settings_list_widgets_visibility(mod_name)
   self:readjust_visible_settings_list_widgets_position()
+end
+
+
+VMFOptionsView.callback_is_cursor_inside_settings_list = function (self)
+
+  local input_service = self:input_service()
+
+  local cursor    = input_service:get("cursor")
+  local mask_pos  = Vector3.deprecated_copy(UISceneGraph.get_world_position(self.ui_scenegraph, "sg_settings_list_mask"))
+  local mask_size = UISceneGraph.get_size(self.ui_scenegraph, "sg_settings_list_mask")
+
+  local cursor_position = UIInverseScaleVectorToResolution(cursor)
+
+  local is_hover = math.point_is_inside_2d_box(cursor_position, mask_pos, mask_size)
+  if is_hover then
+    return true
+  end
 end
 
 
@@ -1893,6 +1934,7 @@ VMFOptionsView.callback_change_setting_keybind_state = function (self, widget_co
     widget_style.keybind_text.text_color[2] = 255
   end
 end
+
 
 VMFOptionsView.callback_setting_keybind = function (self, widget_content, widget_style)
 
@@ -2262,7 +2304,6 @@ end
 -- ##### UPDATE #######################################################################################################
 -- ####################################################################################################################
 
-
 VMFOptionsView.update = function (self, dt)
   if self.suspended then
     return
@@ -2275,9 +2316,7 @@ VMFOptionsView.update = function (self, dt)
 
   self.draw_widgets(self, dt)
 
-  -- @TODO: get rid of this shit later. I guess
-  local input_manager = self.input_manager
-  local input_service = input_manager:get_service("vmf_options_menu")
+  local input_service = self:input_service()
   if input_service.get(input_service, "toggle_menu") then
     self.ingame_ui:handle_transition("exit_menu")
   end

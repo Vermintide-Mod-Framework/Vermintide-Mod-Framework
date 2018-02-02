@@ -289,14 +289,19 @@ vmf.check_pressed_keybinds = function()
           if (not binding_info[3] and not input_service:get("ctrl") or binding_info[3] and input_service:get("ctrl")) and
             (not binding_info[4] and not input_service:get("alt") or binding_info[4] and input_service:get("alt")) and
             (not binding_info[5] and not input_service:get("shift") or binding_info[5] and input_service:get("shift")) then
-              --@TODO: add pcall, also check for suspending, and perhaps add "toggle" event
-              if not pcall(get_mod(binding_info[1])[binding_info[2]]) then
+              --@TODO: also check for suspending, and perhaps add "toggle" event
+
+              local action_exists, action_function = pcall(function() return get_mod(binding_info[1])[binding_info[2]] end)
+              if action_exists then
+                local success, error_message = pcall(action_function)
+                if not success then
+                  get_mod(binding_info[1]):echo("ERROR(keybindings) in function '" .. tostring(binding_info[2]) .. "': " .. tostring(error_message), true)
+                end
+              else
                 get_mod(binding_info[1]):echo("ERROR(keybindings): function '" .. tostring(binding_info[2]) .. "' wasn't found.", true)
               end
 
               key_has_active_keybind = true
-
-              --table.dump(optimized_keybinds, "optimized_keybinds", 2)
 
               vmf.activated_pressed_key = key
           end

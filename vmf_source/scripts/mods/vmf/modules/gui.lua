@@ -241,9 +241,9 @@ vmf.check_custom_menus_close_keybinds = function(dt)
       local close_menu = false
       if not opening_keybind_is_pressed then
         if input_service:get(close_keybind[1]) and
-          (not close_keybind[3] and not input_service:get("ctrl") or close_keybind[3] and input_service:get("ctrl")) and
-          (not close_keybind[4] and not input_service:get("alt") or close_keybind[4] and input_service:get("alt")) and
-          (not close_keybind[5] and not input_service:get("shift") or close_keybind[5] and input_service:get("shift")) then
+          (not close_keybind[2] and not input_service:get("ctrl") or close_keybind[2] and input_service:get("ctrl")) and
+          (not close_keybind[3] and not input_service:get("alt") or close_keybind[3] and input_service:get("alt")) and
+          (not close_keybind[4] and not input_service:get("shift") or close_keybind[4] and input_service:get("shift")) then
 
           close_menu = not ingame_ui.views[ingame_ui.current_view]:input_service():is_blocked()
         end
