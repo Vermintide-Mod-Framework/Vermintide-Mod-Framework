@@ -1,0 +1,14 @@
+search_bar_icon = {
+	material_contexts = {
+		surface_material = ""
+	}
+
+	shader = "gui_gradient:DIFFUSE_MAP"
+
+	textures = {
+		diffuse_map = "gui/search_bar_icon"
+	}
+
+	variables = {
+	}
+}

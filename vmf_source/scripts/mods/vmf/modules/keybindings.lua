@@ -319,7 +319,3 @@ end
 vmf.delete_keybinds = function()
   VMFModsKeyMap = {}
 end
-
-local something = false and 1 + 1
-print("SADASDASDASDASDASDASDASDASDASD: " .. tostring(something))
-print("SADASDASDASDASDASDASDASDASDASD: ")

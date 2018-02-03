@@ -21,6 +21,7 @@ inject_material("materials/common_widgets_background_lit", "common_widgets_backg
 inject_material("materials/header_fav_icon", "header_fav_icon", "ingame_ui")
 inject_material("materials/header_fav_icon_lit", "header_fav_icon_lit", "ingame_ui")
 inject_material("materials/header_fav_arrow", "header_fav_arrow", "ingame_ui")
+inject_material("materials/search_bar_icon", "search_bar_icon", "ingame_ui")
 
 
 -- ####################################################################################################################
@@ -85,7 +86,7 @@ local scenegraph_definition = {
         parent = "sg_background_settings_list"
       },
 
-    sg_background_search_bar = {
+    sg_search_bar = {
       size = {1200, 47},
       position = {360, 15, 1},
 
@@ -102,7 +103,7 @@ local scenegraph_definition = {
   sg_dead_space_filler = {
     size = {1920, 1080},
     position = {0, 0, 0},
-    scale = "fit" -- WHY?
+    scale = "fit"
   }
 }
 
@@ -124,11 +125,6 @@ local menu_widgets_definition = {
             pass_type = "rect",
 
             style_id  = "background_border"
-          },
-          {
-            pass_type = "rect",
-
-            style_id  = "background_search_bar"
           },
           {
             pass_type = "rect",
@@ -180,11 +176,6 @@ local menu_widgets_definition = {
         color = {255, 140, 100, 50}
       },
 
-      background_search_bar = {
-        scenegraph_id = "sg_background_search_bar",
-        color = {255, 0, 0, 0}
-      },
-
       background_settings_list = {
         scenegraph_id = "sg_background_settings_list",
         color = {255, 0, 0, 0}
@@ -208,6 +199,77 @@ local menu_widgets_definition = {
       dead_space_filler = {
         scenegraph_id = "sg_dead_space_filler",
         color = {150, 0, 0, 0}
+      }
+    }
+  },
+
+  search_bar = {
+    scenegraph_id = "sg_search_bar",
+    element = {
+      passes = {
+        {
+          pass_type = "hotspot",
+
+          content_id = "hotspot"
+        },
+        {
+          pass_type = "rect",
+
+          style_id  = "background",
+
+          content_check_function = function (content, style)
+
+            if content.is_active then
+              style.color[2] = 50
+              style.color[3] = 50
+              style.color[4] = 50
+            else
+              if content.hotspot.is_hover then
+                style.color[2] = 25
+                style.color[3] = 25
+                style.color[4] = 25
+              else
+                style.color[2] = 0
+                style.color[3] = 0
+                style.color[4] = 0
+              end
+            end
+            return true
+          end
+        },
+        {
+          pass_type = "texture",
+
+          style_id   = "search_icon",
+          texture_id = "search_icon_texture"
+        },
+        {
+          pass_type = "text",
+
+          style_id = "text",
+          text_id  = "text"
+        }
+      }
+    },
+    content = {
+      hotspot = {},
+      text = "",
+      search_icon_texture = "search_bar_icon"
+    },
+    style = {
+      text = {
+        offset = {46, 2, 3},
+        font_size = 28,
+        font_type = "hell_shark",
+        dynamic_font = true,
+        text_color = Colors.get_color_table_with_alpha("white", 255)
+      },
+      search_icon = {
+        size = {30, 30},
+        offset = {8, 8, 3}
+      },
+      background = {
+        color = {255, 0, 0, 0}
       }
     }
   },
@@ -2299,10 +2361,106 @@ VMFOptionsView.update_scrollbar_position = function (self)
   widget_content.scroll_bar_info.old_value = percentage
 end
 
+-- ####################################################################################################################
+-- ##### SEARCH BAR ###################################################################################################
+-- ####################################################################################################################
+
+
+VMFOptionsView.update_search_bar = function (self)
+
+  local widget_content = self.menu_widgets["search_bar"].content
+
+  if self.search_bar_selected then
+
+    if Mouse.any_pressed() == 0 and not widget_content.hotspot.is_hover or -- Left Mouse Button
+       Keyboard.any_pressed() == 27 or -- Esc
+       Keyboard.any_released() == 13 then -- Enter
+
+      self:deactivate_search_bar()
+
+      return
+    end
+
+    local keystrokes = Keyboard.keystrokes()
+
+    local old_search_text = widget_content.text
+    local text_index = string.len(old_search_text) + 1
+
+    local new_search_text = KeystrokeHelper.parse_strokes(old_search_text, text_index, "insert", keystrokes)
+
+    if new_search_text ~= old_search_text then
+      self:filter_mods_settings_by_name(new_search_text)
+    end
+
+    widget_content.text = new_search_text
+  end
+
+  if widget_content.hotspot.on_release then
+
+    self:activate_search_bar()
+    self:filter_mods_settings_by_name("")
+  end
+end
+
+
+VMFOptionsView.activate_search_bar = function (self)
+
+  self.menu_widgets["search_bar"].content.text = ""
+  self.menu_widgets["search_bar"].content.is_active = true
+
+  self.search_bar_selected = true
+
+  self.input_manager:device_unblock_all_services("keyboard", 1)
+  self.input_manager:block_device_except_service("changing_setting", "keyboard", 1, "keybind")
+end
+
+
+VMFOptionsView.deactivate_search_bar = function (self)
+
+  self.menu_widgets["search_bar"].content.is_active = false
+
+  self.search_bar_selected = false
+
+  self.input_manager:device_unblock_all_services("keyboard", 1)
+  self.input_manager:block_device_except_service("vmf_options_menu", "keyboard", 1, "keybind")
+end
+
+
+VMFOptionsView.filter_mods_settings_by_name = function (self, pattern)
+
+  pattern = string.upper(pattern)
+
+  if pattern == "" then
+
+    for _, mod_widgets in ipairs(self.settings_list_widgets) do
+
+      local content = mod_widgets[1].content
+
+      content.is_widget_visible = true
+    end
+  else
+
+    for _, mod_widgets in ipairs(self.settings_list_widgets) do
+
+      local content = mod_widgets[1].content
+
+      if string.find(string.upper(content.text), pattern) then
+        content.is_widget_visible = true
+      else
+        content.is_widget_visible = false
+      end
+    end
+  end
+
+  self:update_settings_list_widgets_visibility()
+  self:readjust_visible_settings_list_widgets_position()
+end
+
 
 -- ####################################################################################################################
 -- ##### UPDATE #######################################################################################################
 -- ####################################################################################################################
+
 
 VMFOptionsView.update = function (self, dt)
   if self.suspended then
@@ -2320,6 +2478,8 @@ VMFOptionsView.update = function (self, dt)
   if input_service.get(input_service, "toggle_menu") then
     self.ingame_ui:handle_transition("exit_menu")
   end
+
+  self:update_search_bar()
 end
 
 
@@ -2683,14 +2843,45 @@ end
 
 
 
+-- If enabled, scale UI for resolutions greater than 1080p when necessary. Reports to a global when active, so that existing scaling can be disabled.
+local ui_resolution = UIResolution
+local ui_resolution_width_fragments = UIResolutionWidthFragments
+local ui_resolution_height_fragments = UIResolutionHeightFragments
+local math_min = math.min
+local raw_set = rawset
+
+vmf:hook("UIResolutionScale", function (func, ...)
+  local w, h = ui_resolution()
+  if (w > ui_resolution_width_fragments() and h > ui_resolution_height_fragments() and vmf:get("auto_hd_ui_scaling")) then
+    local max_scaling_factor = 4
+
+    local width_scale = math_min(w / ui_resolution_width_fragments(), max_scaling_factor) -- Changed to allow scaling up to quadruple the original max scale (1 -> 4)
+    local height_scale = math_min(h / ui_resolution_height_fragments(), max_scaling_factor) -- Changed to allow scaling up to quadruple the original max scale (1 -> 4)
+
+    raw_set(_G, "vmf_hd_ui_scaling_enabled", true)
+    return math_min(width_scale, height_scale)
+  else
+    raw_set(_G, "vmf_hd_ui_scaling_enabled", false)
+    return func(...)
+  end
+end)
+
 local options_widgets = {
   {
     ["setting_name"] = "open_vmf_options",
     ["widget_type"] = "keybind",
     ["text"] = "Open menu hotkey",
     ["tooltip"] = "Probably keybind",
-    ["default_value"] = {"f4"},
+    ["default_value"] = {"f5"},
     ["action"] = "open_vmf_options"
+  },
+  {
+    ["setting_name"] = "auto_hd_ui_scaling",
+    ["widget_type"] = "checkbox",
+    ["text"] = "Automatic HD UI Scaling",
+    ["tooltip"] = "Automatic HD UI Scaling" .. "\n\n" ..
+                    "Automatically scale UI when resolution exceeds 1080p.",
+    ["default_value"] = true
   }
 }
 

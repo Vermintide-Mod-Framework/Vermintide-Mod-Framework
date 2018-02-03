@@ -13,6 +13,7 @@ material = [
 	"materials/header_fav_icon"
 	"materials/header_fav_icon_lit"
 	"materials/header_fav_arrow"
+	"materials/search_bar_icon"
 ]
 
 lua = [
