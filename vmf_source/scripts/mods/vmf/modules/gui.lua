@@ -119,6 +119,7 @@ local opening_keybind_is_pressed = true
 
 local views_settings = {}
 
+
 VMFMod.register_new_view = function (self, new_view_data)
 
   new_view_data.view_settings.mod_name = self._name
@@ -153,18 +154,9 @@ VMFMod.register_new_view = function (self, new_view_data)
     local new_view_name = new_view_data.view_name
     local new_view_init_function = new_view_data.view_settings.init_view_function
 
-    if not ingame_ui.views[new_view_name] then --@TODO: since I do this check, close and unload custom menus while reloading
-
-      if ingame_ui.views[new_view_name] then
-        if new_view_name == ingame_ui.current_view then
-          ingame_ui:handle_transition("exit_menu")
-        end
-        ingame_ui.views[new_view_name]:destroy()
-      end
-
+    if new_view_name ~= "vmf_options_view" then
       ingame_ui.views[new_view_name] = new_view_init_function(ingame_ui.ingame_ui_context)
     end
-
     -- set 'ingame_ui.blocked_transitions'
     local blocked_transitions = new_view_data.view_settings.blocked_transitions
     local current_blocked_transitions = ingame_ui.is_in_inn and blocked_transitions.inn or blocked_transitions.ingame
@@ -201,17 +193,18 @@ vmf:hook("IngameUI.setup_views", function(func, self, ingame_ui_context)
   end
 end)
 
+
 vmf:hook("IngameUI.init", function(func, self, ingame_ui_context)
   func(self, ingame_ui_context)
 
   ingame_ui = self
 end)
-
 vmf:hook("IngameUI.destroy", function(func, self)
   func(self)
 
   ingame_ui = nil
 end)
+
 
 vmf.check_custom_menus_close_keybinds = function(dt)
   if ingame_ui then
@@ -263,6 +256,26 @@ vmf.check_custom_menus_close_keybinds = function(dt)
     end
   end
 end
+
+
+vmf.close_opened_custom_menus = function()
+  if ingame_ui then
+    local current_view = ingame_ui.current_view
+    if views_settings[current_view] then
+        ingame_ui:handle_transition("exit_menu")
+
+      if current_view ~= "vmf_options_view" then
+        if ingame_ui.views[current_view].destroy and get_mod(views_settings[ingame_ui.current_view].mod_name) then
+
+          get_mod(views_settings[ingame_ui.current_view].mod_name):pcall(ingame_ui.views[current_view].destroy)
+        end
+
+        ingame_ui.views[current_view] = nil
+      end
+    end
+  end
+end
+
 
 -- if reloading mods
 if not ingame_ui then

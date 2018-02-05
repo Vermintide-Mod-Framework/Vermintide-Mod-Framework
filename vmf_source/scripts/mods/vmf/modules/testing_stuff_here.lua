@@ -46,76 +46,142 @@ end)
 
 
 local options_widgets = {
-    {
-      ["setting_name"] = "game_mode",
-      ["widget_type"] = "stepper",
-      ["text"] = "Game mode",
-      ["tooltip"] = "Pick the goddamn game mode" .. "\n" ..
-                    "you litle bitch",
-      ["options"] = {
-        {--[[1]] text = "Vanilla",       value = "vanilla"},
-        {--[[2]] text = "Onslaught",     value = "onslaught"},
-        {--[[3]] text = "Hide'and'Seek", value = "hide_n_seek"},
-        {--[[4]] text = "Death Wish",    value = "deathwish"},
-        {--[[5]] text = "Legendary",     value = "legendary"},
+  {
+    ["setting_name"] = "game_mode",
+    ["widget_type"] = "stepper",
+    ["text"] = "Game mode",
+    ["tooltip"] = "Pick the goddamn game mode" .. "\n" ..
+                  "you litle bitch",
+    ["options"] = {
+      {--[[1]] text = "Vanilla",       value = "vanilla"},
+      {--[[2]] text = "Onslaught",     value = "onslaught"},
+      {--[[3]] text = "Hide'and'Seek", value = "hide_n_seek"},
+      {--[[4]] text = "Death Wish",    value = "deathwish"},
+      {--[[5]] text = "Legendary",     value = "legendary"},
+    },
+    ["default_value"] = "hide_n_seek",
+    ["sub_widgets"] = {
+      {
+        ["show_widget_condition"] = {3, 4, 5},
+
+        ["setting_name"] = "enable_god_mode",
+        ["widget_type"] = "checkbox",
+        ["text"] = "Enable God Mode",
+        ["tooltip"] = "Can't do it without cheats," .. "\n" ..
+                      "you poor guy?",
+        ["default_value"] = false
       },
-      ["default_value"] = "hide_n_seek",
-      ["sub_widgets"] = {
-        {
-          ["show_widget_condition"] = {3, 4, 5},
+      {
+        ["show_widget_condition"] = {2, 3, 4, 5},
 
-          ["setting_name"] = "enable_god_mode",
-          ["widget_type"] = "checkbox",
-          ["text"] = "Enable God Mode",
-          ["tooltip"] = "Can't do it without cheats," .. "\n" ..
-                        "you poor guy?",
-          ["default_value"] = false
-        },
-        {
-          ["show_widget_condition"] = {2, 3, 4, 5},
-
-          ["setting_name"] = "warn_others",
-          ["widget_type"] = "checkbox",
-          ["text"] = "Warn joining players about game mode",
-          ["tooltip"] = "You don't want others to ruin your game," .. "\n" ..
-                        "do you?",
-          ["default_value"] = true,
-          ["sub_widgets"] = {
-            {
-              ["setting_name"] = "whatever",
-              ["widget_type"] = "checkbox",
-              ["text"] = "Whatever",
-              ["tooltip"] = "Whatever," .. "\n" ..
-                            "whatever",
-              ["default_value"] = true
-            },
-            {
-              ["setting_name"] = "the_keybind",
-              ["widget_type"] = "keybind",
-              ["text"] = "Some keybind",
-              ["tooltip"] = "Probably keybind",
-              ["default_value"] = {"b"},
-              ["action"] = "whatever"
-            },
-          }
+        ["setting_name"] = "warn_others",
+        ["widget_type"] = "checkbox",
+        ["text"] = "Warn joining players about game mode",
+        ["tooltip"] = "You don't want others to ruin your game," .. "\n" ..
+                      "do you?",
+        ["default_value"] = true,
+        ["sub_widgets"] = {
+          {
+            ["setting_name"] = "whatever",
+            ["widget_type"] = "checkbox",
+            ["text"] = "Whatever",
+            ["tooltip"] = "Whatever," .. "\n" ..
+                          "whatever",
+            ["default_value"] = true
+          },
+          {
+            ["setting_name"] = "the_keybind",
+            ["widget_type"] = "keybind",
+            ["text"] = "Some keybind",
+            ["tooltip"] = "Probably keybind",
+            ["default_value"] = {"s"},
+            ["action"] = "whatever"
+          },
+          {
+            ["setting_name"] = "game_mode2",
+            ["widget_type"] = "dropdown",
+            ["text"] = "Game mode",
+            ["tooltip"] = "Ублюдок, мать твою," .. "\n" ..
+                          "а-ну иди сюда!",
+            ["options"] = {
+              {--[[1]] text = "Vanilla",       value = "vanilla"},
+              {--[[2]] text = "Onslaught",     value = "onslaught"},
+              {--[[3]] text = "Hide'and'Seek", value = "hide_n_seek"},
+              {--[[4]] text = "Death Wish",    value = "deathwish"},
+              {--[[5]] text = "Legendary",     value = "legendary"},
+            }
+          },
         }
       }
-    },
-    {
-      ["setting_name"] = "git_gut",
-      ["widget_type"] = "checkbox",
-      ["text"] = "Git Gut",
-      ["tooltip"] = "Get better at this game," .. "\n" ..
-                    "mkay?",
-      ["default_value"] = true
     }
+  },
+  {
+    ["setting_name"] = "git_gut",
+    ["widget_type"] = "checkbox",
+    ["text"] = "Git Gut",
+    ["tooltip"] = "Get better at this game," .. "\n" ..
+                  "mkay?",
+    ["default_value"] = true
   }
+}
 
-  mod:create_options(options_widgets, true, "Test your keybind", "Mod description")
+mod:create_options(options_widgets, true, "Test your keybind", "Mod description")
 
-  mod.whatever = function()
-    mod:echo("It is working, my dudes!")
-  end
+-- chat_broadcast
+mod.whatever = function(message)
+  mod:echo("whatever")
+end
+
+--[[
+mod:hook("KeystrokeHelper.parse_strokes", function(func, text, index, mode, keystrokes)
+  print(tostring(text) .. " " .. tostring(index) .. " " .. tostring(mode) .. " " .. tostring(keystrokes))
+  return func(text, index, mode, keystrokes)
+end)
+]]
+
+
+local search_text = ""
+local text_index = 1
+local text_input_mode = "insert" -- insert/overwrite
+
+mod.update = function()
+  local keystrokes = Keyboard.keystrokes()
+  search_text, text_index, text_input_mode = KeystrokeHelper.parse_strokes(search_text, text_index, text_input_mode, keystrokes)
+  print(tostring(search_text) .. " " .. tostring(text_index) .. " " .. tostring(text_input_mode) .. " " .. tostring(keystrokes))
+end
+
+mod.update = nil
+  --table.dump(Steam, "Steam", 2)
+
+
+--[[
+local gui = nil
+
+mod:pcall(function()
+  local world = Managers.world:world("top_ingame_view")
+
+  -- Generate the GUI
+  gui = World.create_screen_gui(
+    world,
+    "immediate",
+    "material", "materials/header_background" -- Load the material we made with the mod SDK
+  )
+end)
+
+mod:hook("MatchmakingManager.update", function(func, ...)
+  func(...)
+  mod:pcall(function()
+    Gui.bitmap(
+      gui,            -- Gui
+
+      -- This is the material name we defined in materials/vmf.material
+      "header_background",
+
+      Vector3(400, 400, 300),   -- Position
+      Vector2(65, 97),      -- Size
+      0)              -- Color
+  end)
+end)
 
 --[[
 --vermintide stress test

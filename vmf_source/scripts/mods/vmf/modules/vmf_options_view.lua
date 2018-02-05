@@ -475,7 +475,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
                 content.callback_hide_sub_widgets(content)
               end
 
-              if content.fav_icon_hotspot.on_release then
+              if content.fav_icon_hotspot.on_release and not content.fav_arrow_up_hotspot.on_release and not content.fav_arrow_down_hotspot.on_release then
                 content.callback_favorite(content)
               end
 
@@ -619,23 +619,23 @@ local function create_header_widget(widget_definition, scenegraph_id)
       -- HOTSPOTS
 
       fav_icon_hotspot = {
-        size = {30, 30},
-        offset = {15, offset_y + 25, 3}
+        size = {60, widget_size[2]},
+        offset = {0, offset_y, 3}
       },
 
       fav_arrow_up_hotspot = {
-        size = {20, 20},
-        offset = {20, offset_y + 60, 3}
+        size = {60, 20},
+        offset = {0, offset_y + 60, 3}
       },
 
       fav_arrow_down_hotspot = {
-        size = {20, 20},
-        offset = {20, offset_y, 3}
+        size = {60, 20},
+        offset = {0, offset_y, 3}
       },
 
       checkbox_hotspot = {
-        size = {80, 80},
-        offset = {widget_size[1] - 205, offset_y, 0}
+        size = {270, widget_size[2]},
+        offset = {widget_size[1] - 300, offset_y, 0}
       },
 
       -- TOOLTIP
@@ -868,8 +868,8 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
       -- HOTSPOTS
 
       checkbox_hotspot = {
-        size = {30, 30},
-        offset = {widget_size[1] - 180, offset_y + 10, 0},
+        size = {270, widget_size[2]},
+        offset = {widget_size[1] - 300, offset_y, 0}
       },
 
       -- TOOLTIP
@@ -910,12 +910,12 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
 end
 
 
---███████╗████████╗███████╗██████╗ ██████╗ ███████╗██████╗
---██╔════╝╚══██╔══╝██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗
---███████╗   ██║   █████╗  ██████╔╝██████╔╝█████╗  ██████╔╝
---╚════██║   ██║   ██╔══╝  ██╔═══╝ ██╔═══╝ ██╔══╝  ██╔══██╗
---███████║   ██║   ███████╗██║     ██║     ███████╗██║  ██║
---╚══════╝   ╚═╝   ╚══════╝╚═╝     ╚═╝     ╚══════╝╚═╝  ╚═╝
+-- ███████╗████████╗███████╗██████╗ ██████╗ ███████╗██████╗
+-- ██╔════╝╚══██╔══╝██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗
+-- ███████╗   ██║   █████╗  ██████╔╝██████╔╝█████╗  ██████╔╝
+-- ╚════██║   ██║   ██╔══╝  ██╔═══╝ ██╔═══╝ ██╔══╝  ██╔══██╗
+-- ███████║   ██║   ███████╗██║     ██║     ███████╗██║  ██║
+-- ╚══════╝   ╚═╝   ╚══════╝╚═╝     ╚═╝     ╚══════╝╚═╝  ╚═╝
 
 local function create_stepper_widget(widget_definition, scenegraph_id)
 
@@ -1048,6 +1048,7 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
 
             content.left_arrow_texture = is_interactable and content.left_arrow_hotspot.is_hover and "settings_arrow_clicked" or "settings_arrow_normal"
             content.right_arrow_texture = is_interactable and content.right_arrow_hotspot.is_hover and "settings_arrow_clicked" or "settings_arrow_normal"
+            style.current_option_text.text_color = (content.left_arrow_hotspot.is_hover or content.right_arrow_hotspot.is_hover) and Colors.get_color_table_with_alpha("white", 255) or Colors.get_color_table_with_alpha("cheeseburger", 255)
           end
         },
         -- TOOLTIP
@@ -1149,7 +1150,7 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
 
       right_arrow = {
         size = {28, 34},
-        offset = {widget_size[1] - 60, offset_y + 8, 2},
+        offset = {widget_size[1] - 58, offset_y + 8, 2},
         masked = true,
         angle = math.pi,
         pivot = {14, 17}
@@ -1167,13 +1168,13 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
       -- HOTSPOTS
 
       left_arrow_hotspot = {
-        size = {28, 34},
-        offset = {widget_size[1] - 300, offset_y + 7, 0}
+        size = {135, widget_size[2]},
+        offset = {widget_size[1] - 300, offset_y, 0}
       },
 
       right_arrow_hotspot = {
-        size = {28, 34},
-        offset = {widget_size[1] - 60, offset_y + 7, 0}
+        size = {135, widget_size[2]},
+        offset = {widget_size[1] - 165, offset_y, 0}
       },
 
       -- TOOLTIP
@@ -1214,6 +1215,371 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
 end
 
 
+-- ██████╗ ██████╗  ██████╗ ██████╗ ██████╗  ██████╗ ██╗    ██╗███╗   ██╗
+-- ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔══██╗██╔═══██╗██║    ██║████╗  ██║
+-- ██║  ██║██████╔╝██║   ██║██████╔╝██║  ██║██║   ██║██║ █╗ ██║██╔██╗ ██║
+-- ██║  ██║██╔══██╗██║   ██║██╔═══╝ ██║  ██║██║   ██║██║███╗██║██║╚██╗██║
+-- ██████╔╝██║  ██║╚██████╔╝██║     ██████╔╝╚██████╔╝╚███╔███╔╝██║ ╚████║
+-- ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═════╝  ╚═════╝  ╚══╝╚══╝ ╚═╝  ╚═══╝
+
+local function create_dropdown_menu_widget(dropdown_definition, scenegraph_2nd_layer_id)
+
+  local scenegraph_id = dropdown_definition.scenegraph_id
+  local offset_x = dropdown_definition.style.underline.offset[1]
+  local offset_y = dropdown_definition.style.underline.offset[2]
+  --local offset_y = dropdown_definition.style.offset[2]
+  local size_x = dropdown_definition.style.underline.size[1]
+  local options_texts = dropdown_definition.content.options_texts
+  local string_height = 35
+  local size_y = #options_texts * string_height
+
+  local definition = {
+    element = {
+      passes = {
+        {
+          pass_type = "rect",
+
+          style_id   = "background"
+        }
+      }
+    },
+    content = {
+
+    },
+    style = {
+      background = {
+        size = {size_x, size_y},
+        offset = {offset_x, offset_y - size_y, 20},
+        color = {255, 0, 0, 0}
+      }
+    },
+    scenegraph_id = scenegraph_2nd_layer_id,
+    offset = {0, 0, 0}
+  }
+
+  for i, options_text in ipairs(options_texts) do
+
+    -- HOTSPOT
+
+    local lua_hotspot_name = "hotspot" .. tostring(i)
+
+    -- pass
+    local pass = {
+      pass_type = "hotspot",
+
+      style_id = lua_hotspot_name,
+      content_id = lua_hotspot_name
+    }
+    table.insert(definition.element.passes, pass)
+
+    -- content
+    definition.content[lua_hotspot_name] = {}
+    definition.content[lua_hotspot_name].num = i
+
+    -- style
+    definition.style[lua_hotspot_name] = {
+      offset = {offset_x, offset_y - string_height * i, 21},
+      size = {size_x, string_height}
+    }
+
+    -- OPTION TEXT
+
+    local lua_text_name = "text" .. tostring(i)
+
+    -- pass
+    pass = {
+      pass_type = "text",
+
+      style_id = lua_text_name,
+      text_id = lua_text_name,
+
+      content_check_function = function (content, style)
+
+        style.text_color = content[lua_hotspot_name].is_hover and Colors.get_color_table_with_alpha("white", 255) or Colors.get_color_table_with_alpha("cheeseburger", 255)
+        return true
+      end
+    }
+    table.insert(definition.element.passes, pass)
+
+    -- content
+    definition.content[lua_text_name] = options_text
+
+    -- style
+    definition.style[lua_text_name] = {
+      offset = {offset_x + size_x / 2, offset_y - string_height * i, 21},
+      horizontal_alignment = "center",
+      font_size = 24,
+      font_type = "hell_shark_masked",
+      dynamic_font = true,
+      text_color = Colors.get_color_table_with_alpha("cheeseburger", 255)
+    }
+  end
+
+  return UIWidget.init(definition)
+end
+
+
+local function create_dropdown_widget(widget_definition, scenegraph_id, scenegraph_2nd_layer_id)
+
+  local widget_size = SETTINGS_LIST_REGULAR_WIDGET_SIZE
+  local offset_y = -widget_size[2]
+
+  local show_widget_condition = nil
+  if widget_definition.show_widget_condition then
+    show_widget_condition = {}
+    for _, i in ipairs(widget_definition.show_widget_condition) do
+      show_widget_condition[i] = true
+    end
+  end
+
+  local options_texts  = {}
+  local options_values = {}
+
+  for _, option in ipairs(widget_definition.options) do
+    table.insert(options_texts, option.text)
+    table.insert(options_values, option.value)
+  end
+
+  local definition = {
+    element = {
+      passes = {
+        -- VISUALS
+        {
+          pass_type = "texture",
+
+          style_id   = "background",
+          texture_id = "background_texture",
+
+          content_check_function = function (content)
+            return content.is_widget_collapsed
+          end
+        },
+        {
+          pass_type = "texture",
+
+          style_id = "highlight_texture",
+          texture_id = "highlight_texture",
+          content_check_function = function (content)
+            return content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
+          end
+        },
+        {
+          pass_type = "text",
+
+          style_id = "text",
+          text_id = "text"
+        },
+        {
+          pass_type = "text",
+
+          style_id = "current_option_text",
+          text_id = "current_option_text"
+        },
+        {
+          pass_type = "rect",
+
+          style_id = "underline"
+        },
+        -- HOTSPOTS
+        {
+          pass_type = "hotspot",
+
+          content_id = "highlight_hotspot"
+        },
+        {
+          pass_type = "hotspot",
+
+          style_id = "dropdown_hotspot",
+          content_id = "dropdown_hotspot"
+        },
+        -- PROCESSING
+        {
+          pass_type = "local_offset",
+
+          offset_function = function (ui_scenegraph, style, content, ui_renderer)
+
+            local is_interactable = content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
+
+            if is_interactable then
+
+              if content.tooltip_text then
+                style.tooltip_text.cursor_offset = content.callback_fit_tooltip_to_the_screen(content, style.tooltip_text, ui_renderer)
+              end
+
+              if content.dropdown_hotspot.on_release then
+
+                content.callback_change_dropdown_menu_visibility(content, style)
+              end
+            end
+
+            if content.is_dropdown_menu_opened then
+
+              local old_value = content.options_values[content.current_option_number]
+
+              if content.callback_draw_dropdown_menu(content, style) then
+
+                local mod_name = content.mod_name
+                local setting_name = content.setting_name
+                local new_value = content.options_values[content.current_option_number]
+
+                content.callback_setting_changed(mod_name, setting_name, old_value, new_value)
+              end
+            end
+
+            style.current_option_text.text_color = (content.dropdown_hotspot.is_hover or content.is_dropdown_menu_opened) and Colors.get_color_table_with_alpha("white", 255) or Colors.get_color_table_with_alpha("cheeseburger", 255)
+            --style.underline.color = content.is_dropdown_menu_opened and {255, 255, 255, 255} or {255, 226, 149, 0}
+          end
+        },
+        -- TOOLTIP
+        {
+          pass_type = "tooltip_text",
+
+          text_id  = "tooltip_text",
+          style_id = "tooltip_text",
+          content_check_function = function (content, style)
+            return content.tooltip_text and content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
+          end
+        },
+        -- DEBUG
+        {
+          pass_type = "rect",
+
+          content_check_function = function (content)
+            return DEBUG_WIDGETS
+          end
+        },
+        {
+          pass_type = "border",
+
+          content_check_function = function (content, style)
+            if DEBUG_WIDGETS then
+              style.thickness = 1
+            end
+
+            return DEBUG_WIDGETS
+          end
+        },
+        {
+          pass_type = "rect",
+
+          style_id = "debug_middle_line",
+          content_check_function = function (content)
+            return DEBUG_WIDGETS
+          end
+        }
+      }
+    },
+    content = {
+      is_widget_visible = true,
+      is_widget_collapsed = widget_definition.is_widget_collapsed,
+
+      highlight_texture = "playerlist_hover", -- texture name
+      background_texture = "common_widgets_background_lit",
+
+      highlight_hotspot = {},
+      dropdown_hotspot = {},
+
+      text = widget_definition.text,
+      tooltip_text = widget_definition.tooltip,
+
+      mod_name = widget_definition.mod_name,
+      setting_name = widget_definition.setting_name,
+      widget_type = widget_definition.widget_type,
+
+      options_texts  = options_texts,
+      options_values = options_values,
+      total_options_number = #options_texts,
+      current_option_number = 1,
+      current_option_text = options_texts[1],
+      default_value = widget_definition.default_value,
+      parent_widget_number = widget_definition.parent_widget_number,
+      show_widget_condition = show_widget_condition
+    },
+    style = {
+
+      -- VISUALS
+
+      background = {
+        size = {widget_size[1], widget_size[2] - 3},
+        offset = {0, offset_y + 1, 0}
+      },
+
+      highlight_texture = {
+        size = {widget_size[1], widget_size[2] - 3},
+        offset = {0, offset_y + 1, 0},
+        masked = true
+      },
+
+      text = {
+        offset = {60 + widget_definition.widget_level * 40, offset_y + 5, 2},
+        font_size = 28,
+        font_type = "hell_shark_masked",
+        dynamic_font = true,
+        text_color = Colors.get_color_table_with_alpha("white", 255)
+      },
+
+      underline = {
+        size = {270, 2},
+        offset = {widget_size[1] - 300, offset_y + 8, 2},
+        color = {255, 226, 149, 0}
+      },
+
+      current_option_text = {
+        offset = {widget_size[1] - 165, offset_y + 4, 3},
+        horizontal_alignment = "center",
+        font_size = 28,
+        font_type = "hell_shark_masked",
+        dynamic_font = true,
+        text_color = Colors.get_color_table_with_alpha("cheeseburger", 255)
+      },
+
+      -- HOTSPOTS
+
+      dropdown_hotspot = {
+        size = {270, widget_size[2]},
+        offset = {widget_size[1] - 300, offset_y, 0}
+      },
+
+      -- TOOLTIP
+
+      tooltip_text = {
+        font_type = "hell_shark",
+        font_size = 18,
+        horizontal_alignment = "left",
+        vertical_alignment = "top",
+        cursor_side = "right",
+        max_width = 600,
+        cursor_offset = {27, 27},
+        cursor_offset_bottom = {27, 27},
+        cursor_offset_top = {27, -27},
+        line_colors = {
+          Colors.get_color_table_with_alpha("cheeseburger", 255),
+          Colors.get_color_table_with_alpha("white", 255)
+        }
+      },
+
+      -- DEBUG
+
+      debug_middle_line = {
+        size = {widget_size[1], 2},
+        offset = {0, (offset_y + widget_size[2]/2) - 1, 10},
+        color = {200, 0, 255, 0}
+      },
+
+      offset = {0, offset_y, 0},
+      size = {widget_size[1], widget_size[2]},
+      color = {50, 255, 255, 255}
+    },
+    scenegraph_id = scenegraph_id,
+    offset = {0, 0, 0}
+  }
+
+  definition.content.droprown_menu_widget = create_dropdown_menu_widget(definition, scenegraph_2nd_layer_id)
+
+  return UIWidget.init(definition)
+end
+
+
 -- ██╗  ██╗███████╗██╗   ██╗██████╗ ██╗███╗   ██╗██████╗
 -- ██║ ██╔╝██╔════╝╚██╗ ██╔╝██╔══██╗██║████╗  ██║██╔══██╗
 -- █████╔╝ █████╗   ╚████╔╝ ██████╔╝██║██╔██╗ ██║██║  ██║
@@ -1234,9 +1600,9 @@ local function build_keybind_string(keys)
     end
   end
 
-  if keybind_string == "" then
-    keybind_string = "<unassigned>"
-  end
+  --if keybind_string == "" then
+  --  keybind_string = "<unassigned>"
+  --end
 
   return keybind_string
 end
@@ -1283,6 +1649,11 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
 
           style_id = "text",
           text_id = "text"
+        },
+        {
+          pass_type = "rect",
+
+          style_id = "keybind_background"
         },
         {
           pass_type = "text",
@@ -1412,7 +1783,7 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
 
       highlight_texture = {
         size = {widget_size[1], widget_size[2] - 3},
-        offset = {0, offset_y + 1, 0},
+        offset = {0, offset_y + 1, 1},
         masked = true
       },
 
@@ -1424,8 +1795,14 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
         text_color = Colors.get_color_table_with_alpha("white", 255)
       },
 
+      keybind_background = {
+        size = {270, 34},
+        offset = {widget_size[1] - 300, offset_y + 8, 0},
+        color = {255, 20, 20, 20}
+      },
+
       keybind_text = {
-        offset = {widget_size[1] - 165, offset_y + 4, 3},
+        offset = {widget_size[1] - 165, offset_y + 6, 3},
         horizontal_alignment = "center",
         font_size = 24,
         font_type = "hell_shark_masked",
@@ -1436,8 +1813,8 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
       -- HOTSPOTS
 
       keybind_text_hotspot = {
-        size = {260, 34},
-        offset = {widget_size[1] - 300, offset_y + 7, 0}
+        size = {270, widget_size[2]},
+        offset = {widget_size[1] - 300, offset_y, 0}
       },
 
       -- TOOLTIP
@@ -1513,6 +1890,7 @@ VMFOptionsView.init = function (self, ingame_ui_context)
 
   self.definitions = {}
   self.definitions.scenegraph            = scenegraph_definition
+  self.definitions.scenegraph_2nd_layer           = {}
   self.definitions.menu_widgets          = menu_widgets_definition
   self.definitions.settings_list_widgets = SETTINGS_LIST_WIDGETS_DEFINITIONS
 
@@ -1561,6 +1939,7 @@ VMFOptionsView.create_ui_elements = function (self)
   self.settings_list_widgets = self:initialize_settings_list_widgets()
 
   self.ui_scenegraph = UISceneGraph.init_scenegraph(self.definitions.scenegraph)
+  self.ui_scenegraph_2nd_layer = UISceneGraph.init_scenegraph(self.definitions.scenegraph_2nd_layer)
 
   self.setting_list_mask_size_y = self.ui_scenegraph.sg_settings_list_mask.size[2]
 
@@ -1574,6 +1953,7 @@ VMFOptionsView.initialize_settings_list_widgets = function (self)
 
   local scenegraph_id = "sg_settings_list"
   local scenegraph_id_start = "sg_settings_list_start"
+  local scenegraph_id_start_2nd_layer = "sg_settings_list_start_2nd_layer"
   local list_size_y = 0
 
   local all_widgets = {}
@@ -1593,6 +1973,8 @@ VMFOptionsView.initialize_settings_list_widgets = function (self)
         widget = self:initialize_checkbox_widget(definition, scenegraph_id_start)
       elseif widget_type == "stepper" then
         widget = self:initialize_stepper_widget(definition, scenegraph_id_start)
+      elseif widget_type == "dropdown" then
+        widget = self:initialize_dropdown_widget(definition, scenegraph_id_start, scenegraph_id_start_2nd_layer)
       elseif widget_type == "keybind" then
         widget = self:initialize_keybind_widget(definition, scenegraph_id_start)
       elseif widget_type == "header" then
@@ -1632,6 +2014,15 @@ VMFOptionsView.initialize_settings_list_widgets = function (self)
     horizontal_alignment = "left",
 
     parent = scenegraph_id
+  }
+
+  self.definitions.scenegraph_2nd_layer[scenegraph_id_start_2nd_layer] = {
+    size     = {0, 0},
+    position = {0, 0, 0},
+    offset   = {0, 0, 0},
+
+    vertical_alignment = "bottom",
+    horizontal_alignment = "left"
   }
 
   local is_scrolling_enabled = false
@@ -1697,6 +2088,21 @@ VMFOptionsView.initialize_stepper_widget = function (self, definition, scenegrap
   content.callback_hide_sub_widgets = callback(self, "callback_hide_sub_widgets")
   content.callback_fit_tooltip_to_the_screen = callback(self, "callback_fit_tooltip_to_the_screen")
   content.callback_is_cursor_inside_settings_list = callback(self, "callback_is_cursor_inside_settings_list")
+
+  return widget
+end
+
+
+VMFOptionsView.initialize_dropdown_widget = function (self, definition, scenegraph_id, scenegraph_2nd_layer_id)
+
+  local widget = create_dropdown_widget(definition, scenegraph_id, scenegraph_2nd_layer_id)
+  local content = widget.content
+
+  content.callback_setting_changed = callback(self, "callback_setting_changed")
+  content.callback_fit_tooltip_to_the_screen = callback(self, "callback_fit_tooltip_to_the_screen")
+  content.callback_is_cursor_inside_settings_list = callback(self, "callback_is_cursor_inside_settings_list")
+  content.callback_change_dropdown_menu_visibility = callback(self, "callback_change_dropdown_menu_visibility")
+  content.callback_draw_dropdown_menu = callback(self, "callback_draw_dropdown_menu")
 
   return widget
 end
@@ -2090,6 +2496,72 @@ VMFOptionsView.callback_setting_keybind = function (self, widget_content, widget
 end
 
 
+VMFOptionsView.callback_change_dropdown_menu_visibility = function (self, widget_content, widget_style)
+
+  if not widget_content.is_dropdown_menu_opened then
+    self.input_manager:device_unblock_all_services("keyboard", 1)
+    self.input_manager:device_unblock_all_services("mouse", 1)
+    self.input_manager:device_unblock_all_services("gamepad", 1)
+
+    self.input_manager:block_device_except_service("changing_setting", "keyboard", 1, "keybind")
+    self.input_manager:block_device_except_service("changing_setting", "mouse", 1, "keybind")
+    self.input_manager:block_device_except_service("changing_setting", "gamepad", 1, "keybind")
+
+    WwiseWorld.trigger_event(self.wwise_world, "Play_hud_select")
+
+    widget_content.is_dropdown_menu_opened = true
+
+    -- if not check for this, dropdown menu will close right after opening
+    widget_content.wrong_mouse_on_release = true
+  else
+
+    self.input_manager:device_unblock_all_services("keyboard", 1)
+    self.input_manager:device_unblock_all_services("mouse", 1)
+    self.input_manager:device_unblock_all_services("gamepad", 1)
+
+    self.input_manager:block_device_except_service("vmf_options_menu", "keyboard", 1)
+    self.input_manager:block_device_except_service("vmf_options_menu", "mouse", 1)
+    self.input_manager:block_device_except_service("vmf_options_menu", "gamepad", 1)
+
+    widget_content.is_dropdown_menu_opened = false
+  end
+end
+
+
+VMFOptionsView.callback_draw_dropdown_menu = function (self, widget_content, widget_style)
+  local ui_renderer = self.ui_renderer
+  local ui_scenegraph = self.ui_scenegraph
+  local input_manager = self.input_manager
+  local input_service = input_manager:get_service("changing_setting")
+
+  UIRenderer.begin_pass(ui_renderer, self.ui_scenegraph_2nd_layer, input_service, self.dt, self.settings_list_scenegraph_id_start, self.render_settings)
+
+  UIRenderer.draw_widget(ui_renderer, widget_content.droprown_menu_widget)
+
+  UIRenderer.end_pass(ui_renderer)
+
+  ui_renderer.input_service = input_manager:get_service("vmf_options_menu")
+
+
+  for _, hotspot_content in pairs(widget_content.droprown_menu_widget.content) do
+    if type(hotspot_content) == "table" and hotspot_content.on_release then
+      self:callback_change_dropdown_menu_visibility(widget_content, widget_style)
+
+      widget_content.current_option_number = hotspot_content.num
+      widget_content.current_option_text = widget_content.options_texts[widget_content.current_option_number]
+
+      return true
+    end
+  end
+
+  --if Left Mouse Button or Esc pressed
+  if Mouse.released(0) and not widget_content.wrong_mouse_on_release or Keyboard.released(27) then
+    self:callback_change_dropdown_menu_visibility(widget_content, widget_style)
+  end
+
+  widget_content.wrong_mouse_on_release = nil
+end
+
 -- ####################################################################################################################
 -- ##### MISCELLANEOUS: SETTINGS LIST WIDGETS #########################################################################
 -- ####################################################################################################################
@@ -2212,6 +2684,37 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
           end
         end
 
+      elseif widget_type == "dropdown" then
+
+        loaded_setting_value = get_mod(widget_content.mod_name):get(widget_content.setting_name)
+
+        local setting_not_found = true
+        for i, option_value in ipairs(widget_content.options_values) do
+
+          if loaded_setting_value == option_value then
+            widget_content.current_option_number = i
+            widget_content.current_option_text   = widget_content.options_texts[i]
+
+            setting_not_found = false
+            break
+          end
+        end
+
+        if setting_not_found then
+          if type(loaded_setting_value) ~= "nil" then
+            -- @TODO: warning: variable which is not in the stepper options list in config
+          end
+
+          for i, option_value in ipairs(widget_content.options_values) do
+
+            if widget_content.default_value == option_value then
+              widget_content.current_option_number = i
+              widget_content.current_option_text   = widget_content.options_texts[i]
+              get_mod(widget_content.mod_name):set(widget_content.setting_name, widget_content.default_value)
+            end
+          end
+        end
+
       elseif widget_type == "header" then
 
         loaded_setting_value = vmf:get("mod_suspend_state_list")
@@ -2274,6 +2777,11 @@ VMFOptionsView.readjust_visible_settings_list_widgets_position = function (self)
       if widget.content.is_widget_visible then
 
         widget.offset[2] = -offset_y
+
+        if widget.content.droprown_menu_widget then
+          widget.content.droprown_menu_widget.offset[2] = -offset_y
+        end
+
         offset_y = offset_y + ((widget.content.widget_type == "header") and SETTINGS_LIST_HEADER_WIDGET_SIZE[2] or SETTINGS_LIST_REGULAR_WIDGET_SIZE[2])
       end
     end
@@ -2474,6 +2982,7 @@ VMFOptionsView.update = function (self, dt)
     self:update_mousewheel_scroll_area_input()
   end
 
+  self.dt = dt
   self.draw_widgets(self, dt)
 
   local input_service = self:input_service()
@@ -2482,6 +2991,7 @@ VMFOptionsView.update = function (self, dt)
   end
 
   self:update_search_bar()
+
 end
 
 
@@ -2566,6 +3076,8 @@ end
 
 VMFOptionsView.on_exit = function (self)
   WwiseWorld.trigger_event(self.wwise_world, "Play_hud_button_close")
+
+  vmf.save_unsaved_settings_to_file()
 
   self.exiting = nil
 end
@@ -2887,7 +3399,7 @@ local options_widgets = {
   }
 }
 
-vmf:create_options(options_widgets, true, "Vermintide Mod Framework", ":D")
+vmf:create_options(options_widgets, false, "Vermintide Mod Framework", ":D")
 
 
 

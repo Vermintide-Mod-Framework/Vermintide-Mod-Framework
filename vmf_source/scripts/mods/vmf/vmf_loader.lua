@@ -40,6 +40,7 @@ return {
 
 	on_reload = function(object)
 		print("VMF:ON_RELOAD()")
+		object.vmf.close_opened_custom_menus()
 		object.vmf.delete_keybinds()
 		object.vmf.mods_unload()
 		object.vmf.hooks_unload()
