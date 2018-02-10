@@ -50,8 +50,7 @@ local options_widgets = {
     ["setting_name"] = "game_mode",
     ["widget_type"] = "stepper",
     ["text"] = "Game mode",
-    ["tooltip"] = "Pick the goddamn game mode" .. "\n" ..
-                  "you litle bitch",
+    ["tooltip"] = "Game mode",
     ["options"] = {
       {--[[1]] text = "Vanilla",       value = "vanilla"},
       {--[[2]] text = "Onslaught",     value = "onslaught"},
@@ -67,8 +66,7 @@ local options_widgets = {
         ["setting_name"] = "enable_god_mode",
         ["widget_type"] = "checkbox",
         ["text"] = "Enable God Mode",
-        ["tooltip"] = "Can't do it without cheats," .. "\n" ..
-                      "you poor guy?",
+        ["tooltip"] = "Enable God Mode",
         ["default_value"] = false
       },
       {
@@ -77,55 +75,76 @@ local options_widgets = {
         ["setting_name"] = "warn_others",
         ["widget_type"] = "checkbox",
         ["text"] = "Warn joining players about game mode",
-        ["tooltip"] = "You don't want others to ruin your game," .. "\n" ..
-                      "do you?",
+        ["tooltip"] = "Warn joining players about game mode",
         ["default_value"] = true,
         ["sub_widgets"] = {
-          {
-            ["setting_name"] = "whatever",
-            ["widget_type"] = "checkbox",
-            ["text"] = "Whatever",
-            ["tooltip"] = "Whatever," .. "\n" ..
-                          "whatever",
-            ["default_value"] = true
-          },
-          {
-            ["setting_name"] = "the_keybind",
-            ["widget_type"] = "keybind",
-            ["text"] = "Some keybind",
-            ["tooltip"] = "Probably keybind",
-            ["default_value"] = {"s"},
-            ["action"] = "whatever"
-          },
-          {
-            ["setting_name"] = "game_mode2",
-            ["widget_type"] = "dropdown",
-            ["text"] = "Game mode",
-            ["tooltip"] = "Ублюдок, мать твою," .. "\n" ..
-                          "а-ну иди сюда!",
-            ["options"] = {
-              {--[[1]] text = "Vanilla",       value = "vanilla"},
-              {--[[2]] text = "Onslaught",     value = "onslaught"},
-              {--[[3]] text = "Hide'and'Seek", value = "hide_n_seek"},
-              {--[[4]] text = "Death Wish",    value = "deathwish"},
-              {--[[5]] text = "Legendary",     value = "legendary"},
+            {
+              ["setting_name"] = "whatever",
+              ["widget_type"] = "checkbox",
+              ["text"] = "Whatever",
+              ["tooltip"] = "Whatever," .. "\n" ..
+                            "whatever",
+              ["default_value"] = true
             }
-          },
         }
       }
     }
   },
   {
-    ["setting_name"] = "git_gut",
-    ["widget_type"] = "checkbox",
-    ["text"] = "Git Gut",
-    ["tooltip"] = "Get better at this game," .. "\n" ..
-                  "mkay?",
-    ["default_value"] = true
+    ["setting_name"] = "the_keybind",
+    ["widget_type"] = "keybind",
+    ["text"] = "Some keybind",
+    ["tooltip"] = "Probably keybind",
+    ["default_value"] = {"f", "ctrl"},
+    ["action"] = "whatever"
+  },
+  {
+    ["setting_name"] = "game_mode2",
+    ["widget_type"] = "dropdown",
+    ["text"] = "Game mode",
+    ["tooltip"] = "Ублюдок, мать твою," .. "\n" ..
+                  "а-ну иди сюда!",
+    ["options"] = {
+      {--[[1]] text = "Vanilla",       value = "vanilla"},
+      {--[[2]] text = "Onslaught",     value = "onslaught"},
+      {--[[3]] text = "Hide'and'Seek", value = "hide_n_seek"},
+      {--[[4]] text = "Death Wish",    value = "deathwish"},
+      {--[[5]] text = "Legendary",     value = "legendary"},
+    }
+  },
+  {
+    ["setting_name"] = "some_weight",
+    ["widget_type"] = "numeric",
+    ["text"] = "Your weight gain after visiting your granny",
+    ["unit_text"] = " kg",
+    ["tooltip"] = "Some" .. "\n" ..
+                  "description",
+    ["range"] = {-5, 60},
+    ["default_value"] = 42
+  },
+  {
+    ["setting_name"] = "some_percent",
+    ["widget_type"] = "numeric",
+    ["text"] = "Your Vermintide II hype level",
+    ["unit_text"] = "%",
+    ["tooltip"] = "Some" .. "\n" ..
+                  "description",
+    ["range"] = {0, 146.8},
+    ["decimals_number"] = 1,
+    ["default_value"] = 100
+  },
+  {
+    ["setting_name"] = "some_number",
+    ["widget_type"] = "numeric",
+    ["text"] = "Just some boring number",
+    ["tooltip"] = "Some" .. "\n" ..
+                  "description",
+    ["range"] = {-10000, 10000},
+    ["default_value"] = 0
   }
 }
 
-mod:create_options(options_widgets, true, "Test your keybind", "Mod description")
+mod:create_options(options_widgets, true, "Test", "Mod description")
 
 -- chat_broadcast
 mod.whatever = function(message)
@@ -140,17 +159,6 @@ end)
 ]]
 
 
-local search_text = ""
-local text_index = 1
-local text_input_mode = "insert" -- insert/overwrite
-
-mod.update = function()
-  local keystrokes = Keyboard.keystrokes()
-  search_text, text_index, text_input_mode = KeystrokeHelper.parse_strokes(search_text, text_index, text_input_mode, keystrokes)
-  print(tostring(search_text) .. " " .. tostring(text_index) .. " " .. tostring(text_input_mode) .. " " .. tostring(keystrokes))
-end
-
-mod.update = nil
   --table.dump(Steam, "Steam", 2)
 
 
