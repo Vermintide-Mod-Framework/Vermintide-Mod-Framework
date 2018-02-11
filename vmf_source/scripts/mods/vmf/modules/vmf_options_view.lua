@@ -336,6 +336,17 @@ local SETTINGS_LIST_HEADER_WIDGET_SIZE = {1194, 80}
 local SETTINGS_LIST_REGULAR_WIDGET_SIZE = {1194, 50}
 
 
+local function create_show_widget_condition(widget_definition)
+  local show_widget_condition = nil
+  if widget_definition.show_widget_condition then
+    show_widget_condition = {}
+    for _, i in ipairs(widget_definition.show_widget_condition) do
+      show_widget_condition[i] = true
+    end
+  end
+  return show_widget_condition
+end
+
 -- ██╗  ██╗███████╗ █████╗ ██████╗ ███████╗██████╗
 -- ██║  ██║██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗
 -- ███████║█████╗  ███████║██║  ██║█████╗  ██████╔╝
@@ -685,13 +696,7 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
   local widget_size = SETTINGS_LIST_REGULAR_WIDGET_SIZE
   local offset_y = -widget_size[2]
 
-  local show_widget_condition = nil
-  if widget_definition.show_widget_condition then
-    show_widget_condition = {}
-    for _, i in ipairs(widget_definition.show_widget_condition) do
-      show_widget_condition[i] = true
-    end
-  end
+  local show_widget_condition = create_show_widget_condition(widget_definition)
 
   local definition = {
     element = {
@@ -912,6 +917,185 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
 end
 
 
+local function create_group_widget(widget_definition, scenegraph_id)
+
+  local widget_size = SETTINGS_LIST_REGULAR_WIDGET_SIZE
+  local offset_y = -widget_size[2]
+
+  local show_widget_condition = create_show_widget_condition(widget_definition)
+
+  local definition = {
+    element = {
+      passes = {
+        -- VISUALS
+        {
+          pass_type = "texture",
+
+          style_id   = "background",
+          texture_id = "background_texture",
+
+          content_check_function = function (content)
+            return content.is_widget_collapsed
+          end
+        },
+        {
+          pass_type = "texture",
+
+          style_id = "highlight_texture",
+          texture_id = "highlight_texture",
+          content_check_function = function (content)
+            return content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
+          end
+        },
+        {
+          pass_type = "text",
+
+          style_id = "text",
+          text_id = "text"
+        },
+        -- HOTSPOTS
+        {
+          pass_type = "hotspot",
+
+          content_id = "highlight_hotspot"
+        },
+        -- PROCESSING
+        {
+          pass_type = "local_offset",
+
+          offset_function = function (ui_scenegraph, style, content, ui_renderer)
+
+            local is_interactable = content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
+
+            if is_interactable then
+
+              if content.tooltip_text then
+                style.tooltip_text.cursor_offset = content.callback_fit_tooltip_to_the_screen(content, style.tooltip_text, ui_renderer)
+              end
+
+              if content.highlight_hotspot.on_release then
+                content.callback_hide_sub_widgets(content)
+              end
+            end
+          end
+        },
+        -- TOOLTIP
+        {
+          pass_type = "tooltip_text",
+
+          text_id  = "tooltip_text",
+          style_id = "tooltip_text",
+          content_check_function = function (content)
+            return content.tooltip_text and content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
+          end
+        },
+        -- DEBUG
+        {
+          pass_type = "rect",
+
+          content_check_function = function (content)
+            return DEBUG_WIDGETS
+          end
+        },
+        {
+          pass_type = "border",
+
+          content_check_function = function (content, style)
+            if DEBUG_WIDGETS then
+              style.thickness = 1
+            end
+
+            return DEBUG_WIDGETS
+          end
+        },
+        {
+          pass_type = "rect",
+
+          style_id = "debug_middle_line",
+          content_check_function = function (content)
+            return DEBUG_WIDGETS
+          end
+        }
+      }
+    },
+    content = {
+      is_widget_visible = true,
+      is_widget_collapsed = widget_definition.is_widget_collapsed,
+
+      highlight_texture = "playerlist_hover",
+      background_texture = "common_widgets_background_lit",
+
+      highlight_hotspot = {},
+
+      text = widget_definition.text,
+      tooltip_text = widget_definition.tooltip,
+
+      mod_name = widget_definition.mod_name,
+      widget_type = widget_definition.widget_type,
+      parent_widget_number = widget_definition.parent_widget_number,
+      show_widget_condition = show_widget_condition
+    },
+    style = {
+
+      -- VISUALS
+      background = {
+        size = {widget_size[1], widget_size[2] - 3},
+        offset = {0, offset_y + 1, 0}
+      },
+
+      highlight_texture = {
+        size = {widget_size[1], widget_size[2] - 3},
+        offset = {0, offset_y + 1, 1},
+        masked = true
+      },
+
+      text = {
+        offset = {60 + widget_definition.widget_level * 40, offset_y + 5, 2},
+        font_size = 28,
+        font_type = "hell_shark_masked",
+        dynamic_font = true,
+        text_color = Colors.get_color_table_with_alpha("white", 255)
+      },
+
+      -- HOTSPOTS
+
+      -- TOOLTIP
+
+      tooltip_text = {
+        font_type = "hell_shark",
+        font_size = 18,
+        horizontal_alignment = "left",
+        vertical_alignment = "top",
+        cursor_side = "right",
+        max_width = 600,
+        cursor_offset = {27, 27},
+        cursor_offset_bottom = {27, 27},
+        cursor_offset_top = {27, -27},
+        line_colors = {
+          Colors.get_color_table_with_alpha("cheeseburger", 255),
+          Colors.get_color_table_with_alpha("white", 255)
+        }
+      },
+
+      -- DEBUG
+
+      debug_middle_line = {
+        size = {widget_size[1], 2},
+        offset = {0, (offset_y + widget_size[2]/2) - 1, 10},
+        color = {200, 0, 255, 0}
+      },
+
+      offset = {0, offset_y, 0},
+      size = {widget_size[1], widget_size[2]},
+      color = {50, 255, 255, 255}
+    },
+    scenegraph_id = scenegraph_id,
+    offset = {0, 0, 0}
+  }
+
+  return UIWidget.init(definition)
+end
+
 -- ███████╗████████╗███████╗██████╗ ██████╗ ███████╗██████╗
 -- ██╔════╝╚══██╔══╝██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗
 -- ███████╗   ██║   █████╗  ██████╔╝██████╔╝█████╗  ██████╔╝
@@ -924,13 +1108,7 @@ local function create_stepper_widget(widget_definition, scenegraph_id)
   local widget_size = SETTINGS_LIST_REGULAR_WIDGET_SIZE
   local offset_y = -widget_size[2]
 
-  local show_widget_condition = nil
-  if widget_definition.show_widget_condition then
-    show_widget_condition = {}
-    for _, i in ipairs(widget_definition.show_widget_condition) do
-      show_widget_condition[i] = true
-    end
-  end
+  local show_widget_condition = create_show_widget_condition(widget_definition)
 
   local options_texts  = {}
   local options_values = {}
@@ -1325,13 +1503,7 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
   local widget_size = SETTINGS_LIST_REGULAR_WIDGET_SIZE
   local offset_y = -widget_size[2]
 
-  local show_widget_condition = nil
-  if widget_definition.show_widget_condition then
-    show_widget_condition = {}
-    for _, i in ipairs(widget_definition.show_widget_condition) do
-      show_widget_condition[i] = true
-    end
-  end
+  local show_widget_condition = create_show_widget_condition(widget_definition)
 
   local options_texts  = {}
   local options_values = {}
@@ -1801,13 +1973,7 @@ local function create_numeric_widget(widget_definition, scenegraph_id, scenegrap
   local widget_size = SETTINGS_LIST_REGULAR_WIDGET_SIZE
   local offset_y = -widget_size[2]
 
-  local show_widget_condition = nil
-  if widget_definition.show_widget_condition then
-    show_widget_condition = {}
-    for _, i in ipairs(widget_definition.show_widget_condition) do
-      show_widget_condition[i] = true
-    end
-  end
+  local show_widget_condition = create_show_widget_condition(widget_definition)
 
   local definition = {
     element = {
@@ -2100,13 +2266,7 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
   local widget_size = SETTINGS_LIST_REGULAR_WIDGET_SIZE
   local offset_y = -widget_size[2]
 
-  local show_widget_condition = nil
-  if widget_definition.show_widget_condition then
-    show_widget_condition = {}
-    for _, i in ipairs(widget_definition.show_widget_condition) do
-      show_widget_condition[i] = true
-    end
-  end
+  local show_widget_condition = create_show_widget_condition(widget_definition)
 
   local definition = {
     element = {
@@ -2470,6 +2630,8 @@ VMFOptionsView.initialize_settings_list_widgets = function (self)
         widget = self:initialize_keybind_widget(definition, scenegraph_id_start)
       elseif widget_type == "header" then
         widget = self:initialize_header_widget(definition, scenegraph_id_start)
+      elseif widget_type == "group" then
+        widget = self:initialize_group_widget(definition, scenegraph_id_start)
       end
 
       if widget then
@@ -2562,6 +2724,19 @@ VMFOptionsView.initialize_checkbox_widget = function (self, definition, scenegra
   local content = widget.content
 
   content.callback_setting_changed = callback(self, "callback_setting_changed")
+  content.callback_hide_sub_widgets = callback(self, "callback_hide_sub_widgets")
+  content.callback_fit_tooltip_to_the_screen = callback(self, "callback_fit_tooltip_to_the_screen")
+  content.callback_is_cursor_inside_settings_list = callback(self, "callback_is_cursor_inside_settings_list")
+
+  return widget
+end
+
+VMFOptionsView.initialize_group_widget = function (self, definition, scenegraph_id)
+
+  local widget = create_group_widget(definition, scenegraph_id)
+  local content = widget.content
+
+  --content.callback_setting_changed = callback(self, "callback_setting_changed")
   content.callback_hide_sub_widgets = callback(self, "callback_hide_sub_widgets")
   content.callback_fit_tooltip_to_the_screen = callback(self, "callback_fit_tooltip_to_the_screen")
   content.callback_is_cursor_inside_settings_list = callback(self, "callback_is_cursor_inside_settings_list")
@@ -3538,21 +3713,26 @@ VMFOptionsView.update_settings_list_widgets_visibility = function (self, mod_nam
 
       for _, widget in ipairs(mod_widgets) do
 
+
+
         if widget.content.parent_widget_number then
           local parent_widget = mod_widgets[widget.content.parent_widget_number]
+          local widget_type = parent_widget.content.widget_type
 
           -- if 'header' or 'checkbox'
-          if parent_widget.style.checkbox then
+          if widget_type == "header" or widget_type == "checkbox" then
 
             widget.content.is_widget_visible = parent_widget.content.is_checkbox_checked and parent_widget.content.is_widget_visible and not parent_widget.content.is_widget_collapsed
 
           -- if 'stepper'
-          else
+          elseif widget_type == "stepper" then
             if widget.content.show_widget_condition then
               widget.content.is_widget_visible = widget.content.show_widget_condition[parent_widget.content.current_option_number] and parent_widget.content.is_widget_visible and not parent_widget.content.is_widget_collapsed
             else
               get_mod(widget.content.mod_name):echo("ERROR: the stepper widget in the options menu has sub_widgets, but some of its sub_widgets doesn't have 'show_widget_condition'", true)
             end
+          else
+            widget.content.is_widget_visible = parent_widget.content.is_widget_visible and not parent_widget.content.is_widget_collapsed
           end
         end
       end
@@ -4041,8 +4221,12 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
         table.insert(mod_settings_list_widgets_definitions, new_widget_definition)
       end
 
-      if current_widget and (current_widget.widget_type == "header" or current_widget.widget_type == "checkbox"
-        or current_widget.widget_type == "stepper") and current_widget.sub_widgets then
+      if current_widget and (
+        current_widget.widget_type == "header" or 
+        current_widget.widget_type == "group" or 
+        current_widget.widget_type == "checkbox" or
+        current_widget.widget_type == "stepper"
+      ) and current_widget.sub_widgets then
 
         -- going down to the first subwidget
 
