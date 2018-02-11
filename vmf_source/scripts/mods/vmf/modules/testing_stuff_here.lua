@@ -48,7 +48,7 @@ end)
 local options_widgets = {
   {
     ["setting_name"] = "game_mode",
-    ["widget_type"] = "stepper",
+    ["widget_type"] = "dropdown",
     ["text"] = "Game mode",
     ["tooltip"] = "Game mode",
     ["options"] = {
