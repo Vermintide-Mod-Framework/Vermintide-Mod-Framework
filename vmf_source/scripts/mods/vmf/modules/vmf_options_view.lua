@@ -17,9 +17,9 @@
 local vmf = get_mod("VMF")
 
 
-inject_material("materials/header_background", "header_background", "ingame_ui")
-inject_material("materials/header_background_lit", "header_background_lit", "ingame_ui")
-inject_material("materials/common_widgets_background_lit", "common_widgets_background_lit", "ingame_ui")
+--inject_material("materials/header_background", "header_background", "ingame_ui")
+--inject_material("materials/header_background_lit", "header_background_lit", "ingame_ui")
+--inject_material("materials/common_widgets_background_lit", "common_widgets_background_lit", "ingame_ui")
 inject_material("materials/header_fav_icon", "header_fav_icon", "ingame_ui")
 inject_material("materials/header_fav_icon_lit", "header_fav_icon_lit", "ingame_ui")
 inject_material("materials/header_fav_arrow", "header_fav_arrow", "ingame_ui")
@@ -97,7 +97,7 @@ local scenegraph_definition = {
 
     sg_scrollbar = {
       size = {360, 1050},
-      position = {1560, 40, 0},
+      position = {1562, 40, 0},
 
       parent = "sg_root"
     },
@@ -305,6 +305,30 @@ local menu_widgets_definition = {
 
 -- @TODO: make scrollbar full windowed o_O
 
+menu_widgets_definition.scrollbar.element.passes[15].pass_type = "rect"
+menu_widgets_definition.scrollbar.style.scroll_bar_box_bottom.color = {200, 140, 100, 50}
+menu_widgets_definition.scrollbar.style.scroll_bar_box_bottom.size[1] = 12
+
+menu_widgets_definition.scrollbar.element.passes[16].pass_type = "rect"
+menu_widgets_definition.scrollbar.style.scroll_bar_box_middle.color = {200, 140, 100, 50}
+menu_widgets_definition.scrollbar.style.scroll_bar_box_middle.size[1] = 12
+
+menu_widgets_definition.scrollbar.element.passes[17].pass_type = "rect"
+menu_widgets_definition.scrollbar.style.scroll_bar_box_top.color = {200, 140, 100, 50}
+menu_widgets_definition.scrollbar.style.scroll_bar_box_top.size[1] = 12
+
+
+
+local original_scrollbar_function = menu_widgets_definition.scrollbar.element.passes[9].offset_function
+
+menu_widgets_definition.scrollbar.element.passes[9].offset_function = function (scenegraph, style, content, input_service)
+  original_scrollbar_function(scenegraph, style, content, input_service)
+
+  style.scroll_bar_box_top.color = content.scroll_bar_info.is_hover and {255, 140, 100, 50} or {200, 140, 100, 50}
+  style.scroll_bar_box_middle.color = content.scroll_bar_info.is_hover and {255, 140, 100, 50} or {200, 140, 100, 50}
+  style.scroll_bar_box_bottom.color = content.scroll_bar_info.is_hover and {255, 140, 100, 50} or {200, 140, 100, 50}
+end
+
 menu_widgets_definition.scrollbar.content.scroll_bar_info.bar_height_percentage = 0.5
 menu_widgets_definition.scrollbar.content.scroll_bar_info.old_value = 0
 menu_widgets_definition.scrollbar.content.disable_frame = true
@@ -357,7 +381,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           pass_type = "texture",
 
           style_id   = "background",
-          texture_id = "background_texture"
+          texture_id = "rect_masked_texture"
         },
         {
           pass_type = "texture",
@@ -405,6 +429,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           style_id = "text",
           text_id  = "text"
         },
+        --[[
         {
           pass_type = "texture",
 
@@ -415,6 +440,39 @@ local function create_header_widget(widget_definition, scenegraph_id)
             return content.is_checkbox_visible
           end
         },
+        --]]
+        ---[[
+        {
+          pass_type = "texture",
+
+          style_id   = "checkbox_border",
+          texture_id = "rect_masked_texture",
+
+          content_check_function = function (content)
+            return content.is_checkbox_visible
+          end
+        },
+        {
+          pass_type = "texture",
+
+          style_id   = "checkbox_background",
+          texture_id = "rect_masked_texture",
+
+          content_check_function = function (content)
+            return content.is_checkbox_visible
+          end
+        },
+        {
+          pass_type = "texture",
+
+          style_id   = "checkbox_fill",
+          texture_id = "rect_masked_texture",
+
+          content_check_function = function (content)
+            return content.is_checkbox_visible
+          end
+        },
+        --]]
         -- HOTSPOTS
         {
           pass_type = "hotspot",
@@ -489,7 +547,6 @@ local function create_header_widget(widget_definition, scenegraph_id)
                 content.callback_move_favorite(content, false)
               end
 
-
               if content.checkbox_hotspot.on_release then
 
                 if content.is_widget_collapsed then
@@ -506,10 +563,21 @@ local function create_header_widget(widget_definition, scenegraph_id)
             end
 
             content.fav_icon_texture = content.is_favorited and "header_fav_icon_lit" or "header_fav_icon"
-            content.background_texture = content.is_widget_collapsed and "header_background_lit" or "header_background"
-            content.checkbox_texture = content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
+            --content.checkbox_texture = content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
             style.fav_arrow_up.color[1] = is_interactable and content.fav_arrow_up_hotspot.is_hover and 255 or 90
             style.fav_arrow_down.color[1] = is_interactable and content.fav_arrow_down_hotspot.is_hover and 255 or 90
+
+            style.background.color = content.is_widget_collapsed and {255, 110, 78, 39} or {255, 57, 39, 21}
+            if content.is_checkbox_checked then
+              style.checkbox_fill.color = is_interactable and content.checkbox_hotspot.is_hover and {255, 255, 255, 255} or {255, 255, 168, 0}
+            else
+              style.checkbox_fill.color = is_interactable and content.checkbox_hotspot.is_hover and {255, 100, 100, 100} or {255, 0, 0, 0}
+            end
+            if content.is_widget_collapsed then
+              style.checkbox_border.color = is_interactable and content.checkbox_hotspot.is_hover and {255, 166, 118, 61} or {255, 154, 109, 55}
+            else
+              style.checkbox_border.color = is_interactable and content.checkbox_hotspot.is_hover and {255, 103, 71, 38} or {255, 89, 61, 32}
+            end
           end
         },
         -- TOOLTIP
@@ -547,15 +615,16 @@ local function create_header_widget(widget_definition, scenegraph_id)
     content = {
       is_checkbox_checked = true,
       is_checkbox_visible = false,
-      is_widget_visible = true, -- for header it will always be 'true', but I need this variable anyways
+      is_widget_visible   = true,
       is_widget_collapsed = widget_definition.is_widget_collapsed,
-      is_favorited = widget_definition.is_favorited,
+      is_favorited        = widget_definition.is_favorited,
 
-      fav_icon_texture   = "header_fav_icon",
-      checkbox_texture   = "checkbox_unchecked",
-      highlight_texture  = "playerlist_hover",
-      background_texture = "header_background",
-      fav_arrow_texture  = "header_fav_arrow",
+      rect_masked_texture = "rect_masked",
+      fav_icon_texture    = "header_fav_icon",
+      --checkbox_texture    = "checkbox_unchecked",
+      highlight_texture   = "playerlist_hover",
+      background_texture  = "header_background",
+      fav_arrow_texture   = "header_fav_arrow",
 
       fav_icon_hotspot        = {},
       fav_arrow_up_hotspot    = {},
@@ -575,7 +644,8 @@ local function create_header_widget(widget_definition, scenegraph_id)
 
       background = {
         size = {widget_size[1], widget_size[2] - 3},
-        offset = {0, offset_y + 1, 1}
+        offset = {0, offset_y + 1, 0},
+        color = {255, 57, 39, 21}
       },
 
       highlight_texture = {
@@ -611,13 +681,30 @@ local function create_header_widget(widget_definition, scenegraph_id)
         dynamic_font = true,
         text_color = Colors.get_color_table_with_alpha("white", 255)
       },
-
+--[[
       checkbox = {
         size = {30, 30},
         offset = {widget_size[1] - 180, offset_y + 25, 3},
         masked = true
       },
+]]
+      checkbox_border = {
+        offset = {widget_size[1] - 184, offset_y + 21, 1},
+        size = {38, 38},
+        color = {255, 89, 61, 32}
+      },
 
+      checkbox_background = {
+        offset = {widget_size[1] - 176, offset_y + 29, 3},
+        size = {22, 22},
+        color = {255, 0, 0, 0}
+      },
+
+      checkbox_fill = {
+        offset = {widget_size[1] - 174, offset_y + 31, 4},
+        size = {18, 18},
+        color = {255, 255, 168, 0}
+      },
       -- HOTSPOTS
 
       fav_icon_hotspot = {
@@ -701,7 +788,7 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
           pass_type = "texture",
 
           style_id   = "background",
-          texture_id = "background_texture",
+          texture_id = "rect_masked_texture",
 
           content_check_function = function (content)
             return content.is_widget_collapsed
@@ -725,8 +812,20 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
         {
           pass_type = "texture",
 
-          style_id = "checkbox",
-          texture_id = "checkbox_texture"
+          style_id   = "checkbox_border",
+          texture_id = "rect_masked_texture"
+        },
+        {
+          pass_type = "texture",
+
+          style_id   = "checkbox_background",
+          texture_id = "rect_masked_texture"
+        },
+        {
+          pass_type = "texture",
+
+          style_id   = "checkbox_fill",
+          texture_id = "rect_masked_texture"
         },
         -- HOTSPOTS
         {
@@ -775,7 +874,12 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
               end
             end
 
-            content.checkbox_texture = content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
+            if content.is_checkbox_checked then
+              style.checkbox_fill.color = is_interactable and content.checkbox_hotspot.is_hover and {255, 255, 255, 255} or {255, 255, 168, 0}
+            else
+              style.checkbox_fill.color = is_interactable and content.checkbox_hotspot.is_hover and {255, 100, 100, 100} or {255, 0, 0, 0}
+            end
+            style.checkbox_border.color = is_interactable and content.checkbox_hotspot.is_hover and {255, 45, 45, 45} or {255, 30, 30, 30}
           end
         },
         -- TOOLTIP
@@ -822,9 +926,10 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
       is_widget_visible = true,
       is_widget_collapsed = widget_definition.is_widget_collapsed,
 
-      checkbox_texture = "checkbox_unchecked",
+      rect_masked_texture = "rect_masked",
       highlight_texture = "playerlist_hover",
-      background_texture = "common_widgets_background_lit",
+      --background_texture = "common_widgets_background_lit",
+      rect_masked_texture = "rect_masked",
 
       checkbox_hotspot = {},
       highlight_hotspot = {},
@@ -844,27 +949,40 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
       -- VISUALS
       background = {
         size = {widget_size[1], widget_size[2] - 3},
-        offset = {0, offset_y + 1, 0}
+        offset = {0, offset_y + 1, 0},
+        color = {255, 30, 23, 15}
       },
 
       highlight_texture = {
         size = {widget_size[1], widget_size[2] - 3},
-        offset = {0, offset_y + 1, 1},
+        offset = {0, offset_y + 1, 2},
         masked = true
       },
 
       text = {
-        offset = {60 + widget_definition.widget_level * 40, offset_y + 5, 2},
+        offset = {60 + widget_definition.widget_level * 40, offset_y + 5, 3},
         font_size = 28,
         font_type = "hell_shark_masked",
         dynamic_font = true,
         text_color = Colors.get_color_table_with_alpha("white", 255)
       },
 
-      checkbox = {
-        size = {30, 30},
-        offset = {widget_size[1] - 180, offset_y + 10, 2},
-        masked = true
+      checkbox_border = {
+        offset = {widget_size[1] - 182, offset_y + 8, 1},
+        size = {34, 34},
+        color = {255, 30, 30, 30}
+      },
+
+      checkbox_background = {
+        offset = {widget_size[1] - 174, offset_y + 16, 3},
+        size = {18, 18},
+        color = {255, 0, 0, 0}
+      },
+
+      checkbox_fill = {
+        offset = {widget_size[1] - 172, offset_y + 18, 4},
+        size = {14, 14},
+        color = {255, 255, 168, 0}
       },
 
       -- HOTSPOTS
@@ -921,10 +1039,10 @@ end
 
 local function create_dropdown_menu_widget(dropdown_definition, scenegraph_2nd_layer_id)
 
-  local offset_x = dropdown_definition.style.underline.offset[1]
-  local offset_y = dropdown_definition.style.underline.offset[2]
+  local offset_x = dropdown_definition.style.border_bottom.offset[1]
+  local offset_y = dropdown_definition.style.border_bottom.offset[2]
   --local offset_y = dropdown_definition.style.offset[2]
-  local size_x = dropdown_definition.style.underline.size[1]
+  local size_x = dropdown_definition.style.border_bottom.size[1]
   local options_texts = dropdown_definition.content.options_texts
   local string_height = 35
   local size_y = #options_texts * string_height
@@ -933,14 +1051,15 @@ local function create_dropdown_menu_widget(dropdown_definition, scenegraph_2nd_l
     element = {
       passes = {
         {
-          pass_type = "rect",
+          pass_type = "texture",
 
-          style_id   = "background"
+          style_id   = "background",
+          texture_id = "rect_masked_texture"
         }
       }
     },
     content = {
-
+      rect_masked_texture = "rect_masked",
     },
     style = {
       background = {
@@ -1072,24 +1191,28 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
           text_id = "current_option_text"
         },
         {
-          pass_type = "rect",
+          pass_type = "texture",
 
-          style_id = "upperline"
+          style_id   = "border_top",
+          texture_id = "rect_masked_texture"
         },
         {
-          pass_type = "rect",
+          pass_type = "texture",
 
-          style_id = "leftline"
+          style_id   = "border_left",
+          texture_id = "rect_masked_texture"
         },
         {
-          pass_type = "rect",
+          pass_type = "texture",
 
-          style_id = "rightline"
+          style_id   = "border_right",
+          texture_id = "rect_masked_texture"
         },
         {
-          pass_type = "rect",
+          pass_type = "texture",
 
-          style_id = "underline"
+          style_id   = "border_bottom",
+          texture_id = "rect_masked_texture"
         },
 
         -- HOTSPOTS
@@ -1148,10 +1271,10 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
             style.current_option_text.text_color = (is_interactable and content.dropdown_hotspot.is_hover or content.is_dropdown_menu_opened) and Colors.get_color_table_with_alpha("white", 255) or Colors.get_color_table_with_alpha("cheeseburger", 255)
 
             local new_border_color = is_interactable and content.dropdown_hotspot.is_hover and {255, 45, 45, 45} or {255, 30, 30, 30}
-            style.upperline.color = new_border_color
-            style.leftline.color  = new_border_color
-            style.rightline.color = new_border_color
-            style.underline.color = new_border_color
+            style.border_top.color = new_border_color
+            style.border_left.color  = new_border_color
+            style.border_right.color = new_border_color
+            style.border_bottom.color = new_border_color
           end
         },
         -- TOOLTIP
@@ -1197,8 +1320,9 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
       is_widget_visible = true,
       is_widget_collapsed = widget_definition.is_widget_collapsed,
 
-      highlight_texture = "playerlist_hover", -- texture name
-      background_texture = "common_widgets_background_lit",
+      highlight_texture = "playerlist_hover",
+      rect_masked_texture = "rect_masked",
+      --background_texture = "common_widgets_background_lit",
 
       highlight_hotspot = {},
       dropdown_hotspot = {},
@@ -1225,7 +1349,8 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
 
       background = {
         size = {widget_size[1], widget_size[2] - 3},
-        offset = {0, offset_y + 1, 0}
+        offset = {0, offset_y + 1, 0},
+        color = {255, 30, 23, 15}
       },
 
       highlight_texture = {
@@ -1242,25 +1367,25 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
         text_color = Colors.get_color_table_with_alpha("white", 255)
       },
 
-      upperline = {
+      border_top = {
         size = {270, 2},
         offset = {widget_size[1] - 300, offset_y + (widget_size[2] - 10), 1},
         color = {255, 30, 30, 30}
       },
 
-      leftline = {
+      border_left = {
         size = {2, widget_size[2] - 16},
         offset = {widget_size[1] - 300, offset_y + 8, 1},
         color = {255, 30, 30, 30}
       },
 
-      rightline = {
+      border_right = {
         size = {2, widget_size[2] - 16},
         offset = {widget_size[1] - 32, offset_y + 8, 1},
         color = {255, 30, 30, 30}
       },
 
-      underline = {
+      border_bottom = {
         size = {270, 2},
         offset = {widget_size[1] - 300, offset_y + 8, 1},
         color = {255, 30, 30, 30}
@@ -1519,7 +1644,7 @@ local function create_numeric_widget(widget_definition, scenegraph_id, scenegrap
           pass_type = "texture",
 
           style_id   = "background",
-          texture_id = "background_texture",
+          texture_id = "rect_masked_texture",
 
           content_check_function = function (content)
             return content.is_widget_collapsed
@@ -1653,7 +1778,7 @@ local function create_numeric_widget(widget_definition, scenegraph_id, scenegrap
       is_widget_collapsed = widget_definition.is_widget_collapsed,
 
       highlight_texture = "playerlist_hover",
-      background_texture = "common_widgets_background_lit",
+      rect_masked_texture = "rect_masked",
 
       highlight_hotspot = {},
       dropdown_hotspot = {},
@@ -1840,9 +1965,10 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
           text_id = "text"
         },
         {
-          pass_type = "rect",
+          pass_type = "texture",
 
-          style_id = "keybind_background"
+          style_id = "keybind_background",
+          texture_id = "rect_masked_texture"
         },
         {
           pass_type = "text",
@@ -1946,6 +2072,7 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
 
       highlight_texture = "playerlist_hover", -- texture name
       background_texture = "common_widgets_background_lit",
+      rect_masked_texture = "rect_masked",
 
       highlight_hotspot = {},
       keybind_text_hotspot = {},
@@ -3199,7 +3326,7 @@ VMFOptionsView.update_settings_list_widgets_visibility = function (self, mod_nam
           local parent_widget = mod_widgets[widget.content.parent_widget_number]
 
           -- if 'header' or 'checkbox'
-          if parent_widget.style.checkbox then
+          if parent_widget.style.checkbox or parent_widget.style.checkbox_border then --@TODO:
 
             widget.content.is_widget_visible = parent_widget.content.is_checkbox_checked and parent_widget.content.is_widget_visible and not parent_widget.content.is_widget_collapsed
 
@@ -3208,7 +3335,7 @@ VMFOptionsView.update_settings_list_widgets_visibility = function (self, mod_nam
             if widget.content.show_widget_condition then
               widget.content.is_widget_visible = widget.content.show_widget_condition[parent_widget.content.current_option_number] and parent_widget.content.is_widget_visible and not parent_widget.content.is_widget_collapsed
             else
-              get_mod(widget.content.mod_name):echo("ERROR: the dropdown widget in the options menu has sub_widgets, but some of its sub_widgets doesn't have 'show_widget_condition'", true)
+              get_mod(widget.content.mod_name):echo("ERROR: the dropdown widget in the options menu has sub_widgets, but some of its sub_widgets doesn't have 'show_widget_condition' (" .. widget.content.setting_name .. ")" , true)
             end
           end
         end
@@ -3911,4 +4038,136 @@ vmf:register_new_view(view_data)
 local ingame_ui_exists, ingame_ui = pcall(function () return Managers.player.network_manager.matchmaking_manager.matchmaking_ui.ingame_ui end)
 if ingame_ui_exists then
   ingame_ui.handle_transition(ingame_ui, "leave_group")
+
+  ---------------------------------------------------
+
+
+--vmf:echo("I hope it will work!")
+--[[
+local gui = World.create_screen_gui(ingame_ui.ui_renderer.world, "immediate",
+"material",
+"materials/ui/end_screen_banners/end_screen_banners",
+"material",
+"materials/ui/ui_1080p_ingame_common",
+"material",
+"materials/ui/ui_1080p_ingame_inn",
+"material",
+"materials/ui/ui_1080p_level_images",
+"material",
+"materials/ui/ui_1080p_chat",
+"material",
+"materials/fonts/gw_fonts",
+"material",
+"materials/header_background",
+"material",
+"materials/header_background_lit",
+"material",
+"materials/common_widgets_background_lit",
+"material",
+"materials/header_fav_icon",
+"material",
+"materials/header_fav_icon_lit",
+"material",
+"materials/header_fav_arrow",
+"material",
+"materials/search_bar_icon")
+
+local gui_retained = World.create_screen_gui(ingame_ui.ui_renderer.world,
+  "material",
+"materials/ui/end_screen_banners/end_screen_banners",
+"material",
+"materials/ui/ui_1080p_ingame_common",
+"material",
+"materials/ui/ui_1080p_ingame_inn",
+"material",
+"materials/ui/ui_1080p_level_images",
+"material",
+"materials/ui/ui_1080p_chat",
+"material",
+"materials/fonts/gw_fonts",
+"material",
+"materials/header_background",
+"material",
+"materials/header_background_lit",
+"material",
+"materials/common_widgets_background_lit",
+"material",
+"materials/header_fav_icon",
+"material",
+"materials/header_fav_icon_lit",
+"material",
+"materials/header_fav_arrow",
+"material",
+"materials/search_bar_icon")
+
+
+World.destroy_gui(ingame_ui.ui_renderer.world, ingame_ui.ui_renderer.gui)
+
+ingame_ui.ui_renderer.gui = gui
+ingame_ui.ui_renderer.gui_retained = gui_retained
+
+
+
+gui = World.create_screen_gui(ingame_ui.ui_top_renderer.world, "immediate",
+"material",
+"materials/ui/end_screen_banners/end_screen_banners",
+"material",
+"materials/ui/ui_1080p_ingame_common",
+"material",
+"materials/ui/ui_1080p_ingame_inn",
+"material",
+"materials/ui/ui_1080p_level_images",
+"material",
+"materials/ui/ui_1080p_chat",
+"material",
+"materials/fonts/gw_fonts",
+"material",
+"materials/header_background",
+"material",
+"materials/header_background_lit",
+"material",
+"materials/common_widgets_background_lit",
+"material",
+"materials/header_fav_icon",
+"material",
+"materials/header_fav_icon_lit",
+"material",
+"materials/header_fav_arrow",
+"material",
+"materials/search_bar_icon")
+
+gui_retained = World.create_screen_gui(ingame_ui.ui_top_renderer.world,
+  "material",
+"materials/ui/end_screen_banners/end_screen_banners",
+"material",
+"materials/ui/ui_1080p_ingame_common",
+"material",
+"materials/ui/ui_1080p_ingame_inn",
+"material",
+"materials/ui/ui_1080p_level_images",
+"material",
+"materials/ui/ui_1080p_chat",
+"material",
+"materials/fonts/gw_fonts",
+"material",
+"materials/header_background",
+"material",
+"materials/header_background_lit",
+"material",
+"materials/common_widgets_background_lit",
+"material",
+"materials/header_fav_icon",
+"material",
+"materials/header_fav_icon_lit",
+"material",
+"materials/header_fav_arrow",
+"material",
+"materials/search_bar_icon")
+
+World.destroy_gui(ingame_ui.ui_top_renderer.world, ingame_ui.ui_top_renderer.gui)
+
+ingame_ui.ui_top_renderer.gui = gui
+ingame_ui.ui_top_renderer.gui_retained = gui_retained
+]]
+  ---------------------------------------------------
 end
