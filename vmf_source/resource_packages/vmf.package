@@ -17,7 +17,7 @@ material = [
 ]
 
 lua = [
-  "scripts/mods/function/*"
+  "scripts/mods/vmf/functions/*"
 
   "scripts/mods/vmf/vmf_loader"
   "scripts/mods/vmf/modules/dev_console"

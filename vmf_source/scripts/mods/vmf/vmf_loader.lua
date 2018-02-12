@@ -1,6 +1,8 @@
 return {
 	init = function(object)
 
+		dofile("scripts/mods/vmf/functions/table")
+
 		dofile("scripts/mods/vmf/modules/dev_console")
 		dofile("scripts/mods/vmf/modules/mods")
 		dofile("scripts/mods/vmf/modules/hooks")
