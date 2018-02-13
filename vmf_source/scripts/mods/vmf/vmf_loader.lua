@@ -5,6 +5,7 @@ return {
 
 		dofile("scripts/mods/vmf/modules/dev_console")
 		dofile("scripts/mods/vmf/modules/mods")
+		dofile("scripts/mods/vmf/modules/debug")
 		dofile("scripts/mods/vmf/modules/hooks")
 		dofile("scripts/mods/vmf/modules/chat")
 		dofile("scripts/mods/vmf/modules/settings")

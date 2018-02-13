@@ -1,7 +1,6 @@
---@TODO: maybe update_function_hook_chain() pass entry instead of name
 local vmf = get_mod("VMF")
 
-HOOKED_FUNCTIONS = HOOKED_FUNCTIONS or {} -- global, because 'loadstring' doesn't see local variables @TODO: or just HOOKED_FUNCTIONS = {}
+HOOKED_FUNCTIONS = {} -- global, because 'loadstring' doesn't see local variables
 
 -- ####################################################################################################################
 -- ##### Private functions ############################################################################################
@@ -112,7 +111,6 @@ local function update_function_hook_chain(hooked_function_name)
   end
 
   assert(loadstring(hooked_function_name .. " = HOOKED_FUNCTIONS[" .. hooked_function_entry_index .. "].exec_function"))()
-  --table.dump(HOOKED_FUNCTIONS, "HOOKED_FUNCTIONS", 3)
 end
 
 

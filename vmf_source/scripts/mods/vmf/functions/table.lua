@@ -4,11 +4,11 @@ end
 
 table.combine = function(a, b)
 	local r = {unpack(a)}
-	
+
 	for i = 1, #b do
 		r[#a + i] = b[i]
 	end
-	
+
 	return r;
 end
 
@@ -45,51 +45,51 @@ end
 
 table.adress = function(tbl)
 	local str = tostring(tbl)
-	
+
 	return string.sub(str, 8, str:len())
 end
 
--- Serialization and deserialization 
+-- Serialization and deserialization
 local serialization = function(key, value)
 	local str = ""
-	
+
 	if type(value) == "string" then
 		str = str .. tostring(key) .. "=\"" .. value .. "\","
 	elseif type(value) == "number" then
 		str = str .. tostring(key) .. "=" .. tostring(value) .. ","
 	elseif type(value) == "boolean" then
 		str = str .. tostring(key) .. "="
-		
+
 		if value then
 			str = str .. "true"
 		else
 			str = str .. "false"
 		end
-		
+
 		str = str .. ","
-		
+
 	elseif type(value) == "table" then
 		str = str .. tostring(key) .. "=" .. table.serialization(value) .. ","
 	end
-	
+
 	return str
 end
 
 local deserialization = function(str)
 	for i = 1, string.len(str) do
 		local value = string.sub(str, i, i)
-		
+
 		if value == "=" then
 			local key = string.sub(str, 1, i - 1)
 			local value = string.sub(str, i + 1, string.len(str))
-			
+
 			-- Check key
 			if string.sub(key, 1, 1) == "[" then
 				key = string.sub(key, 3, string.len(key) - 2)
 			else
 				key = tonumber(key)
 			end
-			
+
 			-- Check value
 			if value == "true" then
 				value = true
@@ -102,17 +102,17 @@ local deserialization = function(str)
 			else
 				value = tonumber(value)
 			end
-			
-			return key, value 
+
+			return key, value
 		end
 	end
-	
+
 	return nil, nil
 end
 
 table.serialization  = function(tbl)
 	local str = "{"
-	
+
 	for key, value in ipairs(tbl) do
 		str = str .. serialization(key, value)
 	end
@@ -121,35 +121,35 @@ table.serialization  = function(tbl)
 			str = str .. serialization("[\"" .. key .. "\"]", value)
 		end
 	end
-	
+
 	str = str .. "}"
-	
+
 	return str
 end
-	
+
 table.deserialization = function(str)
 	local tbl = {}
-	
+
 	-- Collected data
 	local data = ""
-	
+
 	-- Checks
 	local c_list = 0
 	local c_str = false
-	
+
 	for i = 2, string.len(str) do
 		local before_value = string.sub(str, i - 1, i - 1)
 		local value = string.sub(str, i, i)
-		
+
 		-- If not inside a list or string
 		if value == "," and c_list == 0 then
 			-- Save propety
 			local key, val = deserialization(data)
-			
+
 			if key then
 				tbl[key] = val
 			end
-			
+
 			-- Search for new propety
 			data = ""
 		else
@@ -157,7 +157,7 @@ table.deserialization = function(str)
 			if value == "\"" and not before_value ~= "\\" then
 				c_str = not c_str
 			end
-			
+
 			-- Detect list type
 			if not c_str then
 				if value == "{" then
@@ -166,11 +166,11 @@ table.deserialization = function(str)
 					c_list = c_list - 1
 				end
 			end
-			
+
 			-- save value
 			data = data .. value
 		end
 	end
-	
+
 	return tbl
 end

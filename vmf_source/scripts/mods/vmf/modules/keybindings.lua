@@ -203,7 +203,7 @@ local function apply_keybinds()
   optimized_keybinds = {}
 
   for mod_name, mod_keybinds in pairs(raw_keybinds) do
-    for setting_name, keybind in pairs(mod_keybinds) do
+    for _, keybind in pairs(mod_keybinds) do
       local action_name = keybind[1]
       local primary_key = keybind[2][1]
 

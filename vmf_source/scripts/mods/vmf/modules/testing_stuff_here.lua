@@ -78,14 +78,14 @@ local options_widgets = {
         ["tooltip"] = "Warn joining players about game mode",
         ["default_value"] = true,
         ["sub_widgets"] = {
-            {
-              ["setting_name"] = "whatever",
-              ["widget_type"] = "checkbox",
-              ["text"] = "Whatever",
-              ["tooltip"] = "Whatever," .. "\n" ..
-                            "whatever",
-              ["default_value"] = true
-            }
+          {
+            ["setting_name"] = "whatever",
+            ["widget_type"] = "checkbox",
+            ["text"] = "Whatever",
+            ["tooltip"] = "Whatever," .. "\n" ..
+                          "whatever",
+            ["default_value"] = true
+          }
         }
       }
     }
@@ -147,7 +147,7 @@ local options_widgets = {
 mod:create_options(options_widgets, true, "Test", "Mod description")
 
 -- chat_broadcast
-mod.whatever = function(message)
+mod.whatever = function()
   mod:echo("whatever")
 end
 

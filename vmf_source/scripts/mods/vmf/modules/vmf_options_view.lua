@@ -31,12 +31,12 @@ inject_material("materials/search_bar_icon", "search_bar_icon", "ingame_ui")
 -- ####################################################################################################################
 
 
---███████╗ ██████╗███████╗███╗   ██╗███████╗ ██████╗ ██████╗  █████╗ ██████╗ ██╗  ██╗███████╗
---██╔════╝██╔════╝██╔════╝████╗  ██║██╔════╝██╔════╝ ██╔══██╗██╔══██╗██╔══██╗██║  ██║██╔════╝
---███████╗██║     █████╗  ██╔██╗ ██║█████╗  ██║  ███╗██████╔╝███████║██████╔╝███████║███████╗
---╚════██║██║     ██╔══╝  ██║╚██╗██║██╔══╝  ██║   ██║██╔══██╗██╔══██║██╔═══╝ ██╔══██║╚════██║
---███████║╚██████╗███████╗██║ ╚████║███████╗╚██████╔╝██║  ██║██║  ██║██║     ██║  ██║███████║
---╚══════╝ ╚═════╝╚══════╝╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝╚══════╝
+-- ███████╗ ██████╗███████╗███╗   ██╗███████╗ ██████╗ ██████╗  █████╗ ██████╗ ██╗  ██╗███████╗
+-- ██╔════╝██╔════╝██╔════╝████╗  ██║██╔════╝██╔════╝ ██╔══██╗██╔══██╗██╔══██╗██║  ██║██╔════╝
+-- ███████╗██║     █████╗  ██╔██╗ ██║█████╗  ██║  ███╗██████╔╝███████║██████╔╝███████║███████╗
+-- ╚════██║██║     ██╔══╝  ██║╚██╗██║██╔══╝  ██║   ██║██╔══██╗██╔══██║██╔═══╝ ██╔══██║╚════██║
+-- ███████║╚██████╗███████╗██║ ╚████║███████╗╚██████╔╝██║  ██║██║  ██║██║     ██║  ██║███████║
+-- ╚══════╝ ╚═════╝╚══════╝╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝╚══════╝
 
 local scenegraph_definition = {
 
@@ -283,9 +283,7 @@ local menu_widgets_definition = {
         {
           pass_type = "scroll",
           -- the function is called only during scrolls
-          scroll_function = function (ui_scenegraph, style, content, input_service, scroll_axis)
-            local scroll_step          = content.scroll_step
-            local current_scroll_value = content.internal_scroll_value
+          scroll_function = function (ui_scenegraph_, style_, content, input_service_, scroll_axis)
 
             content.internal_scroll_value = content.internal_scroll_value - scroll_axis.y
           end
@@ -530,7 +528,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
         {
           pass_type = "local_offset",
 
-          offset_function = function (ui_scenegraph, style, content, ui_renderer)
+          offset_function = function (ui_scenegraph_, style, content, ui_renderer)
 
             local is_interactable = content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
 
@@ -605,7 +603,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
         {
           pass_type = "border",
 
-          content_check_function = function (content, style)
+          content_check_function = function (content_, style)
             if DEBUG_WIDGETS then
               style.thickness = 1
             end
@@ -617,7 +615,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           pass_type = "rect",
 
           style_id = "debug_middle_line",
-          content_check_function = function (content)
+          content_check_function = function ()
             return DEBUG_WIDGETS
           end
         }
@@ -848,7 +846,7 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
         {
           pass_type = "local_offset",
 
-          offset_function = function (ui_scenegraph, style, content, ui_renderer)
+          offset_function = function (ui_scenegraph_, style, content, ui_renderer)
 
             local is_interactable = content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
 
@@ -901,14 +899,14 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
         {
           pass_type = "rect",
 
-          content_check_function = function (content)
+          content_check_function = function ()
             return DEBUG_WIDGETS
           end
         },
         {
           pass_type = "border",
 
-          content_check_function = function (content, style)
+          content_check_function = function (content_, style)
             if DEBUG_WIDGETS then
               style.thickness = 1
             end
@@ -920,7 +918,7 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
           pass_type = "rect",
 
           style_id = "debug_middle_line",
-          content_check_function = function (content)
+          content_check_function = function ()
             return DEBUG_WIDGETS
           end
         }
@@ -933,8 +931,6 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
 
       rect_masked_texture = "rect_masked",
       highlight_texture = "playerlist_hover",
-      --background_texture = "common_widgets_background_lit",
-      rect_masked_texture = "rect_masked",
 
       checkbox_hotspot = {},
       highlight_hotspot = {},
@@ -1035,6 +1031,14 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
 end
 
 
+--  ██████╗ ██████╗  ██████╗ ██╗   ██╗██████╗
+-- ██╔════╝ ██╔══██╗██╔═══██╗██║   ██║██╔══██╗
+-- ██║  ███╗██████╔╝██║   ██║██║   ██║██████╔╝
+-- ██║   ██║██╔══██╗██║   ██║██║   ██║██╔═══╝
+-- ╚██████╔╝██║  ██║╚██████╔╝╚██████╔╝██║
+--  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝
+
+
 local function create_group_widget(widget_definition, scenegraph_id)
 
   local widget_size = SETTINGS_LIST_REGULAR_WIDGET_SIZE
@@ -1050,7 +1054,7 @@ local function create_group_widget(widget_definition, scenegraph_id)
           pass_type = "texture",
 
           style_id   = "background",
-          texture_id = "background_texture",
+          texture_id = "rect_masked_texture",
 
           content_check_function = function (content)
             return content.is_widget_collapsed
@@ -1059,7 +1063,7 @@ local function create_group_widget(widget_definition, scenegraph_id)
         {
           pass_type = "texture",
 
-          style_id = "highlight_texture",
+          style_id   = "highlight_texture",
           texture_id = "highlight_texture",
           content_check_function = function (content)
             return content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
@@ -1069,7 +1073,7 @@ local function create_group_widget(widget_definition, scenegraph_id)
           pass_type = "text",
 
           style_id = "text",
-          text_id = "text"
+          text_id  = "text"
         },
         -- HOTSPOTS
         {
@@ -1081,7 +1085,7 @@ local function create_group_widget(widget_definition, scenegraph_id)
         {
           pass_type = "local_offset",
 
-          offset_function = function (ui_scenegraph, style, content, ui_renderer)
+          offset_function = function (ui_scenegraph_, style, content, ui_renderer)
 
             local is_interactable = content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
 
@@ -1111,14 +1115,14 @@ local function create_group_widget(widget_definition, scenegraph_id)
         {
           pass_type = "rect",
 
-          content_check_function = function (content)
+          content_check_function = function ()
             return DEBUG_WIDGETS
           end
         },
         {
           pass_type = "border",
 
-          content_check_function = function (content, style)
+          content_check_function = function (content_, style)
             if DEBUG_WIDGETS then
               style.thickness = 1
             end
@@ -1130,7 +1134,7 @@ local function create_group_widget(widget_definition, scenegraph_id)
           pass_type = "rect",
 
           style_id = "debug_middle_line",
-          content_check_function = function (content)
+          content_check_function = function ()
             return DEBUG_WIDGETS
           end
         }
@@ -1141,7 +1145,7 @@ local function create_group_widget(widget_definition, scenegraph_id)
       is_widget_collapsed = widget_definition.is_widget_collapsed,
 
       highlight_texture = "playerlist_hover",
-      background_texture = "common_widgets_background_lit",
+      rect_masked_texture = "rect_masked",
 
       highlight_hotspot = {},
 
@@ -1158,7 +1162,8 @@ local function create_group_widget(widget_definition, scenegraph_id)
       -- VISUALS
       background = {
         size = {widget_size[1], widget_size[2] - 3},
-        offset = {0, offset_y + 1, 0}
+        offset = {0, offset_y + 1, 0},
+        color = {255, 30, 23, 15}
       },
 
       highlight_texture = {
@@ -1174,8 +1179,6 @@ local function create_group_widget(widget_definition, scenegraph_id)
         dynamic_font = true,
         text_color = Colors.get_color_table_with_alpha("white", 255)
       },
-
-      -- HOTSPOTS
 
       -- TOOLTIP
 
@@ -1409,7 +1412,7 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
         {
           pass_type = "local_offset",
 
-          offset_function = function (ui_scenegraph, style, content, ui_renderer)
+          offset_function = function (ui_scenegraph_, style, content, ui_renderer)
 
             local is_interactable = content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
 
@@ -1420,7 +1423,7 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
               end
 
               if content.dropdown_hotspot.on_release then
-                content.callback_change_dropdown_menu_visibility(content, style)
+                content.callback_change_dropdown_menu_visibility(content)
               end
 
               if content.highlight_hotspot.on_release and not content.dropdown_hotspot.on_release then
@@ -1432,7 +1435,7 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
 
               local old_value = content.options_values[content.current_option_number]
 
-              if content.callback_draw_dropdown_menu(content, style) then
+              if content.callback_draw_dropdown_menu(content) then
 
                 if content.is_widget_collapsed then
                   content.callback_hide_sub_widgets(content)
@@ -1461,7 +1464,7 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
 
           text_id  = "tooltip_text",
           style_id = "tooltip_text",
-          content_check_function = function (content, style)
+          content_check_function = function (content)
             return content.tooltip_text and content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
           end
         },
@@ -1469,14 +1472,14 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
         {
           pass_type = "rect",
 
-          content_check_function = function (content)
+          content_check_function = function ()
             return DEBUG_WIDGETS
           end
         },
         {
           pass_type = "border",
 
-          content_check_function = function (content, style)
+          content_check_function = function (content_, style)
             if DEBUG_WIDGETS then
               style.thickness = 1
             end
@@ -1488,7 +1491,7 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
           pass_type = "rect",
 
           style_id = "debug_middle_line",
-          content_check_function = function (content)
+          content_check_function = function ()
             return DEBUG_WIDGETS
           end
         }
@@ -1707,12 +1710,12 @@ local function create_numeric_menu_widget(dropdown_definition, scenegraph_2nd_la
             local cursor = UIInverseScaleVectorToResolution(input_service.get(input_service, "cursor"))
             local scenegraph_id = ui_content.scenegraph_id
             local world_position = UISceneGraph.get_world_position(ui_scenegraph, scenegraph_id)
-            local size_x = ui_style.size[1]
+            local size_x_ = ui_style.size[1]
             local cursor_x = cursor[1]
             local pos_start = world_position[1] + ui_style.offset[1]
             local old_value = ui_content.internal_value
             local cursor_x_norm = cursor_x - pos_start
-            local value = math.clamp(cursor_x_norm/size_x, 0, 1)
+            local value = math.clamp(cursor_x_norm/size_x_, 0, 1)
             ui_content.internal_value = value
 
             if old_value ~= value then
@@ -1871,7 +1874,7 @@ local function create_numeric_widget(widget_definition, scenegraph_id, scenegrap
         {
           pass_type = "local_offset",
 
-          offset_function = function (ui_scenegraph, style, content, ui_renderer)
+          offset_function = function (ui_scenegraph_, style, content, ui_renderer)
 
             local is_interactable = content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
 
@@ -1883,7 +1886,7 @@ local function create_numeric_widget(widget_definition, scenegraph_id, scenegrap
 
               if content.dropdown_hotspot.on_release then
 
-                content.callback_change_numeric_menu_visibility(content, style)
+                content.callback_change_numeric_menu_visibility(content)
               end
             end
 
@@ -1891,7 +1894,7 @@ local function create_numeric_widget(widget_definition, scenegraph_id, scenegrap
 
               local old_value = content.current_value
 
-              if content.callback_draw_numeric_menu(content, style) then
+              if content.callback_draw_numeric_menu(content) then
 
                 local mod_name = content.mod_name
                 local setting_name = content.setting_name
@@ -1912,7 +1915,7 @@ local function create_numeric_widget(widget_definition, scenegraph_id, scenegrap
 
           text_id  = "tooltip_text",
           style_id = "tooltip_text",
-          content_check_function = function (content, style)
+          content_check_function = function (content)
             return content.tooltip_text and content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
           end
         },
@@ -1920,14 +1923,14 @@ local function create_numeric_widget(widget_definition, scenegraph_id, scenegrap
         {
           pass_type = "rect",
 
-          content_check_function = function (content)
+          content_check_function = function ()
             return DEBUG_WIDGETS
           end
         },
         {
           pass_type = "border",
 
-          content_check_function = function (content, style)
+          content_check_function = function (content_, style)
             if DEBUG_WIDGETS then
               style.thickness = 1
             end
@@ -1939,7 +1942,7 @@ local function create_numeric_widget(widget_definition, scenegraph_id, scenegrap
           pass_type = "rect",
 
           style_id = "debug_middle_line",
-          content_check_function = function (content)
+          content_check_function = function ()
             return DEBUG_WIDGETS
           end
         }
@@ -2158,7 +2161,7 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
         {
           pass_type = "local_offset",
 
-          offset_function = function (ui_scenegraph, style, content, ui_renderer)
+          offset_function = function (ui_scenegraph_, style, content, ui_renderer)
 
             local is_interactable = content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
 
@@ -2177,13 +2180,13 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
               end
 
               if content.keybind_text_hotspot.on_release then
-                content.callback_change_setting_keybind_state(content, style)
+                content.callback_change_setting_keybind_state(content)
                 return
               end
             end
 
             if content.is_setting_keybind then
-              if content.callback_setting_keybind(content, style) then
+              if content.callback_setting_keybind(content) then
                 content.callback_setting_changed(content.mod_name, content.setting_name, nil, content.keys)
                 return
               end
@@ -2199,7 +2202,7 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
 
           text_id  = "tooltip_text",
           style_id = "tooltip_text",
-          content_check_function = function (content, style)
+          content_check_function = function (content)
             return content.tooltip_text and content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
           end
         },
@@ -2207,14 +2210,14 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
         {
           pass_type = "rect",
 
-          content_check_function = function (content)
+          content_check_function = function ()
             return DEBUG_WIDGETS
           end
         },
         {
           pass_type = "border",
 
-          content_check_function = function (content, style)
+          content_check_function = function (content_, style)
             if DEBUG_WIDGETS then
               style.thickness = 1
             end
@@ -2226,7 +2229,7 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
           pass_type = "rect",
 
           style_id = "debug_middle_line",
-          content_check_function = function (content)
+          content_check_function = function ()
             return DEBUG_WIDGETS
           end
         }
@@ -2450,7 +2453,6 @@ VMFOptionsView.initialize_settings_list_widgets = function (self)
     for _, definition in ipairs(mod_settings_list_definitions) do
 
       local widget = nil
-      local size_y = 0
       local widget_type = definition.widget_type
 
       if widget_type == "checkbox" then
@@ -2874,7 +2876,7 @@ VMFOptionsView.callback_hide_sub_widgets = function (self, widget_content)
 end
 
 
-VMFOptionsView.callback_change_setting_keybind_state = function (self, widget_content, widget_style)
+VMFOptionsView.callback_change_setting_keybind_state = function (self, widget_content)
 
   if not widget_content.is_setting_keybind then
     self.input_manager:device_unblock_all_services("keyboard", 1)
@@ -2903,7 +2905,7 @@ VMFOptionsView.callback_change_setting_keybind_state = function (self, widget_co
 end
 
 
-VMFOptionsView.callback_setting_keybind = function (self, widget_content, widget_style)
+VMFOptionsView.callback_setting_keybind = function (self, widget_content)
 
   if not widget_content.first_pressed_button and (Keyboard.any_pressed() or Mouse.any_pressed()) then
 
@@ -2972,7 +2974,7 @@ VMFOptionsView.callback_setting_keybind = function (self, widget_content, widget
         get_mod(widget_content.mod_name):keybind(widget_content.setting_name, widget_content.action, widget_content.keys)
       end
 
-      self:callback_change_setting_keybind_state(widget_content, widget_style)
+      self:callback_change_setting_keybind_state(widget_content)
 
       return true
     end
@@ -2987,7 +2989,7 @@ VMFOptionsView.callback_setting_keybind = function (self, widget_content, widget
         get_mod(widget_content.mod_name):keybind(widget_content.setting_name, widget_content.action, widget_content.keys)
       end
 
-      self:callback_change_setting_keybind_state(widget_content, widget_style)
+      self:callback_change_setting_keybind_state(widget_content)
 
       return true
     end
@@ -2995,7 +2997,7 @@ VMFOptionsView.callback_setting_keybind = function (self, widget_content, widget
 end
 
 
-VMFOptionsView.callback_change_dropdown_menu_visibility = function (self, widget_content, widget_style)
+VMFOptionsView.callback_change_dropdown_menu_visibility = function (self, widget_content)
 
   if not widget_content.is_dropdown_menu_opened then
     self.input_manager:device_unblock_all_services("keyboard", 1)
@@ -3027,7 +3029,7 @@ VMFOptionsView.callback_change_dropdown_menu_visibility = function (self, widget
 end
 
 
-VMFOptionsView.callback_draw_dropdown_menu = function (self, widget_content, widget_style)
+VMFOptionsView.callback_draw_dropdown_menu = function (self, widget_content)
   local ui_renderer          = self.ui_renderer
   local scenegraph           = self.ui_scenegraph_2nd_layer
   local parent_scenegraph_id = self.settings_list_scenegraph_id_start
@@ -3045,7 +3047,7 @@ VMFOptionsView.callback_draw_dropdown_menu = function (self, widget_content, wid
 
   for _, hotspot_content in pairs(widget_content.popup_menu_widget.content) do
     if type(hotspot_content) == "table" and hotspot_content.on_release then
-      self:callback_change_dropdown_menu_visibility(widget_content, widget_style)
+      self:callback_change_dropdown_menu_visibility(widget_content)
 
       widget_content.current_option_number = hotspot_content.num
       widget_content.current_option_text = widget_content.options_texts[widget_content.current_option_number]
@@ -3056,14 +3058,14 @@ VMFOptionsView.callback_draw_dropdown_menu = function (self, widget_content, wid
 
   --if Left Mouse Button or Esc pressed
   if Mouse.released(0) and not widget_content.wrong_mouse_on_release or Keyboard.released(27) then
-    self:callback_change_dropdown_menu_visibility(widget_content, widget_style)
+    self:callback_change_dropdown_menu_visibility(widget_content)
   end
 
   widget_content.wrong_mouse_on_release = nil
 end
 
 
-VMFOptionsView.callback_change_numeric_menu_visibility = function (self, widget_content, widget_style)
+VMFOptionsView.callback_change_numeric_menu_visibility = function (self, widget_content)
 
   if not widget_content.is_numeric_menu_opened then
     self.input_manager:device_unblock_all_services("keyboard", 1)
@@ -3103,14 +3105,14 @@ VMFOptionsView.callback_change_numeric_menu_visibility = function (self, widget_
       if not min_text_has_dot then
         min_text = min_text .. "."
 
-        for i = 1, decimals_number do
+        for _ = 1, decimals_number do
           min_text = min_text .. "0"
         end
       end
       if not max_text_has_dot then
         max_text = max_text .. "."
 
-        for i = 1, decimals_number do
+        for _ = 1, decimals_number do
           max_text = max_text .. "0"
         end
       end
@@ -3135,7 +3137,7 @@ VMFOptionsView.callback_change_numeric_menu_visibility = function (self, widget_
 end
 
 
-VMFOptionsView.callback_draw_numeric_menu = function (self, widget_content, widget_style)
+VMFOptionsView.callback_draw_numeric_menu = function (self, widget_content)
 
   local numeric_menu_content     = widget_content.popup_menu_widget.content
   local numeric_menu_text_style  = widget_content.popup_menu_widget.style.new_value_text
@@ -3291,9 +3293,7 @@ VMFOptionsView.callback_draw_numeric_menu = function (self, widget_content, widg
   -- Left Mouse Button or Enter pressed ----------------
 
   if Mouse.released(0) and not widget_content.wrong_mouse_on_release and not numeric_menu_content.slider_is_held or Keyboard.released(13) then
-    self:callback_change_numeric_menu_visibility(widget_content, widget_style)
-
-    table.dump(numeric_menu_content.slider_hotspot, "WHATEVER", 1)
+    self:callback_change_numeric_menu_visibility(widget_content)
 
     if new_value_number and new_value_number >= widget_content.range[1] and new_value_number <= widget_content.range[2] then
       widget_content.current_value = new_value_number
@@ -3310,7 +3310,7 @@ VMFOptionsView.callback_draw_numeric_menu = function (self, widget_content, widg
   -- Esc pressed ---------------------------------------
 
   if Keyboard.released(27) then
-    self:callback_change_numeric_menu_visibility(widget_content, widget_style)
+    self:callback_change_numeric_menu_visibility(widget_content)
   end
 
  -- Fix for closing menu when releasing LMB outside the hotspot
@@ -3411,9 +3411,9 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
         if type(loaded_setting_value) == "boolean" then
           widget_content.is_checkbox_checked = loaded_setting_value
         else
-          if type(loaded_setting_value) ~= "nil" then
+          --if type(loaded_setting_value) ~= "nil" then
             -- @TODO: warning: variable of wrong type in config
-          end
+          --end
 
           widget_content.is_checkbox_checked = widget_content.default_value
           get_mod(widget_content.mod_name):set(widget_content.setting_name, widget_content.default_value)
@@ -3436,9 +3436,9 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
         end
 
         if setting_not_found then
-          if type(loaded_setting_value) ~= "nil" then
+          --if type(loaded_setting_value) ~= "nil" then
             -- @TODO: warning: variable which is not in the dropdown options list in config
-          end
+          --end
 
           for i, option_value in ipairs(widget_content.options_values) do
 
@@ -3793,16 +3793,13 @@ VMFOptionsView.update_settings_list = function (self, settings_list_widgets, ui_
     for _, widget in ipairs(mod_widgets) do
       if widget.content.is_widget_visible then
         local style = widget.style
-        local widget_name = widget.name
         local size = style.size
         local offset = style.offset
 
         temp_pos_table.x = list_position[1] + offset[1]
         temp_pos_table.y = list_position[2] + offset[2] + widget.offset[2]
         local lower_visible = math.point_is_inside_2d_box(temp_pos_table, mask_pos, mask_size)
-        temp_pos_table.y = temp_pos_table.y + size[2]/2
-        local middle_visible = math.point_is_inside_2d_box(temp_pos_table, mask_pos, mask_size)
-        temp_pos_table.y = temp_pos_table.y + size[2]/2
+        temp_pos_table.y = temp_pos_table.y + size[2]
         local top_visible = math.point_is_inside_2d_box(temp_pos_table, mask_pos, mask_size)
 
         local visible = lower_visible or top_visible
@@ -3901,10 +3898,6 @@ end
 -- ##### VMFMod #######################################################################################################
 -- ####################################################################################################################
 
-local function check_widget_definition(mod, widget)
-
-end
-
 
 VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, readable_mod_name, mod_description)
 
@@ -3992,8 +3985,6 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
           new_widget_definition.is_widget_collapsed = mod_collapsed_widgets[current_widget.setting_name]
         end
 
-        check_widget_definition(self, new_widget_definition)
-
         if type(self:get(current_widget.setting_name)) == "nil" then
           self:set(current_widget.setting_name, current_widget.default_value)
         end
@@ -4010,8 +4001,8 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
       end
 
       if current_widget and (
-        current_widget.widget_type == "header" or 
-        current_widget.widget_type == "group" or 
+        current_widget.widget_type == "header" or
+        current_widget.widget_type == "group" or
         current_widget.widget_type == "checkbox" or
         current_widget.widget_type == "dropdown"
       ) and current_widget.sub_widgets then
@@ -4223,10 +4214,75 @@ vmf:register_new_view(view_data)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+vmf:hook("IngameView.setup_button_layout", function (func, self, layout_data)
+
+  local mods_options_button = {
+    display_name = "Mods Options",
+    transition = "vmf_options_view",
+    fade = false
+  }
+
+  for i, button_info in ipairs(layout_data) do
+
+    if button_info.transition == "options_menu" then
+
+      table.insert(layout_data, i + 1, mods_options_button)
+      break
+    end
+  end
+
+  func(self, layout_data)
+
+  for _, button_info in ipairs(self.active_button_data) do
+
+    if button_info.transition == "vmf_options_view" then
+
+      button_info.widget.style.text.localize = false
+      button_info.widget.style.text_disabled.localize = false
+      button_info.widget.style.text_click.localize = false
+      button_info.widget.style.text_hover.localize = false
+      button_info.widget.style.text_selected.localize = false
+    end
+  end
+end)
+
+
+
+
+
+
+
+
+
+
+
+
+
 local ingame_ui_exists, ingame_ui = pcall(function () return Managers.player.network_manager.matchmaking_manager.matchmaking_ui.ingame_ui end)
 if ingame_ui_exists then
   ingame_ui.handle_transition(ingame_ui, "leave_group")
 
+vmf:pcall(function()
+
+  print("AYYYYY" .. tostring(ingame_ui))
+  --vmf:dump(ingame_ui.views, "whatever", 1)
+
+end)
   ---------------------------------------------------
 
 

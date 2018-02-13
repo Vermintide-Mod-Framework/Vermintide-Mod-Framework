@@ -22,6 +22,7 @@ lua = [
   "scripts/mods/vmf/vmf_loader"
   "scripts/mods/vmf/modules/dev_console"
   "scripts/mods/vmf/modules/mods"
+  "scripts/mods/vmf/modules/debug"
   "scripts/mods/vmf/modules/hooks"
   "scripts/mods/vmf/modules/chat"
   "scripts/mods/vmf/modules/settings"

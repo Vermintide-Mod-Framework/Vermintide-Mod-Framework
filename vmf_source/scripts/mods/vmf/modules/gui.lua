@@ -206,7 +206,7 @@ vmf:hook("IngameUI.destroy", function(func, self)
 end)
 
 
-vmf.check_custom_menus_close_keybinds = function(dt)
+vmf.check_custom_menus_close_keybinds = function()
   if ingame_ui then
     if views_settings[ingame_ui.current_view] then
       local opened_view_settings = views_settings[ingame_ui.current_view]
