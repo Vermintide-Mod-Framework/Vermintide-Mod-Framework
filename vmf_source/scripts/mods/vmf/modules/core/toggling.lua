@@ -52,11 +52,12 @@ VMFMod.enable = function (self)
   end
 end
 
-VMFMod.initialized = function (self)
+VMFMod.init_state = function (self)
 
   if _DISABLED_MODS_LIST[self:get_name()] then
-
     change_mod_state(self, false, true)
+  else
+    change_mod_state(self, true, true)
   end
 end
 
