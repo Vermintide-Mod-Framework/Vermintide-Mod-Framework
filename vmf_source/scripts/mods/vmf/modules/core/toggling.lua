@@ -6,21 +6,21 @@ local _DISABLED_MODS_LIST = vmf:get("disabled_mods_list") or {}
 -- ##### Local functions ##############################################################################################
 -- ####################################################################################################################
 
-local function change_mod_state(mod, enable, skip_saving)
+local function change_mod_state(mod, enable, initial_call)
 
   if enable then
 
     _DISABLED_MODS_LIST[mod:get_name()] = nil
 
-    vmf.mod_enabled_event(mod)
+    vmf.mod_enabled_event(mod, initial_call)
   else
 
     _DISABLED_MODS_LIST[mod:get_name()] = true
 
-    vmf.mod_disabled_event(mod)
+    vmf.mod_disabled_event(mod, initial_call)
   end
 
-  if skip_saving then
+  if initial_call then
     return
   end
 
@@ -40,7 +40,7 @@ VMFMod.disable = function (self)
 
   if not _DISABLED_MODS_LIST[self:get_name()] then
 
-    change_mod_state(self, false)
+    change_mod_state(self, false, false)
   end
 end
 
@@ -48,7 +48,7 @@ VMFMod.enable = function (self)
 
   if _DISABLED_MODS_LIST[self:get_name()] then
 
-    change_mod_state(self, true)
+    change_mod_state(self, true, false)
   end
 end
 

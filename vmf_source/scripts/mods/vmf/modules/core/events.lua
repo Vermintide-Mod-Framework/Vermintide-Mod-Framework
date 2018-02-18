@@ -72,25 +72,25 @@ vmf.mod_setting_changed_event = function(mod, setting_name)
   end
 end
 
-vmf.mod_enabled_event = function(mod)
+vmf.mod_enabled_event = function(mod, initial_call)
 
   local event_name = "on_enabled"
 
   local event = mod[event_name]
   if event then
-    run_event(mod, event_name, event)
+    run_event(mod, event_name, event, initial_call)
   else
     mod:warning("Attemt to call undefined event 'mod.%s'.", event_name)
   end
 end
 
-vmf.mod_disabled_event = function(mod)
+vmf.mod_disabled_event = function(mod, initial_call)
 
   local event_name = "on_disabled"
 
   local event = mod[event_name]
   if event then
-    run_event(mod, event_name, event)
+    run_event(mod, event_name, event, initial_call)
   else
     mod:warning("Attemt to call undefined event 'mod.%s'.", event_name)
   end
