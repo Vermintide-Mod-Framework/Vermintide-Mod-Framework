@@ -6,7 +6,7 @@ search_bar_icon = {
 	shader = "gui_gradient:DIFFUSE_MAP"
 
 	textures = {
-		diffuse_map = "gui/search_bar_icon"
+		diffuse_map = "gui/vmf/search_bar_icon"
 	}
 
 	variables = {

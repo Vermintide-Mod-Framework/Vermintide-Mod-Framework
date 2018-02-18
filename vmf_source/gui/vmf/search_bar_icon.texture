@@ -1,6 +1,6 @@
 common = {
 	input = {
-		filename = "gui/header_fav_icon"
+		filename = "gui/vmf/search_bar_icon"
 	}
 	output = {
 		apply_processing = true

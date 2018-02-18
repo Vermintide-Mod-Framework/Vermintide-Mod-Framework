@@ -3,8 +3,18 @@ local vmf = get_mod("VMF")
 HOOKED_FUNCTIONS = {} -- global, because 'loadstring' doesn't see local variables
 
 -- ####################################################################################################################
--- ##### Private functions ############################################################################################
+-- ##### Local functions ##############################################################################################
 -- ####################################################################################################################
+
+local function check_function_name(mod, hook_function_name, hooked_function_name)
+  if type(hooked_function_name) ~= "string" then
+    mod:error("(%s): hooked function argument should be the string, not %s", hook_function_name, type(hooked_function_name))
+    return false
+  end
+
+  return true
+end
+
 
 local function get_function_by_name(function_name)
 
@@ -117,7 +127,7 @@ end
 local function modify_hook(mod, hooked_function_name, action)
 
   if not get_function_by_name(hooked_function_name) then
-    mod:echo("ERROR: 'hook_".. action .. "' - function [" .. hooked_function_name .. "] doesn't exist", true)
+    mod:error("(hook_%s): function [%s] doesn't exist", action, hooked_function_name)
     return
   end
 
@@ -174,13 +184,11 @@ local function modify_all_hooks(mod, action)
     if #hooked_function_entry.hooks == 0 then
       table.insert(no_hooks_functions_indexes, 1, i)
     end
-
   end
 
   for _, no_hooks_function_index in ipairs(no_hooks_functions_indexes) do
     table.remove(HOOKED_FUNCTIONS, no_hooks_function_index)
   end
-
 end
 
 -- ####################################################################################################################
@@ -189,9 +197,13 @@ end
 
 VMFMod.hook = function (self, hooked_function_name, hook_function)
 
+  if not check_function_name(self, "hook", hooked_function_name) then
+    return
+  end
+
   local hooked_function_entry = get_hooked_function_entry(hooked_function_name) or create_hooked_function_entry(hooked_function_name)
   if not hooked_function_entry then
-    self:echo("ERROR: 'hook' - function [" .. hooked_function_name .. "] doesn't exist", true)
+    self:error("(hook): function [%s] doesn't exist", hooked_function_name)
     return
   end
 
@@ -211,16 +223,31 @@ end
 
 
 VMFMod.hook_remove = function (self, hooked_function_name)
+
+  if not check_function_name(self, "hook_remove", hooked_function_name) then
+    return
+  end
+
   modify_hook(self, hooked_function_name, "remove")
 end
 
 
 VMFMod.hook_disable = function (self, hooked_function_name)
+
+  if not check_function_name(self, "hook_disable", hooked_function_name) then
+    return
+  end
+
   modify_hook(self, hooked_function_name, "disable")
 end
 
 
 VMFMod.hook_enable = function (self, hooked_function_name)
+
+  if not check_function_name(self, "hook_enable", hooked_function_name) then
+    return
+  end
+
   modify_hook(self, hooked_function_name, "enable")
 end
 
@@ -240,7 +267,7 @@ VMFMod.enable_all_hooks = function (self)
 end
 
 -- ####################################################################################################################
--- ##### Event functions ##############################################################################################
+-- ##### VMF internal functions and variables #########################################################################
 -- ####################################################################################################################
 
 -- removes all hooks when VMF is about to be reloaded

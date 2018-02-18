@@ -1,49 +1,4 @@
 local mod = new_mod("test_mod")
---[[
-    mod:hook("GenericAmmoUserExtension.update", function(func, self, unit, input, dt, context, t)
-      func(self, unit, input, dt, context, t)
-      print("333")
-      end)
-    mod:hook_disable("GenericAmmoUserExtension.update")
-
-    mod:hook("MatchmakingManager.all_peers_ready", function(func, ...)
-  --if not mod:is_suspended() then
-  --  return true
-  --else
-  --  return func(...)
-  --end
-  mod:echo("whatever")
-  return true
-end)
-    mod:disable_all_hooks()
-]]
-
---[[
-    --mod:hook_enable("GenericAmmoUserExtension.update")
-    --mod:hook_disable("GenericAmmoUserExtension.update")
-    --mod:hook_remove("GenericAmmoUserExtension.update")
-    mod:hook("MatchmakingManager.update", function(func, ...)
-      func(...)
-      print("555")
-      end)
---]]
-    --mod:disable_all_hooks()
-    --mod:enable_all_hooks()
-    --mod:remove_all_hooks()
-
-    --mod:hook_remove("GenericAmmoUserExtension.update")
-    --mod:hook_remove("MatchmakingManager.update")
-    --table.dump(HOOKED_FUNCTIONS, "HOOKED_FUNCTIONS", 3)
-
-
-    --mod.unload = function()
-    --  print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-    --end
-
-    --mod:pcall(function()
-    --    return assert(loadstring("return bla.bla"))()
-    --  end)
-
 
 local options_widgets = {
   {
@@ -95,8 +50,16 @@ local options_widgets = {
     ["widget_type"] = "keybind",
     ["text"] = "Some keybind",
     ["tooltip"] = "Probably keybind",
-    ["default_value"] = {"f", "ctrl"},
+    ["default_value"] = {"g", "ctrl"},
     ["action"] = "whatever"
+  },
+  {
+    ["setting_name"] = "the_keybind2",
+    ["widget_type"] = "keybind",
+    ["text"] = "Some keybind [toggle]",
+    ["tooltip"] = "Probably keybind",
+    ["default_value"] = {"f", "ctrl"},
+    ["action"] = "toggle_mod"
   },
   {
     ["setting_name"] = "game_mode2",
@@ -144,11 +107,15 @@ local options_widgets = {
   }
 }
 
-mod:create_options(options_widgets, true, "Test", "Mod description")
+--mod:create_options(options_widgets, true, "Test", "Mod description")
 
 -- chat_broadcast
-mod.whatever = function()
+mod.whatever = function ()
   mod:echo("whatever")
+end
+
+mod.game_state_changed = function ()
+  --mod:echo("whatever" .. nil)
 end
 
 --[[
@@ -257,19 +224,14 @@ end)
     mod:echo("YAY")
   end]]
 
---[[
-  local mod = new_mod("test_mod2")
-  mod:create_options(options_widgets, true, "Bots Improvements", "Mod description")
+local mod2 = new_mod("SkipSplashScreen")
 
-  local mod = new_mod("test_mod3")
-  mod:create_options(options_widgets, true, "Show Healhbars", "Mod description")
+mod2:hook("StateSplashScreen.on_enter", function(func, self)
+  self._skip_splash = true
+  func(self)
+end)
 
-  local mod = new_mod("test_mod4")
-  mod:create_options(options_widgets, true, "Ammo Meter", "Mod description")
-
-  local mod = new_mod("test_mod5")
-  mod:create_options(options_widgets, true, "Show Damage", "Mod description")
-
-  local mod = new_mod("test_mod6")
-  mod:create_options(options_widgets, true, "Kick & Ban", "Mod description")
-]]
+mod2:hook("StateSplashScreen.setup_splash_screen_view", function(func, self)
+  func(self)
+  self.splash_view = nil
+end)

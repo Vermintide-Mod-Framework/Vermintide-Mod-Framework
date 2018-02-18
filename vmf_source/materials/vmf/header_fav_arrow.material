@@ -1,4 +1,4 @@
-header_fav_icon_lit = {
+header_fav_arrow = {
 	material_contexts = {
 		surface_material = ""
 	}
@@ -6,7 +6,7 @@ header_fav_icon_lit = {
 	shader = "gui_gradient:DIFFUSE_MAP:MASKED"
 
 	textures = {
-		diffuse_map = "gui/header_fav_icon_lit"
+		diffuse_map = "gui/vmf/header_fav_arrow"
 	}
 
 	variables = {

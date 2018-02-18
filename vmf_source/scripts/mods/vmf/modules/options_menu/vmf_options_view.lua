@@ -8,22 +8,16 @@
   * No external config files. Everything should be stored via mod:set
 
 
-  @TODO: clone in setting menu
-  @TODO: migrate all settings to 1 table
-  @TODO: move suspending list to vmf_options_menu
-
-  Not triggering hotkeys on suspension. As well as custom event. And I'll probably do something about mod:initialized(), when I'll get to it
+  @TODO: [BUG] checkbox is checked at first tick after showing, since local_offset function is called after rect drawing
+  @TODO: [BUG] searchbar's insput will stop working after using russian character
 ]]
 local vmf = get_mod("VMF")
 
 
---inject_material("materials/header_background", "header_background", "ingame_ui")
---inject_material("materials/header_background_lit", "header_background_lit", "ingame_ui")
---inject_material("materials/common_widgets_background_lit", "common_widgets_background_lit", "ingame_ui")
-inject_material("materials/header_fav_icon", "header_fav_icon", "ingame_ui")
-inject_material("materials/header_fav_icon_lit", "header_fav_icon_lit", "ingame_ui")
-inject_material("materials/header_fav_arrow", "header_fav_arrow", "ingame_ui")
-inject_material("materials/search_bar_icon", "search_bar_icon", "ingame_ui")
+inject_material("materials/vmf/header_fav_icon", "header_fav_icon", "ingame_ui")
+inject_material("materials/vmf/header_fav_icon_lit", "header_fav_icon_lit", "ingame_ui")
+inject_material("materials/vmf/header_fav_arrow", "header_fav_arrow", "ingame_ui")
+inject_material("materials/vmf/search_bar_icon", "search_bar_icon", "ingame_ui")
 
 
 -- ####################################################################################################################
@@ -562,12 +556,12 @@ local function create_header_widget(widget_definition, scenegraph_id)
                   content.callback_hide_sub_widgets(content)
                 end
 
-                local mod_name         = content.mod_name
-                local is_mod_suspended = content.is_checkbox_checked
+                local mod_name       = content.mod_name
+                local is_mod_enabled = not content.is_checkbox_checked
 
-                content.is_checkbox_checked = not content.is_checkbox_checked
+                content.is_checkbox_checked = is_mod_enabled
 
-                content.callback_mod_suspend_state_changed(mod_name, is_mod_suspended)
+                content.callback_mod_state_changed(mod_name, is_mod_enabled)
               end
             end
 
@@ -1344,7 +1338,7 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
           pass_type = "texture",
 
           style_id   = "background",
-          texture_id = "background_texture",
+          texture_id = "rect_masked_texture",
 
           content_check_function = function (content)
             return content.is_widget_collapsed
@@ -1353,7 +1347,7 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
         {
           pass_type = "texture",
 
-          style_id = "highlight_texture",
+          style_id   = "highlight_texture",
           texture_id = "highlight_texture",
           content_check_function = function (content)
             return content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
@@ -1363,13 +1357,13 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
           pass_type = "text",
 
           style_id = "text",
-          text_id = "text"
+          text_id  = "text"
         },
         {
           pass_type = "text",
 
           style_id = "current_option_text",
-          text_id = "current_option_text"
+          text_id  = "current_option_text"
         },
         {
           pass_type = "texture",
@@ -1405,7 +1399,7 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
         {
           pass_type = "hotspot",
 
-          style_id = "dropdown_hotspot",
+          style_id   = "dropdown_hotspot",
           content_id = "dropdown_hotspot"
         },
         -- PROCESSING
@@ -2371,7 +2365,9 @@ VMFOptionsView = class(VMFOptionsView)
 VMFOptionsView.init = function (self, ingame_ui_context)
 
   self.current_setting_list_offset_y = 0
-  self.scroll_step = 40
+
+  self.default_scroll_step = 40
+  self.scroll_step = self.default_scroll_step / 100 * (vmf:get("vmf_options_scrolling_speed") or 100)
 
   self.is_setting_changes_applied_immidiately = true
 
@@ -2398,9 +2394,6 @@ VMFOptionsView.init = function (self, ingame_ui_context)
   input_manager:map_device_to_service("changing_setting", "mouse")
   input_manager:map_device_to_service("changing_setting", "gamepad")
   self.input_manager = input_manager
-
-
-
 
   -- wwise_world is used for making sounds (for opening menu, closing menu, etc.)
   local world = ingame_ui_context.world_manager:world("music_world")
@@ -2544,7 +2537,7 @@ VMFOptionsView.initialize_header_widget = function (self, definition, scenegraph
 
   content.callback_favorite = callback(self, "callback_favorite")
   content.callback_move_favorite = callback(self, "callback_move_favorite")
-  content.callback_mod_suspend_state_changed = callback(self, "callback_mod_suspend_state_changed")
+  content.callback_mod_state_changed = callback(self, "callback_mod_state_changed")
   content.callback_hide_sub_widgets = callback(self, "callback_hide_sub_widgets")
   content.callback_fit_tooltip_to_the_screen = callback(self, "callback_fit_tooltip_to_the_screen")
   content.callback_is_cursor_inside_settings_list = callback(self, "callback_is_cursor_inside_settings_list")
@@ -2645,33 +2638,9 @@ VMFOptionsView.callback_setting_changed = function (self, mod_name, setting_name
 end
 
 
-VMFOptionsView.callback_mod_suspend_state_changed = function (self, mod_name, is_suspended)
+VMFOptionsView.callback_mod_state_changed = function (self, mod_name, is_mod_enabled)
 
-  local mod_suspend_state_list = vmf:get("mod_suspend_state_list")
-
-  if is_suspended then
-    mod_suspend_state_list[mod_name] = true
-  else
-    mod_suspend_state_list[mod_name] = nil
-  end
-
-  vmf:set("mod_suspend_state_list", mod_suspend_state_list)
-
-  local mod = get_mod(mod_name)
-
-  if is_suspended then
-    if mod.suspended then
-      mod.suspended()
-    else
-      mod:echo("ERROR: suspending from options menu is specified, but function 'mod.suspended()' is not defined", true)
-    end
-  else
-    if mod.unsuspended then
-      mod.unsuspended()
-    else
-      mod:echo("ERROR: suspending from options menu is specified, but function 'mod.unsuspended()' is not defined", true)
-    end
-  end
+  vmf.mod_state_changed(mod_name, is_mod_enabled)
 
   WwiseWorld.trigger_event(self.wwise_world, "Play_hud_select")
 
@@ -3327,7 +3296,7 @@ VMFOptionsView.callback_draw_numeric_menu = function (self, widget_content)
   widget_content.wrong_mouse_on_release = nil
 end
 
---vmf:echo("whatever")
+
 -- ####################################################################################################################
 -- ##### MISCELLANEOUS: SETTINGS LIST WIDGETS #########################################################################
 -- ####################################################################################################################
@@ -3452,9 +3421,7 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
 
       elseif widget_type == "header" then
 
-        loaded_setting_value = vmf:get("mod_suspend_state_list")
-
-        widget_content.is_checkbox_checked = not loaded_setting_value[widget_content.mod_name]
+        widget_content.is_checkbox_checked = not vmf.disabled_mods_list[widget_content.mod_name]
 
       elseif widget_type == "keybind" then
 
@@ -3516,7 +3483,7 @@ VMFOptionsView.update_settings_list_widgets_visibility = function (self, mod_nam
             if widget.content.show_widget_condition then
               widget.content.is_widget_visible = widget.content.show_widget_condition[parent_widget.content.current_option_number] and parent_widget.content.is_widget_visible and not parent_widget.content.is_widget_collapsed
             else
-              get_mod(widget.content.mod_name):echo("ERROR: the dropdown widget in the options menu has sub_widgets, but some of its sub_widgets doesn't have 'show_widget_condition' (" .. widget.content.setting_name .. ")" , true)
+              get_mod(widget.content.mod_name):error("(vmf_options_view): the dropdown widget in the options menu has sub_widgets, but some of its sub_widgets doesn't have 'show_widget_condition' (%s)" , widget.content.setting_name)
             end
           -- if 'group'
           else
@@ -3832,26 +3799,11 @@ VMFOptionsView.on_enter = function (self)
   self:readjust_visible_settings_list_widgets_position()
 end
 
+
 VMFOptionsView.on_exit = function (self)
   WwiseWorld.trigger_event(self.wwise_world, "Play_hud_button_close")
 
   vmf.save_unsaved_settings_to_file()
-
-  self.exiting = nil
-end
-
-
--- IngameUI.handle_menu_hotkeys
--- Will see if I need it when I'll work on keybinds and gui module.
-VMFOptionsView.exit = function (self, return_to_game)
-
-  vmf:echo("exit!")
-
-  local exit_transition = (return_to_game and "exit_menu") or "ingame_menu"
-
-  self.ingame_ui:transition_with_fade(exit_transition)
-
-  self.exiting = true
 end
 
 
@@ -3910,7 +3862,7 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
   local options_menu_collapsed_widgets = vmf:get("options_menu_collapsed_widgets")
   local mod_collapsed_widgets = nil
   if options_menu_collapsed_widgets then
-    mod_collapsed_widgets = options_menu_collapsed_widgets[self._name]
+    mod_collapsed_widgets = options_menu_collapsed_widgets[self:get_name()]
   end
 
   -- defining header widget
@@ -3921,19 +3873,19 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
 
   new_widget_definition.widget_type       = "header"
   new_widget_definition.widget_index      = new_widget_index
-  new_widget_definition.mod_name          = self._name
-  new_widget_definition.readable_mod_name = readable_mod_name or self._name
+  new_widget_definition.mod_name          = self:get_name()
+  new_widget_definition.readable_mod_name = readable_mod_name or self:get_name()
   new_widget_definition.tooltip           = mod_description
   new_widget_definition.default           = true
   new_widget_definition.is_mod_toggable   = is_mod_toggable
 
   if mod_collapsed_widgets then
-    new_widget_definition.is_widget_collapsed = mod_collapsed_widgets[self._name]
+    new_widget_definition.is_widget_collapsed = mod_collapsed_widgets[self:get_name()]
   end
 
   if options_menu_favorite_mods then
     for _, current_mod_name in pairs(options_menu_favorite_mods) do
-      if current_mod_name == self._name then
+      if current_mod_name == self:get_name() then
         new_widget_definition.is_favorited = true
         break
       end
@@ -3968,7 +3920,7 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
         new_widget_definition.widget_type     = current_widget.widget_type     -- all
         new_widget_definition.widget_index    = new_widget_index               -- all [gen]
         new_widget_definition.widget_level    = level                          -- all [gen]
-        new_widget_definition.mod_name        = self._name                     -- all [gen]
+        new_widget_definition.mod_name        = self:get_name()                     -- all [gen]
         new_widget_definition.setting_name    = current_widget.setting_name    -- all
         new_widget_definition.text            = current_widget.text            -- all
         new_widget_definition.tooltip         = current_widget.tooltip         -- all [optional]
@@ -4052,7 +4004,7 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
     end
 
     if new_widget_index == 257 then
-      vmf:echo("The limit of 256 options widgets was reached. You can't add any more widgets.")
+      self:error("(vmf_options_view) The limit of 256 options widgets was reached. You can't add any more widgets.")
     end
   end
 
@@ -4060,12 +4012,6 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
 end
 
 
-VMFMod.is_suspended = function (self)
-
-  local mod_suspend_state_list = vmf:get("mod_suspend_state_list")
-
-  return mod_suspend_state_list[self._name]
-end
 
 
 
@@ -4100,9 +4046,7 @@ end
 
 
 
-if  type(vmf:get("mod_suspend_state_list")) ~= "table" then
-  vmf:set("mod_suspend_state_list", {})
-end
+
 
 if type(vmf:get("options_menu_favorite_mods")) ~= "table" then
   vmf:set("options_menu_favorite_mods", {})
@@ -4116,49 +4060,9 @@ end
 
 
 
--- If enabled, scale UI for resolutions greater than 1080p when necessary. Reports to a global when active, so that existing scaling can be disabled.
-local ui_resolution = UIResolution
-local ui_resolution_width_fragments = UIResolutionWidthFragments
-local ui_resolution_height_fragments = UIResolutionHeightFragments
-local math_min = math.min
-local raw_set = rawset
 
-vmf:hook("UIResolutionScale", function (func, ...)
-  local w, h = ui_resolution()
-  if (w > ui_resolution_width_fragments() and h > ui_resolution_height_fragments() and vmf:get("auto_hd_ui_scaling")) then
-    local max_scaling_factor = 4
 
-    local width_scale = math_min(w / ui_resolution_width_fragments(), max_scaling_factor) -- Changed to allow scaling up to quadruple the original max scale (1 -> 4)
-    local height_scale = math_min(h / ui_resolution_height_fragments(), max_scaling_factor) -- Changed to allow scaling up to quadruple the original max scale (1 -> 4)
 
-    raw_set(_G, "vmf_hd_ui_scaling_enabled", true)
-    return math_min(width_scale, height_scale)
-  else
-    raw_set(_G, "vmf_hd_ui_scaling_enabled", false)
-    return func(...)
-  end
-end)
-
-local options_widgets = {
-  {
-    ["setting_name"] = "open_vmf_options",
-    ["widget_type"] = "keybind",
-    ["text"] = "Open menu hotkey",
-    ["tooltip"] = "Probably keybind",
-    ["default_value"] = {"f5"},
-    ["action"] = "open_vmf_options"
-  },
-  {
-    ["setting_name"] = "auto_hd_ui_scaling",
-    ["widget_type"] = "checkbox",
-    ["text"] = "Automatic HD UI Scaling",
-    ["tooltip"] = "Automatic HD UI Scaling" .. "\n\n" ..
-                    "Automatically scale UI when resolution exceeds 1080p.",
-    ["default_value"] = true
-  }
-}
-
-vmf:create_options(options_widgets, false, "Vermintide Mod Framework", ":D")
 
 
 
@@ -4210,29 +4114,39 @@ local view_data = {
   }
 }
 
-vmf:register_new_view(view_data)
+-- disables/enables mods options buttons in the
+local function change_mods_options_button_state(state)
+
+  local ingame_menu_buttons_exist, ingame_menu_buttons = pcall(function () return Managers.player.network_manager.matchmaking_manager.matchmaking_ui.ingame_ui.ingame_menu.active_button_data end)
+  if ingame_menu_buttons_exist and type(ingame_menu_buttons) == "table" then
+
+    for _, button_info in ipairs(ingame_menu_buttons) do
+
+      if button_info.transition == "vmf_options_view" then
+
+        button_info.widget.content.disabled = state == "disable"
+        button_info.widget.content.button_hotspot.disabled =  state == "disable"
+      end
+    end
+  end
+end
 
 
+vmf.initialize_vmf_options_view = function ()
+  vmf:register_new_view(view_data)
 
+  change_mods_options_button_state("enable")
+end
 
+vmf.disable_mods_options_button = function ()
+  change_mods_options_button_state("disable")
+end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+-- create mods options menu button in Esc-menu
 vmf:hook("IngameView.setup_button_layout", function (func, self, layout_data)
 
   local mods_options_button = {
-    display_name = "Mods Options",
+    display_name = vmf:localize("mods_options"),
     transition = "vmf_options_view",
     fade = false
   }
@@ -4257,6 +4171,10 @@ vmf:hook("IngameView.setup_button_layout", function (func, self, layout_data)
       button_info.widget.style.text_click.localize = false
       button_info.widget.style.text_hover.localize = false
       button_info.widget.style.text_selected.localize = false
+
+      if not self.ingame_ui.views["vmf_options_view"] then
+        change_mods_options_button_state("disable")
+      end
     end
   end
 end)
@@ -4269,149 +4187,111 @@ end)
 
 
 
-
-
-
-
 local ingame_ui_exists, ingame_ui = pcall(function () return Managers.player.network_manager.matchmaking_manager.matchmaking_ui.ingame_ui end)
 if ingame_ui_exists then
-  ingame_ui.handle_transition(ingame_ui, "leave_group")
+  --ingame_ui.handle_transition(ingame_ui, "leave_group")
 
-vmf:pcall(function()
+  -- temporary fix:
 
-  print("AYYYYY" .. tostring(ingame_ui))
-  --vmf:dump(ingame_ui.views, "whatever", 1)
+  local specific_atlas = Managers.state.game_mode._game_mode_key == "inn" and "materials/ui/ui_1080p_ingame_inn" or "materials/ui/ui_1080p_ingame"
 
-end)
-  ---------------------------------------------------
-
-
---vmf:echo("I hope it will work!")
---[[
-local gui = World.create_screen_gui(ingame_ui.ui_renderer.world, "immediate",
-"material",
-"materials/ui/end_screen_banners/end_screen_banners",
-"material",
-"materials/ui/ui_1080p_ingame_common",
-"material",
-"materials/ui/ui_1080p_ingame_inn",
-"material",
-"materials/ui/ui_1080p_level_images",
-"material",
-"materials/ui/ui_1080p_chat",
-"material",
-"materials/fonts/gw_fonts",
-"material",
-"materials/header_background",
-"material",
-"materials/header_background_lit",
-"material",
-"materials/common_widgets_background_lit",
-"material",
-"materials/header_fav_icon",
-"material",
-"materials/header_fav_icon_lit",
-"material",
-"materials/header_fav_arrow",
-"material",
-"materials/search_bar_icon")
-
-local gui_retained = World.create_screen_gui(ingame_ui.ui_renderer.world,
+  local gui = World.create_screen_gui(ingame_ui.ui_renderer.world, "immediate",
   "material",
-"materials/ui/end_screen_banners/end_screen_banners",
-"material",
-"materials/ui/ui_1080p_ingame_common",
-"material",
-"materials/ui/ui_1080p_ingame_inn",
-"material",
-"materials/ui/ui_1080p_level_images",
-"material",
-"materials/ui/ui_1080p_chat",
-"material",
-"materials/fonts/gw_fonts",
-"material",
-"materials/header_background",
-"material",
-"materials/header_background_lit",
-"material",
-"materials/common_widgets_background_lit",
-"material",
-"materials/header_fav_icon",
-"material",
-"materials/header_fav_icon_lit",
-"material",
-"materials/header_fav_arrow",
-"material",
-"materials/search_bar_icon")
-
-
-World.destroy_gui(ingame_ui.ui_renderer.world, ingame_ui.ui_renderer.gui)
-
-ingame_ui.ui_renderer.gui = gui
-ingame_ui.ui_renderer.gui_retained = gui_retained
-
-
-
-gui = World.create_screen_gui(ingame_ui.ui_top_renderer.world, "immediate",
-"material",
-"materials/ui/end_screen_banners/end_screen_banners",
-"material",
-"materials/ui/ui_1080p_ingame_common",
-"material",
-"materials/ui/ui_1080p_ingame_inn",
-"material",
-"materials/ui/ui_1080p_level_images",
-"material",
-"materials/ui/ui_1080p_chat",
-"material",
-"materials/fonts/gw_fonts",
-"material",
-"materials/header_background",
-"material",
-"materials/header_background_lit",
-"material",
-"materials/common_widgets_background_lit",
-"material",
-"materials/header_fav_icon",
-"material",
-"materials/header_fav_icon_lit",
-"material",
-"materials/header_fav_arrow",
-"material",
-"materials/search_bar_icon")
-
-gui_retained = World.create_screen_gui(ingame_ui.ui_top_renderer.world,
+  "materials/ui/end_screen_banners/end_screen_banners",
   "material",
-"materials/ui/end_screen_banners/end_screen_banners",
-"material",
-"materials/ui/ui_1080p_ingame_common",
-"material",
-"materials/ui/ui_1080p_ingame_inn",
-"material",
-"materials/ui/ui_1080p_level_images",
-"material",
-"materials/ui/ui_1080p_chat",
-"material",
-"materials/fonts/gw_fonts",
-"material",
-"materials/header_background",
-"material",
-"materials/header_background_lit",
-"material",
-"materials/common_widgets_background_lit",
-"material",
-"materials/header_fav_icon",
-"material",
-"materials/header_fav_icon_lit",
-"material",
-"materials/header_fav_arrow",
-"material",
-"materials/search_bar_icon")
+  "materials/ui/ui_1080p_ingame_common",
+  "material",
+  specific_atlas,
+  "material",
+  "materials/ui/ui_1080p_level_images",
+  "material",
+  "materials/ui/ui_1080p_chat",
+  "material",
+  "materials/fonts/gw_fonts",
+  "material",
+  "materials/vmf/header_fav_icon",
+  "material",
+  "materials/vmf/header_fav_icon_lit",
+  "material",
+  "materials/vmf/header_fav_arrow",
+  "material",
+  "materials/vmf/search_bar_icon")
 
-World.destroy_gui(ingame_ui.ui_top_renderer.world, ingame_ui.ui_top_renderer.gui)
+  local gui_retained = World.create_screen_gui(ingame_ui.ui_renderer.world,
+  "material",
+  "materials/ui/end_screen_banners/end_screen_banners",
+  "material",
+  "materials/ui/ui_1080p_ingame_common",
+  "material",
+  specific_atlas,
+  "material",
+  "materials/ui/ui_1080p_level_images",
+  "material",
+  "materials/ui/ui_1080p_chat",
+  "material",
+  "materials/fonts/gw_fonts",
+  "material",
+  "materials/vmf/header_fav_icon",
+  "material",
+  "materials/vmf/header_fav_icon_lit",
+  "material",
+  "materials/vmf/header_fav_arrow",
+  "material",
+  "materials/vmf/search_bar_icon")
 
-ingame_ui.ui_top_renderer.gui = gui
-ingame_ui.ui_top_renderer.gui_retained = gui_retained
-]]
-  ---------------------------------------------------
+  World.destroy_gui(ingame_ui.ui_renderer.world, ingame_ui.ui_renderer.gui)
+  World.destroy_gui(ingame_ui.ui_renderer.world, ingame_ui.ui_renderer.gui_retained)
+
+  ingame_ui.ui_renderer.gui = gui
+  ingame_ui.ui_renderer.gui_retained = gui_retained
+
+  gui = World.create_screen_gui(ingame_ui.ui_top_renderer.world, "immediate",
+  "material",
+  "materials/ui/end_screen_banners/end_screen_banners",
+  "material",
+  "materials/ui/ui_1080p_ingame_common",
+  "material",
+  specific_atlas,
+  "material",
+  "materials/ui/ui_1080p_level_images",
+  "material",
+  "materials/ui/ui_1080p_chat",
+  "material",
+  "materials/fonts/gw_fonts",
+  "material",
+  "materials/vmf/header_fav_icon",
+  "material",
+  "materials/vmf/header_fav_icon_lit",
+  "material",
+  "materials/vmf/header_fav_arrow",
+  "material",
+  "materials/vmf/search_bar_icon")
+
+  gui_retained = World.create_screen_gui(ingame_ui.ui_top_renderer.world,
+  "material",
+  "materials/ui/end_screen_banners/end_screen_banners",
+  "material",
+  "materials/ui/ui_1080p_ingame_common",
+  "material",
+  specific_atlas,
+  "material",
+  "materials/ui/ui_1080p_level_images",
+  "material",
+  "materials/ui/ui_1080p_chat",
+  "material",
+  "materials/fonts/gw_fonts",
+  "material",
+  "materials/vmf/header_fav_icon",
+  "material",
+  "materials/vmf/header_fav_icon_lit",
+  "material",
+  "materials/vmf/header_fav_arrow",
+  "material",
+  "materials/vmf/search_bar_icon")
+
+  World.destroy_gui(ingame_ui.ui_top_renderer.world, ingame_ui.ui_top_renderer.gui)
+  World.destroy_gui(ingame_ui.ui_top_renderer.world, ingame_ui.ui_top_renderer.gui_retained)
+
+  ingame_ui.ui_top_renderer.gui = gui
+  ingame_ui.ui_top_renderer.gui_retained = gui_retained
 end

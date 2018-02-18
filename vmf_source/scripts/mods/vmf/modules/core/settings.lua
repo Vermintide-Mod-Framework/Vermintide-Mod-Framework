@@ -2,32 +2,25 @@
   This is the settings manager.
   * It operates settings within the mod namespace (you can define settings with the same name for different mods)
   * Settings location: "%AppData%\Roaming\Fatshark\Warhammer End Times Vermintide\user_settings.config"
-  * All settings are being saved to the settings-file only when map changes
+  * All settings are being saved to the settings-file when game state changes, when options menu is closed and on reload
 --]]
-
 local vmf = get_mod("VMF")
 
-local MODS_SETTINGS = {}
-local THERE_ARE_UNSAVED_CHANGES = false
+local _MODS_SETTINGS = Application.user_setting("mods_settings") or {}
+
+local _THERE_ARE_UNSAVED_CHANGES = false
 
 -- ####################################################################################################################
--- ##### Private functions ############################################################################################
+-- ##### Local functions ##############################################################################################
 -- ####################################################################################################################
-
-local function load_settings(mod_name)
-  local mod_settings = Application.user_setting(mod_name)
-
-  mod_settings = mod_settings or {}
-
-  MODS_SETTINGS[mod_name] = mod_settings
-end
 
 local function save_all_settings()
 
-  if THERE_ARE_UNSAVED_CHANGES then
+  if _THERE_ARE_UNSAVED_CHANGES then
+    Application.set_user_setting("mods_settings", _MODS_SETTINGS)
     Application.save_user_settings()
 
-    THERE_ARE_UNSAVED_CHANGES = false
+    _THERE_ARE_UNSAVED_CHANGES = false
   end
 end
 
@@ -42,21 +35,20 @@ end
 --]]
 VMFMod.set = function (self, setting_name, setting_value, call_setting_changed_event)
 
- local mod_name = self._name
+  local mod_name = self:get_name()
 
-  if not MODS_SETTINGS[mod_name] then
-    load_settings(mod_name)
+  if not _MODS_SETTINGS[mod_name] then
+    _MODS_SETTINGS[mod_name] = {}
   end
 
-  local mod_settings = MODS_SETTINGS[mod_name]
-  mod_settings[setting_name] = setting_value
+  local mod_settings = _MODS_SETTINGS[mod_name]
 
-  Application.set_user_setting(mod_name, mod_settings)
+  mod_settings[setting_name] = type(setting_value) == "table" and table.clone(setting_value) or setting_value
 
-  THERE_ARE_UNSAVED_CHANGES = true
+  _THERE_ARE_UNSAVED_CHANGES = true
 
-  if call_setting_changed_event and self.setting_changed then
-    self.setting_changed(setting_name)
+  if call_setting_changed_event then
+    vmf.mod_setting_changed_event(self, setting_name)
   end
 end
 
@@ -64,19 +56,24 @@ end
   * setting_name  [string]: setting name, can contain any characters lua-string can @TODO: check this
 --]]
 VMFMod.get = function (self, setting_name)
-  local mod_name = self._name
 
-  if not MODS_SETTINGS[mod_name] then
-    load_settings(mod_name)
+  local mod_name = self:get_name()
+
+  local mod_settings = _MODS_SETTINGS[mod_name]
+
+  local setting_value
+
+  if mod_settings then
+    setting_value = mod_settings[setting_name]
+  else
+    return nil
   end
 
-  local mod_settings = MODS_SETTINGS[mod_name]
-
-  return mod_settings[setting_name]
+  return type(setting_value) == "table" and table.clone(setting_value) or setting_value
 end
 
 -- ####################################################################################################################
--- ##### Event functions ##############################################################################################
+-- ##### VMF internal functions and variables #########################################################################
 -- ####################################################################################################################
 
 vmf.save_unsaved_settings_to_file = function()

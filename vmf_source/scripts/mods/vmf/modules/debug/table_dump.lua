@@ -1,4 +1,4 @@
-local vmf = get_mod("VMF")
+local vmf = get_mod("VMF") -- @TODO: remove it?
 
 
 local function table_dump(key, value, depth, max_depth)
@@ -39,29 +39,47 @@ local function table_dump(key, value, depth, max_depth)
   end
 end
 
-VMFMod.dump = function (self, t, tag, max_depth)
+VMFMod.dump = function (self, dumped_object, dumped_object_name, max_depth)
 
-  if tag then
-    print(string.format("<%s>", tag))
+  if not dumped_object or not max_depth then
+    self:error("(dump_to_file): not all arguments are specified.")
+    return
+  end
+
+  local object_type = type(dumped_object)
+
+  if object_type ~= "table" then
+    local error_message = "(dump): \"object_name\" is not a table. It's " .. object_type
+
+    if object_type ~= "nil" then
+      error_message = error_message .. " (" .. tostring(dumped_object) .. ")"
+    end
+
+    self:error(error_message)
+    return
+  end
+
+  if dumped_object_name then
+    print(string.format("<%s>", dumped_object_name))
   end
 
   if not max_depth then
-    self:echo("ERROR(dump): maximum depth is not specified", true)
+    self:error("(dump): maximum depth is not specified")
     return
   end
 
   local success, error_message = pcall(function()
-    for key, value in pairs(t) do
+    for key, value in pairs(dumped_object) do
       table_dump(key, value, 0, max_depth)
     end
   end)
 
   if not success then
-    self:echo("ERROR(dump): " .. tostring(error_message), true)
+    self:error("(dump): %s", tostring(error_message))
   end
 
-  if tag then
-    print(string.format("</%s>", tag))
+  if dumped_object_name then
+    print(string.format("</%s>", dumped_object_name))
   end
 end
 
@@ -308,26 +326,26 @@ end
 VMFMod.dump_to_file = function (self, dumped_object, object_name, max_depth)
 
   if not dumped_object or not object_name or not max_depth then
-    self:echo("ERROR(dump_to_file): not all arguments are specified.", true)
+    self:error("(dump_to_file): not all arguments are specified.")
     return
   end
 
   local object_type = type(dumped_object)
 
   if object_type ~= "table" then
-    local error_message = "ERROR(dump_to_file): \"object_name\" is not a table. It's " .. object_type
+    local error_message = "(dump_to_file): \"object_name\" is not a table. It's " .. object_type
 
     if object_type ~= "nil" then
       error_message = error_message .. " (" .. tostring(dumped_object) .. ")"
     end
 
-    self:echo(error_message, true)
+    self:error(error_message)
     return
   end
 
   local success, error_message = pcall(function() table_dump_to_file(dumped_object, object_name, max_depth) end)
   if not success then
-    self:echo("ERROR(dump_to_file): " .. tostring(error_message), true)
+    self:error("(dump_to_file): %s", tostring(error_message))
   end
 end
 
