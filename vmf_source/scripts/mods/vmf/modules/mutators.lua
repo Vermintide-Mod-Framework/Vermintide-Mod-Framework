@@ -4,16 +4,24 @@ local mutators = {}
 local mutators_sequence = {}
 local mutators_sorted = false
 
-local function update_mutators_sequence(mod_name, load_these_after)
-	if not mutators_sequence[mod_name] then
-		mutators_sequence[mod_name] = {}
+local function update_mutators_sequence(mutator_name, load_these_after)
+	if not mutators_sequence[mutator_name] then
+		mutators_sequence[mutator_name] = {}
 	end
-	for _, mutator_name in ipairs(load_these_after) do
-		if not table.has_item(mutators_sequence[mod_name], mutator_name) then
-			table.insert(mutators_sequence[mod_name], mutator_name)
+	for _, other_mutator_name in ipairs(load_these_after) do
+
+		if mutators_sequence[other_mutator_name] and table.has_item(mutators_sequence[other_mutator_name], mutator_name) then
+			vmf:error("Mutators '" .. mutator_name .. "' and '" .. other_mutator_name .. "' are both set to load after the other one.")
+		elseif not table.has_item(mutators_sequence[mutator_name], other_mutator_name) then
+			table.insert(mutators_sequence[mutator_name], other_mutator_name)
 		end
+
 	end
-	table.combine(mutators_sequence[mod_name], load_these_after)
+	table.combine(mutators_sequence[mutator_name], load_these_after)
+end
+
+local function error_endless_loop()
+	vmf:error("Mutators: too many iterations. Check for loops in 'enable_before_these'/'enable_after_these'.")
 end
 
 local function sort_mutators()
@@ -23,6 +31,9 @@ local function sort_mutators()
 		print(i, v:get_name())
 	end
 	print("-----------")
+
+	local maxIter = #mutators * #mutators * #mutators
+	local numIter = 0
 
 	local i = 2
 	while i <= #mutators do
@@ -39,9 +50,15 @@ local function sort_mutators()
 				i = i - 1
 			end
 			j = j - 1
+
+			numIter = numIter + 1
+			if numIter > maxIter then return error_endless_loop() end
 		end
 
 		i = i + 1
+
+		numIter = numIter + 1
+		if numIter > maxIter then return error_endless_loop() end
 	end
 	mutators_sorted = true
 
@@ -132,39 +149,61 @@ VMFMod.register_as_mutator = function(self, config)
 end
 
 -- Testing
-local mutator1 = new_mod("mutator1")
-local mutator2 = new_mod("mutator2")
+local mutation = new_mod("mutation")
+local deathwish = new_mod("deathwish")
 local mutator3 = new_mod("mutator3")
 local mutator555 = new_mod("mutator555")
 local mutator_whatever = new_mod("mutator_whatever")
 
 mutator555:register_as_mutator({
 	enable_after_these = {
-		"mutator1"
+		"mutation"
 	}
 })
 mutator555:create_options({}, true, "mutator555", "mutator555 description")
 mutator555.on_enabled = function() end
 mutator555.on_disabled = function() end
 
-mutator2:register_as_mutator({
+
+deathwish:register_as_mutator({
+	enable_after_these = {
+		"mutation"
+	},
 	enable_before_these = {
 		"mutator555",
-		"mutator3"
+		"mutator3",
+		"mutation"
 	}
 })
-mutator2:create_options({}, true, "mutator2", "mutator2 description")
-mutator2.on_enabled = function() end
-mutator2.on_disabled = function() end
+deathwish:create_options({}, true, "deathwish", "deathwish description")
+deathwish.on_enabled = function() 
+	print(tostring(Breeds.skaven_gutter_runner == Breeds.skaven_pack_master))
+end
+deathwish.on_disabled = function() end
 
-mutator1:register_as_mutator({
-	enable_before_these = {
-		"mutator2"
+
+-------------------------------
+local breeds
+mutation:register_as_mutator({
+	enable_after_these = {
+		"deathwish"
 	}
 })
-mutator1:create_options({}, true, "mutator1", "mutator1 description")
-mutator1.on_enabled = function() end
-mutator1.on_disabled = function() end
+mutation:create_options({}, true, "mutation", "mutation description")
+mutation.on_enabled = function()
+	breeds = table.clone(Breeds)
+	Breeds.skaven_slave = Breeds.skaven_clan_rat
+	Breeds.skaven_clan_rat = Breeds.skaven_storm_vermin_commander
+
+	Breeds.skaven_gutter_runner = Breeds.skaven_rat_ogre
+	Breeds.skaven_pack_master = Breeds.skaven_rat_ogre
+	Breeds.skaven_poison_wind_globadier = Breeds.skaven_rat_ogre
+	Breeds.skaven_ratling_gunner = Breeds.skaven_rat_ogre
+end
+mutation.on_disabled = function(initial)
+	if not initial then Breeds = breeds end
+end
+-------------------------------
 
 mutator3:register_as_mutator({
 	enable_before_these = {
