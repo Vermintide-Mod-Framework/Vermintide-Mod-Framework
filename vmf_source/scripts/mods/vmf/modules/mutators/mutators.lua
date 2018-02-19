@@ -40,11 +40,6 @@ local function update_mutators_sequence(mutator_name, enable_these_after)
 	table.combine(mutators_sequence[mutator_name], enable_these_after)
 end
 
--- This shouldn't happen
-local function error_endless_loop()
-	vmf:error("Mutators: too many iterations. Check for loops in 'enable_before_these'/'enable_after_these'.")
-end
-
 -- Sorts mutators in order they should be enabled
 local function sort_mutators()
 
@@ -56,8 +51,8 @@ local function sort_mutators()
 	print("-----------")
 	-- /LOG --
 
-	-- Preventing endless loops (worst case is n*n*(n+1)/2 I believe)
-	local maxIter = #mutators * #mutators * (#mutators + 1)/2
+	-- Preventing endless loops (worst case is n*(n+1)/2 I believe)
+	local maxIter = #mutators * (#mutators + 1)/2
 	local numIter = 0
 
 	-- The idea is that all mutators before the current one are already in the right order
@@ -68,7 +63,7 @@ local function sort_mutators()
 		local mutator_name = mutator:get_name()
 		local enable_these_after = mutators_sequence[mutator_name] or {}
 
-		-- Going back from the previous mutator
+		-- Going back from the previous mutator to the start of the list
 		local j = i - 1
 		while j > 0 do
 			local other_mutator = mutators[j]
@@ -82,21 +77,21 @@ local function sort_mutators()
 				i = i - 1
 			end
 			j = j - 1
-
-			numIter = numIter + 1
-			if numIter > maxIter then return error_endless_loop() end
 		end
 
 		i = i + 1
 
 		numIter = numIter + 1
-		if numIter > maxIter then return error_endless_loop() end
+		if numIter > maxIter then 
+			vmf:error("Mutators: too many iterations. Check for loops in 'enable_before_these'/'enable_after_these'.")
+			return
+		end
 	end
 	mutators_sorted = true
 
 	-- LOG --
-	for i, v in ipairs(mutators) do
-		print(i, v:get_name())
+	for k, v in ipairs(mutators) do
+		print(k, v:get_name())
 	end
 	print("-----------")
 	-- /LOG --
@@ -133,6 +128,7 @@ local function set_mutator_state(self, state)
 	end
 
 	-- Enable/disable current mutator
+	-- We're calling methods on the class object because we've overwritten them on the current one
 	if state then
 		print("Enabled ", self:get_name(), "!")
 		VMFMod.enable(self)
