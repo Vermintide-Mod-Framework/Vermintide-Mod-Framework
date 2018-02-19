@@ -150,8 +150,8 @@ vmf.setting_changed = function (setting_name)
 
   elseif setting_name == "developer_mode" then
 
-    Application.set_user_setting("mod_developer_mode", vmf:get(setting_name))
-    Managers.mod._developer_mode = vmf:get(setting_name) -- @TODO: update that after going to the new mod_manager version
+    Managers.mod._settings.developer_mode = vmf:get(setting_name)
+    Application.set_user_setting("mod_settings", Managers.mod._settings)
 
     local show_developer_console = vmf:get(setting_name) and vmf:get("show_developer_console")
     vmf.toggle_developer_console(show_developer_console)
@@ -190,10 +190,10 @@ end
 -- ##### Script #######################################################################################################
 -- ####################################################################################################################
 
-local mod_developer_mode = Application.user_setting("mods_settings")
+local mod_developer_mode = Managers.mod._settings.developer_mode
 local vmf_developer_mode = vmf:get("developer_mode")
 
 if mod_developer_mode ~= vmf_developer_mode then
-  Application.set_user_setting("mod_developer_mode", vmf_developer_mode)
-  Managers.mod._developer_mode = vmf_developer_mode -- @TODO: update that after going to the new mod_manager version
+  Managers.mod._settings.developer_mode = vmf_developer_mode
+  Application.set_user_setting("mod_settings", Managers.mod._settings)
 end
