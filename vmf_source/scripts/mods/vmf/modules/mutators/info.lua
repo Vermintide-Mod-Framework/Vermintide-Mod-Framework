@@ -1,12 +1,19 @@
 local vmf = get_mod("VMF")
 local mutators = vmf.mutators
 
+local were_enabled_before = false
+
 local function get_enabled_mutators_names(short)
-	local name = ""
+	local name = nil
 	for _, mutator in ipairs(mutators) do
 		local config = mutator:get_config()
 		if mutator:is_enabled() then
-			name = name .. " " .. (short and config.short_title or config.title)
+			local added_name = (short and config.short_title or config.title or mutator:get_name())
+			if name then
+				name = name .. " " .. added_name
+			else
+				name = added_name
+			end
 		end
 	end
 	return name
@@ -63,6 +70,14 @@ end)
 vmf:hook("MatchmakingStateHostGame.host_game", function(func, self, ...)
 	func(self, ...)
 	set_lobby_data()
+	local names = get_enabled_mutators_names()
+	if names then
+		Managers.chat:send_system_chat_message(1, "ENABLED MUTATORS: " .. names, 0, true)
+		were_enabled_before = true
+	elseif were_enabled_before then
+		Managers.chat:send_system_chat_message(1, "ALL MUTATORS DISABLED", 0, true)
+		were_enabled_before = false
+	end
 end)
 
 vmf:hook("MatchmakingManager.rpc_matchmaking_request_join_lobby", function(func, self, sender, client_cookie, host_cookie, lobby_id, friend_join)

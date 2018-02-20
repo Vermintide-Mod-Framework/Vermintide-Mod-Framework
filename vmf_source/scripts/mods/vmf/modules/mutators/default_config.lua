@@ -5,8 +5,8 @@ return {
 		bonus = 0
 	},
 	server_name = "",
-	title = "default_title",
-	--short_title = "",
+	title = "",
+	short_title = "",
 	difficulties = {
 		"easy",
 		"normal",
