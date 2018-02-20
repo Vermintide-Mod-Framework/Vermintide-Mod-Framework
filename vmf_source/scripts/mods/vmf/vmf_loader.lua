@@ -21,6 +21,9 @@ return {
 		dofile("scripts/mods/vmf/modules/options_menu/vmf_options_view")
 		dofile("scripts/mods/vmf/modules/vmf_options")
 
+		dofile("scripts/mods/vmf/modules/mod_gui/basic_gui")
+		dofile("scripts/mods/vmf/modules/mod_gui/gui")
+
 		dofile("scripts/mods/vmf/modules/mutators/mutators")
 
 		object.vmf = get_mod("VMF")
