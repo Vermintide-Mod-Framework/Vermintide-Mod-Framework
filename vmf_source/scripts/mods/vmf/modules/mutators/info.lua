@@ -38,7 +38,7 @@ local function set_lobby_data()
 	Managers.matchmaking.lobby:set_lobby_data(lobby_data)
 end
 
-local function get_member_func( client_cookie)
+local function get_member_func(client_cookie)
 	local peer_id = tostring(client_cookie)
 	for _ = 1, 3 do
 		peer_id = string.sub(peer_id, 1 + tonumber(tostring(string.find(peer_id,"-"))))

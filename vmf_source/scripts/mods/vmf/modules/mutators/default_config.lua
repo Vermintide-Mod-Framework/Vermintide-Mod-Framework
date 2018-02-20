@@ -4,7 +4,6 @@ return {
 		tomes = 0,
 		bonus = 0
 	},
-	server_name = "",
 	title = "",
 	short_title = "",
 	difficulties = {
@@ -17,5 +16,9 @@ return {
 		"survival_hard",
 		"survival_harder",
 		"survival_hardest"
-	}
+	},
+	incompatible_with_all = false,
+	compatible_with_all = false,
+	incompatible_with = {},
+	compatible_with = {}
 }

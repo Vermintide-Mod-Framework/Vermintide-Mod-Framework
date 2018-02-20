@@ -2,9 +2,25 @@ local vmf  = get_mod("VMF")
 local mutators = vmf.mutators
 
 
+local banner_level_widget = UIWidgets.create_texture_with_text_and_tooltip("title_bar", "Mutators", "map_level_setting_tooltip", "banner_level", "banner_level_text", {
+	vertical_alignment = "center",
+	scenegraph_id = "banner_level_text",
+	localize = false,
+	font_size = 28,
+	horizontal_alignment = "center",
+	font_type = "hell_shark",
+	text_color = Colors.get_color_table_with_alpha("cheeseburger", 255)
+})
+local banner_level = UIWidget.init(banner_level_widget)
+
 local window = nil
 local button = nil
 local window_opened = false
+
+local function get_map_view()
+	local ingame_ui = Managers.matchmaking and  Managers.matchmaking.ingame_ui
+	return ingame_ui and ingame_ui.views and ingame_ui.views.map_view
+end
 
 local function update_window_visibility(map_view)
 	if not window then return end
@@ -24,10 +40,8 @@ local function destroy_window(map_view)
 end
 
 local function create_window(map_view)
-	destroy_window(map_view)
 
-	vmf.sort_mutators()
-	vmf.disable_impossible_mutators()
+	destroy_window(map_view)
 
 	local window_size = {0, 0}
 	local window_position = {50, 500}
@@ -35,13 +49,16 @@ local function create_window(map_view)
 	window = get_mod("gui").create_window("mutators_window", window_position, window_size)
 
 	for i, mutator in ipairs(mutators) do
-		window:create_checkbox("label"  .. mutator:get_name(), {10, 40 * i},  {30, 30}, mutator:get_config().title, mutator:is_enabled(), function()
-			if not mutator:is_enabled() and mutator:can_be_enabled() then
-				mutator:enable()
+		local title = mutator:get_config().title or mutator:get_name()
+		window:create_checkbox("checkbox_"  .. mutator:get_name(), {30, 360 - 40 * (i - 1)},  {30, 30}, title, mutator:is_enabled(), function(self)
+			if self.value then
+				if not mutator:is_enabled() and mutator:can_be_enabled() then
+					mutator:enable()
+				elseif not mutator:is_enabled() then
+					create_window(map_view)
+				end
 			elseif mutator:is_enabled() then
 				mutator:disable()
-			else
-				create_window(map_view)
 			end
 		end)
 	end
@@ -61,27 +78,43 @@ local function create_window(map_view)
 	update_window_visibility(map_view)
 end
 
+local function reload_window()
+	local map_view = get_map_view()
+	if map_view and map_view.active then
+		create_window(map_view)
+	end
+end
+
 vmf:hook("MapView.on_enter", function(func, self, ...)
 	func(self, ...)
 	print("on_enter")
+
+	vmf.sort_mutators()
+	vmf.disable_impossible_mutators()
 	vmf:pcall(function() create_window(self) end)
 end)
 
 vmf:hook("MapView.on_level_index_changed", function(func, self, ...)
 	func(self, ...)
 	print("on_level_index_changed")
+
+	vmf.disable_impossible_mutators()
 	vmf:pcall(function() create_window(self) end)
 end)
 
 vmf:hook("MapView.on_difficulty_index_changed", function(func, self, ...)
 	func(self, ...)
 	print("on_difficulty_index_changed")
+
+	vmf.disable_impossible_mutators()
 	vmf:pcall(function() create_window(self) end)
 end)
 
 vmf:hook("MapView.set_difficulty_stepper_index", function(func, self, ...)
 	func(self, ...)
 	print("set_difficulty_stepper_index")
+
+	vmf.disable_impossible_mutators()
 	vmf:pcall(function() create_window(self) end)
 end)
 
@@ -121,15 +154,24 @@ vmf:hook("MapView.draw", function(func, self, input_service, gamepad_active, dt)
 		UIRenderer.draw_widget(ui_renderer, widget)
 	end
 
-	if not window_opened then
-		if self.settings_button_widget.content.toggled then
-			for widget_name, widget in pairs(self.advanced_settings_widgets) do
+	if window_opened or not self.settings_button_widget.content.toggled then
+		for widget_name, widget in pairs(self.normal_settings_widgets) do
+			local skipped_widgets_keys = {
+				"stepper_level",
+				"level_preview",
+				"level_preview_text",
+				"banner_level"
+			}
+			if not window_opened or not table.has_item(skipped_widgets_keys, widget_name) then
 				UIRenderer.draw_widget(ui_renderer, widget)
 			end
-		else
-			for widget_name, widget in pairs(self.normal_settings_widgets) do
-				UIRenderer.draw_widget(ui_renderer, widget)
-			end
+		end
+		if window_opened then
+			vmf:pcall(function() UIRenderer.draw_widget(ui_renderer, banner_level) end)
+		end
+	else
+		for widget_name, widget in pairs(self.advanced_settings_widgets) do
+			UIRenderer.draw_widget(ui_renderer, widget)
 		end
 	end
 
@@ -174,3 +216,5 @@ vmf:hook("MapView.draw", function(func, self, input_service, gamepad_active, dt)
 	end
 
 end)
+
+return reload_window, get_map_view
