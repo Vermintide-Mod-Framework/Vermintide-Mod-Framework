@@ -1,8 +1,13 @@
 local vmf = get_mod("VMF")
 
+
 -- List of mods that are also mutators in order in which they should be enabled
 -- This is populated via VMFMod.register_as_mutator
 local mutators = {}
+vmf.mutators = mutators
+
+local mutators_config = {}
+local default_config = dofile("scripts/mods/vmf/modules/mutators/default_config")
 
 -- This lists mutators and which ones should be enabled after them
 -- This is populated via VMFMod.register_as_mutator
@@ -22,6 +27,9 @@ local mutators_sorted = false
 --[[
 	PRIVATE METHODS
 ]]--
+
+local addDice, removeDice = dofile("scripts/mods/vmf/modules/mutators/dice")
+local set_lobby_data = dofile("scripts/mods/vmf/modules/mutators/info")
 
 -- Adds mutator names from enable_these_after to the list of mutators that should be enabled after the mutator_name
 local function update_mutators_sequence(mutator_name, enable_these_after)
@@ -82,7 +90,7 @@ local function sort_mutators()
 		i = i + 1
 
 		numIter = numIter + 1
-		if numIter > maxIter then 
+		if numIter > maxIter then
 			vmf:error("Mutators: too many iterations. Check for loops in 'enable_before_these'/'enable_after_these'.")
 			return
 		end
@@ -97,12 +105,33 @@ local function sort_mutators()
 	-- /LOG --
 end
 
--- Enables/disables mutator while preserving the sequence in which they were enabled
-local function set_mutator_state(self, state)
+local function mutator_can_be_enabled(mutator)
+	return (not Managers.state or not Managers.state.difficulty:get_difficulty()) or table.has_item(mutator:get_config().difficulties, Managers.state.difficulty:get_difficulty())
+end
 
-	local i = table.index_of(mutators, self)
+local function on_enabled(mutator)
+	local config = mutator:get_config()
+	addDice(config.dice)
+	set_lobby_data()
+end
+
+local function on_disabled(mutator)
+	local config = mutator:get_config()
+	removeDice(config.dice)
+	set_lobby_data()
+end
+
+-- Enables/disables mutator while preserving the sequence in which they were enabled
+local function set_mutator_state(mutator, state)
+
+	local i = table.index_of(mutators, mutator)
 	if i == nil then
-		self:error("Mutator isn't in the list")
+		mutator:error("Mutator isn't in the list")
+		return
+	end
+
+	if state and not mutator_can_be_enabled(mutator) then
+		mutator:error("Can't enable mutator - incorrect difficulty")
 		return
 	end
 
@@ -112,7 +141,7 @@ local function set_mutator_state(self, state)
 	end
 
 	local disabled_mutators = {}
-	local enable_these_after = mutators_sequence[self:get_name()]
+	local enable_these_after = mutators_sequence[mutator:get_name()]
 
 	-- Disable mutators that were and are required to be enabled after the current one
 	-- This will be recursive so that if mutator2 requires mutator3 to be enabled after it, mutator3 will be disabled before mutator2
@@ -130,11 +159,13 @@ local function set_mutator_state(self, state)
 	-- Enable/disable current mutator
 	-- We're calling methods on the class object because we've overwritten them on the current one
 	if state then
-		print("Enabled ", self:get_name(), "!")
-		VMFMod.enable(self)
+		print("Enabled ", mutator:get_name(), "!")
+		VMFMod.enable(mutator)
+		on_enabled(mutator)
 	else
-		print("Disabled ", self:get_name(), "!")
-		VMFMod.disable(self)
+		print("Disabled ", mutator:get_name(), "!")
+		VMFMod.disable(mutator)
+		on_disabled(mutator)
 	end
 
 	-- Re-enable disabled mutators
@@ -158,13 +189,16 @@ local function disable_mutator(self)
 	vmf:pcall(function() set_mutator_state(self, false) end)
 end
 
+local function get_config(self)
+	return mutators_config[self:get_name()]
+end
+
 
 --[[
 	PUBLIC METHODS
 ]]--
 
 -- Turns a mod into a mutator
--- For now all it does is creates a sequence in which they need to be enabled/disabled
 VMFMod.register_as_mutator = function(self, config)
 	if not config then config = {} end
 
@@ -176,6 +210,16 @@ VMFMod.register_as_mutator = function(self, config)
 	end
 
 	table.insert(mutators, self)
+
+	-- Save config
+	mutators_config[mod_name] = table.clone(default_config)
+	local _config = mutators_config[mod_name]
+	for k, _ in pairs(_config) do
+		if config[k] then
+			_config[k] = config[k]
+		end
+	end
+	if _config.short_title == "" then _config.short_title = nil end
 
 	if config.enable_before_these then
 		update_mutators_sequence(mod_name, config.enable_before_these)
@@ -190,11 +234,41 @@ VMFMod.register_as_mutator = function(self, config)
 	self.enable = enable_mutator
 	self.disable = disable_mutator
 
+	self.get_config = get_config
+
 	mutators_sorted = false
 
 	-- Always init in the off state
 	self:init_state(false)
 end
+
+--[[
+	HOOKS
+]]--
+vmf:hook("DifficultyManager.set_difficulty", function(func, self, difficulty)
+	for _, mutator in ipairs(mutators) do
+		if mutator:is_enabled() and not mutator_can_be_enabled(mutator:get_config()) then
+			mutator:disable()
+		end
+	end
+	return func(self, difficulty)
+end)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 --[[
@@ -221,10 +295,13 @@ deathwish:register_as_mutator({
 		"mutator555",
 		"mutator3",
 		"mutation"
+	},
+	difficulties = {
+		"hardest"
 	}
 })
 deathwish:create_options({}, true, "deathwish", "deathwish description")
-deathwish.on_enabled = function() 
+deathwish.on_enabled = function()
 	print(tostring(Breeds.skaven_gutter_runner == Breeds.skaven_pack_master))
 end
 deathwish.on_disabled = function() end
