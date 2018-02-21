@@ -136,7 +136,7 @@ local options_widgets = {
 }
 vmf:create_options(options_widgets, false, "Vermintide Mod Framework")
 
-vmf.setting_changed = function (setting_name)
+vmf.on_setting_changed = function (setting_name)
 
   if setting_name == "vmf_options_scrolling_speed" then
 
