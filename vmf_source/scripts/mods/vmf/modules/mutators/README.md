@@ -1,8 +1,19 @@
 # Mutators
+A mutator is a mod that affects other players as well as you by modifying the game rules, enemies, weapon balance etc.  
+
 You can turn your mod into a mutator by calling `mod:register_as_mutator(config)` instead of `mod:init_state()`. This way it will show up on the map screen and have additional features and options to control its behavior.
 
 Note that you can still have additional options for your mutator in the mod options menu:  
 ``vmf:create_options(options_widgets, false, "Title", "Description")``
+
+## Features  
+
+* Show the toggle for the mutator on the map screen  
+* Choose which game modes and difficulty levels the mutator can be played on  
+* Add additional dice to the end game roll  
+* Control the order in which mutators are enabled/disabled  
+* Control compatibility with other mutators  
+* Notify players already in the lobby and just joining about enabled mutators  
 
 ## Configuration
 
