@@ -81,7 +81,7 @@ manager:hook("MatchmakingStateHostGame.host_game", function(func, self, ...)
 end)
 
 manager:hook("MatchmakingManager.rpc_matchmaking_request_join_lobby", function(func, self, sender, client_cookie, host_cookie, lobby_id, friend_join)
-	local name = get_enabled_mutators_names(false)
+	local name = get_enabled_mutators_names()
 	if name then
 		local message = "[Automated message] This lobby has the following difficulty mod active : " .. name
 		manager:hook("Managers.chat.channels[1].members_func", get_member_func(client_cookie))
