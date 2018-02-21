@@ -1,5 +1,6 @@
 local manager = new_mod("vmf_mutator_manager")
 
+manager:localization("localization/mutator_manager")
 
 -- List of mods that are also mutators in order in which they should be enabled
 -- This is populated via VMFMod.register_as_mutator
@@ -88,12 +89,23 @@ manager.sort_mutators = function()
 end
 
 -- Disables mutators that cannot be enabled right now
-manager.disable_impossible_mutators = function()
+manager.disable_impossible_mutators = function(notify, everybody)
 	local disabled_mutators = {}
 	for _, mutator in pairs(mutators) do
 		if mutator:is_enabled() and not mutator:can_be_enabled() then
 			mutator:disable()
 			table.insert(disabled_mutators, mutator)
+		end
+	end
+	if #disabled_mutators > 0 and notify then
+		local message = everybody and "MUTATORS DISABLED DUE TO DIFFICULTY CHANGE:" or "Mutators disabled due to difficulty change:"
+		for _, mutator in ipairs(disabled_mutators) do
+			message = message .. " " .. (mutator:get_config().title or mutator:get_name())
+		end
+		if everybody then
+			Managers.chat:send_system_chat_message(1, message, 0, true)
+		else
+			manager:echo(message)
 		end
 	end
 	return disabled_mutators
@@ -105,7 +117,7 @@ end
 ]]--
 
 local mutators_view = manager:dofile("scripts/mods/vmf/modules/mutators/mutator_gui")
-local addDice, removeDice = manager:dofile("scripts/mods/vmf/modules/mutators/mutator_dice")
+local dice_manager = manager:dofile("scripts/mods/vmf/modules/mutators/mutator_dice")
 local set_lobby_data = manager:dofile("scripts/mods/vmf/modules/mutators/mutator_info")
 
 -- Adds mutator names from enable_these_after to the list of mutators that should be enabled after the mutator_name
@@ -166,41 +178,17 @@ local function is_compatible(mutator, other_mutator)
 	return compatible
 end
 
--- Disables enabled mutators that aren't compatible with the specified
-local function disable_incompatible_with(mutator)
-	local names = nil
-	for _, other_mutator in ipairs(mutators) do
-		if (
-			other_mutator ~= mutator and
-			other_mutator:is_enabled() and
-			not is_compatible(mutator, other_mutator)
-		) then
-			other_mutator:disable()
-			local name = other_mutator:get_config().title or other_mutator:get_name()
-			if names then
-				names = names .. " " .. name
-			else
-				names = name
-			end
-		end
-	end
-	if names then
-		-- TODO: output this to the menu instead of chat
-		manager:echo("These mutators are incompatible with " .. mutator:get_name() .. " and were disabled: " .. names)
-	end
-end
-
 -- Called after mutator is enabled
 local function on_enabled(mutator)
 	local config = mutator:get_config()
-	addDice(config.dice)
+	dice_manager.addDice(config.dice)
 	set_lobby_data()
 end
 
 -- Called after mutator is disabled
 local function on_disabled(mutator)
 	local config = mutator:get_config()
-	removeDice(config.dice)
+	dice_manager.removeDice(config.dice)
 	set_lobby_data()
 end
 
@@ -221,14 +209,13 @@ local function set_mutator_state(mutator, state)
 		return
 	end
 
+	if state and #mutator:get_incompatible_mutators(true) > 0 then
+		return
+	end
+
 	-- Sort mutators if this is the first call
 	if not mutators_sorted then
 		manager.sort_mutators()
-	end
-
-	-- Disable mutators that aren't compatible
-	if state then
-		disable_incompatible_with(mutator)
 	end
 
 	local disabled_mutators = {}
@@ -289,8 +276,13 @@ end
 -- Checks current difficulty and map selection screen settings to determine if a mutator can be enabled
 local function can_be_enabled(self)
 
-	local mutator_difficulties = self:get_config().difficulties
+	if #self:get_incompatible_mutators(true) > 0 then return false end
+	return self:supports_current_difficulty()
 
+end
+
+local function supports_current_difficulty(self)
+	local mutator_difficulties = self:get_config().difficulties
 	local actual_difficulty = Managers.state and Managers.state.difficulty:get_difficulty()
 	local right_difficulty = not actual_difficulty or table.has_item(mutator_difficulties, actual_difficulty)
 
@@ -312,6 +304,20 @@ end
 -- Returns the config object for mutator from mutators_config
 local function get_config(self)
 	return mutators_config[self:get_name()]
+end
+
+local function get_incompatible_mutators(self, enabled_only)
+	local incompatible_mutators = {}
+	for _, other_mutator in ipairs(mutators) do
+		if (
+			other_mutator ~= self and
+			(not enabled_only or other_mutator:is_enabled()) and
+			not is_compatible(self, other_mutator)
+		) then
+			table.insert(incompatible_mutators, other_mutator)
+		end
+	end
+	return incompatible_mutators
 end
 
 -- Turns a mod into a mutator
@@ -351,13 +357,17 @@ VMFMod.register_as_mutator = function(self, config)
 	self.enable = enable_mutator
 	self.disable = disable_mutator
 	self.can_be_enabled = can_be_enabled
+	self.supports_current_difficulty = supports_current_difficulty
 
 	self.get_config = get_config
+	self.get_incompatible_mutators = get_incompatible_mutators
 
 	mutators_sorted = false
 
 	-- Always init in the off state
 	self:init_state(false)
+
+	mutators_view:update_mutator_list()
 end
 
 
@@ -365,19 +375,26 @@ end
 	HOOKS
 ]]--
 manager:hook("DifficultyManager.set_difficulty", function(func, self, difficulty)
-	local disabled_mutators = manager.disable_impossible_mutators()
-	if #disabled_mutators > 0 then
-		local message = "MUTATORS DISABLED DUE TO DIFFICULTY CHANGE:"
-		for _, mutator in ipairs(disabled_mutators) do
-			message = message .. " " .. mutator:get_config().title or mutator:get_name()
-		end
-		Managers.chat:send_system_chat_message(1, message, 0, true)
-	end
+	manager.disable_impossible_mutators(true, true)
 	return func(self, difficulty)
 end)
 
 
+-- Initialize mutators view after map view
+manager:hook("MapView.init", function(func, self, ...)
+	func(self, ...)
+	manager:pcall(function() mutators_view:init(self) end)
+end)
 
+-- Destroy mutators view after map view
+manager:hook("MapView.destroy", function(func, ...)
+	mutators_view:deinitialize()
+	func(...)
+end)
+
+
+-- Initialize mutators view when map_view has been initialized already
+manager:pcall(function() mutators_view:init(mutators_view:get_map_view()) end)
 
 
 
@@ -401,10 +418,7 @@ local mutator3 = new_mod("mutator3")
 local mutator555 = new_mod("mutator555")
 
 mutator555:register_as_mutator({
-	compatible_with_all = true,
-	incompatible_with = {
-		"mutator2"
-	}
+	incompatible_with_all = true
 })
 mutator555:create_options({}, true, "mutator555", "mutator555 description")
 mutator555.on_enabled = function() end
@@ -412,20 +426,25 @@ mutator555.on_disabled = function() end
 
 
 mutator3:register_as_mutator({
-	compatible_with_all = true,
 	incompatible_with = {
-		"mutator555"
+		"mutator4"
 	}
 })
-mutator3:create_options({}, true, "mutator3", "mutator3 description")
 mutator3.on_enabled = function() end
 mutator3.on_disabled = function() end
 
 mutator2:register_as_mutator({
+	compatible_with_all = true,
 	difficulties = {
 		"hardest"
 	}
 })
-mutator2:create_options({}, true, "mutator2", "mutator2 description")
 mutator2.on_enabled = function() end
 mutator2.on_disabled = function() end
+
+--[[for i=4,17 do
+	local mutator = new_mod("mutator" .. i)
+	mutator:register_as_mutator({})
+	mutator.on_enabled = function() end
+	mutator.on_disabled = function() end
+end--]]

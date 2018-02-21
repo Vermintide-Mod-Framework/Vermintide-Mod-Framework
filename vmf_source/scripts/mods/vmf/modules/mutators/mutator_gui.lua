@@ -3,7 +3,7 @@ local mutators = manager.mutators
 
 local definitions = manager:dofile("scripts/mods/vmf/modules/mutators/mutator_gui_definitions")
 
-local PER_PAGE = 5
+local PER_PAGE = definitions.PER_PAGE
 
 local mutators_view = {
 
@@ -12,6 +12,8 @@ local mutators_view = {
 	was_active = false,
 	map_view = nil,
 	current_page = 1,
+	mutators_sorted = {},
+	mutator_checkboxes = {},
 
 	init = function(self, map_view)
 		if self.initialized then return end
@@ -19,14 +21,20 @@ local mutators_view = {
 		self.map_view = map_view
 		if not self.map_view then return end
 
+		self:update_mutator_list()
+
 		-- Recreate the map_view scenegraph defs
 		self.map_view.scenegraph_definition = UISceneGraph.init_scenegraph(definitions.scenegraph_definition)
 
 		-- Setup custom widgets
 		self.widgets = {
 			banner_mutators = UIWidget.init(definitions.new_widgets.banner_mutators_widget),
-			mutators_button = UIWidget.init(definitions.new_widgets.mutators_button_widget),
+			mutators_button = UIWidget.init(definitions.new_widgets.mutators_button_widget)
 		}
+
+		for i = 1, PER_PAGE do
+			table.insert(self.mutator_checkboxes, UIWidget.init(definitions.new_widgets["mutator_checkbox_" .. i]))
+		end
 
 		-- Save widgets we're gonna mess with
 		local widgets = self.map_view.normal_settings_widget_types
@@ -85,6 +93,15 @@ local mutators_view = {
 		print("DEINIT")
 	end,
 
+	-- Sorts mutators by title
+	update_mutator_list = function(self)
+		self.mutators_sorted = {}
+		for _, mutator in ipairs(mutators) do
+			table.insert(self.mutators_sorted, {mutator:get_name(), mutator:get_config().title or mutator:get_name()})
+		end
+		table.sort(self.mutators_sorted, function(a, b) return string.lower(a[2]) < string.lower(b[2]) end)
+	end,
+
 	update = function(self)
 		if not self.initialized then
 			self:init()
@@ -127,6 +144,54 @@ local mutators_view = {
 			local widgets = self.map_view.normal_settings_widget_types
 			widgets.adventure.banner_level.content.tooltip_hotspot.disabled = true
 			widgets.survival.banner_level.content.tooltip_hotspot.disabled = true
+
+			self:update_checkboxes()
+		end
+	end,
+
+	update_checkboxes = function(self)
+
+		local widgets = self.map_view.normal_settings_widget_types
+
+		for i = 1, PER_PAGE do
+			local current_index = PER_PAGE * (self.current_page - 1) + i
+			local checkbox = self.mutator_checkboxes[i]
+			local hotspot = checkbox.content.button_hotspot
+			if #self.mutators_sorted < current_index then
+				checkbox.content.setting_text = ""
+				checkbox.content.tooltip_text = ""
+				widgets.adventure["mutator_checkbox_" .. i] = nil
+				widgets.survival["mutator_checkbox_" .. i] = nil
+			else
+				local mutator_info = self.mutators_sorted[current_index]
+				local mutator = get_mod(mutator_info[1])
+
+				checkbox.content.setting_text = mutator_info[2]
+				checkbox.content.tooltip_text = self:generate_tooltip_for(mutator)
+				widgets.adventure["mutator_checkbox_" .. i] = checkbox
+				widgets.survival["mutator_checkbox_" .. i] = checkbox
+
+				local active = mutator:can_be_enabled()
+				local color = active and "cheeseburger" or "slate_gray"
+				local color_hover = active and "white" or "slate_gray"
+				checkbox.style.setting_text.text_color = Colors.get_color_table_with_alpha(color, 255)
+				checkbox.style.setting_text_hover.text_color = Colors.get_color_table_with_alpha(color_hover, 255)
+				checkbox.style.checkbox_style.color = Colors.get_color_table_with_alpha(color_hover, 255)
+
+				if hotspot.on_hover_enter then
+					self.map_view:play_sound("Play_hud_hover")
+				end
+
+				if hotspot.on_release then
+					self.map_view:play_sound("Play_hud_hover")
+					if mutator:is_enabled() then
+						mutator:disable()
+					else
+						mutator:enable()
+					end
+				end
+				checkbox.content.selected = mutator:is_enabled()
+			end
 		end
 	end,
 
@@ -149,6 +214,7 @@ local mutators_view = {
 
 		-- Update steppers
 		self.map_view.steppers.level.widget.style.setting_text.offset[2] = -10000
+		self.map_view.steppers.level.widget.style.hover_texture.offset[2] = -10000
 		local level_stepper_widget = self.map_view.steppers.level.widget
 		local num_pages = math.ceil(#mutators/PER_PAGE)
 		level_stepper_widget.content.left_button_hotspot.disable_button = num_pages <= 1
@@ -156,7 +222,7 @@ local mutators_view = {
 
 		self.active = true
 
-		print("ACTIVE")
+		print("ACTIVE!")
 	end,
 
 	deactivate = function(self)
@@ -178,7 +244,14 @@ local mutators_view = {
 
 		-- Update steppers
 		self.map_view.steppers.level.widget.style.setting_text.offset[2] = -120
+		self.map_view.steppers.level.widget.style.hover_texture.offset[2] = -19.5
 		self.map_view:update_level_stepper()
+
+		-- Mutator checkboxes
+		for i = 1, PER_PAGE do
+			widgets.adventure["mutator_checkbox_" .. i] = nil
+			widgets.survival["mutator_checkbox_" .. i] = nil
+		end
 
 		self.active = false
 
@@ -200,10 +273,47 @@ local mutators_view = {
 			end
 
 			self.current_page = new_index
-			print("TEST", tostring(new_index))
 		else
 			self.map_view:on_level_index_changed(index_change)
 		end
+	end,
+
+	generate_tooltip_for = function(self, mutator)
+		local config = mutator:get_config()
+		local text = config.description
+		local supports_difficulty = mutator:supports_current_difficulty()
+
+		if not supports_difficulty then
+			text = text .. "\nSupported difficulty levels:"
+			for i, difficulty in ipairs(config.difficulties) do
+				text = text .. (i == 1 and " " or ", ") .. manager:localize(difficulty)
+			end
+		end
+
+		local incompatible_mutators = mutator:get_incompatible_mutators(true)
+		local currently_compatible = #incompatible_mutators == 0
+		if supports_difficulty and #incompatible_mutators == 0 then
+			incompatible_mutators = mutator:get_incompatible_mutators()
+		end
+		if #incompatible_mutators > 0 then
+			if currently_compatible and config.incompatible_with_all or #incompatible_mutators == #mutators - 1 then
+				text = text .. "\nIncompatible with all other mutators"
+			else
+				text = text .. "\nIncompatible with:"
+				for i, other_mutator in ipairs(incompatible_mutators) do
+					local name = (other_mutator:get_config().title or other_mutator:get_name())
+					text = text .. (i == 1 and " " or ", ") .. name
+				end
+			end
+		elseif config.compatible_with_all then
+			text = text .. "\nCompatible with all other mutators"
+		end
+
+		if mutator:is_enabled() and not supports_difficulty then
+			text = text .. "\nWill be disabled when Play is pressed"
+		end
+
+		return text
 	end,
 
 	setup_hooks = function(self)
@@ -235,6 +345,26 @@ local mutators_view = {
 				func(map_view)
 			end
 		end)
+
+		--[[
+		manager:hook("MapView.on_level_index_changed", function(func, map_view, ...)
+			func(map_view, ...)
+			print("on_level_index_changed")
+			manager.disable_impossible_mutators(true)
+		end)
+
+		manager:hook("MapView.on_difficulty_index_changed", function(func, map_view, ...)
+			func(map_view, ...)
+			print("on_difficulty_index_changed")
+			manager.disable_impossible_mutators(true)
+		end)
+
+		manager:hook("MapView.set_difficulty_stepper_index", function(func, map_view, ...)
+			func(map_view, ...)
+			print("set_difficulty_stepper_index")
+			manager.disable_impossible_mutators(true)
+		end)
+		--]]
 	end,
 
 	reset_hooks = function(self)
@@ -242,28 +372,15 @@ local mutators_view = {
 		manager:hook_remove("MapView.on_enter")
 		manager:hook_remove("MapView.on_exit")
 		manager:hook_remove("MapView.update_level_stepper")
+		-- manager:hook_remove("MapView.on_level_index_changed")
+		-- manager:hook_remove("MapView.on_difficulty_index_changed")
+		-- manager:hook_remove("MapView.set_difficulty_stepper_index")
 	end,
+
+	get_map_view = function(self)
+		local ingame_ui = Managers.matchmaking and  Managers.matchmaking.ingame_ui
+		return ingame_ui and ingame_ui.views and ingame_ui.views.map_view
+	end
 }
-
--- Initialize mutators view after map view
-manager:hook("MapView.init", function(func, self, ...)
-	func(self, ...)
-	manager:pcall(function() mutators_view:init(self) end)
-end)
-
--- Destroy mutators view after map view
-manager:hook("MapView.destroy", function(func, ...)
-	mutators_view:deinitialize()
-	func(...)
-end)
-
-
--- Initialize mutators view when map_view has been initialized already
-local function get_map_view()
-	local ingame_ui = Managers.matchmaking and  Managers.matchmaking.ingame_ui
-	return ingame_ui and ingame_ui.views and ingame_ui.views.map_view
-end
-
-manager:pcall(function() mutators_view:init(get_map_view()) end)
 
 return mutators_view

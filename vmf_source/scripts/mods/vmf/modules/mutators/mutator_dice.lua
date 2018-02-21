@@ -63,4 +63,7 @@ local removeDice = function(dice)
 	adjustDice(dice.grims, dice.tomes, dice.bonus, -1)
 end
 
-return addDice, removeDice
+return {
+	addDice = addDice,
+	removeDice = removeDice
+}
