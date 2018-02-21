@@ -132,22 +132,11 @@ local options_widgets = {
         ["default_value"] = 0
       }
     }
-  },
-  {
-    ["setting_name"] = "win",
-    ["widget_type"] = "keybind",
-    ["text"] = "WIN",
-    ["default_value"] = {},
-    ["action"] = "win"
-  },
+  }
 }
 vmf:create_options(options_widgets, false, "Vermintide Mod Framework")
 
-vmf.win = function()
-  Managers.state.game_mode:complete_level()
-end
-
-vmf.setting_changed = function (setting_name)
+vmf.on_setting_changed = function (setting_name)
 
   if setting_name == "vmf_options_scrolling_speed" then
 
