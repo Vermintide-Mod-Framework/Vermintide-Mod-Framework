@@ -34,6 +34,7 @@ manager.sort_mutators = function()
 
 	if mutators_sorted then return end
 
+	--[[
 	-- LOG --
 	manager:dump(mutators_sequence, "seq", 5)
 	for i, v in ipairs(mutators) do
@@ -41,6 +42,7 @@ manager.sort_mutators = function()
 	end
 	print("-----------")
 	-- /LOG --
+	--]]
 
 	-- Preventing endless loops (worst case is n*(n+1)/2 I believe)
 	local maxIter = #mutators * (#mutators + 1)/2
@@ -80,12 +82,14 @@ manager.sort_mutators = function()
 	end
 	mutators_sorted = true
 
+	--[[
 	-- LOG --
 	for k, v in ipairs(mutators) do
 		print(k, v:get_name())
 	end
 	print("-----------")
 	-- /LOG --
+	--]]
 end
 
 -- Disables mutators that cannot be enabled right now
@@ -227,7 +231,7 @@ local function set_mutator_state(mutator, state)
 	if enable_these_after and #mutators > i then
 		for j = #mutators, i + 1, -1 do
 			if mutators[j]:is_enabled() and table.has_item(enable_these_after, mutators[j]:get_name()) then
-				print("Disabled ", mutators[j]:get_name())
+				--print("Disabled ", mutators[j]:get_name())
 				mutators[j]:disable()
 				table.insert(disabled_mutators, 1, mutators[j])
 			end
@@ -237,11 +241,11 @@ local function set_mutator_state(mutator, state)
 	-- Enable/disable current mutator
 	-- We're calling methods on the class object because we've overwritten them on the current one
 	if state then
-		print("Enabled ", mutator:get_name(), "!")
+		--print("Enabled ", mutator:get_name(), "!")
 		VMFMod.enable(mutator)
 		on_enabled(mutator)
 	else
-		print("Disabled ", mutator:get_name(), "!")
+		--print("Disabled ", mutator:get_name(), "!")
 		VMFMod.disable(mutator)
 		on_disabled(mutator)
 	end
@@ -250,12 +254,10 @@ local function set_mutator_state(mutator, state)
 	-- This will be recursive
 	if #disabled_mutators > 0 then
 		for j = #disabled_mutators, 1, -1 do
-			print("Enabled ", disabled_mutators[j]:get_name())
+			--print("Enabled ", disabled_mutators[j]:get_name())
 			disabled_mutators[j]:enable()
 		end
 	end
-
-	print("---------")
 end
 
 

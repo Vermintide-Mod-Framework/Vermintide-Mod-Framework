@@ -61,7 +61,7 @@ local mutators_view = {
 		self:setup_hooks()
 
 		self.initialized = true
-		print("INIT")
+		--print("INIT")
 	end,
 
 	deinitialize = function(self)
@@ -90,7 +90,7 @@ local mutators_view = {
 		self.map_view = nil
 
 		self.initialized = false
-		print("DEINIT")
+		--print("DEINIT")
 	end,
 
 	-- Sorts mutators by title
@@ -222,7 +222,7 @@ local mutators_view = {
 
 		self.active = true
 
-		print("ACTIVE!")
+		--print("ACTIVE!")
 	end,
 
 	deactivate = function(self)
@@ -255,7 +255,7 @@ local mutators_view = {
 
 		self.active = false
 
-		print("DEACTIVE")
+		--print("DEACTIVE")
 	end,
 
 	on_mutators_page_change = function(self, index_change)
