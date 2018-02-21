@@ -40,8 +40,8 @@ The config object is optional but obviously you'd want to provide at least a rea
 		"survival_harder",
 		"survival_hardest"
 	},
-	load_before_these = {},
-	load_after_these = {},
+	enable_before_these = {},
+	enable_after_these = {},
 	incompatible_with_all = false,
 	compatible_with_all = false,
 	incompatible_with = {},
@@ -94,7 +94,6 @@ You can provide a list of names of mutators you know for sure yours does/doesn't
 You can improve the compatibility of your mutator with other ones by specifiying which mutators should be enabled after or before this one. This can help with mutators that modify the same portions of the game.
 
 # Methods
-
 
 Mutators have the same methods and event handlers as other mods plus a few additional ones. These are mostly used behind the scenes.  
 
