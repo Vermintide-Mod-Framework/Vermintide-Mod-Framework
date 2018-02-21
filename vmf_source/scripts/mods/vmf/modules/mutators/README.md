@@ -1,6 +1,11 @@
 # Mutators
 You can turn your mod into a mutator by calling `mod:register_as_mutator(config)` instead of `mod:init_state()`. This way it will show up on the map screen and have additional features and options to control its behavior.
 
+Note that you can still have additional options for your mutator in the mod options menu:  
+``vmf:create_options(options_widgets, false, "Title", "Description")``
+
+## Configuration
+
 The config object is optional but obviously you'd want to provide at least a readable title for your mutator. Here are the default values:
 
 ```lua
@@ -24,6 +29,8 @@ The config object is optional but obviously you'd want to provide at least a rea
 		"survival_harder",
 		"survival_hardest"
 	},
+	load_before_these = {},
+	load_after_these = {},
 	incompatible_with_all = false,
 	compatible_with_all = false,
 	incompatible_with = {},
@@ -70,3 +77,21 @@ Set this to true if you are sure this mutator won't cause any problems. This ove
 ``compatible_with = {}``  
 ``incompatible_with = {}``  
 You can provide a list of names of mutators you know for sure yours does/doesn't work with respectively. `compatible_with` overwrites `incompatible_with_all` and `incompatible_with` overwrites `compatible_with_all` on other mutators. Use these to provide exceptions to `incompatible_with_all` and `compatible_with_all` on this mutator.
+
+``enable_before_these = {},``  
+``enable_after_these = {},``  
+You can improve the compatibility of your mutator with other ones by specifiying which mutators should be enabled after or before this one. This can help with mutators that modify the same portions of the game.
+
+# Methods
+
+
+Mutators have the same methods and event handlers as other mods plus a few additional ones. These are mostly used behind the scenes.  
+
+``mutator:get_config()`` - returns the configuration object without `load_before_these/load_after_these` fields. This shouldn't be modified.
+
+``mutator:can_be_enabled(ignore_map)`` - returns whether the difficulty is right for the mutator and that there are no incompatible mutators enabled. `ignore_map` only takes into account the set difficulty and ignores difficulty selection on the map screen before Play button is pressed.
+
+``mutator:supports_current_difficulty(ignore_map)`` - same as the last one only doesn't check for incompatible mutators
+
+``mutator:get_incompatible_mutators(enabled_only)`` - returns an array of incompatible mutators. `enabled_only` only checks for enabled ones.
+

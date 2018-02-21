@@ -276,19 +276,19 @@ local function disable_mutator(self)
 end
 
 -- Checks current difficulty and map selection screen settings to determine if a mutator can be enabled
-local function can_be_enabled(self)
+local function can_be_enabled(self, ignore_map)
 
 	if #self:get_incompatible_mutators(true) > 0 then return false end
-	return self:supports_current_difficulty()
+	return self:supports_current_difficulty(ignore_map)
 
 end
 
-local function supports_current_difficulty(self)
+local function supports_current_difficulty(self, ignore_map)
 	local mutator_difficulties = self:get_config().difficulties
 	local actual_difficulty = Managers.state and Managers.state.difficulty:get_difficulty()
 	local right_difficulty = not actual_difficulty or table.has_item(mutator_difficulties, actual_difficulty)
 
-	local map_view = mutators_view.map_view
+	local map_view = not ignore_map and mutators_view.map_view
 	local map_view_active = map_view and map_view.active
 	local right_unapplied_difficulty = false
 
