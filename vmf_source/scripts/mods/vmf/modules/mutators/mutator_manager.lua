@@ -284,9 +284,9 @@ local function can_be_enabled(self, ignore_map)
 end
 
 local function supports_current_difficulty(self, ignore_map)
-	local mutator_difficulties = self:get_config().difficulties
+	local mutator_difficulty_levels = self:get_config().difficulty_levels
 	local actual_difficulty = Managers.state and Managers.state.difficulty:get_difficulty()
-	local right_difficulty = not actual_difficulty or table.has_item(mutator_difficulties, actual_difficulty)
+	local right_difficulty = not actual_difficulty or table.has_item(mutator_difficulty_levels, actual_difficulty)
 
 	local map_view = not ignore_map and mutators_view.map_view
 	local map_view_active = map_view and map_view.active
@@ -297,7 +297,7 @@ local function supports_current_difficulty(self, ignore_map)
 		local difficulty_data = map_view.selected_level_index and map_view:get_difficulty_data(map_view.selected_level_index)
 		local difficulty_layout = difficulty_data and difficulty_data[map_view.selected_difficulty_stepper_index]
 		local difficulty_key = difficulty_layout and difficulty_layout.key
-		right_unapplied_difficulty = difficulty_key and table.has_item(mutator_difficulties, difficulty_key)
+		right_unapplied_difficulty = difficulty_key and table.has_item(mutator_difficulty_levels, difficulty_key)
 	end
 
 	return (map_view_active and right_unapplied_difficulty) or (not map_view_active and right_difficulty)
@@ -437,7 +437,7 @@ mutator3.on_disabled = function() end
 
 mutator2:register_as_mutator({
 	compatible_with_all = true,
-	difficulties = {
+	difficulty_levels = {
 		"hardest"
 	}
 })

@@ -29,7 +29,7 @@ The config object is optional but obviously you'd want to provide at least a rea
 		tomes = 0,
 		bonus = 0
 	},
-	difficulties = {
+	difficulty_levels = {
 		"easy",
 		"normal",
 		"hard",
@@ -62,7 +62,7 @@ The description will show up in the tooltip of your mutator on the map screen.
 This determines how many additional dice the players will get for completing maps with your mutator enabled.
 
 ```
-difficulties = {
+difficulty_levels = {
 	"easy",
 	"normal",
 	"hard",

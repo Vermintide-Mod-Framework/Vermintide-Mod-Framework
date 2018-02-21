@@ -7,7 +7,7 @@ return {
 	title = "",
 	short_title = "",
 	description = "No description provided",
-	difficulties = {
+	difficulty_levels = {
 		"easy",
 		"normal",
 		"hard",

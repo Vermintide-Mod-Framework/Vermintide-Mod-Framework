@@ -285,7 +285,7 @@ local mutators_view = {
 
 		if not supports_difficulty then
 			text = text .. "\nSupported difficulty levels:"
-			for i, difficulty in ipairs(config.difficulties) do
+			for i, difficulty in ipairs(config.difficulty_levels) do
 				text = text .. (i == 1 and " " or ", ") .. manager:localize(difficulty)
 			end
 		end
