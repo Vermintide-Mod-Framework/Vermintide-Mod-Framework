@@ -1,13 +1,13 @@
-local vmf = get_mod("VMF")
+local manager = new_mod("vmf_mutator_manager")
 
 
 -- List of mods that are also mutators in order in which they should be enabled
 -- This is populated via VMFMod.register_as_mutator
-vmf.mutators = {}
-local mutators = vmf.mutators
+manager.mutators = {}
+local mutators = manager.mutators
 
 local mutators_config = {}
-local default_config = dofile("scripts/mods/vmf/modules/mutators/default_config")
+local default_config = manager:dofile("scripts/mods/vmf/modules/mutators/mutator_default_config")
 
 -- This lists mutators and which ones should be enabled after them
 -- This is populated via VMFMod.register_as_mutator
@@ -29,12 +29,12 @@ local mutators_sorted = false
 ]]--
 
 -- Sorts mutators in order they should be enabled
-vmf.sort_mutators = function()
+manager.sort_mutators = function()
 
 	if mutators_sorted then return end
 
 	-- LOG --
-	vmf:dump(mutators_sequence, "seq", 5)
+	manager:dump(mutators_sequence, "seq", 5)
 	for i, v in ipairs(mutators) do
 		print(i, v:get_name())
 	end
@@ -73,7 +73,7 @@ vmf.sort_mutators = function()
 
 		numIter = numIter + 1
 		if numIter > maxIter then
-			vmf:error("Mutators: too many iterations. Check for loops in 'enable_before_these'/'enable_after_these'.")
+			manager:error("Mutators: too many iterations. Check for loops in 'enable_before_these'/'enable_after_these'.")
 			return
 		end
 	end
@@ -88,7 +88,7 @@ vmf.sort_mutators = function()
 end
 
 -- Disables mutators that cannot be enabled right now
-vmf.disable_impossible_mutators = function()
+manager.disable_impossible_mutators = function()
 	local disabled_mutators = {}
 	for _, mutator in pairs(mutators) do
 		if mutator:is_enabled() and not mutator:can_be_enabled() then
@@ -104,9 +104,9 @@ end
 	PRIVATE METHODS
 ]]--
 
-local update_mutators_view, get_map_view = dofile("scripts/mods/vmf/modules/mutators/gui")
-local addDice, removeDice = dofile("scripts/mods/vmf/modules/mutators/dice")
-local set_lobby_data = dofile("scripts/mods/vmf/modules/mutators/info")
+local mutators_view = manager:dofile("scripts/mods/vmf/modules/mutators/mutator_gui")
+local addDice, removeDice = manager:dofile("scripts/mods/vmf/modules/mutators/mutator_dice")
+local set_lobby_data = manager:dofile("scripts/mods/vmf/modules/mutators/mutator_info")
 
 -- Adds mutator names from enable_these_after to the list of mutators that should be enabled after the mutator_name
 local function update_mutators_sequence(mutator_name, enable_these_after)
@@ -116,7 +116,7 @@ local function update_mutators_sequence(mutator_name, enable_these_after)
 	for _, other_mutator_name in ipairs(enable_these_after) do
 
 		if mutators_sequence[other_mutator_name] and table.has_item(mutators_sequence[other_mutator_name], mutator_name) then
-			vmf:error("Mutators '" .. mutator_name .. "' and '" .. other_mutator_name .. "' are both set to load after the other one.")
+			manager:error("Mutators '" .. mutator_name .. "' and '" .. other_mutator_name .. "' are both set to load after the other one.")
 		elseif not table.has_item(mutators_sequence[mutator_name], other_mutator_name) then
 			table.insert(mutators_sequence[mutator_name], other_mutator_name)
 		end
@@ -186,7 +186,7 @@ local function disable_incompatible_with(mutator)
 	end
 	if names then
 		-- TODO: output this to the menu instead of chat
-		vmf:echo("These mutators are incompatible with " .. mutator:get_name() .. " and were disabled: " .. names)
+		manager:echo("These mutators are incompatible with " .. mutator:get_name() .. " and were disabled: " .. names)
 	end
 end
 
@@ -223,7 +223,7 @@ local function set_mutator_state(mutator, state)
 
 	-- Sort mutators if this is the first call
 	if not mutators_sorted then
-		vmf.sort_mutators()
+		manager.sort_mutators()
 	end
 
 	-- Disable mutators that aren't compatible
@@ -268,8 +268,6 @@ local function set_mutator_state(mutator, state)
 		end
 	end
 
-	update_mutators_view()
-
 	print("---------")
 end
 
@@ -280,12 +278,12 @@ end
 
 -- Enables mutator (pcall for now)
 local function enable_mutator(self)
-	vmf:pcall(function() set_mutator_state(self, true) end)
+	manager:pcall(function() set_mutator_state(self, true) end)
 end
 
 -- Disables mutator (pcall for now)
 local function disable_mutator(self)
-	vmf:pcall(function() set_mutator_state(self, false) end)
+	manager:pcall(function() set_mutator_state(self, false) end)
 end
 
 -- Checks current difficulty and map selection screen settings to determine if a mutator can be enabled
@@ -296,7 +294,7 @@ local function can_be_enabled(self)
 	local actual_difficulty = Managers.state and Managers.state.difficulty:get_difficulty()
 	local right_difficulty = not actual_difficulty or table.has_item(mutator_difficulties, actual_difficulty)
 
-	local map_view = get_map_view()
+	local map_view = mutators_view.map_view
 	local map_view_active = map_view and map_view.active
 	local right_unapplied_difficulty = false
 
@@ -366,8 +364,8 @@ end
 --[[
 	HOOKS
 ]]--
-vmf:hook("DifficultyManager.set_difficulty", function(func, self, difficulty)
-	local disabled_mutators = vmf.disable_impossible_mutators()
+manager:hook("DifficultyManager.set_difficulty", function(func, self, difficulty)
+	local disabled_mutators = manager.disable_impossible_mutators()
 	if #disabled_mutators > 0 then
 		local message = "MUTATORS DISABLED DUE TO DIFFICULTY CHANGE:"
 		for _, mutator in ipairs(disabled_mutators) do

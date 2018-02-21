@@ -1,4 +1,4 @@
-local vmf = get_mod("VMF")
+local manager = get_mod("vmf_mutator_manager")
 
 local missions = {
 	"bonus_dice_hidden_mission",
@@ -12,7 +12,7 @@ local num_dice_per_mission = {
 	grimoire_hidden_mission = 0
 }
 
-vmf:hook("GameModeManager.complete_level", function(func, self)
+manager:hook("GameModeManager.complete_level", function(func, self)
 	local num_dice = 0
 	local max_dice = 7
 	local mission_system = Managers.state.entity:system("mission_system")

@@ -1,5 +1,5 @@
-local vmf = get_mod("VMF")
-local mutators = vmf.mutators
+local manager = get_mod("vmf_mutator_manager")
+local mutators = manager.mutators
 
 local were_enabled_before = false
 
@@ -59,7 +59,7 @@ local function get_member_func(client_cookie)
 end
 
 
-vmf:hook("IngamePlayerListUI.set_difficulty_name", function(func, self, name)
+manager:hook("IngamePlayerListUI.set_difficulty_name", function(func, self, name)
 	local mutators_name = get_enabled_mutators_names(true)
 	if mutators_name then
 		name = name .. " " .. mutators_name
@@ -67,7 +67,7 @@ vmf:hook("IngamePlayerListUI.set_difficulty_name", function(func, self, name)
 	self.headers.content.game_difficulty = name
 end)
 
-vmf:hook("MatchmakingStateHostGame.host_game", function(func, self, ...)
+manager:hook("MatchmakingStateHostGame.host_game", function(func, self, ...)
 	func(self, ...)
 	set_lobby_data()
 	local names = get_enabled_mutators_names()
@@ -80,13 +80,13 @@ vmf:hook("MatchmakingStateHostGame.host_game", function(func, self, ...)
 	end
 end)
 
-vmf:hook("MatchmakingManager.rpc_matchmaking_request_join_lobby", function(func, self, sender, client_cookie, host_cookie, lobby_id, friend_join)
+manager:hook("MatchmakingManager.rpc_matchmaking_request_join_lobby", function(func, self, sender, client_cookie, host_cookie, lobby_id, friend_join)
 	local name = get_enabled_mutators_names(false)
 	if name then
 		local message = "[Automated message] This lobby has the following difficulty mod active : " .. name
-		vmf:hook("Managers.chat.channels[1].members_func", get_member_func(client_cookie))
+		manager:hook("Managers.chat.channels[1].members_func", get_member_func(client_cookie))
 		Managers.chat:send_system_chat_message(1, message, 0, true)
-		vmf:hook_remove("Managers.chat.channels[1].members_func")
+		manager:hook_remove("Managers.chat.channels[1].members_func")
 	end
 	func(self, sender, client_cookie, host_cookie, lobby_id, friend_join)
 end)
