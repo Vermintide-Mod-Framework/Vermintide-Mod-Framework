@@ -155,7 +155,7 @@ VMFMod.dofile = function (self, script_path)
   if not success then
     self:error("(loadfile): %s", value.error)
 
-    print("\nTRACEBACK:\n\n" .. value.traceback .. "\nLOCALS:\n\n" .. value.locals)
+    print("\nTRACEBACK:\n\n" .. tostring(value.traceback) .. "\nLOCALS:\n\n" .. tostring(value.locals))
   end
 
   return value
