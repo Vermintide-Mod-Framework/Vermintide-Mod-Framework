@@ -1,3 +1,5 @@
+--[[ Add ability to turn mods into mutators --]]
+
 local manager = new_mod("vmf_mutator_manager")
 
 manager:localization("localization/mutator_manager")
@@ -103,8 +105,8 @@ manager.disable_impossible_mutators = function(notify, everybody)
 	end
 	if #disabled_mutators > 0 and notify then
 		local message = everybody and "MUTATORS DISABLED DUE TO DIFFICULTY CHANGE:" or "Mutators disabled due to difficulty change:"
-		for _, mutator in ipairs(disabled_mutators) do
-			message = message .. " " .. (mutator:get_config().title or mutator:get_name())
+		for i, mutator in ipairs(disabled_mutators) do
+			message = message .. (i == 1 and " " or ", ") .. (mutator:get_config().title or mutator:get_name())
 		end
 		if everybody then
 			Managers.chat:send_system_chat_message(1, message, 0, true)
@@ -275,14 +277,14 @@ local function disable_mutator(self)
 	manager:pcall(function() set_mutator_state(self, false) end)
 end
 
--- Checks current difficulty and map selection screen settings to determine if a mutator can be enabled
+-- Checks current difficulty, map selection screen settings (optionally) and incompatible mutators to determine if a mutator can be enabled
 local function can_be_enabled(self, ignore_map)
 
 	if #self:get_incompatible_mutators(true) > 0 then return false end
 	return self:supports_current_difficulty(ignore_map)
-
 end
 
+-- Only checks difficulty
 local function supports_current_difficulty(self, ignore_map)
 	local mutator_difficulty_levels = self:get_config().difficulty_levels
 	local actual_difficulty = Managers.state and Managers.state.difficulty:get_difficulty()
@@ -308,6 +310,7 @@ local function get_config(self)
 	return mutators_config[self:get_name()]
 end
 
+-- Returns a list of incompatible with self mutators, all or only enabled ones
 local function get_incompatible_mutators(self, enabled_only)
 	local incompatible_mutators = {}
 	for _, other_mutator in ipairs(mutators) do
@@ -382,71 +385,14 @@ manager:hook("DifficultyManager.set_difficulty", function(func, self, difficulty
 end)
 
 
--- Initialize mutators view after map view
-manager:hook("MapView.init", function(func, self, ...)
-	func(self, ...)
-	manager:pcall(function() mutators_view:init(self) end)
-end)
-
--- Destroy mutators view after map view
-manager:hook("MapView.destroy", function(func, ...)
-	mutators_view:deinitialize()
-	func(...)
-end)
-
+--[[
+	INITIALIZE
+--]]
 
 -- Initialize mutators view when map_view has been initialized already
 manager:pcall(function() mutators_view:init(mutators_view:get_map_view()) end)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 --[[
 	Testing
 --]]
-local mutator2 = new_mod("mutator2")
-local mutator3 = new_mod("mutator3")
-local mutator555 = new_mod("mutator555")
-
-mutator555:register_as_mutator({
-	incompatible_with_all = true
-})
-mutator555:create_options({}, true, "mutator555", "mutator555 description")
-mutator555.on_enabled = function() end
-mutator555.on_disabled = function() end
-
-
-mutator3:register_as_mutator({
-	incompatible_with = {
-		"mutator4"
-	}
-})
-mutator3.on_enabled = function() end
-mutator3.on_disabled = function() end
-
-mutator2:register_as_mutator({
-	compatible_with_all = true,
-	difficulty_levels = {
-		"hardest"
-	}
-})
-mutator2.on_enabled = function() end
-mutator2.on_disabled = function() end
-
---[[for i=4,17 do
-	local mutator = new_mod("mutator" .. i)
-	mutator:register_as_mutator({})
-	mutator.on_enabled = function() end
-	mutator.on_disabled = function() end
-end--]]
+manager:dofile("scripts/mods/vmf/modules/mutators/mutator_test")

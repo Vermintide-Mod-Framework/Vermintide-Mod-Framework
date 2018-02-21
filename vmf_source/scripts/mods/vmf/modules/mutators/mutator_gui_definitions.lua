@@ -1,8 +1,10 @@
 local definitions = local_require("scripts/ui/views/map_view_definitions")
 local scenegraph_definition = definitions.scenegraph_definition
 
+-- Mutators to show per page
 definitions.PER_PAGE = 6
 
+-- Button to toggle mutators view
 scenegraph_definition.mutators_button = {
 	vertical_alignment = "bottom",
 	parent = "banner_party",
@@ -17,6 +19,8 @@ scenegraph_definition.mutators_button = {
 		1
 	}
 }
+
+-- This will replace the Mission text
 scenegraph_definition.banner_mutators_text = {
 	vertical_alignment = "center",
 	parent = "banner_level",
@@ -34,30 +38,35 @@ scenegraph_definition.banner_mutators_text = {
 
 
 local new_widgets = {
+
+	-- This will replace the banner behind the Mission text
 	banner_mutators_widget = UIWidgets.create_texture_with_text_and_tooltip("title_bar", "Mutators", "Enable and disable mutators", "banner_level", "banner_mutators_text", {
-		vertical_alignment = "center",
-		scenegraph_id = "banner_mutators_text",
-		localize = false,
-		font_size = 28,
-		horizontal_alignment = "center",
-		font_type = "hell_shark",
-		text_color = Colors.get_color_table_with_alpha("cheeseburger", 255)
-	},
-	{
-		font_size = 24,
-		max_width = 500,
-		localize = false,
-		horizontal_alignment = "left",
-		vertical_alignment = "top",
-		font_type = "hell_shark",
-		text_color = Colors.get_color_table_with_alpha("white", 255),
-		line_colors = {},
-		offset = {
-			0,
-			0,
-			50
+			vertical_alignment = "center",
+			scenegraph_id = "banner_mutators_text",
+			localize = false,
+			font_size = 28,
+			horizontal_alignment = "center",
+			font_type = "hell_shark",
+			text_color = Colors.get_color_table_with_alpha("cheeseburger", 255)
+		},
+		{
+			font_size = 24,
+			max_width = 500,
+			localize = false,
+			horizontal_alignment = "left",
+			vertical_alignment = "top",
+			font_type = "hell_shark",
+			text_color = Colors.get_color_table_with_alpha("white", 255),
+			line_colors = {},
+			offset = {
+				0,
+				0,
+				50
+			}
 		}
-	}),
+	),
+
+	-- Button to toggle mutators view
 	mutators_button_widget = {
 		element = UIElements.ToggleIconButton,
 		content = {
@@ -172,6 +181,7 @@ local new_widgets = {
 	}
 }
 
+-- Checkboxes
 for i = 1, definitions.PER_PAGE do
 	new_widgets["mutator_checkbox_" .. i] = {
 		scenegraph_id = "mutator_checkbox_" .. i,

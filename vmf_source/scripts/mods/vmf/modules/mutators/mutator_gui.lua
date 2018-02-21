@@ -1,3 +1,5 @@
+--[[ Add mutators panel to the map view --]]
+
 local manager  = get_mod("vmf_mutator_manager")
 local mutators = manager.mutators
 
@@ -149,28 +151,40 @@ local mutators_view = {
 		end
 	end,
 
+	-- Sets appropriate text and style to checkboxes, hides/shows them as needed
 	update_checkboxes = function(self)
 
 		local widgets = self.map_view.normal_settings_widget_types
 
 		for i = 1, PER_PAGE do
+
 			local current_index = PER_PAGE * (self.current_page - 1) + i
+
 			local checkbox = self.mutator_checkboxes[i]
 			local hotspot = checkbox.content.button_hotspot
+
+			-- Hide if fewer mutators shown than there are checkboxes
 			if #self.mutators_sorted < current_index then
+
 				checkbox.content.setting_text = ""
 				checkbox.content.tooltip_text = ""
+
+				-- Remove from render lists
 				widgets.adventure["mutator_checkbox_" .. i] = nil
 				widgets.survival["mutator_checkbox_" .. i] = nil
 			else
 				local mutator_info = self.mutators_sorted[current_index]
 				local mutator = get_mod(mutator_info[1])
 
+				-- Set text and tooltip
 				checkbox.content.setting_text = mutator_info[2]
 				checkbox.content.tooltip_text = self:generate_tooltip_for(mutator)
+
+				-- Add to render lists
 				widgets.adventure["mutator_checkbox_" .. i] = checkbox
 				widgets.survival["mutator_checkbox_" .. i] = checkbox
 
+				-- Set colors based on whether mutator can be enabled
 				local active = mutator:can_be_enabled()
 				local color = active and "cheeseburger" or "slate_gray"
 				local color_hover = active and "white" or "slate_gray"
@@ -178,10 +192,12 @@ local mutators_view = {
 				checkbox.style.setting_text_hover.text_color = Colors.get_color_table_with_alpha(color_hover, 255)
 				checkbox.style.checkbox_style.color = Colors.get_color_table_with_alpha(color_hover, 255)
 
+				-- Sound on hover
 				if hotspot.on_hover_enter then
 					self.map_view:play_sound("Play_hud_hover")
 				end
 
+				-- Click event
 				if hotspot.on_release then
 					self.map_view:play_sound("Play_hud_hover")
 					if mutator:is_enabled() then
@@ -190,11 +206,13 @@ local mutators_view = {
 						mutator:enable()
 					end
 				end
+
 				checkbox.content.selected = mutator:is_enabled()
 			end
 		end
 	end,
 
+	-- Activate on button click or map open
 	activate = function(self)
 		if not self.initialized or not self.map_view.active or self.active then return end
 
@@ -225,6 +243,7 @@ local mutators_view = {
 		--print("ACTIVE!")
 	end,
 
+	-- Deactivate on button click or map close
 	deactivate = function(self)
 		if not self.initialized or not self.active then return end
 
@@ -258,6 +277,7 @@ local mutators_view = {
 		--print("DEACTIVE")
 	end,
 
+	-- Changes which muttators are displayed
 	on_mutators_page_change = function(self, index_change)
 		if not self.initialized then return end
 
@@ -278,11 +298,14 @@ local mutators_view = {
 		end
 	end,
 
+	-- Creates and return text for checkbox tooltip
 	generate_tooltip_for = function(self, mutator)
+		-- Description
 		local config = mutator:get_config()
 		local text = config.description
-		local supports_difficulty = mutator:supports_current_difficulty()
 
+		-- Show supported difficulty when can't be enabled due to difficulty level
+		local supports_difficulty = mutator:supports_current_difficulty()
 		if not supports_difficulty then
 			text = text .. "\nSupported difficulty levels:"
 			for i, difficulty in ipairs(config.difficulty_levels) do
@@ -290,13 +313,19 @@ local mutators_view = {
 			end
 		end
 
+		-- Show enabled incompatible
 		local incompatible_mutators = mutator:get_incompatible_mutators(true)
 		local currently_compatible = #incompatible_mutators == 0
+
+		-- Or all incompatible if difficulty is compatible
 		if supports_difficulty and #incompatible_mutators == 0 then
 			incompatible_mutators = mutator:get_incompatible_mutators()
 		end
+
 		if #incompatible_mutators > 0 then
+
 			if currently_compatible and config.incompatible_with_all or #incompatible_mutators == #mutators - 1 then
+				-- Show special message when incompatible with all
 				text = text .. "\nIncompatible with all other mutators"
 			else
 				text = text .. "\nIncompatible with:"
@@ -305,10 +334,13 @@ local mutators_view = {
 					text = text .. (i == 1 and " " or ", ") .. name
 				end
 			end
+
 		elseif config.compatible_with_all then
+			-- Special message when compatible with all
 			text = text .. "\nCompatible with all other mutators"
 		end
 
+		-- Special message if switched to unsupported difficulty level
 		if mutator:is_enabled() and not supports_difficulty then
 			text = text .. "\nWill be disabled when Play is pressed"
 		end
@@ -382,5 +414,17 @@ local mutators_view = {
 		return ingame_ui and ingame_ui.views and ingame_ui.views.map_view
 	end
 }
+
+-- Initialize mutators view after map view
+manager:hook("MapView.init", function(func, self, ...)
+	func(self, ...)
+	manager:pcall(function() mutators_view:init(self) end)
+end)
+
+-- Destroy mutators view after map view
+manager:hook("MapView.destroy", function(func, ...)
+	mutators_view:deinitialize()
+	func(...)
+end)
 
 return mutators_view
