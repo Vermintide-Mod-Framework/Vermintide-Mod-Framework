@@ -6,6 +6,7 @@ return {
 	},
 	title = "",
 	short_title = "",
+	title_placement = "after",
 	description = "No description provided",
 	difficulty_levels = {
 		"easy",

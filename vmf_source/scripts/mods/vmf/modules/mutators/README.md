@@ -24,6 +24,7 @@ The config object is optional but obviously you'd want to provide at least a rea
 	title = "",
 	short_title = "",
 	description = "No description provided",
+	title_placement = "after",
 	dice = {
 		grims = 0,
 		tomes = 0,
@@ -57,6 +58,10 @@ The short title will be used in the lobby browser.
 
 ``description = "No description provided"``  
 The description will show up in the tooltip of your mutator on the map screen.
+
+``title_placement = "after"``  
+The determines where the title of your mod will be placed in the tab menu, the lobby name and chat messages: before all other, after all other or in the middle instead of the regular difficulty name (if it is present).  
+Possible values: `"before", "after", "replace"`  
 
 ``dice = { grims = 0, tomes = 0, bonus = 0 }``  
 This determines how many additional dice the players will get for completing maps with your mutator enabled.

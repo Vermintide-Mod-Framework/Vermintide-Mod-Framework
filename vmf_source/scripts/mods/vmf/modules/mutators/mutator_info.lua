@@ -6,20 +6,14 @@ local mutators = manager.mutators
 local were_enabled_before = false
 
 -- Assembles a list of enabled mutators
-local function get_enabled_mutators_names(separator, short)
-	local name = nil
+local function add_enabled_mutators_titles_to_string(str, separator, short)
+	local _mutators = {}
 	for _, mutator in ipairs(mutators) do
-		local config = mutator:get_config()
 		if mutator:is_enabled() then
-			local added_name = (short and config.short_title or config.title or mutator:get_name())
-			if name then
-				name = name .. separator .. added_name
-			else
-				name = added_name
-			end
+			table.insert(_mutators, mutator)
 		end
 	end
-	return name
+	return manager.add_mutator_titles_to_string(_mutators, str, separator, short)
 end
 
 -- Sets the lobby name
@@ -32,10 +26,10 @@ local function set_lobby_data()
 		not Managers.matchmaking.lobby.get_stored_lobby_data 
 	) then return end
 
-	local name = get_enabled_mutators_names(" ", true)
+	local name = add_enabled_mutators_titles_to_string("", " ", true)
 
 	local default_name = LobbyAux.get_unique_server_name()
-	if name then
+	if string.len(name) > 0 then
 		name = "||" .. name .. "|| " .. default_name
 	else
 		name = default_name
@@ -66,14 +60,9 @@ manager:hook("IngamePlayerListUI.update_difficulty", function(func, self)
 	local difficulty_settings = Managers.state.difficulty:get_difficulty_settings()
 	local difficulty_name =  difficulty_settings.display_name
 
-	local name = not self.is_in_inn and Localize(difficulty_name) or nil
-	local mutators_name = get_enabled_mutators_names(" ", true)
-	if mutators_name then
-		if name then name = name .. " " else name = "" end
-		name = name .. mutators_name
-	else
-		name = "" 
-	end
+	local name = not self.is_in_inn and Localize(difficulty_name) or ""
+	name = add_enabled_mutators_titles_to_string(name, " ", true)
+
 	self.set_difficulty_name(self, name)
 
 	self.current_difficulty_name = difficulty_name
@@ -83,8 +72,8 @@ end)
 manager:hook("MatchmakingStateHostGame.host_game", function(func, self, ...)
 	func(self, ...)
 	set_lobby_data()
-	local names = get_enabled_mutators_names(", ")
-	if names then
+	local names = add_enabled_mutators_titles_to_string("", ", ")
+	if string.len(names) > 0 then
 		manager:chat_broadcast("ENABLED MUTATORS: " .. names)
 		were_enabled_before = true
 	elseif were_enabled_before then
@@ -95,8 +84,8 @@ end)
 
 -- Send special messages with enabled mutators list to players just joining the lobby
 manager:hook("MatchmakingManager.rpc_matchmaking_request_join_lobby", function(func, self, sender, client_cookie, host_cookie, lobby_id, friend_join)
-	local name = get_enabled_mutators_names(", ")
-	if name then
+	local name = add_enabled_mutators_titles_to_string("", ", ")
+	if string.len(name) > 0 then
 		local message = "[Automated message] This lobby has the following difficulty mod active : " .. name
 		manager:chat_whisper(get_peer_id_from_cookie(client_cookie), message)
 	end

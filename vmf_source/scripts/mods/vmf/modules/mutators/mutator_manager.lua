@@ -253,9 +253,7 @@ manager.disable_impossible_mutators = function(notify, everybody, reason)
 	if #disabled_mutators > 0 and notify then
 		if not reason then reason = "" end
 		local message = everybody and "MUTATORS DISABLED " .. reason .. ":" or "Mutators disabled " .. reason .. ":"
-		for i, mutator in ipairs(disabled_mutators) do
-			message = message .. (i == 1 and " " or ", ") .. (mutator:get_config().title or mutator:get_name())
-		end
+		message = message .. " " .. manager.add_mutator_titles_to_string(disabled_mutators, "", ", ", false)
 		if everybody then
 			manager:chat_broadcast(message)
 		else
@@ -270,6 +268,48 @@ manager.update = function()
 	if not player_is_server() then
 		manager.disable_impossible_mutators(true, false, "because you're no longer the host")
 	end
+end
+
+-- Appends, prepends and replaces the string with mutator titles
+manager.add_mutator_titles_to_string = function(_mutators, str, separator, short)
+	
+	if #_mutators == 0 then return str end
+
+	local before = nil
+	local after = nil
+	local replace = nil
+
+	for _, mutator in ipairs(_mutators) do
+		local config = mutator:get_config()
+		local added_name = (short and config.short_title or config.title or mutator:get_name())
+		if config.title_placement == "before" then
+			if before then
+				before = added_name .. separator .. before
+			else
+				before = added_name
+			end
+		elseif config.title_placement == "replace" then
+			if replace then
+				replace = replace .. separator .. added_name
+			else
+				replace = added_name
+			end
+		else			
+			if after then
+				after = after .. separator .. added_name
+			else
+				after = added_name
+			end
+		end
+	end
+	local new_str = replace or str
+	if before then
+		new_str = before .. (string.len(new_str) > 0 and separator or "") .. new_str
+	end
+	if after then
+		new_str = new_str .. (string.len(new_str) > 0 and separator or "") .. after
+	end
+	return new_str
 end
 
 
@@ -406,5 +446,6 @@ mutators_view:init(mutators_view:get_map_view())
 --[[
 	Testing
 --]]
---manager:dofile("scripts/mods/vmf/modules/mutators/mutator_test")
---manager:dofile("scripts/mods/vmf/modules/mutators/mutators/mutation")
+-- manager:dofile("scripts/mods/vmf/modules/mutators/mutator_test")
+-- manager:dofile("scripts/mods/vmf/modules/mutators/mutators/mutation")
+-- manager:dofile("scripts/mods/vmf/modules/mutators/mutators/deathwish")
