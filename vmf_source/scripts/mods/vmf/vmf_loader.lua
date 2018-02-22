@@ -21,6 +21,8 @@ return {
 		dofile("scripts/mods/vmf/modules/options_menu/vmf_options_view")
 		dofile("scripts/mods/vmf/modules/vmf_options")
 
+		dofile("scripts/mods/vmf/modules/mutators/mutator_manager")
+
 		object.vmf = get_mod("VMF")
 
 		-- temporary solution:

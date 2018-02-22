@@ -11,7 +11,7 @@ material = [
 ]
 
 lua = [
-  "localization/vmf"
+  "localization/*"
 
   "scripts/mods/vmf/*"
   "scripts/mods/vmf/functions/*"
@@ -20,4 +20,5 @@ lua = [
   "scripts/mods/vmf/modules/debug/*"
   "scripts/mods/vmf/modules/gui/*"
   "scripts/mods/vmf/modules/options_menu/*"
+  "scripts/mods/vmf/modules/mutators/*"
 ]

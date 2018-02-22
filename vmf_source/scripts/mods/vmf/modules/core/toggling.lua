@@ -52,13 +52,11 @@ VMFMod.enable = function (self)
   end
 end
 
-VMFMod.init_state = function (self)
-
-  if _DISABLED_MODS_LIST[self:get_name()] then
-    change_mod_state(self, false, true)
-  else
-    change_mod_state(self, true, true)
+VMFMod.init_state = function (self, state)
+  if type(state) ~= "boolean" then 
+    state = not _DISABLED_MODS_LIST[self:get_name()]
   end
+  change_mod_state(self, state, true)
 end
 
 -- ####################################################################################################################
