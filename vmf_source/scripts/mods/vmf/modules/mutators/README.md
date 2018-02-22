@@ -97,7 +97,7 @@ You can improve the compatibility of your mutator with other ones by specifiying
 
 Mutators have the same methods and event handlers as other mods plus a few additional ones. These are mostly used behind the scenes.  
 
-``mutator:get_config()`` - returns the configuration object without `load_before_these/load_after_these` fields. This shouldn't be modified.
+``mutator:get_config()`` - returns the configuration object without `enable_before_these/enable_after_these` fields. This shouldn't be modified.
 
 ``mutator:can_be_enabled(ignore_map)`` - returns whether the difficulty is right for the mutator and that there are no incompatible mutators enabled. `ignore_map` only takes into account the set difficulty and ignores difficulty selection on the map screen before Play button is pressed.
 
