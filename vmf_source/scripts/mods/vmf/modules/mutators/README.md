@@ -105,3 +105,10 @@ Mutators have the same methods and event handlers as other mods plus a few addit
 
 ``mutator:get_incompatible_mutators(enabled_only)`` - returns an array of incompatible mutators. `enabled_only` only checks for enabled ones.
 
+The mutators module creates a new mod `vmf_mutator_manager` that has a few additional fields and methods:  
+
+`get_mod("vmf_mutator_manager").mutators` - array of all mutators. A mod can be checked for being a mutator: `table.has_item(get_mod("vmf_mutator_manager").mutators, mod)`
+
+`get_mod("vmf_mutator_manager").sort_mutators()` - this sorts the mutators in order they should be enabled/disabled. As this only happens when mutators are first enabled and not when they are added, I decided to expose this method for possible future use.  
+
+`get_mod("vmf_mutator_manager").disable_impossible_mutators(notify, everybody)` - disables mutators that can't be enabled on current difficulty settings. This takes into account the difficulty set on the map screen, which is what this was used for at first, but that feature has been disabled due to being annoying. Again, this is exposed for potential future use.
