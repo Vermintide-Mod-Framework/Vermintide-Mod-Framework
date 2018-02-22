@@ -1,3 +1,4 @@
+
 local definitions = local_require("scripts/ui/views/map_view_definitions")
 local scenegraph_definition = definitions.scenegraph_definition
 
@@ -75,8 +76,8 @@ local new_widgets = {
 			toggle_texture = "octagon_button_toggled",
 			hover_texture = "octagon_button_hover",
 			normal_texture = "octagon_button_normal",
-			icon_texture = "map_icon_browser_01",
-			icon_hover_texture = "map_icon_browser_01",
+			icon_texture = "mutator_button",
+			icon_hover_texture = "mutator_button_hover",
 			tooltip_text = "Mutators",
 			toggled_tooltip_text = "Mutators",
 			button_hotspot = {}

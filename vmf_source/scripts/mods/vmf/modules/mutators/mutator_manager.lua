@@ -109,7 +109,7 @@ manager.disable_impossible_mutators = function(notify, everybody)
 			message = message .. (i == 1 and " " or ", ") .. (mutator:get_config().title or mutator:get_name())
 		end
 		if everybody then
-			Managers.chat:send_system_chat_message(1, message, 0, true)
+			manager:chat_broadcast(message)
 		else
 			manager:echo(message)
 		end
@@ -395,4 +395,4 @@ manager:pcall(function() mutators_view:init(mutators_view:get_map_view()) end)
 --[[
 	Testing
 --]]
-manager:dofile("scripts/mods/vmf/modules/mutators/mutator_test")
+--manager:dofile("scripts/mods/vmf/modules/mutators/mutator_test")

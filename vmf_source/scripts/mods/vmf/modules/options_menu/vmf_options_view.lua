@@ -19,6 +19,10 @@ inject_material("materials/vmf/header_fav_icon_lit", "header_fav_icon_lit", "ing
 inject_material("materials/vmf/header_fav_arrow", "header_fav_arrow", "ingame_ui")
 inject_material("materials/vmf/search_bar_icon", "search_bar_icon", "ingame_ui")
 
+-- TODO: move to mutator_gui
+inject_material("materials/vmf/mutator_button", "mutator_button", "ingame_ui")
+inject_material("materials/vmf/mutator_button_hover", "mutator_button_hover", "ingame_ui")
+
 
 -- ####################################################################################################################
 -- ##### MENU WIDGETS DEFINITIONS #####################################################################################
@@ -4215,7 +4219,11 @@ if ingame_ui_exists then
   "material",
   "materials/vmf/header_fav_arrow",
   "material",
-  "materials/vmf/search_bar_icon")
+  "materials/vmf/search_bar_icon",
+  "material",
+  "materials/vmf/mutator_button",
+  "material",
+  "materials/vmf/mutator_button_hover")
 
   local gui_retained = World.create_screen_gui(ingame_ui.ui_renderer.world,
   "material",
@@ -4237,7 +4245,11 @@ if ingame_ui_exists then
   "material",
   "materials/vmf/header_fav_arrow",
   "material",
-  "materials/vmf/search_bar_icon")
+  "materials/vmf/search_bar_icon",
+  "material",
+  "materials/vmf/mutator_button",
+  "material",
+  "materials/vmf/mutator_button_hover")
 
   World.destroy_gui(ingame_ui.ui_renderer.world, ingame_ui.ui_renderer.gui)
   World.destroy_gui(ingame_ui.ui_renderer.world, ingame_ui.ui_renderer.gui_retained)
@@ -4265,7 +4277,11 @@ if ingame_ui_exists then
   "material",
   "materials/vmf/header_fav_arrow",
   "material",
-  "materials/vmf/search_bar_icon")
+  "materials/vmf/search_bar_icon",
+  "material",
+  "materials/vmf/mutator_button",
+  "material",
+  "materials/vmf/mutator_button_hover")
 
   gui_retained = World.create_screen_gui(ingame_ui.ui_top_renderer.world,
   "material",
@@ -4287,7 +4303,11 @@ if ingame_ui_exists then
   "material",
   "materials/vmf/header_fav_arrow",
   "material",
-  "materials/vmf/search_bar_icon")
+  "materials/vmf/search_bar_icon",
+  "material",
+  "materials/vmf/mutator_button",
+  "material",
+  "materials/vmf/mutator_button_hover")
 
   World.destroy_gui(ingame_ui.ui_top_renderer.world, ingame_ui.ui_top_renderer.gui)
   World.destroy_gui(ingame_ui.ui_top_renderer.world, ingame_ui.ui_top_renderer.gui_retained)

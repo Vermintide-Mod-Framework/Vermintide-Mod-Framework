@@ -42,9 +42,8 @@ local function set_lobby_data()
 	Managers.matchmaking.lobby:set_lobby_data(lobby_data)
 end
 
--- Return a function for chat system to only send messages to specific client 
--- TODO: test if this works
-local function get_member_func(client_cookie)
+-- Return a function for chat system to only send messages to specific client
+local function get_peer_id_from_cookie(client_cookie)
 	local peer_id = tostring(client_cookie)
 	for _ = 1, 3 do
 		peer_id = string.sub(peer_id, 1 + tonumber(tostring(string.find(peer_id,"-"))))
@@ -54,24 +53,25 @@ local function get_member_func(client_cookie)
 	peer_id = string.sub(peer_id, 2)
 	peer_id = string.reverse(peer_id)
 
-	return function()
-		for _, v in ipairs(Managers.matchmaking.lobby:members():get_members()) do
-			if v == peer_id then
-				return {v}
-			end
-		end
-		return Managers.matchmaking.lobby:members():get_members()
-	end
+	return peer_id
 end
 
--- Set difficulty in the tab menu 
--- TODO: see if this can be set every time a mutator is enabled/disable
-manager:hook("IngamePlayerListUI.set_difficulty_name", function(func, self, name)
+-- Append difficulty name with enabled mutators' titles
+manager:hook("IngamePlayerListUI.update_difficulty", function(func, self)
+	local difficulty_settings = Managers.state.difficulty:get_difficulty_settings()
+	local difficulty_name =  difficulty_settings.display_name
+
+	local name = not self.is_in_inn and Localize(difficulty_name) or nil
 	local mutators_name = get_enabled_mutators_names(" ", true)
 	if mutators_name then
-		name = name .. " " .. mutators_name
+		if name then name = name .. " " else name = "" end
+		name = name .. mutators_name
+	else
+		name = "" 
 	end
-	self.headers.content.game_difficulty = name
+	self.set_difficulty_name(self, name)
+
+	self.current_difficulty_name = difficulty_name
 end)
 
 -- Notify everybody about enabled/disabled mutators when Play button is pressed on the map screen
@@ -79,24 +79,22 @@ manager:hook("MatchmakingStateHostGame.host_game", function(func, self, ...)
 	func(self, ...)
 	set_lobby_data()
 	local names = get_enabled_mutators_names(", ")
+	manager:echo("TEST")
 	if names then
-		Managers.chat:send_system_chat_message(1, "ENABLED MUTATORS: " .. names, 0, true)
+		manager:chat_broadcast("ENABLED MUTATORS: " .. names)
 		were_enabled_before = true
 	elseif were_enabled_before then
-		Managers.chat:send_system_chat_message(1, "ALL MUTATORS DISABLED", 0, true)
+		manager:chat_broadcast("ALL MUTATORS DISABLED")
 		were_enabled_before = false
 	end
 end)
 
 -- Send special messages with enabled mutators list to players just joining the lobby
--- TODO: test if this works
 manager:hook("MatchmakingManager.rpc_matchmaking_request_join_lobby", function(func, self, sender, client_cookie, host_cookie, lobby_id, friend_join)
 	local name = get_enabled_mutators_names(", ")
 	if name then
 		local message = "[Automated message] This lobby has the following difficulty mod active : " .. name
-		manager:hook("Managers.chat.channels[1].members_func", get_member_func(client_cookie))
-		Managers.chat:send_system_chat_message(1, message, 0, true)
-		manager:hook_remove("Managers.chat.channels[1].members_func")
+		manager:chat_whisper(get_peer_id_from_cookie(client_cookie), message)
 	end
 	func(self, sender, client_cookie, host_cookie, lobby_id, friend_join)
 end)

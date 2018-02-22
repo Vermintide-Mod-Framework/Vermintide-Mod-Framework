@@ -1,0 +1,14 @@
+mutator_button_hover = {
+	material_contexts = {
+		surface_material = ""
+	}
+
+	shader = "gui_gradient:DIFFUSE_MAP"
+
+	textures = {
+		diffuse_map = "gui/vmf/mutator_button_hover"
+	}
+
+	variables = {
+	}
+}
