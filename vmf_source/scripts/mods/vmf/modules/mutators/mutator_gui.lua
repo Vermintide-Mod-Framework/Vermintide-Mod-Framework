@@ -226,11 +226,15 @@ local mutators_view = {
 
 			checkbox.style.checkbox_style.offset[1] = -10000
 			checkbox.style.setting_text.horizontal_alignment = "center"
+			checkbox.style.setting_text_hover.horizontal_alignment = "center"
 			checkbox.style.setting_text.offset[1] = 0
+			checkbox.style.setting_text_hover.offset[1] = 0
 		else
 			checkbox.style.checkbox_style.offset[1] = 0
 			checkbox.style.setting_text.horizontal_alignment = "left"
+			checkbox.style.setting_text_hover.horizontal_alignment = "left"
 			checkbox.style.setting_text.offset[1] = 24
+			checkbox.style.setting_text_hover.offset[1] = 24
 		end
 	end,
 
