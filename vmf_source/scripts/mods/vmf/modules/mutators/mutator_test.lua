@@ -13,7 +13,7 @@ mutator3:register_as_mutator({
 	incompatible_with = {
 		"mutator4"
 	},
-	title = "Stormvermin Mutation"
+	title = "Something"
 })
 mutator3.on_enabled = function() end
 mutator3.on_disabled = function() end
@@ -24,7 +24,8 @@ mutator2:register_as_mutator({
 		"hardest",
 		"survival_hardest"
 	},
-	title = "Deathwish"
+	title = "?Deathwish",
+	title_placement = "after"
 })
 mutator2.on_enabled = function() end
 mutator2.on_disabled = function() end
@@ -44,7 +45,8 @@ slayer.on_disabled = function() end
 local true_solo = new_mod("true_solo")
 true_solo:register_as_mutator({
 	compatible_with_all = true,
-	title = "True Solo"
+	title = "True Solo",
+	title_placement = "before"
 })
 true_solo.on_enabled = function() end
 true_solo.on_disabled = function() end
@@ -58,7 +60,9 @@ onslaught.on_disabled = function() end
 
 local one_hit_one_kill = new_mod("one_hit_one_kill")
 one_hit_one_kill:register_as_mutator({
-	title = "One Hit One Kill"
+	title = "One Hit One Kill",
+	difficulty_levels = {"hardest"},
+	enable_after_these = {"more_rat_weapons"}
 })
 one_hit_one_kill.on_enabled = function() end
 one_hit_one_kill.on_disabled = function() end
@@ -66,7 +70,8 @@ one_hit_one_kill.on_disabled = function() end
 local more_rat_weapons = new_mod("more_rat_weapons")
 more_rat_weapons:register_as_mutator({
 	compatible_with_all = true,
-	title = "More Rat Weapons"
+	title = "More Rat Weapons",
+	difficulty_levels = {"hardest"}
 })
 more_rat_weapons.on_enabled = function() end
 more_rat_weapons.on_disabled = function() end

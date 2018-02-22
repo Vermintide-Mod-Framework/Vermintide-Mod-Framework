@@ -21,4 +21,5 @@ lua = [
   "scripts/mods/vmf/modules/gui/*"
   "scripts/mods/vmf/modules/options_menu/*"
   "scripts/mods/vmf/modules/mutators/*"
+  "scripts/mods/vmf/modules/mutators/mutators/*"
 ]
