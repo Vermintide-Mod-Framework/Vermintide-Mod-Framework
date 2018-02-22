@@ -235,11 +235,11 @@ for i = 1, definitions.PER_PAGE do
 			}
 		},
 		content = {
-			tooltip_text = "Mutator ajksad " .. i,
+			tooltip_text = "",
 			checkbox_unchecked_texture = "checkbox_unchecked",
 			checkbox_checked_texture = "checkbox_checked",
 			selected = false,
-			setting_text = "Mutator asdasasda " .. i * 3,
+			setting_text = "",
 			button_hotspot = {}
 		},
 		style = {

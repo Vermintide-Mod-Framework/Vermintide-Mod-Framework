@@ -28,97 +28,6 @@ local mutators_sorted = false
 
 
 --[[
-	PUBLIC METHODS
-]]--
-
--- Sorts mutators in order they should be enabled
-manager.sort_mutators = function()
-
-	if mutators_sorted then return end
-
-	--[[
-	-- LOG --
-	manager:dump(mutators_sequence, "seq", 5)
-	for i, v in ipairs(mutators) do
-		print(i, v:get_name())
-	end
-	print("-----------")
-	-- /LOG --
-	--]]
-
-	-- Preventing endless loops (worst case is n*(n+1)/2 I believe)
-	local maxIter = #mutators * (#mutators + 1)/2
-	local numIter = 0
-
-	-- The idea is that all mutators before the current one are already in the right order
-	-- Starting from second mutator
-	local i = 2
-	while i <= #mutators do
-		local mutator = mutators[i]
-		local mutator_name = mutator:get_name()
-		local enable_these_after = mutators_sequence[mutator_name] or {}
-
-		-- Going back from the previous mutator to the start of the list
-		local j = i - 1
-		while j > 0 do
-			local other_mutator = mutators[j]
-
-			-- Moving it after the current one if it is to be enabled after it
-			if table.has_item(enable_these_after, other_mutator:get_name()) then
-				table.remove(mutators, j)
-				table.insert(mutators, i, other_mutator)
-
-				-- This will shift the current mutator back, so adjust the index
-				i = i - 1
-			end
-			j = j - 1
-		end
-
-		i = i + 1
-
-		numIter = numIter + 1
-		if numIter > maxIter then
-			manager:error("Mutators: too many iterations. Check for loops in 'enable_before_these'/'enable_after_these'.")
-			return
-		end
-	end
-	mutators_sorted = true
-
-	--[[
-	-- LOG --
-	for k, v in ipairs(mutators) do
-		print(k, v:get_name())
-	end
-	print("-----------")
-	-- /LOG --
-	--]]
-end
-
--- Disables mutators that cannot be enabled right now
-manager.disable_impossible_mutators = function(notify, everybody)
-	local disabled_mutators = {}
-	for _, mutator in pairs(mutators) do
-		if mutator:is_enabled() and not mutator:can_be_enabled() then
-			mutator:disable()
-			table.insert(disabled_mutators, mutator)
-		end
-	end
-	if #disabled_mutators > 0 and notify then
-		local message = everybody and "MUTATORS DISABLED DUE TO DIFFICULTY CHANGE:" or "Mutators disabled due to difficulty change:"
-		for i, mutator in ipairs(disabled_mutators) do
-			message = message .. (i == 1 and " " or ", ") .. (mutator:get_config().title or mutator:get_name())
-		end
-		if everybody then
-			manager:chat_broadcast(message)
-		else
-			manager:echo(message)
-		end
-	end
-	return disabled_mutators
-end
-
-
---[[
 	PRIVATE METHODS
 ]]--
 
@@ -258,6 +167,111 @@ local function set_mutator_state(mutator, state)
 	end
 end
 
+-- Checks if the player is server in a way that doesn't incorrectly return false during loading screens
+local function player_is_server()
+	local player = Managers.player
+	local state = Managers.state	
+	return not player or player.is_server or not state or state.game_mode == nil
+end
+
+--[[
+	PUBLIC METHODS
+]]--
+
+-- Sorts mutators in order they should be enabled
+manager.sort_mutators = function()
+
+	if mutators_sorted then return end
+
+	--[[
+	-- LOG --
+	manager:dump(mutators_sequence, "seq", 5)
+	for i, v in ipairs(mutators) do
+		print(i, v:get_name())
+	end
+	print("-----------")
+	-- /LOG --
+	--]]
+
+	-- Preventing endless loops (worst case is n*(n+1)/2 I believe)
+	local maxIter = #mutators * (#mutators + 1)/2
+	local numIter = 0
+
+	-- The idea is that all mutators before the current one are already in the right order
+	-- Starting from second mutator
+	local i = 2
+	while i <= #mutators do
+		local mutator = mutators[i]
+		local mutator_name = mutator:get_name()
+		local enable_these_after = mutators_sequence[mutator_name] or {}
+
+		-- Going back from the previous mutator to the start of the list
+		local j = i - 1
+		while j > 0 do
+			local other_mutator = mutators[j]
+
+			-- Moving it after the current one if it is to be enabled after it
+			if table.has_item(enable_these_after, other_mutator:get_name()) then
+				table.remove(mutators, j)
+				table.insert(mutators, i, other_mutator)
+
+				-- This will shift the current mutator back, so adjust the index
+				i = i - 1
+			end
+			j = j - 1
+		end
+
+		i = i + 1
+
+		numIter = numIter + 1
+		if numIter > maxIter then
+			manager:error("Mutators: too many iterations. Check for loops in 'enable_before_these'/'enable_after_these'.")
+			return
+		end
+	end
+	mutators_sorted = true
+
+	--[[
+	-- LOG --
+	for k, v in ipairs(mutators) do
+		print(k, v:get_name())
+	end
+	print("-----------")
+	-- /LOG --
+	--]]
+end
+
+-- Disables mutators that cannot be enabled right now
+manager.disable_impossible_mutators = function(notify, everybody, reason)
+	local disabled_mutators = {}
+	for _, mutator in pairs(mutators) do
+		if mutator:is_enabled() and not mutator:can_be_enabled() then
+			mutator:disable()
+			table.insert(disabled_mutators, mutator)
+		end
+	end
+	if #disabled_mutators > 0 and notify then
+		if not reason then reason = "" end
+		local message = everybody and "MUTATORS DISABLED " .. reason .. ":" or "Mutators disabled " .. reason .. ":"
+		for i, mutator in ipairs(disabled_mutators) do
+			message = message .. (i == 1 and " " or ", ") .. (mutator:get_config().title or mutator:get_name())
+		end
+		if everybody then
+			manager:chat_broadcast(message)
+		else
+			manager:echo(message)
+		end
+	end
+	return disabled_mutators
+end
+
+-- Check if player is still hosting
+manager.update = function()
+	if not player_is_server() then
+		manager.disable_impossible_mutators(true, false, "because you're no longer the host")
+	end
+end
+
 
 --[[
 	MUTATOR'S OWN METHODS
@@ -273,11 +287,12 @@ local function disable_mutator(self)
 	manager:pcall(function() set_mutator_state(self, false) end)
 end
 
--- Checks current difficulty, map selection screen settings (optionally) and incompatible mutators to determine if a mutator can be enabled
+-- Checks current difficulty, map selection screen settings (optionally), incompatible mutators and whether player is server 
+-- to determine if a mutator can be enabled
 local function can_be_enabled(self, ignore_map)
 
 	if #self:get_incompatible_mutators(true) > 0 then return false end
-	return self:supports_current_difficulty(ignore_map)
+	return player_is_server() and self:supports_current_difficulty(ignore_map)
 end
 
 -- Only checks difficulty
@@ -376,7 +391,7 @@ end
 	HOOKS
 ]]--
 manager:hook("DifficultyManager.set_difficulty", function(func, self, difficulty)
-	manager.disable_impossible_mutators(true, true)
+	manager.disable_impossible_mutators(true, true, "DUE TO CHANGE IN DIFFICULTY")
 	return func(self, difficulty)
 end)
 
@@ -392,3 +407,4 @@ manager:pcall(function() mutators_view:init(mutators_view:get_map_view()) end)
 	Testing
 --]]
 --manager:dofile("scripts/mods/vmf/modules/mutators/mutator_test")
+--manager:dofile("scripts/mods/vmf/modules/mutators/mutators/mutation")

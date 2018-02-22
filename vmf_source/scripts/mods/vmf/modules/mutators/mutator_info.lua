@@ -25,7 +25,12 @@ end
 -- Sets the lobby name
 local function set_lobby_data()
 
-	if not Managers.matchmaking then return end
+	if (
+		not Managers.matchmaking or 
+		not Managers.matchmaking.lobby or 
+		not Managers.matchmaking.lobby.set_lobby_data or
+		not Managers.matchmaking.lobby.get_stored_lobby_data 
+	) then return end
 
 	local name = get_enabled_mutators_names(" ", true)
 
@@ -79,7 +84,6 @@ manager:hook("MatchmakingStateHostGame.host_game", function(func, self, ...)
 	func(self, ...)
 	set_lobby_data()
 	local names = get_enabled_mutators_names(", ")
-	manager:echo("TEST")
 	if names then
 		manager:chat_broadcast("ENABLED MUTATORS: " .. names)
 		were_enabled_before = true
