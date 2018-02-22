@@ -210,6 +210,28 @@ local mutators_view = {
 				checkbox.content.selected = mutator:is_enabled()
 			end
 		end
+
+		local checkbox = self.mutator_checkboxes[1]
+		if #mutators == 0 then			
+
+			widgets.adventure["mutator_checkbox_" .. 1] = checkbox
+			widgets.survival["mutator_checkbox_" .. 1] = checkbox
+
+			checkbox.style.setting_text.text_color = Colors.get_color_table_with_alpha("slate_gray", 255)
+			checkbox.style.setting_text_hover.text_color = Colors.get_color_table_with_alpha("slate_gray", 255)
+			checkbox.style.checkbox_style.color = Colors.get_color_table_with_alpha("slate_gray", 255)
+
+			checkbox.content.setting_text = "No mutators installed"
+			checkbox.content.tooltip_text = "Subscribe to mods and mutators on the workshop"
+
+			checkbox.style.checkbox_style.offset[1] = -10000
+			checkbox.style.setting_text.horizontal_alignment = "center"
+			checkbox.style.setting_text.offset[1] = 0
+		else
+			checkbox.style.checkbox_style.offset[1] = 0
+			checkbox.style.setting_text.horizontal_alignment = "left"
+			checkbox.style.setting_text.offset[1] = 24
+		end
 	end,
 
 	-- Activate on button click or map open
