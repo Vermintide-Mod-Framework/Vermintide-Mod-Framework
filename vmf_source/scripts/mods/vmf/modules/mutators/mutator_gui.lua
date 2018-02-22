@@ -379,7 +379,7 @@ local mutators_view = {
 		-- Update the view after map_view has updated
 		manager:hook("MapView.update", function(func, map_view, dt, t)
 			func(map_view, dt, t)
-			manager:pcall(function() self:update(dt, t)	end)
+			self:update(dt, t)
 		end)
 
 		-- Activate the view on enter if it was active on exit
@@ -387,14 +387,14 @@ local mutators_view = {
 			func(map_view)
 			if self.was_active then
 				self.widgets.mutators_button.content.toggled = true
-				manager:pcall(function() self:activate() end)
+				self:activate()
 			end
 		end)
 
 		-- Deactivate the view on exit
 		manager:hook("MapView.on_exit", function(func, map_view)
 			func(map_view)
-			manager:pcall(function() self:deactivate() end)
+			self:deactivate()
 		end)
 
 		-- We don't want to let the game disable steppers when mutators view is active
@@ -444,7 +444,7 @@ local mutators_view = {
 -- Initialize mutators view after map view
 manager:hook("MapView.init", function(func, self, ...)
 	func(self, ...)
-	manager:pcall(function() mutators_view:init(self) end)
+	mutators_view:init(self)
 end)
 
 -- Destroy mutators view after map view

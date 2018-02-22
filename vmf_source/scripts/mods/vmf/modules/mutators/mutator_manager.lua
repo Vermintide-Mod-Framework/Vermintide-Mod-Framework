@@ -277,14 +277,14 @@ end
 	MUTATOR'S OWN METHODS
 ]]--
 
--- Enables mutator (pcall for now)
+-- Enables mutator
 local function enable_mutator(self)
-	manager:pcall(function() set_mutator_state(self, true) end)
+	set_mutator_state(self, true)
 end
 
--- Disables mutator (pcall for now)
+-- Disables mutator
 local function disable_mutator(self)
-	manager:pcall(function() set_mutator_state(self, false) end)
+	set_mutator_state(self, false)
 end
 
 -- Checks current difficulty, map selection screen settings (optionally), incompatible mutators and whether player is server 
@@ -401,7 +401,7 @@ end)
 --]]
 
 -- Initialize mutators view when map_view has been initialized already
-manager:pcall(function() mutators_view:init(mutators_view:get_map_view()) end)
+mutators_view:init(mutators_view:get_map_view())
 
 --[[
 	Testing
