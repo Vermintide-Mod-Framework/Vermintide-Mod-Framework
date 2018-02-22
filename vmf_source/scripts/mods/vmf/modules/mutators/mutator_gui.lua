@@ -326,9 +326,8 @@ local mutators_view = {
 
 	-- Creates and return text for checkbox tooltip
 	generate_tooltip_for = function(self, mutator)
-		-- Description
 		local config = mutator:get_config()
-		local text = config.description
+		local text = ""
 
 		-- Show supported difficulty when can't be enabled due to difficulty level
 		local supports_difficulty = mutator:supports_current_difficulty()
@@ -370,6 +369,12 @@ local mutators_view = {
 		if mutator:is_enabled() and not supports_difficulty then
 			text = text .. "\nWill be disabled when Play is pressed"
 		end
+
+		-- Description
+		if string.len(text) > 0 then
+			text = "\n-------------" .. text
+		end
+		text = config.description .. text
 
 		return text
 	end,
