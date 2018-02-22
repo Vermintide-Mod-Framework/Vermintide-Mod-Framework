@@ -124,7 +124,10 @@ local function set_mutator_state(mutator, state)
 		return
 	end
 
-	if state and not mutator:can_be_enabled() then
+	if state and (
+		not mutator:can_be_enabled() or 
+		Managers.state and Managers.state.game_mode and Managers.state.game_mode._game_mode_key ~= "inn"
+	) then
 		return
 	end
 
