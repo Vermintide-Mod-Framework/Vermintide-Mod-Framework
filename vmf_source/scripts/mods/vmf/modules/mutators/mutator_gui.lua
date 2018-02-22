@@ -273,6 +273,8 @@ local mutators_view = {
 	deactivate = function(self)
 		if not self.initialized or not self.active then return end
 
+		self.active = false
+		
 		-- Showing widgets
 		local widgets = self.map_view.normal_settings_widget_types
 
@@ -297,8 +299,6 @@ local mutators_view = {
 			widgets.adventure["mutator_checkbox_" .. i] = nil
 			widgets.survival["mutator_checkbox_" .. i] = nil
 		end
-
-		self.active = false
 
 		--print("DEACTIVE")
 	end,
