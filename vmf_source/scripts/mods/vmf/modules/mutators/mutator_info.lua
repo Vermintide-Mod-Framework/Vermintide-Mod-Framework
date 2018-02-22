@@ -41,7 +41,6 @@ local function set_lobby_data()
 	Managers.matchmaking.lobby:set_lobby_data(lobby_data)
 end
 
--- Return a function for chat system to only send messages to specific client
 local function get_peer_id_from_cookie(client_cookie)
 	local peer_id = tostring(client_cookie)
 	for _ = 1, 3 do

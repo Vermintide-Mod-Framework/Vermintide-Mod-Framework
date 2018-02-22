@@ -37,6 +37,21 @@ scenegraph_definition.banner_mutators_text = {
 	}
 }
 
+scenegraph_definition.no_mutators_text = {
+	vertical_alignment = "center",
+	parent = "banner_party",
+	horizontal_alignment = "center",
+	size = {
+		310,
+		30
+	},
+	position = {
+		0,
+		520,
+		1
+	}
+}
+
 
 local new_widgets = {
 
@@ -179,6 +194,68 @@ local new_widgets = {
 			}
 		},
 		scenegraph_id = "mutators_button"
+	},
+
+	no_mutators_text_widget = {
+		element = {
+			passes = {
+				{
+					style_id = "text",
+					pass_type = "text",
+					text_id = "text"
+				},
+				{
+					pass_type = "hotspot",
+					content_id = "tooltip_hotspot"
+				},
+				{
+					style_id = "tooltip_text",
+					pass_type = "tooltip_text",
+					text_id = "tooltip_text",
+					content_check_function = function (ui_content)
+						return ui_content.tooltip_hotspot.is_hover
+					end
+				}
+			}
+		},
+		content = {
+			text = "No mutators installed",
+			tooltip_text = "Subscribe to mods and mutators on the workshop",
+			tooltip_hotspot = {},
+			color = Colors.get_color_table_with_alpha("slate_gray", 255)
+		},
+		style = {
+			text = {
+				vertical_alignment = "center",
+				font_size = 22,
+				localize = false,
+				horizontal_alignment = "center",
+				word_wrap = true,
+				font_type = "hell_shark",
+				text_color = Colors.get_color_table_with_alpha("slate_gray", 255),
+				offset = {
+					0,
+					2,
+					4
+				}
+			},
+			tooltip_text = {
+				font_size = 24,
+				max_width = 500,
+				localize = false,
+				horizontal_alignment = "left",
+				vertical_alignment = "top",
+				font_type = "hell_shark",
+				text_color = Colors.get_color_table_with_alpha("white", 255),
+				line_colors = {},
+				offset = {
+					0,
+					0,
+					50
+				}
+			}
+		},
+		scenegraph_id = "no_mutators_text"
 	}
 }
 

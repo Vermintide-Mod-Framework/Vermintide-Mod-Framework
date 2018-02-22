@@ -9,6 +9,7 @@ manager:localization("localization/mutator_manager")
 manager.mutators = {}
 local mutators = manager.mutators
 
+-- Table of mutators' configs by name
 local mutators_config = {}
 local default_config = manager:dofile("scripts/mods/vmf/modules/mutators/mutator_default_config")
 
@@ -25,6 +26,9 @@ local mutators_sequence = {
 
 -- So we don't sort after each one is added
 local mutators_sorted = false
+
+-- So we don't have to check when player isn't hosting
+local all_mutators_disabled = false
 
 
 --[[
@@ -244,7 +248,8 @@ end
 -- Disables mutators that cannot be enabled right now
 manager.disable_impossible_mutators = function(notify, everybody, reason)
 	local disabled_mutators = {}
-	for _, mutator in pairs(mutators) do
+	for i = #mutators, 1, -1 do
+		local mutator = mutators[i]
 		if mutator:is_enabled() and not mutator:can_be_enabled() then
 			mutator:disable()
 			table.insert(disabled_mutators, mutator)
@@ -261,13 +266,6 @@ manager.disable_impossible_mutators = function(notify, everybody, reason)
 		end
 	end
 	return disabled_mutators
-end
-
--- Check if player is still hosting
-manager.update = function()
-	if not player_is_server() then
-		manager.disable_impossible_mutators(true, false, "because you're no longer the host")
-	end
 end
 
 -- Appends, prepends and replaces the string with mutator titles
@@ -312,6 +310,14 @@ manager.add_mutator_titles_to_string = function(_mutators, str, separator, short
 	return new_str
 end
 
+-- Check if player is still hosting
+manager.update = function()
+	if not all_mutators_disabled and not player_is_server() then
+		manager.disable_impossible_mutators(true, false, "because you're no longer the host")
+		all_mutators_disabled = true
+	end
+end
+
 
 --[[
 	MUTATOR'S OWN METHODS
@@ -320,6 +326,7 @@ end
 -- Enables mutator
 local function enable_mutator(self)
 	set_mutator_state(self, true)
+	all_mutators_disabled = false
 end
 
 -- Disables mutator
