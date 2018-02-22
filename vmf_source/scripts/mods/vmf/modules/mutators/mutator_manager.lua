@@ -215,10 +215,6 @@ local function set_mutator_state(mutator, state)
 		return
 	end
 
-	if state and #mutator:get_incompatible_mutators(true) > 0 then
-		return
-	end
-
 	-- Sort mutators if this is the first call
 	if not mutators_sorted then
 		manager.sort_mutators()
