@@ -258,7 +258,8 @@ manager.disable_impossible_mutators = function(notify, everybody, reason)
 	end
 	if #disabled_mutators > 0 and notify then
 		if not reason then reason = "" end
-		local message = everybody and "MUTATORS DISABLED " .. reason .. ":" or "Mutators disabled " .. reason .. ":"
+		local loc = everybody and "broadcast_disabled_mutators" or "local_disabled_mutators"
+		local message = manager:localize(loc) .. " " .. manager:localize(reason) .. ":"
 		message = message .. " " .. manager.add_mutator_titles_to_string(disabled_mutators, "", ", ", false)
 		if everybody then
 			manager:chat_broadcast(message)
@@ -314,7 +315,7 @@ end
 -- Check if player is still hosting
 manager.update = function()
 	if not all_mutators_disabled and not player_is_server() then
-		manager.disable_impossible_mutators(true, false, "because you're no longer the host")
+		manager.disable_impossible_mutators(true, false, "disabled_reason_not_server")
 		all_mutators_disabled = true
 	end
 end
@@ -335,7 +336,7 @@ local function disable_mutator(self)
 	set_mutator_state(self, false)
 end
 
--- Checks current difficulty, map selection screen settings (optionally), incompatible mutators and whether player is server 
+-- Checks current difficulty, map selection screen settings (optionally), incompatible mutators and whether player is server
 -- to determine if a mutator can be enabled
 local function can_be_enabled(self, ignore_map)
 	if #self:get_incompatible_mutators(true) > 0 then return false end
@@ -438,7 +439,7 @@ end
 	HOOKS
 ]]--
 manager:hook("DifficultyManager.set_difficulty", function(func, self, difficulty)
-	manager.disable_impossible_mutators(true, true, "DUE TO CHANGE IN DIFFICULTY")
+	manager.disable_impossible_mutators(true, true, "disabled_reason_difficulty_change")
 	return func(self, difficulty)
 end)
 

@@ -6,16 +6,16 @@
 set SOUCE_CODE_DIR=.\vmf_source
 set TEMP_DIR=.\TEMP
 set ORIGINAL_VMF_BUNDLE_FILE_NAME=98161451961848df
-set NEW_VMF_BUNDLE_FILE_NAME=000_VMF_Main_Bundle
+set NEW_VMF_BUNDLE_FILE_NAME=VMF
 
 :: manual setting pathes (in case this batch file won't be able to find steam installation folders) [you can change them :D]
 
-set MANUAL_MODS_DIR=C:\Program Files (x86)\Steam\steamapps\common\Warhammer End Times Vermintide\bundle\mods
+set MANUAL_MODS_DIR=E:\SteamLibrary\SteamApps\workshop\content\235540\1289946781
 set MANUAL_STINGRAY_EXE=C:\Program Files (x86)\Steam\steamapps\common\Warhammer End Times Vermintide Mod Tools\bin\stingray_win64_dev_x64.exe
 
 :: find Vermintide folder
 
-set KEY_NAME="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 235540"
+set KEY_NAME="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\asdasdCurrentVersion\Uninstall\Steam App 235540"
 set VALUE_NAME=InstallLocation
 
 for /F "usebackq skip=2 tokens=1-2*" %%A in (`REG QUERY %KEY_NAME% /v %VALUE_NAME% 2^>nul`) do (
@@ -54,7 +54,7 @@ if not exist "%STINGRAY_EXE%" (
 
 echo Starting...
 
-"%STINGRAY_EXE%" --compile-for win32 --source-dir "%SOUCE_CODE_DIR%" --data-dir "%TEMP_DIR%\compile" --bundle-dir "%TEMP_DIR%\bundle"
+"%STINGRAY_EXE%" --compile-for win32 --source-dir "%SOUCE_CODE_DIR%" --data-dir "%TEMP_DIR%\compile" --bundle-dir "%TEMP_DIR%\bundle" > nul
 
 echo Done.
 

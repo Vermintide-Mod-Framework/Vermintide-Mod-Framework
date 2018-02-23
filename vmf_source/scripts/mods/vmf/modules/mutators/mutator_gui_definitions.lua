@@ -1,4 +1,4 @@
-
+local manager = get_mod("vmf_mutator_manager")
 local definitions = local_require("scripts/ui/views/map_view_definitions")
 local scenegraph_definition = definitions.scenegraph_definition
 
@@ -56,7 +56,12 @@ scenegraph_definition.no_mutators_text = {
 local new_widgets = {
 
 	-- This will replace the banner behind the Mission text
-	banner_mutators_widget = UIWidgets.create_texture_with_text_and_tooltip("title_bar", "Mutators", "Enable and disable mutators", "banner_level", "banner_mutators_text", {
+	banner_mutators_widget = UIWidgets.create_texture_with_text_and_tooltip(
+		"title_bar",
+		manager:localize("mutators_title"),
+		manager:localize("mutators_banner_tooltip"),
+		"banner_level",
+		"banner_mutators_text", {
 			vertical_alignment = "center",
 			scenegraph_id = "banner_mutators_text",
 			localize = false,
@@ -93,8 +98,8 @@ local new_widgets = {
 			normal_texture = "octagon_button_normal",
 			icon_texture = "mutator_button",
 			icon_hover_texture = "mutator_button_hover",
-			tooltip_text = "Mutators",
-			toggled_tooltip_text = "Mutators",
+			tooltip_text = manager:localize("mutators_title"),
+			toggled_tooltip_text = manager:localize("mutators_title"),
 			button_hotspot = {}
 		},
 		style = {
@@ -219,8 +224,8 @@ local new_widgets = {
 			}
 		},
 		content = {
-			text = "No mutators installed",
-			tooltip_text = "Subscribe to mods and mutators on the workshop",
+			text = manager:localize("no_mutators"),
+			tooltip_text = manager:localize("no_mutators_tooltip"),
 			tooltip_hotspot = {},
 			color = Colors.get_color_table_with_alpha("slate_gray", 255)
 		},

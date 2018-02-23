@@ -319,7 +319,7 @@ local mutators_view = {
 		-- Show supported difficulty when can't be enabled due to difficulty level
 		local supports_difficulty = mutator:supports_current_difficulty()
 		if not supports_difficulty then
-			text = text .. "\nSupported difficulty levels:"
+			text = text .. "\n" .. manager:localize("tooltip_supported_difficulty") .. ":"
 			for i, difficulty in ipairs(config.difficulty_levels) do
 				text = text .. (i == 1 and " " or ", ") .. manager:localize(difficulty)
 			end
@@ -338,9 +338,9 @@ local mutators_view = {
 
 			if currently_compatible and config.incompatible_with_all or #incompatible_mutators == #mutators - 1 then
 				-- Show special message when incompatible with all
-				text = text .. "\nIncompatible with all other mutators"
+				text = text .. "\n" .. manager:localize("tooltip_incompatible_with_all")
 			else
-				text = text .. "\nIncompatible with:"
+				text = text .. "\n" .. manager:localize("tooltip_incompatible_with") .. ":"
 				for i, other_mutator in ipairs(incompatible_mutators) do
 					local name = (other_mutator:get_config().title or other_mutator:get_name())
 					text = text .. (i == 1 and " " or ", ") .. name
@@ -349,12 +349,12 @@ local mutators_view = {
 
 		elseif config.compatible_with_all then
 			-- Special message when compatible with all
-			text = text .. "\nCompatible with all other mutators"
+			text = text .. "\n" .. manager:localize("tooltip_compatible_with_all")
 		end
 
 		-- Special message if switched to unsupported difficulty level
 		if mutator:is_enabled() and not supports_difficulty then
-			text = text .. "\nWill be disabled when Play is pressed"
+			text = text .. "\n" .. manager:localize("tooltip_will_be_disabled")
 		end
 
 		-- Description

@@ -73,10 +73,10 @@ manager:hook("MatchmakingStateHostGame.host_game", function(func, self, ...)
 	set_lobby_data()
 	local names = add_enabled_mutators_titles_to_string("", ", ")
 	if string.len(names) > 0 then
-		manager:chat_broadcast("ENABLED MUTATORS: " .. names)
+		manager:chat_broadcast(manager:localize("broadcast_enabled_mutators") .. ": " .. names)
 		were_enabled_before = true
 	elseif were_enabled_before then
-		manager:chat_broadcast("ALL MUTATORS DISABLED")
+		manager:chat_broadcast(manager:localize("broadcast_all_disabled"))
 		were_enabled_before = false
 	end
 end)
@@ -85,7 +85,7 @@ end)
 manager:hook("MatchmakingManager.rpc_matchmaking_request_join_lobby", function(func, self, sender, client_cookie, host_cookie, lobby_id, friend_join)
 	local name = add_enabled_mutators_titles_to_string("", ", ")
 	if string.len(name) > 0 then
-		local message = "[Automated message] This lobby has the following difficulty mod active : " .. name
+		local message = manager:localize("whisper_enabled_mutators") .. ": " .. name
 		manager:chat_whisper(get_peer_id_from_cookie(client_cookie), message)
 	end
 	func(self, sender, client_cookie, host_cookie, lobby_id, friend_join)
