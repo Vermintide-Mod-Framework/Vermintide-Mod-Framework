@@ -454,6 +454,6 @@ mutators_view:init(mutators_view:get_map_view())
 --[[
 	Testing
 --]]
-manager:dofile("scripts/mods/vmf/modules/mutators/mutator_test")
+-- manager:dofile("scripts/mods/vmf/modules/mutators/mutator_test")
 -- manager:dofile("scripts/mods/vmf/modules/mutators/mutators/mutation")
 -- manager:dofile("scripts/mods/vmf/modules/mutators/mutators/deathwish")
