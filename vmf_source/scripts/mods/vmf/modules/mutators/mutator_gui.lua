@@ -31,7 +31,8 @@ local mutators_view = {
 		-- Setup custom widgets
 		self.widgets = {
 			banner_mutators = UIWidget.init(definitions.new_widgets.banner_mutators_widget),
-			mutators_button = UIWidget.init(definitions.new_widgets.mutators_button_widget)
+			mutators_button = UIWidget.init(definitions.new_widgets.mutators_button_widget),
+			no_mutators_text = UIWidget.init(definitions.new_widgets.no_mutators_text_widget)
 		}
 
 		for i = 1, PER_PAGE do
@@ -63,7 +64,7 @@ local mutators_view = {
 		self:setup_hooks()
 
 		self.initialized = true
-		--print("INIT")
+		print("[MUTATORS] GUI initialized")
 	end,
 
 	deinitialize = function(self)
@@ -92,7 +93,7 @@ local mutators_view = {
 		self.map_view = nil
 
 		self.initialized = false
-		--print("DEINIT")
+		print("[MUTATORS] GUI deinitialized")
 	end,
 
 	-- Sorts mutators by title
@@ -199,7 +200,7 @@ local mutators_view = {
 
 				-- Click event
 				if hotspot.on_release then
-					self.map_view:play_sound("Play_hud_hover")
+					self.map_view:play_sound("Play_hud_select")
 					if mutator:is_enabled() then
 						mutator:disable()
 					else
@@ -211,30 +212,13 @@ local mutators_view = {
 			end
 		end
 
-		local checkbox = self.mutator_checkboxes[1]
 		if #mutators == 0 then			
 
-			widgets.adventure["mutator_checkbox_" .. 1] = checkbox
-			widgets.survival["mutator_checkbox_" .. 1] = checkbox
-
-			checkbox.style.setting_text.text_color = Colors.get_color_table_with_alpha("slate_gray", 255)
-			checkbox.style.setting_text_hover.text_color = Colors.get_color_table_with_alpha("slate_gray", 255)
-			checkbox.style.checkbox_style.color = Colors.get_color_table_with_alpha("slate_gray", 255)
-
-			checkbox.content.setting_text = "No mutators installed"
-			checkbox.content.tooltip_text = "Subscribe to mods and mutators on the workshop"
-
-			checkbox.style.checkbox_style.offset[1] = -10000
-			checkbox.style.setting_text.horizontal_alignment = "center"
-			checkbox.style.setting_text_hover.horizontal_alignment = "center"
-			checkbox.style.setting_text.offset[1] = 0
-			checkbox.style.setting_text_hover.offset[1] = 0
+			widgets.adventure["no_mutators_text"] = self.widgets.no_mutators_text
+			widgets.survival["no_mutators_text"] = self.widgets.no_mutators_text
 		else
-			checkbox.style.checkbox_style.offset[1] = 0
-			checkbox.style.setting_text.horizontal_alignment = "left"
-			checkbox.style.setting_text_hover.horizontal_alignment = "left"
-			checkbox.style.setting_text.offset[1] = 24
-			checkbox.style.setting_text_hover.offset[1] = 24
+			widgets.adventure["no_mutators_text"] = nil
+			widgets.survival["no_mutators_text"] = nil
 		end
 	end,
 
@@ -242,7 +226,7 @@ local mutators_view = {
 	activate = function(self)
 		if not self.initialized or not self.map_view.active or self.active then return end
 
-		-- Hiding widgets
+		-- Widgets
 		local widgets = self.map_view.normal_settings_widget_types
 
 		widgets.adventure.level_preview = nil
@@ -257,16 +241,16 @@ local mutators_view = {
 		self.map_view.ui_scenegraph.banner_level_text.position[2] = -10000
 
 		-- Update steppers
-		self.map_view.steppers.level.widget.style.setting_text.offset[2] = -10000
-		self.map_view.steppers.level.widget.style.hover_texture.offset[2] = -10000
 		local level_stepper_widget = self.map_view.steppers.level.widget
 		local num_pages = math.ceil(#mutators/PER_PAGE)
+		level_stepper_widget.style.setting_text.offset[2] = -10000
+		level_stepper_widget.style.hover_texture.offset[2] = -10000
 		level_stepper_widget.content.left_button_hotspot.disable_button = num_pages <= 1
 		level_stepper_widget.content.right_button_hotspot.disable_button = num_pages <= 1
 
 		self.active = true
 
-		--print("ACTIVE!")
+		print("[MUTATORS] GUI activated")
 	end,
 
 	-- Deactivate on button click or map close
@@ -275,7 +259,7 @@ local mutators_view = {
 
 		self.active = false
 		
-		-- Showing widgets
+		-- Widgets
 		local widgets = self.map_view.normal_settings_widget_types
 
 		widgets.adventure.level_preview = self.saved_widgets.level_preview
@@ -285,6 +269,9 @@ local mutators_view = {
 		widgets.survival.level_preview = self.saved_widgets.level_preview
 		widgets.survival.level_preview_text = self.saved_widgets.level_preview
 		widgets.survival.banner_mutators = nil
+
+		widgets.adventure["no_mutators_text"] = nil
+		widgets.survival["no_mutators_text"] = nil
 
 		-- "Mission" banner position
 		self.map_view.ui_scenegraph.banner_level_text.position[2] = 0
@@ -300,7 +287,7 @@ local mutators_view = {
 			widgets.survival["mutator_checkbox_" .. i] = nil
 		end
 
-		--print("DEACTIVE")
+		print("[MUTATORS] GUI deactivated")
 	end,
 
 	-- Changes which muttators are displayed
@@ -332,7 +319,7 @@ local mutators_view = {
 		-- Show supported difficulty when can't be enabled due to difficulty level
 		local supports_difficulty = mutator:supports_current_difficulty()
 		if not supports_difficulty then
-			text = text .. "\nSupported difficulty levels:"
+			text = text .. "\n" .. manager:localize("tooltip_supported_difficulty") .. ":"
 			for i, difficulty in ipairs(config.difficulty_levels) do
 				text = text .. (i == 1 and " " or ", ") .. manager:localize(difficulty)
 			end
@@ -351,9 +338,9 @@ local mutators_view = {
 
 			if currently_compatible and config.incompatible_with_all or #incompatible_mutators == #mutators - 1 then
 				-- Show special message when incompatible with all
-				text = text .. "\nIncompatible with all other mutators"
+				text = text .. "\n" .. manager:localize("tooltip_incompatible_with_all")
 			else
-				text = text .. "\nIncompatible with:"
+				text = text .. "\n" .. manager:localize("tooltip_incompatible_with") .. ":"
 				for i, other_mutator in ipairs(incompatible_mutators) do
 					local name = (other_mutator:get_config().title or other_mutator:get_name())
 					text = text .. (i == 1 and " " or ", ") .. name
@@ -362,12 +349,12 @@ local mutators_view = {
 
 		elseif config.compatible_with_all then
 			-- Special message when compatible with all
-			text = text .. "\nCompatible with all other mutators"
+			text = text .. "\n" .. manager:localize("tooltip_compatible_with_all")
 		end
 
 		-- Special message if switched to unsupported difficulty level
 		if mutator:is_enabled() and not supports_difficulty then
-			text = text .. "\nWill be disabled when Play is pressed"
+			text = text .. "\n" .. manager:localize("tooltip_will_be_disabled")
 		end
 
 		-- Description

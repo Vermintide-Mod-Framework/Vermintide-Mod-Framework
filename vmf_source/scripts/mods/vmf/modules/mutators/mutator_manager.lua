@@ -9,6 +9,7 @@ manager:localization("localization/mutator_manager")
 manager.mutators = {}
 local mutators = manager.mutators
 
+-- Table of mutators' configs by name
 local mutators_config = {}
 local default_config = manager:dofile("scripts/mods/vmf/modules/mutators/mutator_default_config")
 
@@ -25,6 +26,9 @@ local mutators_sequence = {
 
 -- So we don't sort after each one is added
 local mutators_sorted = false
+
+-- So we don't have to check when player isn't hosting
+local all_mutators_disabled = false
 
 
 --[[
@@ -98,6 +102,7 @@ local function on_enabled(mutator)
 	local config = mutator:get_config()
 	dice_manager.addDice(config.dice)
 	set_lobby_data()
+	print("[MUTATORS] Enabled " .. mutator:get_name() .. " (" .. tostring(table.index_of(mutators, mutator)) .. ")")
 end
 
 -- Called after mutator is disabled
@@ -105,6 +110,7 @@ local function on_disabled(mutator)
 	local config = mutator:get_config()
 	dice_manager.removeDice(config.dice)
 	set_lobby_data()
+	print("[MUTATORS] Disabled " .. mutator:get_name() .. " (" .. tostring(table.index_of(mutators, mutator)) .. ")")
 end
 
 -- Enables/disables mutator while preserving the sequence in which they were enabled
@@ -120,7 +126,10 @@ local function set_mutator_state(mutator, state)
 		return
 	end
 
-	if state and not mutator:can_be_enabled() then
+	if state and (
+		not mutator:can_be_enabled() or 
+		Managers.state and Managers.state.game_mode and Managers.state.game_mode._game_mode_key ~= "inn"
+	) then
 		return
 	end
 
@@ -148,11 +157,9 @@ local function set_mutator_state(mutator, state)
 	-- Enable/disable current mutator
 	-- We're calling methods on the class object because we've overwritten them on the current one
 	if state then
-		--print("Enabled ", mutator:get_name(), "!")
 		VMFMod.enable(mutator)
 		on_enabled(mutator)
 	else
-		--print("Disabled ", mutator:get_name(), "!")
 		VMFMod.disable(mutator)
 		on_disabled(mutator)
 	end
@@ -231,20 +238,19 @@ manager.sort_mutators = function()
 	end
 	mutators_sorted = true
 
-	--[[
 	-- LOG --
+	print("[MUTATORS] Sorted")
 	for k, v in ipairs(mutators) do
-		print(k, v:get_name())
+		print("    ", k, v:get_name())
 	end
-	print("-----------")
 	-- /LOG --
-	--]]
 end
 
 -- Disables mutators that cannot be enabled right now
 manager.disable_impossible_mutators = function(notify, everybody, reason)
 	local disabled_mutators = {}
-	for _, mutator in pairs(mutators) do
+	for i = #mutators, 1, -1 do
+		local mutator = mutators[i]
 		if mutator:is_enabled() and not mutator:can_be_enabled() then
 			mutator:disable()
 			table.insert(disabled_mutators, mutator)
@@ -252,7 +258,8 @@ manager.disable_impossible_mutators = function(notify, everybody, reason)
 	end
 	if #disabled_mutators > 0 and notify then
 		if not reason then reason = "" end
-		local message = everybody and "MUTATORS DISABLED " .. reason .. ":" or "Mutators disabled " .. reason .. ":"
+		local loc = everybody and "broadcast_disabled_mutators" or "local_disabled_mutators"
+		local message = manager:localize(loc) .. " " .. manager:localize(reason) .. ":"
 		message = message .. " " .. manager.add_mutator_titles_to_string(disabled_mutators, "", ", ", false)
 		if everybody then
 			manager:chat_broadcast(message)
@@ -261,13 +268,6 @@ manager.disable_impossible_mutators = function(notify, everybody, reason)
 		end
 	end
 	return disabled_mutators
-end
-
--- Check if player is still hosting
-manager.update = function()
-	if not player_is_server() then
-		manager.disable_impossible_mutators(true, false, "because you're no longer the host")
-	end
 end
 
 -- Appends, prepends and replaces the string with mutator titles
@@ -312,6 +312,14 @@ manager.add_mutator_titles_to_string = function(_mutators, str, separator, short
 	return new_str
 end
 
+-- Check if player is still hosting
+manager.update = function()
+	if not all_mutators_disabled and not player_is_server() then
+		manager.disable_impossible_mutators(true, false, "disabled_reason_not_server")
+		all_mutators_disabled = true
+	end
+end
+
 
 --[[
 	MUTATOR'S OWN METHODS
@@ -320,6 +328,7 @@ end
 -- Enables mutator
 local function enable_mutator(self)
 	set_mutator_state(self, true)
+	all_mutators_disabled = false
 end
 
 -- Disables mutator
@@ -327,10 +336,9 @@ local function disable_mutator(self)
 	set_mutator_state(self, false)
 end
 
--- Checks current difficulty, map selection screen settings (optionally), incompatible mutators and whether player is server 
+-- Checks current difficulty, map selection screen settings (optionally), incompatible mutators and whether player is server
 -- to determine if a mutator can be enabled
 local function can_be_enabled(self, ignore_map)
-
 	if #self:get_incompatible_mutators(true) > 0 then return false end
 	return player_is_server() and self:supports_current_difficulty(ignore_map)
 end
@@ -431,7 +439,7 @@ end
 	HOOKS
 ]]--
 manager:hook("DifficultyManager.set_difficulty", function(func, self, difficulty)
-	manager.disable_impossible_mutators(true, true, "DUE TO CHANGE IN DIFFICULTY")
+	manager.disable_impossible_mutators(true, true, "disabled_reason_difficulty_change")
 	return func(self, difficulty)
 end)
 
