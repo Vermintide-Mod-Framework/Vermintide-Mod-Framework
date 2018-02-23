@@ -64,7 +64,7 @@ local mutators_view = {
 		self:setup_hooks()
 
 		self.initialized = true
-		--print("INIT")
+		print("[MUTATORS] GUI initialized")
 	end,
 
 	deinitialize = function(self)
@@ -93,7 +93,7 @@ local mutators_view = {
 		self.map_view = nil
 
 		self.initialized = false
-		--print("DEINIT")
+		print("[MUTATORS] GUI deinitialized")
 	end,
 
 	-- Sorts mutators by title
@@ -212,7 +212,6 @@ local mutators_view = {
 			end
 		end
 
-		local checkbox = self.mutator_checkboxes[1]
 		if #mutators == 0 then			
 
 			widgets.adventure["no_mutators_text"] = self.widgets.no_mutators_text
@@ -251,7 +250,7 @@ local mutators_view = {
 
 		self.active = true
 
-		--print("ACTIVE!")
+		print("[MUTATORS] GUI activated")
 	end,
 
 	-- Deactivate on button click or map close
@@ -288,7 +287,7 @@ local mutators_view = {
 			widgets.survival["mutator_checkbox_" .. i] = nil
 		end
 
-		--print("DEACTIVE")
+		print("[MUTATORS] GUI deactivated")
 	end,
 
 	-- Changes which muttators are displayed

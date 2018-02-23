@@ -102,6 +102,7 @@ local function on_enabled(mutator)
 	local config = mutator:get_config()
 	dice_manager.addDice(config.dice)
 	set_lobby_data()
+	print("[MUTATORS] Enabled " .. mutator:get_name() .. " (" .. tostring(table.index_of(mutators, mutator)) .. ")")
 end
 
 -- Called after mutator is disabled
@@ -109,6 +110,7 @@ local function on_disabled(mutator)
 	local config = mutator:get_config()
 	dice_manager.removeDice(config.dice)
 	set_lobby_data()
+	print("[MUTATORS] Disabled " .. mutator:get_name() .. " (" .. tostring(table.index_of(mutators, mutator)) .. ")")
 end
 
 -- Enables/disables mutator while preserving the sequence in which they were enabled
@@ -155,11 +157,9 @@ local function set_mutator_state(mutator, state)
 	-- Enable/disable current mutator
 	-- We're calling methods on the class object because we've overwritten them on the current one
 	if state then
-		--print("Enabled ", mutator:get_name(), "!")
 		VMFMod.enable(mutator)
 		on_enabled(mutator)
 	else
-		--print("Disabled ", mutator:get_name(), "!")
 		VMFMod.disable(mutator)
 		on_disabled(mutator)
 	end
@@ -238,14 +238,12 @@ manager.sort_mutators = function()
 	end
 	mutators_sorted = true
 
-	--[[
 	-- LOG --
+	print("[MUTATORS] Sorted")
 	for k, v in ipairs(mutators) do
-		print(k, v:get_name())
+		print("    ", k, v:get_name())
 	end
-	print("-----------")
 	-- /LOG --
-	--]]
 end
 
 -- Disables mutators that cannot be enabled right now
@@ -340,7 +338,6 @@ end
 -- Checks current difficulty, map selection screen settings (optionally), incompatible mutators and whether player is server 
 -- to determine if a mutator can be enabled
 local function can_be_enabled(self, ignore_map)
-
 	if #self:get_incompatible_mutators(true) > 0 then return false end
 	return player_is_server() and self:supports_current_difficulty(ignore_map)
 end
@@ -456,6 +453,6 @@ mutators_view:init(mutators_view:get_map_view())
 --[[
 	Testing
 --]]
--- manager:dofile("scripts/mods/vmf/modules/mutators/mutator_test")
+manager:dofile("scripts/mods/vmf/modules/mutators/mutator_test")
 -- manager:dofile("scripts/mods/vmf/modules/mutators/mutators/mutation")
 -- manager:dofile("scripts/mods/vmf/modules/mutators/mutators/deathwish")

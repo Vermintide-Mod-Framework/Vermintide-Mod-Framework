@@ -51,7 +51,11 @@ true_solo.on_disabled = function() end
 
 local onslaught = new_mod("onslaught")
 onslaught:register_as_mutator({
-	title = "Onslaught"
+	title = "Onslaught",
+	enable_after_these = {
+		"one_hit_one_kill",
+		"more_rat_weapons"
+	}
 })
 onslaught.on_enabled = function() end
 onslaught.on_disabled = function() end
