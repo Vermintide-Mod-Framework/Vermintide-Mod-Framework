@@ -220,7 +220,8 @@ local function table_dump_to_file(dumped_table, dumped_table_name, max_depth)
   -- ## Saving to file ##
   -- ####################
 
-  local file = assert(io.open(dumped_table_name .. ".json", "w+"))
+  os.execute("mkdir dump 2>nul")
+  local file = assert(io.open("./dump/" .. dumped_table_name .. ".json", "w+"))
 
   local function dump_to_file(table_entry, table_name, depth)
 
