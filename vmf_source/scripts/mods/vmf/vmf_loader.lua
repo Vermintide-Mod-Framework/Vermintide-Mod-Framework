@@ -15,6 +15,7 @@ return {
 		dofile("scripts/mods/vmf/modules/core/delayed_chat_messages")
 		dofile("scripts/mods/vmf/modules/core/chat")
 		dofile("scripts/mods/vmf/modules/core/localization")
+		dofile("scripts/mods/vmf/modules/core/network")
 		dofile("scripts/mods/vmf/modules/gui/custom_textures")
 		dofile("scripts/mods/vmf/modules/gui/custom_menus")
 		dofile("scripts/mods/vmf/modules/gui/ui_scaling")
@@ -39,6 +40,8 @@ return {
 
 			object.vmf.initialize_keybinds()
 			object.vmf.initialize_vmf_options_view()
+			object.vmf.create_network_dictionary()
+			object.vmf.ping_vmf_users()
 
 			object.vmf.all_mods_were_loaded = true
 		end
