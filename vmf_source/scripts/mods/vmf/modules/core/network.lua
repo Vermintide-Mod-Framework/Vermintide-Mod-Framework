@@ -138,7 +138,7 @@ VMFMod.rpc_register = function (self, rpc_name, rpc_function)
 end
 
 -- recipient = "all", "local", "others", peer_id
-VMFMod.rpc_send = function (self, recipient, rpc_name, ...)
+VMFMod.rpc_send = function (self, rpc_name, recipient, ...)
 
   if not is_rpc_registered(self:get_name(), rpc_name) then
 
