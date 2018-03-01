@@ -1,6 +1,9 @@
 local vmf = get_mod("VMF")
 
 HOOKED_FUNCTIONS = {} -- global, because 'loadstring' doesn't see local variables
+DELAYED_HOOKING_ENABLED = true
+
+local _DELAYED_HOOKS = {} -- _DELAYED_HOOKS[hook_name] = {{mod_name, hooked_function},{}}
 
 -- ####################################################################################################################
 -- ##### Local functions ##############################################################################################
@@ -156,6 +159,7 @@ local function modify_hook(mod, hooked_function_name, action)
 
 end
 
+
 local function modify_all_hooks(mod, action)
 
   local no_hooks_functions_indexes = {}
@@ -191,6 +195,47 @@ local function modify_all_hooks(mod, action)
   end
 end
 
+
+-- DELAYED HOOKING
+
+
+local function add_delayed_hook(mod, hooked_function_name, hook_function)
+
+  if _DELAYED_HOOKS[hooked_function_name] then
+
+    for _, hook_info in ipairs(_DELAYED_HOOKS[hooked_function_name]) do
+
+      if hook_info[1] == mod then
+        hook_info[2] = hook_function
+        return
+      end
+    end
+  else
+
+    _DELAYED_HOOKS[hooked_function_name] = _DELAYED_HOOKS[hooked_function_name] or {}
+  end
+
+  table.insert(_DELAYED_HOOKS[hooked_function_name], {mod, hook_function})
+end
+
+
+local function delayed_hook(hooked_function_name)
+
+  local hooked_function_entry = create_hooked_function_entry(hooked_function_name)
+  if not hooked_function_entry then
+    return
+  end
+
+  for _, hook_info in ipairs(_DELAYED_HOOKS[hooked_function_name]) do
+
+    create_hook_entry(hook_info[1], hooked_function_entry, hook_info[2])
+  end
+
+  update_function_hook_chain(hooked_function_name)
+
+  _DELAYED_HOOKS[hooked_function_name] = nil
+end
+
 -- ####################################################################################################################
 -- ##### VMFMod #######################################################################################################
 -- ####################################################################################################################
@@ -203,7 +248,19 @@ VMFMod.hook = function (self, hooked_function_name, hook_function)
 
   local hooked_function_entry = get_hooked_function_entry(hooked_function_name) or create_hooked_function_entry(hooked_function_name)
   if not hooked_function_entry then
-    self:error("(hook): function [%s] doesn't exist", hooked_function_name)
+
+    if DELAYED_HOOKING_ENABLED then
+      add_delayed_hook(self, hooked_function_name, hook_function)
+    else
+      self:error("(hook): function [%s] doesn't exist", hooked_function_name)
+    end
+
+    return
+  end
+
+  if DELAYED_HOOKING_ENABLED and _DELAYED_HOOKS[hooked_function_name] then
+    add_delayed_hook(self, hooked_function_name, hook_function)
+    delayed_hook(hooked_function_name)
     return
   end
 
@@ -278,4 +335,29 @@ vmf.hooks_unload = function()
   end
 
   HOOKED_FUNCTIONS = {}
+end
+
+vmf.apply_delayed_hooks = function()
+
+  if DELAYED_HOOKING_ENABLED then
+
+    -- if chat is initialized, the game is fully loaded
+    if Managers.chat and Managers.chat:has_channel(1) then
+
+      DELAYED_HOOKING_ENABLED = false
+      for hooked_function_name, hooks in pairs(_DELAYED_HOOKS) do
+        for _, hook_info in ipairs(hooks) do
+          hook_info[1]:hook(hooked_function_name, hook_info[2]) -- mod:hook(hooked_function_name, hook_function)
+        end
+        _DELAYED_HOOKS[hooked_function_name] = nil
+      end
+
+    else
+
+      for hooked_function_name, _ in pairs(_DELAYED_HOOKS) do
+        delayed_hook(hooked_function_name)
+      end
+
+    end
+  end
 end
