@@ -1,7 +1,12 @@
 local vmf = get_mod("VMF")
 
 HOOKED_FUNCTIONS = {} -- global, because 'loadstring' doesn't see local variables
-DELAYED_HOOKING_ENABLED = true
+
+if type(DELAYED_HOOKING_ENABLED) == "boolean" then
+  DELAYED_HOOKING_ENABLED = DELAYED_HOOKING_ENABLED
+else
+  DELAYED_HOOKING_ENABLED = true
+end
 
 local _DELAYED_HOOKS = {} -- _DELAYED_HOOKS[hook_name] = {{mod_name, hooked_function},{}}
 

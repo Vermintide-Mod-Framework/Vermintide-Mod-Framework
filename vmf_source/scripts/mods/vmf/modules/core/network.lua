@@ -93,11 +93,11 @@ end
 
 local function send_rpc_vmf_data_local(mod_name, rpc_name, ...)
 
-  local success, error_message = pcall(_RPC_CALLBACKS[mod_name][rpc_name], ...)
+  local success, error_message = pcall(_RPC_CALLBACKS[mod_name][rpc_name], Network.peer_id(), ...)
 
   if not success then
     get_mod(mod_name):error("(local rpc) in rpc '%s': %s", rpc_name, error_message)
-
+  else
     local success, data = pcall(serialize_data, ...) -- @DEBUG:
     if success then -- @DEBUG:
       vmf:info("[NETWORK][LOCAL RPC] '%s': %s", rpc_name, data) -- @DEBUG:
@@ -138,7 +138,7 @@ VMFMod.rpc_register = function (self, rpc_name, rpc_function)
 end
 
 -- recipient = "all", "local", "others", peer_id
-VMFMod.rpc_send = function (self, recipient, rpc_name, ...)
+VMFMod.rpc_send = function (self, rpc_name, recipient, ...)
 
   if not is_rpc_registered(self:get_name(), rpc_name) then
 
@@ -231,7 +231,7 @@ vmf:hook("ChatManager.rpc_chat_message", function(func, self, sender, channel_id
         vmf:info("[NETWORK][RECEIVED RPC] '%s.%s' [%s]: %s", mod_name, rpc_name, sender, message) -- @DEBUG:
 
         -- can be error in both callback_function() and deserialize_data()
-        local success, error_message = pcall(function() _RPC_CALLBACKS[mod_name][rpc_name](deserialize_data(localization_param)) end)
+        local success, error_message = pcall(function() _RPC_CALLBACKS[mod_name][rpc_name](sender, deserialize_data(localization_param)) end)
         if not success then
           get_mod(mod_name):error("(network) in rpc function '%s': %s", rpc_name, tostring(error_message))
         end
