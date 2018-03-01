@@ -66,6 +66,7 @@ return {
 		print("VMF:ON_GAME_STATE_CHANGED(), status: " .. tostring(status) .. ", state: " .. tostring(state))
 		object.vmf.mods_game_state_changed_event(status, state)
 		object.vmf.save_unsaved_settings_to_file()
+		object.vmf.apply_delayed_hooks()
 
 		if status == "exit" and state == "StateTitleScreen" then
 			object.vmf.hook_chat_manager()
