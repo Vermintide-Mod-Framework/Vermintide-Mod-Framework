@@ -41,6 +41,7 @@ return {
 			object.vmf.initialize_keybinds()
 			object.vmf.initialize_vmf_options_view()
 			object.vmf.create_network_dictionary()
+			object.vmf.ping_vmf_users()
 
 			object.vmf.all_mods_were_loaded = true
 		end
