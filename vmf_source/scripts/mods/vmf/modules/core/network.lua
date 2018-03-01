@@ -97,7 +97,7 @@ local function send_rpc_vmf_data_local(mod_name, rpc_name, ...)
 
   if not success then
     get_mod(mod_name):error("(local rpc) in rpc '%s': %s", rpc_name, error_message)
-
+  else
     local success, data = pcall(serialize_data, ...) -- @DEBUG:
     if success then -- @DEBUG:
       vmf:info("[NETWORK][LOCAL RPC] '%s': %s", rpc_name, data) -- @DEBUG:
