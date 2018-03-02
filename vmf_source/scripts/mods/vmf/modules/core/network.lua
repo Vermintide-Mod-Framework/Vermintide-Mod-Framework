@@ -1,4 +1,5 @@
 -- @TODO: when recieving maps of other users, check for consistency
+-- @TODO: don't call during suspension
 local vmf = get_mod("VMF")
 
 local _VMF_USERS = {}
@@ -170,7 +171,7 @@ VMFMod.network_send = function (self, rpc_name, recipient, ...)
       end
     end
 
-  elseif recipient == "local" then
+  elseif recipient == "local" or recipient == Network.peer_id() then
 
     send_rpc_vmf_data_local(self:get_name(), rpc_name, ...)
 
