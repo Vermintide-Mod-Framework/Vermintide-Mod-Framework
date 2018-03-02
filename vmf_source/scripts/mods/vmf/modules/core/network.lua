@@ -1,4 +1,5 @@
 -- @TODO: when recieving maps of other users, check for consistency
+-- @TODO: don't call during suspension
 local vmf = get_mod("VMF")
 
 local _VMF_USERS = {}
@@ -115,20 +116,20 @@ end
 -- ##### VMFMod #######################################################################################################
 -- ####################################################################################################################
 
-VMFMod.rpc_register = function (self, rpc_name, rpc_function)
+VMFMod.network_register = function (self, rpc_name, rpc_function)
 
   if _NETWORK_MODULE_IS_INITIALIZED then
-    self:error("(rpc_register): you can't register new rpc after mod initialization")
+    self:error("(network_register): you can't register new rpc after mod initialization")
     return
   end
 
   if type(rpc_name) ~= "string" then
-    self:error("(rpc_register): rpc_name should be the string, not %s", type(rpc_name))
+    self:error("(network_register): rpc_name should be the string, not %s", type(rpc_name))
     return
   end
 
   if type(rpc_function) ~= "function" then
-    self:error("(rpc_register): rpc_function should be the function, not %s", type(rpc_name))
+    self:error("(network_register): rpc_function should be the function, not %s", type(rpc_name))
     return
   end
 
@@ -138,11 +139,11 @@ VMFMod.rpc_register = function (self, rpc_name, rpc_function)
 end
 
 -- recipient = "all", "local", "others", peer_id
-VMFMod.rpc_send = function (self, rpc_name, recipient, ...)
+VMFMod.network_send = function (self, rpc_name, recipient, ...)
 
   if not is_rpc_registered(self:get_name(), rpc_name) then
 
-    self:error("(rpc_send): attempt to send non-registered rpc")
+    self:error("(network_send): attempt to send non-registered rpc")
     return
   end
 
@@ -170,7 +171,7 @@ VMFMod.rpc_send = function (self, rpc_name, recipient, ...)
       end
     end
 
-  elseif recipient == "local" then
+  elseif recipient == "local" or recipient == Network.peer_id() then
 
     send_rpc_vmf_data_local(self:get_name(), rpc_name, ...)
 
