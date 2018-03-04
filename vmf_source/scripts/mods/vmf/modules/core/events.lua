@@ -95,3 +95,23 @@ vmf.mod_disabled_event = function(mod, initial_call)
     mod:warning("Attemt to call undefined event 'mod.%s'.", event_name)
   end
 end
+
+vmf.mod_user_joined_the_game = function(mod, player)
+
+  local event_name = "on_user_joined"
+
+  local event = mod[event_name]
+  if event then
+    run_event(mod, event_name, event, player)
+  end
+end
+
+vmf.mod_user_left_the_game = function(mod, player)
+
+  local event_name = "on_user_left"
+
+  local event = mod[event_name]
+  if event then
+    run_event(mod, event_name, event, player)
+  end
+end

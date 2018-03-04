@@ -41,6 +41,16 @@ return {
     ru = "Открывает новое окно, в которое в реальном времени выводится игровой лог.\n\n" ..
          "Чтобы его закрыть, сначала выключите консоль из меню настроек, и потом закройте вручную.",
   },
+  show_network_debug_info = {
+    en = "Log Network Calls",
+    ru = "Логгирование сетевых вызовов",
+  },
+  show_network_debug_info_tooltip = {
+    en = "Log all the VMF network calls and all the data transfered with them.\n\n" ..
+         "The method 'info' is used for the logging.",
+    ru = "Логирование всех сетевых вызовов VMF и передаваемых с ними данных.\n\n" ..
+         "Для логирования используется метод 'info'.",
+  },
   logging_mode = {
     en = "Logging Settings.",
     ru = "Настройки логирования",

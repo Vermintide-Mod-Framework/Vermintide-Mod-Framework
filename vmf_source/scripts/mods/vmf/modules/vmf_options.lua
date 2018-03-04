@@ -42,6 +42,14 @@ local options_widgets = {
                       vmf:localize("show_developer_console_tooltip"),
         ["default_value"] = false
       },
+      {
+        ["setting_name"] = "show_network_debug_info",
+        ["widget_type"] = "checkbox",
+        ["text"] = vmf:localize("show_network_debug_info"),
+        ["tooltip"] = vmf:localize("show_network_debug_info") .. "\n" ..
+                      vmf:localize("show_network_debug_info_tooltip"),
+        ["default_value"] = false
+      },
 --      {
 --        ["setting_name"] = "toggle_developer_console",
 --        ["widget_type"] = "keybind",
@@ -153,12 +161,18 @@ vmf.on_setting_changed = function (setting_name)
     Managers.mod._settings.developer_mode = vmf:get(setting_name)
     Application.set_user_setting("mod_settings", Managers.mod._settings)
 
+    vmf.network_debug = vmf:get(setting_name) and vmf:get("show_network_debug_info")
+
     local show_developer_console = vmf:get(setting_name) and vmf:get("show_developer_console")
     vmf.toggle_developer_console(show_developer_console)
 
   elseif setting_name == "show_developer_console" then
 
     vmf.toggle_developer_console(vmf:get(setting_name))
+
+  elseif setting_name == "show_network_debug_info" then
+
+    vmf.network_debug = vmf:get(setting_name)
 
   elseif setting_name == "logging_mode" then
 
