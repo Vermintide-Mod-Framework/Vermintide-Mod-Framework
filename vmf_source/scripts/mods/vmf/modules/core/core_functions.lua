@@ -158,9 +158,13 @@ VMFMod.dofile = function (self, script_path)
   local success, values = pack_pcall(pcall(dofile, script_path))
 
   if not success then
-    self:error("(loadfile): %s", values[1].error)
 
-    print("\nTRACEBACK:\n\n" .. tostring(values[1].traceback) .. "\nLOCALS:\n\n" .. tostring(values[1].locals))
+    if values[1].error then
+      self:error("(dofile): %s", values[1].error)
+      print("\nTRACEBACK:\n\n" .. values[1].traceback .. "\nLOCALS:\n\n" .. values[1].locals)
+    else
+      self:error("(dofile): %s", tostring(values[1]))
+    end
   end
 
   return unpack(values)
