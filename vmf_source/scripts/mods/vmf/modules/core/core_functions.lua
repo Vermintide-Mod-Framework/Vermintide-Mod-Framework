@@ -19,6 +19,11 @@ local function safe_format(mod, str, ...)
   end
 end
 
+local function pack_pcall(status, ...)
+
+  return status, {...}
+end
+
 local function send_to_chat(message)
 
   if Managers.chat and Managers.chat:has_channel(1) then
@@ -138,27 +143,27 @@ end
 
 
 VMFMod.pcall = function (self, ...)
-  local status, value = pcall(...)
+  local status, values = pack_pcall(pcall(...))
 
   if not status then
-    self:error("(pcall): %s", tostring(value))
+    self:error("(pcall): %s", tostring(values[1]))
   end
 
-  return status, value
+  return status, unpack(values)
 end
 
 
 VMFMod.dofile = function (self, script_path)
 
-  local success, value = pcall(dofile, script_path)
+  local success, values = pack_pcall(pcall(dofile, script_path))
 
   if not success then
-    self:error("(loadfile): %s", value.error)
+    self:error("(loadfile): %s", values[1].error)
 
-    print("\nTRACEBACK:\n\n" .. tostring(value.traceback) .. "\nLOCALS:\n\n" .. tostring(value.locals))
+    print("\nTRACEBACK:\n\n" .. tostring(values[1].traceback) .. "\nLOCALS:\n\n" .. tostring(values[1].locals))
   end
 
-  return value
+  return unpack(values)
 end
 
 -- ####################################################################################################################
