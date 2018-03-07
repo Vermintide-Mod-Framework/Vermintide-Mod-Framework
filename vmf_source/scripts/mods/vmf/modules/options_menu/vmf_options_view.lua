@@ -13,16 +13,9 @@
 ]]
 local vmf = get_mod("VMF")
 
-
-inject_material("materials/vmf/header_fav_icon", "header_fav_icon", "ingame_ui")
-inject_material("materials/vmf/header_fav_icon_lit", "header_fav_icon_lit", "ingame_ui")
-inject_material("materials/vmf/header_fav_arrow", "header_fav_arrow", "ingame_ui")
-inject_material("materials/vmf/search_bar_icon", "search_bar_icon", "ingame_ui")
-
--- TODO: move to mutator_gui
-inject_material("materials/vmf/mutator_button", "mutator_button", "ingame_ui")
-inject_material("materials/vmf/mutator_button_hover", "mutator_button_hover", "ingame_ui")
-
+vmf:custom_textures("header_fav_icon", "header_fav_icon_lit", "header_fav_arrow", "search_bar_icon")
+vmf:inject_materials("ingame_ui", "materials/vmf/header_fav_icon", "materials/vmf/header_fav_icon_lit",
+                                  "materials/vmf/header_fav_arrow", "materials/vmf/search_bar_icon")
 
 -- ####################################################################################################################
 -- ##### MENU WIDGETS DEFINITIONS #####################################################################################

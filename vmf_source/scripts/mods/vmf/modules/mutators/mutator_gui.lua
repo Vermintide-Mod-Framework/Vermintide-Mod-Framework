@@ -3,6 +3,9 @@
 local manager  = get_mod("vmf_mutator_manager")
 local mutators = manager.mutators
 
+manager:custom_textures("mutator_button", "mutator_button_hover")
+manager:inject_materials("ingame_ui", "materials/vmf/mutator_button", "materials/vmf/mutator_button_hover")
+
 local definitions = manager:dofile("scripts/mods/vmf/modules/mutators/mutator_gui_definitions")
 
 local PER_PAGE = definitions.PER_PAGE
@@ -212,7 +215,7 @@ local mutators_view = {
 			end
 		end
 
-		if #mutators == 0 then			
+		if #mutators == 0 then
 
 			widgets.adventure["no_mutators_text"] = self.widgets.no_mutators_text
 			widgets.survival["no_mutators_text"] = self.widgets.no_mutators_text
@@ -258,7 +261,7 @@ local mutators_view = {
 		if not self.initialized or not self.active then return end
 
 		self.active = false
-		
+
 		-- Widgets
 		local widgets = self.map_view.normal_settings_widget_types
 
