@@ -185,7 +185,7 @@ vmf.load_logging_settings = function ()
     error   = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_error")   or 3,
     warning = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_warning") or 3,
     info    = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_info")    or 1,
-    debug   = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_debug")   or 2,
+    debug   = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_debug")   or 0,
   }
 
   for method_name, logging_mode in pairs(_LOGGING_SETTINGS) do

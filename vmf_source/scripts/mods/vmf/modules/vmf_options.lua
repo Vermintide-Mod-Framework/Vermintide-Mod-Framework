@@ -145,7 +145,7 @@ local options_widgets = {
           {text = vmf:localize("output_chat"),         value = 2},
           {text = vmf:localize("output_log_and_chat"), value = 3},
         },
-        ["default_value"] = 2
+        ["default_value"] = 0
       }
     }
   }
