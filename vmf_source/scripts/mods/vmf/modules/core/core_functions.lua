@@ -122,20 +122,20 @@ VMFMod.info = function (self, message, ...)
 end
 
 
-VMFMod.spew = function (self, message, ...)
+VMFMod.debug = function (self, message, ...)
 
   message = tostring(message)
 
   message = safe_format(self, message, ...)
 
   if message then
-    message = "[" .. self:get_name() .. "][SPEW] " .. message
+    message = "[" .. self:get_name() .. "][DEBUG] " .. message
 
-    if _LOGGING_SETTINGS.spew.send_to_chat then
+    if _LOGGING_SETTINGS.debug.send_to_chat then
       send_to_chat(message)
     end
 
-    if _LOGGING_SETTINGS.spew.send_to_log then
+    if _LOGGING_SETTINGS.debug.send_to_log then
       send_to_log(message)
     end
   end
@@ -174,7 +174,6 @@ end
 -- ##### VMF internal functions and variables #########################################################################
 -- ####################################################################################################################
 
-
 vmf.unsent_chat_messages = _UNSENT_CHAT_MESSAGES
 
 vmf.load_logging_settings = function ()
@@ -184,7 +183,7 @@ vmf.load_logging_settings = function ()
     error   = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_error")   or 3,
     warning = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_warning") or 3,
     info    = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_info")    or 1,
-    spew    = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_spew")    or 0,
+    debug   = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_debug")   or 2,
   }
 
   for method_name, logging_mode in pairs(_LOGGING_SETTINGS) do

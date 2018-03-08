@@ -136,16 +136,16 @@ local options_widgets = {
       {
         ["show_widget_condition"] = {2},
 
-        ["setting_name"] = "output_mode_spew",
+        ["setting_name"] = "output_mode_debug",
         ["widget_type"] = "dropdown",
-        ["text"] = vmf:localize("output_mode_spew"),
+        ["text"] = vmf:localize("output_mode_debug"),
         ["options"] = {
           {text = vmf:localize("output_disabled"),     value = 0},
           {text = vmf:localize("output_log"),          value = 1},
           {text = vmf:localize("output_chat"),         value = 2},
           {text = vmf:localize("output_log_and_chat"), value = 3},
         },
-        ["default_value"] = 0
+        ["default_value"] = 2
       }
     }
   }
@@ -207,7 +207,7 @@ vmf.on_setting_changed = function (setting_name)
 
     vmf.load_logging_settings()
 
-  elseif setting_name == "output_mode_spew" then
+  elseif setting_name == "output_mode_debug" then
 
     vmf.load_logging_settings()
   end

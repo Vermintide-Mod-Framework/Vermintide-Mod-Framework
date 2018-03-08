@@ -89,9 +89,9 @@ return {
     en = "'Info' output",
     ru = "Вывод 'Info'",
   },
-  output_mode_spew = {
-    en = "'Spew' output",
-    ru = "Вывод 'Spew'",
+  output_mode_debug = {
+    en = "'Debug' Output",
+    ru = "Вывод 'Debug'",
   },
   output_disabled = {
     en = "Disabled",
