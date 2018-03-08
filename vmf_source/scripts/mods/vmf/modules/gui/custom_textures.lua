@@ -257,4 +257,8 @@ vmf:hook("UIAtlasHelper.get_atlas_settings_by_texture_name", function(func, text
   return func(texture_name)
 end)
 
+-- ####################################################################################################################
+-- ##### VMF internal functions and variables #########################################################################
+-- ####################################################################################################################
+
 vmf.custom_textures_debug = vmf:get("developer_mode") and vmf:get("log_ui_renderers_info")

@@ -1,3 +1,5 @@
+--@TODO: return right after output function call if it's not used in chat and in log
+--@TODO: move logging options to developer mode in options menu
 local vmf = get_mod("VMF")
 
 local _UNSENT_CHAT_MESSAGES = {}

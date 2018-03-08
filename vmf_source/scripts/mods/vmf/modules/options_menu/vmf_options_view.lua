@@ -1,15 +1,18 @@
 --[[
   * If you're changing settings defined in widget via mod:set don't use values which aren't defined in widget
-  * Don't use tables in settings defined in widgets. You can do it, but it will affect performance. The widgets are build to work with
+  * Don't use tables in settings defined in widgets. The widgets are build to work with
   basic datatypes (with exception of keybind widgets, but they are working differently)
   * Using tables in mod:get and mod:set for the settings that are not defined in widgets is fine though,
   but keep in mind, that every time you do it, this table will be cloned, so don't do it very frequently,
   especially if the tables are big
   * No external config files. Everything should be stored via mod:set
+  * Use mod:set only if you need setting to be saved in the config file
 
 
   @TODO: [BUG] checkbox is checked at first tick after showing, since local_offset function is called after rect drawing
-  @TODO: [BUG] searchbar's insput will stop working after using russian character
+  @TODO: [BUG] searchbar's input will stop working after using russian character
+  @TODO: [IMPROVEMENT] opened widgets are shown even behind the borders
+  @TODO: [IMPROVEMENT] dropdown widget goes up if there's not enough space at the bottom
 ]]
 local vmf = get_mod("VMF")
 
