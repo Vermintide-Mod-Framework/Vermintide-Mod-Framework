@@ -62,7 +62,7 @@ return {
          "Для логирования используется метод 'info'.",
   },
   logging_mode = {
-    en = "Logging Settings.",
+    en = "Logging Settings",
     ru = "Настройки логирования",
   },
   settings_default = {
@@ -74,19 +74,19 @@ return {
     ru = "Пользовательские",
   },
   output_mode_echo = {
-    en = "'Echo' output",
+    en = "'Echo' Output",
     ru = "Вывод 'Echo'",
   },
   output_mode_error = {
-    en = "'Error' output",
+    en = "'Error' Output",
     ru = "Вывод 'Error'",
   },
   output_mode_warning = {
-    en = "'Warning' output",
+    en = "'Warning' Output",
     ru = "Вывод 'Warning'",
   },
   output_mode_info = {
-    en = "'Info' output",
+    en = "'Info' Output",
     ru = "Вывод 'Info'",
   },
   output_mode_debug = {
