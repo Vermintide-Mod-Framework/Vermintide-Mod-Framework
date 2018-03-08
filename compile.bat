@@ -3,8 +3,8 @@
 
 :: project-defined variable, you probably shouldn't change them
 
-set SOUCE_CODE_DIR=.\vmf_source
-set TEMP_DIR=.\TEMP
+set SOUCE_CODE_DIR=.\vmf
+set TEMP_DIR=.\.temp\vmf
 set ORIGINAL_VMF_BUNDLE_FILE_NAME=98161451961848df
 set NEW_VMF_BUNDLE_FILE_NAME=VMF
 

@@ -107,16 +107,238 @@ local options_widgets = {
   }
 }
 
---mod:create_options(options_widgets, true, "Test", "Mod description")
+mod:create_options(options_widgets, true, "Test", "Mod description")
 
 -- chat_broadcast
 mod.whatever = function ()
-  mod:echo("whatever")
+  --mod:echo("whatever")
+
+--[[
+  mod:pcall(function()
+
+    local some_table = {1, 2, 3, nil, 4}
+
+    local some_string = ""
+
+    some_table[5] = nil
+    for i = 1, #some_table do
+      some_string = some_string .. tostring(some_table[i])
+    end
+
+    mod:echo(some_string)
+    mod:echo(#some_table)
+
+    for _, member in pairs(Managers.chat:channel_members(1)) do
+      RPC.rpc_chat_message(member, 3, Network.peer_id(), table.serialize(some_table), "", false, true, false)
+    end
+  end)]]
+
+  --mod:network_send("rpc_whatever", "all", 1, "yay", true, nil, {4, 5})
+
+  mod:pcall(function()
+    RPC.rpc_play_simple_particle_with_vector_variable(Managers.player:local_player().peer_id, 27, Vector3(-3.72465, -1.52876, 2.02713), 32, Vector3(5, 1, 1))
+  end)
+
+
+  --mod.simulate(1, "yay", true, Managers.player.network_manager.matchmaking_manager.matchmaking_ui.ingame_ui.wwise_world, {4, 5})
+  --mod.simulate(1, "yay", true, nil, {4, 5})
+
+
+
+  --mod.custom_mod_rpc()
+end
+  --ingame_ui.handle_transition(ingame_ui, "leave_group")
+
+function mod.simulate(...)
+
+  --mod:echo("ONE: " .. select("#", ...))
+
+  local jtable = {
+    something = 5,
+    well = "asd",
+    yay = "s"
+  }
+
+  jtable.what = nil
+
+
+
+  local tbl = {...}
+  --tbl[4] = "what"
+  --tbl[5] = tbl[5]
+  --tbl[4] = nil
+  tbl[10] = 4
+  tbl[12] = 4
+  --tbl["hmm"] = "hmm"
+
+  --mod:echo("777: " .. cjson.encode(tbl))
+
+ -- mod:echo("ONE: " .. #tbl)
+  --mod:echo("ONE: " .. tostring(tbl[5]))
+
+  --local data = table.serialize({...})
+  local data = cjson.encode(tbl)
+
+  --data[10] = 3
+  mod:echo("XXX:" .. data)
+  --data = data:gsub('null','')
+  --local data2 = table.deserialize(data)
+  local data2 = cjson.decode(data)
+
+  mod.custom_mod_rpc(unpack(data2))
+
+  for i,v in ipairs(data2) do
+    if type(data2[i]) == "userdata" then
+      data2[i] = nil
+      break
+    end
+  end
+
+  mod:echo("ONE: " .. select("#", unpack(data2)))
+
+  mod.game_state_changed(unpack(data2, 1, 5))
 end
 
-mod.game_state_changed = function ()
-  --mod:echo("whatever" .. nil)
+mod.game_state_changed = function (a1, a2, a3, a4, a5)
+  mod:echo("RECEIVED PARAMETERS: [1: " .. tostring (a1) .. "], [2:" .. tostring (a2) .. "], [3:" .. tostring (a3) .. "], [4:" .. tostring (a4) .. "], [5:" .. tostring (a5) .. "]")
 end
+
+
+mod.custom_mod_rpc = function (...)
+  local args = {...}
+  local result = "You recieved custom RPC: "
+  for i = 1, #args do
+    result = result .. tostring(args[i]) .. " (" .. type(args[i]) .. "), "
+  end
+  mod:echo(result .. "[%s arguments]" .. tostring(args[5]), #args)
+  --local srt = "s" .. nil
+end
+
+mod:pcall(
+  function()
+    --Managers.state.network._event_delegate:unregister(mod, "custom_mod_rpc")
+    --Managers.state.network._event_delegate:register(mod, "custom_mod_rpc")
+    --Managers.state.network:register_rpc_callbacks(mod, "custom_mod_rpc")
+  end
+)
+
+
+mod:network_register("rpc_whatever", mod.game_state_changed)
+mod:network_register("yo",mod.game_state_changed)
+mod:network_register("test", mod.game_state_changed)
+
+--mod:hook("bla.bla", mod.game_state_changed)
+--mod:hook("bla.bla2", mod.game_state_changed)
+--mod:hook("bla.bla3", mod.game_state_changed)
+
+local mod3 = new_mod("test_mod3")
+--mod3:hook("bla.bla", mod.game_state_changed)
+--mod3:hook("bla.bla2", mod.game_state_changed)
+--mod3:hook("bla.bla3", mod.game_state_changed)
+mod3:network_register("what", mod.game_state_changed)
+
+--[[
+mod:hook("ChatManager.rpc_chat_message", function (func, self, sender, channel_id, message_sender, message, localization_param, is_system_message, pop_chat, is_dev)
+
+  if channel_id > 1 then
+    mod:echo(message)
+  else
+    func(self, sender, channel_id, message_sender, message, localization_param, is_system_message, pop_chat, is_dev)
+  end
+end)
+]]
+
+--[[ USEFULL STUFF
+
+
+
+mod:hook("ProfileSynchronizer.register_rpcs", function (func, self, network_event_delegate, network_transmit)
+  func(self, network_event_delegate, network_transmit)
+
+  network_event_delegate:register(mod, "custom_mod_rpc")
+  mod:echo("It's called, ffs")
+end)
+
+
+
+mod:hook("ProfileSynchronizer.unregister_network_events", function (func, self)
+
+  if self._network_event_delegate then
+    self._network_event_delegate:unregister(mod)
+  end
+
+  func(self)
+end)
+
+
+
+
+
+--StateIngame.on_enter:
+--  ScriptBackendSession.init(network_event_delegate, disable_backend_sessions)
+--    backend_session:register_rpcs(network_event_delegate)
+
+--mod:dtf(Managers.state.network._event_delegate.event_table, "RPC", 2)
+--mod:dtf(Managers.state.network._event_delegate, "_event_delegate", 2)
+
+mod:dtf(Network, "Network", 2)
+
+
+
+mod:hook("PlayerManager.add_remote_player", function (func, self, peer_id, player_controlled, local_player_id, clan_tag)
+
+  mod:echo("PlayerManager.add_remote_player: " .. tostring(peer_id) .. ", " .. tostring(local_player_id))
+  return func(self, peer_id, player_controlled, local_player_id, clan_tag)
+end)
+
+mod:hook("PlayerManager.add_player", function (func, self, input_source, viewport_name, viewport_world_name, local_player_id)
+
+  mod:echo("PlayerManager.add_player: " .. tostring(local_player_id))
+  return func(self, input_source, viewport_name, viewport_world_name, local_player_id)
+end)
+
+mod:hook("PlayerManager.remove_player", function (func, self, peer_id, local_player_id)
+
+  func(self, peer_id, local_player_id)
+  mod:echo("PlayerManager.remove_player: " .. tostring(peer_id) .. ", " .. tostring(local_player_id))
+end)
+--]]
+
+
+
+
+
+
+
+
+
+--[[
+mod:hook("PeerStateMachine.create", function (func, server, peer_id, xb1_preconnect)
+
+  mod:echo("PeerStateMachine.create: " .. tostring(server) .. ", " .. tostring(peer_id))
+  return func(server, peer_id, xb1_preconnect)
+end)
+]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 --[[
 mod:hook("KeystrokeHelper.parse_strokes", function(func, text, index, mode, keystrokes)
