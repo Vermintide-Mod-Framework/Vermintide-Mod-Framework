@@ -43,12 +43,22 @@ return {
   },
   show_network_debug_info = {
     en = "Log Network Calls",
-    ru = "Логгирование сетевых вызовов",
+    ru = "Логирование сетевых вызовов",
   },
   show_network_debug_info_tooltip = {
     en = "Log all the VMF network calls and all the data transfered with them.\n\n" ..
          "The method 'info' is used for the logging.",
     ru = "Логирование всех сетевых вызовов VMF и передаваемых с ними данных.\n\n" ..
+         "Для логирования используется метод 'info'.",
+  },
+  log_ui_renderers_info = {
+    en = "Log UI Renderers Creation Info",
+    ru = "Логирование информации при создании UI Renderer",
+  },
+  log_ui_renderers_info_tooltip = {
+    en = "Log the UI Renderer's creator name and all the materials passed as the agruments.\n\n" ..
+         "The method 'info' is used for the logging.",
+    ru = "Логирование имени создателя UI Renderer'а и всех материалов, переданных в качестве аргументов.\n\n" ..
          "Для логирования используется метод 'info'.",
   },
   logging_mode = {

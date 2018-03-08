@@ -192,9 +192,14 @@ vmf:hook("UIRenderer.create", function(func, world, ...)
 
   -- DEBUG INFO
 
-  print("UI_RENDERER CREATED BY: " .. ui_renderer_creator) -- @DEBUG
-  vmf:dump(ui_renderer_materials, "UI_RENDERER MATERIALS", 1) -- @DEBUG
-
+  if vmf.custom_textures_debug then
+    vmf:info("UI_RENDERER CREATED BY:")
+    vmf:info("   %s", ui_renderer_creator)
+    vmf:info("UI_RENDERER MATERIALS:")
+    for n, material in ipairs(ui_renderer_materials) do
+      vmf:info("   [%s]: %s:", n, material)
+    end
+  end
 
   -- CREATING THE NEW UI_RENDERER AND SAVING SOME DATA INSIDE OF IT
 
@@ -251,3 +256,5 @@ vmf:hook("UIAtlasHelper.get_atlas_settings_by_texture_name", function(func, text
 
   return func(texture_name)
 end)
+
+vmf.custom_textures_debug = vmf:get("developer_mode") and vmf:get("log_ui_renderers_info")

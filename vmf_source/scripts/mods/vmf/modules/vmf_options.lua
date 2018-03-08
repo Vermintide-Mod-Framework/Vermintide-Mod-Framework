@@ -50,6 +50,14 @@ local options_widgets = {
                       vmf:localize("show_network_debug_info_tooltip"),
         ["default_value"] = false
       },
+      {
+        ["setting_name"] = "log_ui_renderers_info",
+        ["widget_type"] = "checkbox",
+        ["text"] = vmf:localize("log_ui_renderers_info"),
+        ["tooltip"] = vmf:localize("log_ui_renderers_info") .. "\n" ..
+                      vmf:localize("log_ui_renderers_info_tooltip"),
+        ["default_value"] = false
+      },
 --      {
 --        ["setting_name"] = "toggle_developer_console",
 --        ["widget_type"] = "keybind",
@@ -161,7 +169,8 @@ vmf.on_setting_changed = function (setting_name)
     Managers.mod._settings.developer_mode = vmf:get(setting_name)
     Application.set_user_setting("mod_settings", Managers.mod._settings)
 
-    vmf.network_debug = vmf:get(setting_name) and vmf:get("show_network_debug_info")
+    vmf.network_debug         = vmf:get(setting_name) and vmf:get("show_network_debug_info")
+    vmf.custom_textures_debug = vmf:get(setting_name) and vmf:get("log_ui_renderers_info")
 
     local show_developer_console = vmf:get(setting_name) and vmf:get("show_developer_console")
     vmf.toggle_developer_console(show_developer_console)
@@ -172,7 +181,11 @@ vmf.on_setting_changed = function (setting_name)
 
   elseif setting_name == "show_network_debug_info" then
 
-    vmf.network_debug = vmf:get(setting_name)
+    vmf.network_debug = vmf:get("developer_mode") and vmf:get(setting_name)
+
+  elseif setting_name == "log_ui_renderers_info" then
+
+    vmf.custom_textures_debug = vmf:get("developer_mode") and vmf:get(setting_name)
 
   elseif setting_name == "logging_mode" then
 
