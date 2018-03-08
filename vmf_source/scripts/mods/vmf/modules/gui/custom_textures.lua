@@ -1,9 +1,10 @@
 local vmf = get_mod("VMF")
 
+UI_RENDERERS = UI_RENDERERS or {}
+
 local _CUSTOM_NONE_ATLAS_TEXTURES = {}
 local _CUSTOM_UI_ATLAS_SETTINGS = {}
 
-local _UI_RENDERERS = {}
 local _INJECTED_MATERIALS = {}
 
 -- ####################################################################################################################
@@ -129,7 +130,7 @@ VMFMod.inject_materials = function (self, ui_renderer_creator, ...)
   _INJECTED_MATERIALS[ui_renderer_creator] = injected_materials_list
 
   -- recreate GUIs with injected materials for ui_renderers created by 'ui_renderer_creator'
-  for ui_renderer, _ in pairs(_UI_RENDERERS) do
+  for ui_renderer, _ in pairs(UI_RENDERERS) do
     if ui_renderer.vmf_data.ui_renderer_creator == ui_renderer_creator then
 
       local new_materials_list = table.clone(ui_renderer.vmf_data.original_materials)
@@ -200,7 +201,7 @@ vmf:hook("UIRenderer.create", function(func, world, ...)
   ui_renderer_creating = true
   local ui_renderer = func(world, unpack(ui_renderer_materials))
 
-  _UI_RENDERERS[ui_renderer] = true
+  UI_RENDERERS[ui_renderer] = true
 
   ui_renderer.vmf_data.original_materials = {...}
   ui_renderer.vmf_data.ui_renderer_creator = ui_renderer_creator
@@ -222,7 +223,7 @@ end)
 
 vmf:hook("UIRenderer.destroy", function(func, self, world)
 
-  _UI_RENDERERS[self] = nil
+  UI_RENDERERS[self] = nil
 
   func(self, world)
 end)
