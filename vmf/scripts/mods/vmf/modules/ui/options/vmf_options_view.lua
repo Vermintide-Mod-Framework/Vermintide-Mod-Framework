@@ -2355,6 +2355,8 @@ end
 
 local SETTINGS_LIST_WIDGETS_DEFINITIONS = {} -- numerical sorting [ipairs]
 
+local _DEFAULT_SCROLL_STEP = 40
+local _SCROLL_STEP
 
 -- ####################################################################################################################
 -- ##### INITIALIZATION ###############################################################################################
@@ -2366,14 +2368,11 @@ VMFOptionsView.init = function (self, ingame_ui_context)
 
   self.current_setting_list_offset_y = 0
 
-  self.default_scroll_step = 40
-  self.scroll_step = self.default_scroll_step / 100 * (vmf:get("vmf_options_scrolling_speed") or 100)
-
   self.is_setting_changes_applied_immidiately = true
 
   self.definitions = {}
   self.definitions.scenegraph            = scenegraph_definition
-  self.definitions.scenegraph_2nd_layer           = {}
+  self.definitions.scenegraph_2nd_layer  = {}
   self.definitions.menu_widgets          = menu_widgets_definition
   self.definitions.settings_list_widgets = SETTINGS_LIST_WIDGETS_DEFINITIONS
 
@@ -3564,7 +3563,7 @@ VMFOptionsView.update_mousewheel_scroll_area_input = function (self)
 
   if mouse_scroll_value ~= 0 then
 
-    local new_offset = self.current_setting_list_offset_y + mouse_scroll_value * self.scroll_step
+    local new_offset = self.current_setting_list_offset_y + mouse_scroll_value * _SCROLL_STEP
 
     self.current_setting_list_offset_y = math.clamp(new_offset, 0, self.max_setting_list_offset_y)
 
@@ -3833,6 +3832,33 @@ VMFOptionsView.unsuspend = function (self)
   self.input_manager:block_device_except_service("vmf_options_menu", "gamepad", 1)
 end
 
+-- ####################################################################################################################
+-- ##### VMF internal functions and variables #########################################################################
+-- ####################################################################################################################
+
+vmf.load_vmf_options_view_settings = function()
+  if vmf:get("vmf_options_scrolling_speed") then
+    _SCROLL_STEP = _DEFAULT_SCROLL_STEP / 100 * vmf:get("vmf_options_scrolling_speed")
+  end
+end
+
+-- ####################################################################################################################
+-- ##### Script #######################################################################################################
+-- ####################################################################################################################
+
+vmf.load_vmf_options_view_settings()
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3920,7 +3946,7 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
         new_widget_definition.widget_type     = current_widget.widget_type     -- all
         new_widget_definition.widget_index    = new_widget_index               -- all [gen]
         new_widget_definition.widget_level    = level                          -- all [gen]
-        new_widget_definition.mod_name        = self:get_name()                     -- all [gen]
+        new_widget_definition.mod_name        = self:get_name()                -- all [gen]
         new_widget_definition.setting_name    = current_widget.setting_name    -- all
         new_widget_definition.text            = current_widget.text            -- all
         new_widget_definition.tooltip         = current_widget.tooltip         -- all [optional]
@@ -4010,43 +4036,6 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
 
   table.insert(SETTINGS_LIST_WIDGETS_DEFINITIONS, mod_settings_list_widgets_definitions)
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 if type(vmf:get("options_menu_favorite_mods")) ~= "table" then
   vmf:set("options_menu_favorite_mods", {})

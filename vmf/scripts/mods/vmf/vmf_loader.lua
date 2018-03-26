@@ -16,15 +16,23 @@ return {
 		dofile("scripts/mods/vmf/modules/core/chat")
 		dofile("scripts/mods/vmf/modules/core/localization")
 		dofile("scripts/mods/vmf/modules/core/network")
+		dofile("scripts/mods/vmf/modules/core/commands")
 		dofile("scripts/mods/vmf/modules/gui/custom_textures")
 		dofile("scripts/mods/vmf/modules/gui/custom_menus")
 		dofile("scripts/mods/vmf/modules/gui/ui_scaling")
-		dofile("scripts/mods/vmf/modules/options_menu/vmf_options_view")
+		dofile("scripts/mods/vmf/modules/ui/chat/chat_actions")
+		dofile("scripts/mods/vmf/modules/ui/options/vmf_options_view")
 		dofile("scripts/mods/vmf/modules/vmf_options")
 
-		dofile("scripts/mods/vmf/modules/mutators/mutator_manager")
+		dofile("scripts/mods/vmf/modules/ui/mutators/mutator_manager")
 
 		object.vmf = get_mod("VMF")
+
+		object.vmf:hook("ModManager.destroy", function(func, self)
+
+			object.vmf.mods_unload_event(true)
+			func(self)
+		end)
 
 		-- temporary solution:
 		dofile("scripts/mods/vmf/modules/testing_stuff_here")
@@ -43,12 +51,16 @@ return {
 			object.vmf.create_network_dictionary()
 			object.vmf.ping_vmf_users()
 
+			object.vmf.all_mods_loaded_event()
+
 			object.vmf.all_mods_were_loaded = true
 		end
 	end,
 
 	on_unload = function(object)
 		print("VMF:ON_UNLOAD()")
+		object.vmf.save_chat_history()
+		object.vmf.save_unsaved_settings_to_file()
 		object.vmf = nil
 	end,
 
@@ -59,7 +71,6 @@ return {
 		object.vmf.delete_keybinds()
 		object.vmf.mods_unload_event()
 		object.vmf.hooks_unload()
-		object.vmf.save_unsaved_settings_to_file()
 	end,
 
 	on_game_state_changed = function(object, status, state)

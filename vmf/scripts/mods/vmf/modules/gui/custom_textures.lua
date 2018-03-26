@@ -7,6 +7,8 @@ local _CUSTOM_UI_ATLAS_SETTINGS = {}
 
 local _INJECTED_MATERIALS = {}
 
+local _SHOW_DEBUG_INFO = false
+
 -- ####################################################################################################################
 -- ##### Local functions ##############################################################################################
 -- ####################################################################################################################
@@ -130,10 +132,15 @@ VMFMod.inject_materials = function (self, ui_renderer_creator, ...)
   _INJECTED_MATERIALS[ui_renderer_creator] = injected_materials_list
 
   -- recreate GUIs with injected materials for ui_renderers created by 'ui_renderer_creator'
-  for ui_renderer, _ in pairs(UI_RENDERERS) do
-    if ui_renderer.vmf_data.ui_renderer_creator == ui_renderer_creator then
+  local vmf_data
 
-      local new_materials_list = table.clone(ui_renderer.vmf_data.original_materials)
+  for ui_renderer, _ in pairs(UI_RENDERERS) do
+
+    vmf_data = rawget(ui_renderer, "vmf_data")
+
+    if vmf_data.ui_renderer_creator == ui_renderer_creator then
+
+      local new_materials_list = table.clone(vmf_data.original_materials)
 
       for _, injected_material in ipairs(injected_materials_list) do
         table.insert(new_materials_list, "material")
@@ -192,7 +199,7 @@ vmf:hook("UIRenderer.create", function(func, world, ...)
 
   -- DEBUG INFO
 
-  if vmf.custom_textures_debug then
+  if _SHOW_DEBUG_INFO then
     vmf:info("UI_RENDERER CREATED BY:")
     vmf:info("   %s", ui_renderer_creator)
     vmf:info("UI_RENDERER MATERIALS:")
@@ -203,26 +210,16 @@ vmf:hook("UIRenderer.create", function(func, world, ...)
 
   -- CREATING THE NEW UI_RENDERER AND SAVING SOME DATA INSIDE OF IT
 
-  ui_renderer_creating = true
   local ui_renderer = func(world, unpack(ui_renderer_materials))
 
   UI_RENDERERS[ui_renderer] = true
 
-  ui_renderer.vmf_data.original_materials = {...}
-  ui_renderer.vmf_data.ui_renderer_creator = ui_renderer_creator
+  local vmf_data = {}
+  vmf_data.original_materials = {...}
+  vmf_data.ui_renderer_creator = ui_renderer_creator
+  rawset(ui_renderer, "vmf_data", vmf_data)
 
   return ui_renderer
-end)
-
-
-vmf:hook("MakeTableStrict", function(func, t)
-
-  if ui_renderer_creating then
-    t.vmf_data = {}
-    ui_renderer_creating = false
-  end
-
-  return func(t)
 end)
 
 
@@ -261,4 +258,12 @@ end)
 -- ##### VMF internal functions and variables #########################################################################
 -- ####################################################################################################################
 
-vmf.custom_textures_debug = vmf:get("developer_mode") and vmf:get("log_ui_renderers_info")
+vmf.load_custom_textures_settings = function()
+  _SHOW_DEBUG_INFO = vmf:get("developer_mode") and vmf:get("log_ui_renderers_info")
+end
+
+-- ####################################################################################################################
+-- ##### Script #######################################################################################################
+-- ####################################################################################################################
+
+vmf.load_custom_textures_settings()

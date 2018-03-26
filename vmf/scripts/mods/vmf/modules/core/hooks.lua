@@ -67,8 +67,6 @@ local function create_hook_entry(mod, hooked_function_entry, hook_function)
   hook_entry.is_enabled    = true
 
   table.insert(hooked_function_entry.hooks, hook_entry)
-
-  --return hook_entry -- @TODO: do I need this return?
 end
 
 
@@ -134,6 +132,7 @@ end
 
 local function modify_hook(mod, hooked_function_name, action)
 
+  -- @TODO: I guess I don't need this check?
   if not get_function_by_name(hooked_function_name) then
     mod:error("(hook_%s): function [%s] doesn't exist", action, hooked_function_name)
     return

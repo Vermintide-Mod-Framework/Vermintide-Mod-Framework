@@ -6,7 +6,7 @@ local mutators = manager.mutators
 manager:custom_textures("mutator_button", "mutator_button_hover")
 manager:inject_materials("ingame_ui", "materials/vmf/mutator_button", "materials/vmf/mutator_button_hover")
 
-local definitions = manager:dofile("scripts/mods/vmf/modules/mutators/mutator_gui_definitions")
+local definitions = manager:dofile("scripts/mods/vmf/modules/ui/mutators/mutator_gui_definitions")
 
 local PER_PAGE = definitions.PER_PAGE
 

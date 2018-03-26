@@ -11,6 +11,8 @@ local _SHARED_RPCS_MAP = ""
 
 local _NETWORK_MODULE_IS_INITIALIZED = false
 
+local _NETWORK_DEBUG = false
+
 -- ####################################################################################################################
 -- ##### Local functions ##############################################################################################
 -- ####################################################################################################################
@@ -82,7 +84,7 @@ end
 
 local function network_debug(rpc_type, action_type, peer_id, mod_name, rpc_name, data)
 
-  if vmf.network_debug then
+  if _NETWORK_DEBUG then
 
     local debug_message = nil
 
@@ -196,7 +198,7 @@ VMFMod.network_send = function (self, rpc_name, recipient, ...)
   if recipient == "all" then
 
     for peer_id, _ in pairs(_VMF_USERS) do
-        send_rpc_vmf_data(peer_id, self:get_name(), rpc_name, ...)
+      send_rpc_vmf_data(peer_id, self:get_name(), rpc_name, ...)
     end
 
     send_rpc_vmf_data_local(self:get_name(), rpc_name, ...)
@@ -241,7 +243,7 @@ vmf:hook("ChatManager.rpc_chat_message", function(func, self, sender, channel_id
     elseif channel_id == 4 then -- rpc_vmf_responce (@TODO: maybe I should protect it from sending by the player who's not in the game?)
 
       network_debug("pong", "received", sender)
-      if vmf.network_debug then
+      if _NETWORK_DEBUG then
         vmf:info("[RECEIVED MODS TABLE]: " .. message)
         vmf:info("[RECEIVED RPCS TABLE]: " .. localization_param)
       end
@@ -329,8 +331,6 @@ end)
 -- ##### VMF internal functions and variables #########################################################################
 -- ####################################################################################################################
 
-vmf.network_debug = vmf:get("developer_mode") and vmf:get("show_network_debug_info")
-
 vmf.create_network_dictionary = function()
 
   _SHARED_MODS_MAP = {}
@@ -375,3 +375,13 @@ vmf.ping_vmf_users = function()
     end
   end
 end
+
+vmf.load_network_settings = function()
+  _NETWORK_DEBUG = vmf:get("developer_mode") and vmf:get("show_network_debug_info")
+end
+
+-- ####################################################################################################################
+-- ##### Script #######################################################################################################
+-- ####################################################################################################################
+
+vmf.load_network_settings()

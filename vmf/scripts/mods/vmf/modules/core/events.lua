@@ -19,8 +19,8 @@ end
 -- ##### VMF internal functions and variables #########################################################################
 -- ####################################################################################################################
 
--- call 'unload' for every mod which defined it
-vmf.mods_unload_event = function()
+-- call 'on_unload' for every mod which defined it
+vmf.mods_unload_event = function(exit_game)
 
   local event_name = "on_unload"
 
@@ -29,7 +29,7 @@ vmf.mods_unload_event = function()
     local mod = _MODS[mod_name]
     local event = mod[event_name]
     if event then
-      run_event(mod, event_name, event)
+      run_event(mod, event_name, event, exit_game)
     end
   end
 end
@@ -48,7 +48,7 @@ vmf.mods_update_event = function(dt)
   end
 end
 
--- call 'game_state_changed' for every mod which defined it
+-- call 'on_game_state_changed' for every mod which defined it
 vmf.mods_game_state_changed_event = function(status, state)
 
   local event_name = "on_game_state_changed"
@@ -113,5 +113,19 @@ vmf.mod_user_left_the_game = function(mod, player)
   local event = mod[event_name]
   if event then
     run_event(mod, event_name, event, player)
+  end
+end
+
+vmf.all_mods_loaded_event = function()
+
+  local event_name = "on_all_mods_loaded"
+
+  for _, mod_name in ipairs(_MODS_UNLOADING_ORDER) do
+
+    local mod = _MODS[mod_name]
+    local event = mod[event_name]
+    if event then
+      run_event(mod, event_name, event)
+    end
   end
 end

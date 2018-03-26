@@ -11,7 +11,7 @@ local mutators = manager.mutators
 
 -- Table of mutators' configs by name
 local mutators_config = {}
-local default_config = manager:dofile("scripts/mods/vmf/modules/mutators/mutator_default_config")
+local default_config = manager:dofile("scripts/mods/vmf/modules/ui/mutators/mutator_default_config")
 
 -- This lists mutators and which ones should be enabled after them
 -- This is populated via VMFMod.register_as_mutator
@@ -35,9 +35,9 @@ local all_mutators_disabled = false
 	PRIVATE METHODS
 ]]--
 
-local mutators_view = manager:dofile("scripts/mods/vmf/modules/mutators/mutator_gui")
-local dice_manager = manager:dofile("scripts/mods/vmf/modules/mutators/mutator_dice")
-local set_lobby_data = manager:dofile("scripts/mods/vmf/modules/mutators/mutator_info")
+local mutators_view = manager:dofile("scripts/mods/vmf/modules/ui/mutators/mutator_gui")
+local dice_manager = manager:dofile("scripts/mods/vmf/modules/ui/mutators/mutator_dice")
+local set_lobby_data = manager:dofile("scripts/mods/vmf/modules/ui/mutators/mutator_info")
 
 -- Adds mutator names from enable_these_after to the list of mutators that should be enabled after the mutator_name
 local function update_mutators_sequence(mutator_name, enable_these_after)
@@ -127,7 +127,7 @@ local function set_mutator_state(mutator, state)
 	end
 
 	if state and (
-		not mutator:can_be_enabled() or 
+		not mutator:can_be_enabled() or
 		Managers.state and Managers.state.game_mode and Managers.state.game_mode._game_mode_key ~= "inn"
 	) then
 		return
@@ -177,7 +177,7 @@ end
 -- Checks if the player is server in a way that doesn't incorrectly return false during loading screens
 local function player_is_server()
 	local player = Managers.player
-	local state = Managers.state	
+	local state = Managers.state
 	return not player or player.is_server or not state or state.game_mode == nil
 end
 
@@ -272,7 +272,7 @@ end
 
 -- Appends, prepends and replaces the string with mutator titles
 manager.add_mutator_titles_to_string = function(_mutators, str, separator, short)
-	
+
 	if #_mutators == 0 then return str end
 
 	local before = nil
@@ -294,7 +294,7 @@ manager.add_mutator_titles_to_string = function(_mutators, str, separator, short
 			else
 				replace = added_name
 			end
-		else			
+		else
 			if after then
 				after = after .. separator .. added_name
 			else
@@ -454,6 +454,6 @@ mutators_view:init(mutators_view:get_map_view())
 --[[
 	Testing
 --]]
--- manager:dofile("scripts/mods/vmf/modules/mutators/mutator_test")
--- manager:dofile("scripts/mods/vmf/modules/mutators/mutators/mutation")
--- manager:dofile("scripts/mods/vmf/modules/mutators/mutators/deathwish")
+-- manager:dofile("scripts/mods/vmf/modules/ui/mutators/mutator_test")
+-- manager:dofile("scripts/mods/vmf/modules/ui/mutators/mutators/mutation")
+-- manager:dofile("scripts/mods/vmf/modules/ui/mutators/mutators/deathwish")

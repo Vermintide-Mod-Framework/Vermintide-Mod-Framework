@@ -109,6 +109,12 @@ local options_widgets = {
 
 mod:create_options(options_widgets, true, "Test", "Mod description")
 
+mod:command("whatever", "description whatever", function() mod:echo("whatever") end)
+mod:command("what", "description what", function() mod:echo("what") end)
+mod:command("wh", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tincidunt placerat nulla eget pharetra. Vivamus consequat tristique vestibulum. Nullam vitae feugiat arcu, non porta ante. Phasellus consequat facilisis quam quis dignissim.", function(a, b) mod:echo("wh, " .. tostring(a) .. ", " .. tostring(b)) end)
+mod:command("whoa", "description whoa", function() mod:echo("whoa") end)
+mod:command("wheat", "description wheat", function() mod:echo("wheat") end)
+mod:command("test", "short command description\n params: [parameter1] [parameter2]\nparameter1 - string\nparameter2 - number", function(p1, p2) mod:echo("Test function executed.\nParameter1: " .. tostring(p1) .. "\nParameter2: " .. tostring(p2)) end)
 -- chat_broadcast
 mod.whatever = function ()
   --mod:echo("whatever")

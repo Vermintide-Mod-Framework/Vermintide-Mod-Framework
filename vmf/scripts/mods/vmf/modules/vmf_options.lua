@@ -43,6 +43,13 @@ local options_widgets = {
         ["default_value"] = false
       },
       {
+        ["setting_name"] = "toggle_developer_console",
+        ["widget_type"] = "keybind",
+        ["text"] = vmf:localize("toggle_developer_console"),
+        ["default_value"] = {},
+        ["action"] = "toggle_developer_console"
+      },
+      {
         ["setting_name"] = "show_network_debug_info",
         ["widget_type"] = "checkbox",
         ["text"] = vmf:localize("show_network_debug_info"),
@@ -57,14 +64,7 @@ local options_widgets = {
         ["tooltip"] = vmf:localize("log_ui_renderers_info") .. "\n" ..
                       vmf:localize("log_ui_renderers_info_tooltip"),
         ["default_value"] = false
-      },
---      {
---        ["setting_name"] = "toggle_developer_console",
---        ["widget_type"] = "keybind",
---        ["text"] = "Toggle Developer Console",
---        ["default_value"] = {},
---        ["action"] = "toggle_developer_console"
---      }
+      }
     }
   },
   {
@@ -148,79 +148,139 @@ local options_widgets = {
         ["default_value"] = 0
       }
     }
+  },
+  {
+    ["setting_name"] = "chat_history_enable",
+    ["widget_type"] = "checkbox",
+    ["text"] = vmf:localize("chat_history_enable"),
+    ["tooltip"] = vmf:localize("chat_history_enable") .. "\n" ..
+                  vmf:localize("chat_history_enable_tooltip"),
+    ["default_value"] = true,
+    ["sub_widgets"] = {
+      {
+        ["setting_name"] = "chat_history_save",
+        ["widget_type"] = "checkbox",
+        ["text"] = vmf:localize("chat_history_save"),
+        ["tooltip"] = vmf:localize("chat_history_save") .. "\n" ..
+                      vmf:localize("chat_history_save_tooltip"),
+        ["default_value"] = true
+      },
+      {
+        ["setting_name"] = "chat_history_buffer_size",
+        ["widget_type"] = "numeric",
+        ["text"] = vmf:localize("chat_history_buffer_size"),
+        ["tooltip"] = vmf:localize("chat_history_buffer_size") .. "\n" ..
+                      vmf:localize("chat_history_buffer_size_tooltip"),
+        ["range"] = {10, 200},
+        ["default_value"] = 50
+      },
+      {
+        ["setting_name"] = "chat_history_remove_dups",
+        ["widget_type"] = "checkbox",
+        ["text"] = vmf:localize("chat_history_remove_dups"),
+        ["default_value"] = false,
+        ["sub_widgets"] = {
+          {
+            ["setting_name"] = "chat_history_remove_dups_mode",
+            ["widget_type"] = "dropdown",
+            ["text"] = vmf:localize("chat_history_remove_dups_mode"),
+            ["tooltip"] = vmf:localize("chat_history_remove_dups_mode") .. "\n" ..
+                          vmf:localize("chat_history_remove_dups_mode_tooltip"),
+            ["options"] = {
+              {text = vmf:localize("settings_last"), value = "last"},
+              {text = vmf:localize("settings_all"),  value = "all"},
+            },
+            ["default_value"] = "last"
+          }
+        }
+      },
+      {
+        ["setting_name"] = "chat_history_commands_only",
+        ["widget_type"] = "checkbox",
+        ["text"] = vmf:localize("chat_history_commands_only"),
+        ["tooltip"] = vmf:localize("chat_history_commands_only") .. "\n" ..
+                      vmf:localize("chat_history_commands_only_tooltip"),
+        ["default_value"] = false
+      }
+    }
   }
 }
-vmf:create_options(options_widgets, false, "Vermintide Mod Framework")
+
+-- ####################################################################################################################
+-- ##### VMF internal functions and variables #########################################################################
+-- ####################################################################################################################
 
 vmf.on_setting_changed = function (setting_name)
 
   if setting_name == "vmf_options_scrolling_speed" then
 
-    local ingame_ui_exists, ingame_ui = pcall(function () return Managers.player.network_manager.matchmaking_manager.matchmaking_ui.ingame_ui end)
-    if ingame_ui_exists then
-      local vmf_options_view = ingame_ui.views["vmf_options_view"]
-      if vmf_options_view then
-        vmf_options_view.scroll_step = vmf_options_view.default_scroll_step / 100 * vmf:get(setting_name)
-      end
-    end
+    vmf.load_vmf_options_view_settings()
 
   elseif setting_name == "developer_mode" then
 
-    Managers.mod._settings.developer_mode = vmf:get(setting_name)
-    Application.set_user_setting("mod_settings", Managers.mod._settings)
-
-    vmf.network_debug         = vmf:get(setting_name) and vmf:get("show_network_debug_info")
-    vmf.custom_textures_debug = vmf:get(setting_name) and vmf:get("log_ui_renderers_info")
-
-    local show_developer_console = vmf:get(setting_name) and vmf:get("show_developer_console")
-    vmf.toggle_developer_console(show_developer_console)
+    vmf.load_developer_mode_settings()
+    vmf.load_network_settings()
+    vmf.load_custom_textures_settings()
+    vmf.load_dev_console_settings()
 
   elseif setting_name == "show_developer_console" then
 
-    vmf.toggle_developer_console(vmf:get(setting_name))
+    vmf.load_dev_console_settings()
 
   elseif setting_name == "show_network_debug_info" then
 
-    vmf.network_debug = vmf:get("developer_mode") and vmf:get(setting_name)
+    vmf.load_network_settings()
 
   elseif setting_name == "log_ui_renderers_info" then
 
-    vmf.custom_textures_debug = vmf:get("developer_mode") and vmf:get(setting_name)
+    vmf.load_custom_textures_settings()
 
-  elseif setting_name == "logging_mode" then
+  elseif setting_name == "ui_scaling" then
 
-    vmf.load_logging_settings()
+    vmf.load_ui_scaling_settings()
 
-  elseif setting_name == "output_mode_echo" then
-
-    vmf.load_logging_settings()
-
-  elseif setting_name == "output_mode_error" then
-
-    vmf.load_logging_settings()
-
-  elseif setting_name == "output_mode_warning" then
+  elseif setting_name == "logging_mode"
+      or setting_name == "output_mode_echo"
+      or setting_name == "output_mode_error"
+      or setting_name == "output_mode_warning"
+      or setting_name == "output_mode_info"
+      or setting_name == "output_mode_debug" then
 
     vmf.load_logging_settings()
 
-  elseif setting_name == "output_mode_info" then
+  elseif setting_name == "chat_history_enable"
+      or setting_name == "chat_history_save"
+      or setting_name == "chat_history_buffer_size"
+      or setting_name == "chat_history_remove_dups"
+      or setting_name == "chat_history_remove_dups_mode"
+      or setting_name == "chat_history_commands_only" then
 
-    vmf.load_logging_settings()
-
-  elseif setting_name == "output_mode_debug" then
-
-    vmf.load_logging_settings()
+    vmf.load_chat_history_settings(setting_name == "chat_history_enable" or setting_name == "chat_history_buffer_size" or setting_name == "chat_history_commands_only")
   end
+end
+
+vmf.load_developer_mode_settings = function () --@TODO: maybe move it to somewhere else?
+  Managers.mod._settings.developer_mode = vmf:get("developer_mode")
+  Application.set_user_setting("mod_settings", Managers.mod._settings)
 end
 
 -- ####################################################################################################################
 -- ##### Script #######################################################################################################
 -- ####################################################################################################################
 
-local mod_developer_mode = Managers.mod._settings.developer_mode
-local vmf_developer_mode = vmf:get("developer_mode")
+vmf:create_options(options_widgets, false, "Vermintide Mod Framework")
 
-if mod_developer_mode ~= vmf_developer_mode then
-  Managers.mod._settings.developer_mode = vmf_developer_mode
-  Application.set_user_setting("mod_settings", Managers.mod._settings)
+-- first VMF initialization
+-- it will be run only 1 time, when the player launch the game with VMF for the first time
+if not vmf:get("vmf_initialized") then
+
+  vmf.load_logging_settings()
+  vmf.load_developer_mode_settings()
+  vmf.load_network_settings()
+  vmf.load_custom_textures_settings()
+  vmf.load_dev_console_settings()
+  vmf.load_chat_history_settings()
+  vmf.load_ui_scaling_settings()
+
+  vmf:set("vmf_initialized", true)
 end
