@@ -62,14 +62,12 @@ end
 VMFMod.custom_atlas = function (self, material_settings_file, material_name, masked_material_name, point_sample_material_name,
                                       masked_point_sample_material_name, saturated_material_name)
 
-  -- @TODO: this check is legit... is it?
-  if type(material_settings_file)            ~= "string" or
-     type(material_name)                     ~= "string" or
-     type(masked_material_name)              ~= "string" or
-     type(point_sample_material_name)        ~= "string" or
-     type(masked_point_sample_material_name) ~= "string" or
-     type(saturated_material_name)           ~= "string" then
-    self:error("(custom_atlas): all the arguments have to have the string type")
+  if vmf.check_wrong_argument_type(self, "custom_atlas", "material_settings_file", material_settings_file, "string") or
+     vmf.check_wrong_argument_type(self, "custom_atlas", "material_name", material_name, "string", "nil") or
+     vmf.check_wrong_argument_type(self, "custom_atlas", "masked_material_name", masked_material_name, "string", "nil") or
+     vmf.check_wrong_argument_type(self, "custom_atlas", "point_sample_material_name", point_sample_material_name, "string", "nil") or
+     vmf.check_wrong_argument_type(self, "custom_atlas", "masked_point_sample_material_name", masked_point_sample_material_name, "string", "nil") or
+     vmf.check_wrong_argument_type(self, "custom_atlas", "saturated_material_name", saturated_material_name, "string", "nil") then
     return
   end
 
@@ -99,8 +97,7 @@ end
 
 VMFMod.inject_materials = function (self, ui_renderer_creator, ...)
 
-  if type(ui_renderer_creator) ~= "string" then
-    self:error("(inject_materials): argument 'ui_renderer_creator' should have the string type, not %s", type(ui_renderer_creator))
+  if vmf.check_wrong_argument_type(self, "inject_materials", "ui_renderer_creator", ui_renderer_creator, "string") then
     return
   end
 
@@ -160,7 +157,6 @@ end
 -- ##### Hooks ########################################################################################################
 -- ####################################################################################################################
 
-local ui_renderer_creating = false
 vmf:hook("UIRenderer.create", function(func, world, ...)
 
   -- FINDING OUT WHO CREATED UI_RENDERER

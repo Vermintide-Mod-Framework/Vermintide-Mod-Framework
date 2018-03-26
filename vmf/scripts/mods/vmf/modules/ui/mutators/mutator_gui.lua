@@ -3,8 +3,8 @@
 local manager  = get_mod("vmf_mutator_manager")
 local mutators = manager.mutators
 
-manager:custom_textures("mutator_button", "mutator_button_hover")
-manager:inject_materials("ingame_ui", "materials/vmf/mutator_button", "materials/vmf/mutator_button_hover")
+--manager:custom_textures("mutator_button", "mutator_button_hover")
+--manager:inject_materials("ingame_ui", "materials/vmf/mutator_button", "materials/vmf/mutator_button_hover")
 
 local definitions = manager:dofile("scripts/mods/vmf/modules/ui/mutators/mutator_gui_definitions")
 

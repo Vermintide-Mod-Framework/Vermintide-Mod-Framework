@@ -16,9 +16,10 @@
 ]]
 local vmf = get_mod("VMF")
 
-vmf:custom_textures("header_fav_icon", "header_fav_icon_lit", "header_fav_arrow", "search_bar_icon")
-vmf:inject_materials("ingame_ui", "materials/vmf/header_fav_icon", "materials/vmf/header_fav_icon_lit",
-                                  "materials/vmf/header_fav_arrow", "materials/vmf/search_bar_icon")
+--vmf:custom_textures("header_fav_icon", "header_fav_icon_lit", "header_fav_arrow", "search_bar_icon")
+vmf:custom_atlas("materials/vmf/vmf_atlas", "vmf_atlas", "vmf_atlas_masked")
+
+vmf:inject_materials("ingame_ui", "materials/vmf/vmf_atlas")
 
 -- ####################################################################################################################
 -- ##### MENU WIDGETS DEFINITIONS #####################################################################################
@@ -660,13 +661,15 @@ local function create_header_widget(widget_definition, scenegraph_id)
 
       fav_icon = {
         size = {30, 30},
-        offset = {15, offset_y + 25, 3}
+        offset = {15, offset_y + 25, 3},
+        masked = true
       },
 
       fav_arrow_up = {
         size = {20, 20},
         offset = {20, offset_y + 57, 3},
-        color = {90, 255, 255, 255}
+        color = {90, 255, 255, 255},
+        masked = true
       },
 
       fav_arrow_down = {
@@ -674,7 +677,8 @@ local function create_header_widget(widget_definition, scenegraph_id)
         offset = {20, offset_y + 3, 3},
         angle = math.pi,
         pivot = {10, 10},
-        color = {90, 255, 255, 255}
+        color = {90, 255, 255, 255},
+        masked = true
       },
 
       text = {

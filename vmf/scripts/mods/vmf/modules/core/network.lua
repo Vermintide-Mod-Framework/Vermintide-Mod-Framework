@@ -171,13 +171,8 @@ VMFMod.network_register = function (self, rpc_name, rpc_function)
     return
   end
 
-  if type(rpc_name) ~= "string" then
-    self:error("(network_register): rpc_name should be the string, not %s", type(rpc_name))
-    return
-  end
-
-  if type(rpc_function) ~= "function" then
-    self:error("(network_register): rpc_function should be the function, not %s", type(rpc_name))
+  if vmf.check_wrong_argument_type(self, "network_register", "rpc_name", rpc_name, "string") or
+     vmf.check_wrong_argument_type(self, "network_register", "rpc_function", rpc_function, "function") then
     return
   end
 

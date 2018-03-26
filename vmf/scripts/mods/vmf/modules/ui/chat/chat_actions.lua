@@ -25,6 +25,10 @@ local _CHAT_HISTORY_SAVE_COMMANDS_ONLY = false
 -- ##### Local functions ##############################################################################################
 -- ####################################################################################################################
 
+local function initialize_drawing_function()
+  _COMMANDS_LIST_GUI_DRAW = dofile("scripts/mods/vmf/modules/ui/chat/commands_list_gui")
+end
+
 local function clean_chat_history()
   _CHAT_HISTORY = {}
   _CHAT_HISTORY_INDEX = 0
@@ -38,7 +42,7 @@ vmf:hook("WorldManager.create_world", function(func, self, name, ...)
   local world = func(self, name, ...)
 
   if name == "top_ingame_view" then
-    _COMMANDS_LIST_GUI_DRAW = dofile("scripts/mods/vmf/modules/ui/chat/commands_list_gui")
+    initialize_drawing_function()
   end
 
   return world
@@ -232,11 +236,11 @@ end)
 
 vmf.load_chat_history_settings = function(clean_chat_history_)
 
-  _CHAT_HISTORY_ENABLED           = vmf:get("chat_history_enable")
-  _CHAT_HISTORY_SAVE              = vmf:get("chat_history_save")
-  _CHAT_HISTORY_MAX               = vmf:get("chat_history_buffer_size")
-  _CHAT_HISTORY_REMOVE_DUPS_LAST  = vmf:get("chat_history_remove_dups")
-  _CHAT_HISTORY_REMOVE_DUPS_ALL   = vmf:get("chat_history_remove_dups") and (vmf:get("chat_history_remove_dups_mode") == "all")
+  _CHAT_HISTORY_ENABLED            = vmf:get("chat_history_enable")
+  _CHAT_HISTORY_SAVE               = vmf:get("chat_history_save")
+  _CHAT_HISTORY_MAX                = vmf:get("chat_history_buffer_size")
+  _CHAT_HISTORY_REMOVE_DUPS_LAST   = vmf:get("chat_history_remove_dups")
+  _CHAT_HISTORY_REMOVE_DUPS_ALL    = vmf:get("chat_history_remove_dups") and (vmf:get("chat_history_remove_dups_mode") == "all")
   _CHAT_HISTORY_SAVE_COMMANDS_ONLY = vmf:get("chat_history_commands_only")
 
   if _CHAT_HISTORY_ENABLED then
@@ -271,6 +275,5 @@ if _CHAT_HISTORY_SAVE then
 end
 
 if Managers.world:has_world("top_ingame_view") then
-  -- @TODO: move this to local function?
-  _COMMANDS_LIST_GUI_DRAW = dofile("scripts/mods/vmf/modules/ui/chat/commands_list_gui")
+  initialize_drawing_function()
 end

@@ -7,30 +7,7 @@ local vmf = get_mod("VMF")
 
   not sure about UI scaling
 ]]
-
--- @TODO: move 'vmf.check_wrong_argument_type' to somewhere else
-
 local _COMMANDS = {}
-
--- ####################################################################################################################
--- ##### Local functions ##############################################################################################
--- ####################################################################################################################
-
-vmf.check_wrong_argument_type = function(mod, vmf_function_name, argument_name, argument, ...)
-
-  local allowed_types = {...}
-  local argument_type = type(argument)
-
-  for _, allowed_type in ipairs(allowed_types) do
-    if allowed_type == argument_type then
-      return false
-    end
-  end
-
-  mod:error("(%s): argument '%s' should have the '%s' type, not '%s'", vmf_function_name, argument_name, table.concat(allowed_types, "/"), argument_type)
-
-  return true
-end
 
 -- ####################################################################################################################
 -- ##### VMFMod #######################################################################################################
@@ -42,6 +19,12 @@ VMFMod.command = function (self, command_name, command_description, command_func
      vmf.check_wrong_argument_type(self, "command", "command_description", command_description, "string", "nil") or
      vmf.check_wrong_argument_type(self, "command", "command_function", command_function, "function") then
 
+    return
+  end
+
+  if string.find(command_name, " ") then
+
+    self:error("(command): command name can't contain spaces: [%s]", command_name)
     return
   end
 

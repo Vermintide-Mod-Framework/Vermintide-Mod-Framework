@@ -175,6 +175,22 @@ end
 -- ####################################################################################################################
 -- ##### VMF internal functions and variables #########################################################################
 -- ####################################################################################################################
+-- @TODO: maybe it doesn't belong in here
+vmf.check_wrong_argument_type = function(mod, vmf_function_name, argument_name, argument, ...)
+
+  local allowed_types = {...}
+  local argument_type = type(argument)
+
+  for _, allowed_type in ipairs(allowed_types) do
+    if allowed_type == argument_type then
+      return false
+    end
+  end
+
+  mod:error("(%s): argument '%s' should have the '%s' type, not '%s'", vmf_function_name, argument_name, table.concat(allowed_types, "/"), argument_type)
+
+  return true
+end
 
 vmf.unsent_chat_messages = _UNSENT_CHAT_MESSAGES
 
