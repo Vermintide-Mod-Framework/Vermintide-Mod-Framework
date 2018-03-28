@@ -1,3 +1,2 @@
-bin/
-TEMP/
-Docs/
+.temp
+vmf/dist
