@@ -1,4 +1,4 @@
-local manager = get_mod("vmf_mutator_manager")
+local vmf = get_mod("VMF")
 local definitions = local_require("scripts/ui/views/map_view_definitions")
 local scenegraph_definition = definitions.scenegraph_definition
 
@@ -58,8 +58,8 @@ local new_widgets = {
 	-- This will replace the banner behind the Mission text
 	banner_mutators_widget = UIWidgets.create_texture_with_text_and_tooltip(
 		"title_bar",
-		manager:localize("mutators_title"),
-		manager:localize("mutators_banner_tooltip"),
+		vmf:localize("mutators_title"),
+		vmf:localize("mutators_banner_tooltip"),
 		"banner_level",
 		"banner_mutators_text", {
 			vertical_alignment = "center",
@@ -96,10 +96,10 @@ local new_widgets = {
 			toggle_texture = "octagon_button_toggled",
 			hover_texture = "octagon_button_hover",
 			normal_texture = "octagon_button_normal",
-			icon_texture = "mutator_button",
-			icon_hover_texture = "mutator_button_hover",
-			tooltip_text = manager:localize("mutators_title"),
-			toggled_tooltip_text = manager:localize("mutators_title"),
+			icon_texture = "map_view_party_button",
+			icon_hover_texture = "map_view_party_button_lit",
+			tooltip_text = vmf:localize("mutators_title"),
+			toggled_tooltip_text = vmf:localize("mutators_title"),
 			button_hotspot = {}
 		},
 		style = {
@@ -224,8 +224,8 @@ local new_widgets = {
 			}
 		},
 		content = {
-			text = manager:localize("no_mutators"),
-			tooltip_text = manager:localize("no_mutators_tooltip"),
+			text = vmf:localize("no_mutators"),
+			tooltip_text = vmf:localize("no_mutators_tooltip"),
 			tooltip_hotspot = {},
 			color = Colors.get_color_table_with_alpha("slate_gray", 255)
 		},

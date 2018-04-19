@@ -4,8 +4,7 @@ return {
 		tomes = 0,
 		bonus = 0
 	},
-	title = "",
-	short_title = "",
+	short_title = "", --@TODO: rename it?
 	title_placement = "after",
 	description = "No description provided",
 	difficulty_levels = {

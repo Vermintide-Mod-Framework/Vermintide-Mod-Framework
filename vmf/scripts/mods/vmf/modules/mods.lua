@@ -38,11 +38,39 @@ end
 VMFMod = class(VMFMod)
 
 VMFMod.init = function (self, mod_name)
-  self._name = mod_name
+  self._data = {}
+  -- @TODO: forbid changing _data table
+  self._data.name = mod_name
+  self._data.readable_name = mod_name
+  self._data.is_enabled = true
+  self._data.is_togglable = false
+  self._data.is_mutator = false
 end
 
+-- DATA
+
 VMFMod.get_name = function (self)
-  return self._name
+  return self._data.name
+end
+
+VMFMod.get_readable_name = function (self)
+  return self._data.readable_name
+end
+
+VMFMod.get_description = function (self)
+  return self._data.description
+end
+
+VMFMod.is_enabled = function (self)
+  return self._data.is_enabled
+end
+
+VMFMod.is_togglable = function (self)
+    return self._data.is_togglable
+end
+
+VMFMod.is_mutator = function (self)
+  return self._data.is_mutator
 end
 
 -- ####################################################################################################################

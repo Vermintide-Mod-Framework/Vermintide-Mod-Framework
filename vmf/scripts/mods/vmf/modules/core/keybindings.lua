@@ -14,6 +14,8 @@ local _RAW_KEYBINDS = {}
 -- ["primary_key"] = {{"mod_name", "action_name", ctrl_used(bool), alt_used(bool), shift_used(bool)}, {}, {}, ...}
 local _OPTIMIZED_KEYBINDS = {}
 
+local _ACTIVATED_PRESSED_KEY
+
 -- ####################################################################################################################
 -- ##### Local functions ##############################################################################################
 -- ####################################################################################################################
@@ -101,11 +103,11 @@ vmf.check_pressed_keybinds = function()
   if input_service then
 
     -- don't check for the pressed keybindings until player will release already pressed keybind
-    if vmf.activated_pressed_key then
-      if input_service:get(vmf.activated_pressed_key) then
+    if _ACTIVATED_PRESSED_KEY then
+      if input_service:get(_ACTIVATED_PRESSED_KEY) then
         return
       else
-        vmf.activated_pressed_key = nil
+        _ACTIVATED_PRESSED_KEY = nil
       end
     end
 
@@ -120,12 +122,12 @@ vmf.check_pressed_keybinds = function()
 
             local mod = get_mod(binding_info[1])
 
-            if binding_info[2] == "toggle_mod" then
+            if binding_info[2] == "toggle_mod_state" and not mod:is_mutator() then
 
               vmf.mod_state_changed(mod:get_name(), not mod:is_enabled())
 
               key_has_active_keybind = true
-              vmf.activated_pressed_key = key
+              _ACTIVATED_PRESSED_KEY = key
 
             elseif mod:is_enabled() then
 
@@ -140,7 +142,7 @@ vmf.check_pressed_keybinds = function()
               end
 
               key_has_active_keybind = true
-              vmf.activated_pressed_key = key
+              _ACTIVATED_PRESSED_KEY = key
             end
           end
         end

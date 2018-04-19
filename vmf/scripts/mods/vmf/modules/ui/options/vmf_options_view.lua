@@ -3424,7 +3424,7 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
 
       elseif widget_type == "header" then
 
-        widget_content.is_checkbox_checked = not vmf.disabled_mods_list[widget_content.mod_name]
+        widget_content.is_checkbox_checked = get_mod(widget_content.mod_name):is_enabled()
 
       elseif widget_type == "keybind" then
 
@@ -3881,7 +3881,7 @@ vmf.load_vmf_options_view_settings()
 -- ####################################################################################################################
 
 
-VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, readable_mod_name, mod_description)
+vmf.create_options = function (mod, widgets_definition)
 
   local mod_settings_list_widgets_definitions = {}
 
@@ -3892,7 +3892,7 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
   local options_menu_collapsed_widgets = vmf:get("options_menu_collapsed_widgets")
   local mod_collapsed_widgets = nil
   if options_menu_collapsed_widgets then
-    mod_collapsed_widgets = options_menu_collapsed_widgets[self:get_name()]
+    mod_collapsed_widgets = options_menu_collapsed_widgets[mod:get_name()]
   end
 
   -- defining header widget
@@ -3903,19 +3903,19 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
 
   new_widget_definition.widget_type       = "header"
   new_widget_definition.widget_index      = new_widget_index
-  new_widget_definition.mod_name          = self:get_name()
-  new_widget_definition.readable_mod_name = readable_mod_name or self:get_name()
-  new_widget_definition.tooltip           = mod_description
+  new_widget_definition.mod_name          = mod:get_name()
+  new_widget_definition.readable_mod_name = mod:get_readable_name()
+  new_widget_definition.tooltip           = mod:get_description()
   new_widget_definition.default           = true
-  new_widget_definition.is_mod_toggable   = is_mod_toggable
+  new_widget_definition.is_mod_toggable   = mod:is_togglable() and not mod:is_mutator()
 
   if mod_collapsed_widgets then
-    new_widget_definition.is_widget_collapsed = mod_collapsed_widgets[self:get_name()]
+    new_widget_definition.is_widget_collapsed = mod_collapsed_widgets[mod:get_name()]
   end
 
   if options_menu_favorite_mods then
     for _, current_mod_name in pairs(options_menu_favorite_mods) do
-      if current_mod_name == self:get_name() then
+      if current_mod_name == mod:get_name() then
         new_widget_definition.is_favorited = true
         break
       end
@@ -3950,7 +3950,7 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
         new_widget_definition.widget_type     = current_widget.widget_type     -- all
         new_widget_definition.widget_index    = new_widget_index               -- all [gen]
         new_widget_definition.widget_level    = level                          -- all [gen]
-        new_widget_definition.mod_name        = self:get_name()                -- all [gen]
+        new_widget_definition.mod_name        = mod:get_name()                 -- all [gen]
         new_widget_definition.setting_name    = current_widget.setting_name    -- all
         new_widget_definition.text            = current_widget.text            -- all
         new_widget_definition.tooltip         = current_widget.tooltip         -- all [optional]
@@ -3967,15 +3967,15 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
           new_widget_definition.is_widget_collapsed = mod_collapsed_widgets[current_widget.setting_name]
         end
 
-        if type(self:get(current_widget.setting_name)) == "nil" then
-          self:set(current_widget.setting_name, current_widget.default_value)
+        if type(mod:get(current_widget.setting_name)) == "nil" then
+          mod:set(current_widget.setting_name, current_widget.default_value)
         end
 
         if current_widget.widget_type == "keybind" then
-          local keybind = self:get(current_widget.setting_name)
+          local keybind = mod:get(current_widget.setting_name)
           new_widget_definition.keybind_text = build_keybind_string(keybind)
           if current_widget.action then
-            self:keybind(current_widget.setting_name, current_widget.action, keybind)
+            mod:keybind(current_widget.setting_name, current_widget.action, keybind)
           end
         end
 
@@ -4034,7 +4034,7 @@ VMFMod.create_options = function (self, widgets_definition, is_mod_toggable, rea
     end
 
     if new_widget_index == 257 then
-      self:error("(vmf_options_view) The limit of 256 options widgets was reached. You can't add any more widgets.")
+      mod:error("(vmf_options_view) The limit of 256 options widgets was reached. You can't add any more widgets.")
     end
   end
 
@@ -4135,6 +4135,7 @@ vmf.disable_mods_options_button = function ()
   change_mods_options_button_state("disable")
 end
 
+-- @BUG: Game crashes occasionaly here. See attached log
 -- create mods options menu button in Esc-menu
 vmf:hook("IngameView.setup_button_layout", function (func, self, layout_data)
 

@@ -1,77 +1,60 @@
 local vmf = get_mod("VMF")
 
-local _DISABLED_MODS_LIST = vmf:get("disabled_mods_list") or {}
-
--- ####################################################################################################################
--- ##### Local functions ##############################################################################################
--- ####################################################################################################################
-
-local function change_mod_state(mod, enable, initial_call)
-
-  if enable then
-
-    _DISABLED_MODS_LIST[mod:get_name()] = nil
-
-    vmf.mod_enabled_event(mod, initial_call)
-  else
-
-    _DISABLED_MODS_LIST[mod:get_name()] = true
-
-    vmf.mod_disabled_event(mod, initial_call)
-  end
-
-  if initial_call then
-    return
-  end
-
-  vmf:set("disabled_mods_list", _DISABLED_MODS_LIST)
-end
-
--- ####################################################################################################################
--- ##### VMFMod #######################################################################################################
--- ####################################################################################################################
-
-VMFMod.is_enabled = function (self)
-
-  return not _DISABLED_MODS_LIST[self:get_name()]
-end
-
-VMFMod.disable = function (self)
-
-  if not _DISABLED_MODS_LIST[self:get_name()] then
-
-    change_mod_state(self, false, false)
-  end
-end
-
-VMFMod.enable = function (self)
-
-  if _DISABLED_MODS_LIST[self:get_name()] then
-
-    change_mod_state(self, true, false)
-  end
-end
-
-VMFMod.init_state = function (self, state)
-  if type(state) ~= "boolean" then 
-    state = not _DISABLED_MODS_LIST[self:get_name()]
-  end
-  change_mod_state(self, state, true)
-end
+local _DISABLED_MODS = vmf:get("disabled_mods_list") or {}
 
 -- ####################################################################################################################
 -- ##### VMF internal functions and variables #########################################################################
 -- ####################################################################################################################
 
-vmf.disabled_mods_list = _DISABLED_MODS_LIST
+vmf.set_mod_state = function (mod, is_enabled, initial_call)
+
+  mod._data.is_enabled = is_enabled
+
+  if is_enabled then
+    vmf.mod_enabled_event(mod, initial_call)
+  else
+    vmf.mod_disabled_event(mod, initial_call)
+  end
+
+  if not (initial_call or mod:is_mutator()) then
+    if is_enabled then
+      _DISABLED_MODS[mod:get_name()] = nil
+    else
+      _DISABLED_MODS[mod:get_name()] = true
+    end
+    vmf:set("disabled_mods_list", _DISABLED_MODS)
+  end
+end
+
+-- Called when mod is loaded for the first time using mod:initialize()
+vmf.initialize_mod_state = function (mod)
+
+  local state
+  if mod:is_mutator() then
+    -- if VMF was reloaded and mutator was activated
+    if vmf.is_mutator_enabled(mod:get_name()) then
+      state = true
+    else
+      state = false
+    end
+    vmf.set_mutator_state(mod, state, true)
+  else
+    state = not _DISABLED_MODS[mod:get_name()]
+    vmf.set_mod_state(mod, state, true)
+  end
+end
 
 vmf.mod_state_changed = function (mod_name, is_enabled)
 
   local mod = get_mod(mod_name)
 
-  if is_enabled then
-    mod:enable()
+  if not mod:is_togglable() or is_enabled == mod:is_enabled() then
+    return
+  end
+
+  if mod:is_mutator() then
+    vmf.set_mutator_state(mod, is_enabled, false)
   else
-    mod:disable()
+    vmf.set_mod_state(mod, is_enabled, false)
   end
 end

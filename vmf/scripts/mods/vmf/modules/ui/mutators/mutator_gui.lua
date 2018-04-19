@@ -1,14 +1,15 @@
 --[[ Add mutators panel to the map view --]]
+--@TODO: button highlighted incorrectly
+local vmf = get_mod("VMF")
 
-local manager  = get_mod("vmf_mutator_manager")
-local mutators = manager.mutators
+local _MUTATORS = vmf.mutators
 
---manager:custom_textures("mutator_button", "mutator_button_hover")
---manager:inject_materials("ingame_ui", "materials/vmf/mutator_button", "materials/vmf/mutator_button_hover")
+--vmf:custom_textures("mutator_button", "mutator_button_hover")
+--vmf:inject_materials("ingame_ui", "materials/vmf/mutator_button", "materials/vmf/mutator_button_hover")
 
-local definitions = manager:dofile("scripts/mods/vmf/modules/ui/mutators/mutator_gui_definitions")
+local _DEFINITIONS = vmf:dofile("scripts/mods/vmf/modules/ui/mutators/mutator_gui_definitions")
 
-local PER_PAGE = definitions.PER_PAGE
+local _PER_PAGE = _DEFINITIONS.PER_PAGE
 
 local mutators_view = {
 
@@ -29,17 +30,17 @@ local mutators_view = {
 		self:update_mutator_list()
 
 		-- Recreate the map_view scenegraph defs
-		self.map_view.scenegraph_definition = UISceneGraph.init_scenegraph(definitions.scenegraph_definition)
+		self.map_view.scenegraph_definition = UISceneGraph.init_scenegraph(_DEFINITIONS.scenegraph_definition)
 
 		-- Setup custom widgets
 		self.widgets = {
-			banner_mutators = UIWidget.init(definitions.new_widgets.banner_mutators_widget),
-			mutators_button = UIWidget.init(definitions.new_widgets.mutators_button_widget),
-			no_mutators_text = UIWidget.init(definitions.new_widgets.no_mutators_text_widget)
+			banner_mutators = UIWidget.init(_DEFINITIONS.new_widgets.banner_mutators_widget),
+			mutators_button = UIWidget.init(_DEFINITIONS.new_widgets.mutators_button_widget),
+			no_mutators_text = UIWidget.init(_DEFINITIONS.new_widgets.no_mutators_text_widget)
 		}
 
-		for i = 1, PER_PAGE do
-			table.insert(self.mutator_checkboxes, UIWidget.init(definitions.new_widgets["mutator_checkbox_" .. i]))
+		for i = 1, _PER_PAGE do
+			table.insert(self.mutator_checkboxes, UIWidget.init(_DEFINITIONS.new_widgets["mutator_checkbox_" .. i]))
 		end
 
 		-- Save widgets we're gonna mess with
@@ -102,8 +103,8 @@ local mutators_view = {
 	-- Sorts mutators by title
 	update_mutator_list = function(self)
 		self.mutators_sorted = {}
-		for _, mutator in ipairs(mutators) do
-			table.insert(self.mutators_sorted, {mutator:get_name(), mutator:get_config().title or mutator:get_name()})
+		for _, mutator in ipairs(_MUTATORS) do
+			table.insert(self.mutators_sorted, {mutator:get_name(), mutator:get_readable_name()})
 		end
 		table.sort(self.mutators_sorted, function(a, b) return string.lower(a[2]) < string.lower(b[2]) end)
 	end,
@@ -160,9 +161,9 @@ local mutators_view = {
 
 		local widgets = self.map_view.normal_settings_widget_types
 
-		for i = 1, PER_PAGE do
+		for i = 1, _PER_PAGE do
 
-			local current_index = PER_PAGE * (self.current_page - 1) + i
+			local current_index = _PER_PAGE * (self.current_page - 1) + i
 
 			local checkbox = self.mutator_checkboxes[i]
 			local hotspot = checkbox.content.button_hotspot
@@ -189,7 +190,7 @@ local mutators_view = {
 				widgets.survival["mutator_checkbox_" .. i] = checkbox
 
 				-- Set colors based on whether mutator can be enabled
-				local active = mutator:can_be_enabled()
+				local active = vmf.mutator_can_be_enabled(mutator)
 				local color = active and "cheeseburger" or "slate_gray"
 				local color_hover = active and "white" or "slate_gray"
 				checkbox.style.setting_text.text_color = Colors.get_color_table_with_alpha(color, 255)
@@ -205,9 +206,9 @@ local mutators_view = {
 				if hotspot.on_release then
 					self.map_view:play_sound("Play_hud_select")
 					if mutator:is_enabled() then
-						mutator:disable()
+						vmf.mod_state_changed(mutator:get_name(), false)
 					else
-						mutator:enable()
+						vmf.mod_state_changed(mutator:get_name(), true)
 					end
 				end
 
@@ -215,7 +216,7 @@ local mutators_view = {
 			end
 		end
 
-		if #mutators == 0 then
+		if #_MUTATORS == 0 then
 
 			widgets.adventure["no_mutators_text"] = self.widgets.no_mutators_text
 			widgets.survival["no_mutators_text"] = self.widgets.no_mutators_text
@@ -245,7 +246,7 @@ local mutators_view = {
 
 		-- Update steppers
 		local level_stepper_widget = self.map_view.steppers.level.widget
-		local num_pages = math.ceil(#mutators/PER_PAGE)
+		local num_pages = math.ceil(#_MUTATORS/_PER_PAGE)
 		level_stepper_widget.style.setting_text.offset[2] = -10000
 		level_stepper_widget.style.hover_texture.offset[2] = -10000
 		level_stepper_widget.content.left_button_hotspot.disable_button = num_pages <= 1
@@ -285,7 +286,7 @@ local mutators_view = {
 		self.map_view:update_level_stepper()
 
 		-- Mutator checkboxes
-		for i = 1, PER_PAGE do
+		for i = 1, _PER_PAGE do
 			widgets.adventure["mutator_checkbox_" .. i] = nil
 			widgets.survival["mutator_checkbox_" .. i] = nil
 		end
@@ -300,7 +301,7 @@ local mutators_view = {
 		if self.active then
 			local current_index = self.current_page
 			local new_index = current_index + index_change
-			local num_pages = math.ceil(#mutators/PER_PAGE)
+			local num_pages = math.ceil(#_MUTATORS/_PER_PAGE)
 
 			if new_index < 1 then
 				new_index = num_pages
@@ -316,48 +317,47 @@ local mutators_view = {
 
 	-- Creates and return text for checkbox tooltip
 	generate_tooltip_for = function(self, mutator)
-		local config = mutator:get_config()
+		local config = vmf.get_mutator_config(mutator)
 		local text = ""
 
 		-- Show supported difficulty when can't be enabled due to difficulty level
-		local supports_difficulty = mutator:supports_current_difficulty()
+		local supports_difficulty = vmf.mutator_supports_current_difficulty(mutator)
 		if not supports_difficulty then
-			text = text .. "\n" .. manager:localize("tooltip_supported_difficulty") .. ":"
+			text = text .. "\n" .. vmf:localize("tooltip_supported_difficulty") .. ":"
 			for i, difficulty in ipairs(config.difficulty_levels) do
-				text = text .. (i == 1 and " " or ", ") .. manager:localize(difficulty)
+				text = text .. (i == 1 and " " or ", ") .. vmf:localize(difficulty)
 			end
 		end
 
 		-- Show enabled incompatible
-		local incompatible_mutators = mutator:get_incompatible_mutators(true)
+		local incompatible_mutators = vmf.get_incompatible_mutators(mutator, true)
 		local currently_compatible = #incompatible_mutators == 0
 
 		-- Or all incompatible if difficulty is compatible
 		if supports_difficulty and #incompatible_mutators == 0 then
-			incompatible_mutators = mutator:get_incompatible_mutators()
+			incompatible_mutators = vmf.get_incompatible_mutators(mutator)
 		end
 
 		if #incompatible_mutators > 0 then
 
-			if currently_compatible and config.incompatible_with_all or #incompatible_mutators == #mutators - 1 then
+			if currently_compatible and config.incompatible_with_all or #incompatible_mutators == #_MUTATORS - 1 then
 				-- Show special message when incompatible with all
-				text = text .. "\n" .. manager:localize("tooltip_incompatible_with_all")
+				text = text .. "\n" .. vmf:localize("tooltip_incompatible_with_all")
 			else
-				text = text .. "\n" .. manager:localize("tooltip_incompatible_with") .. ":"
+				text = text .. "\n" .. vmf:localize("tooltip_incompatible_with") .. ":"
 				for i, other_mutator in ipairs(incompatible_mutators) do
-					local name = (other_mutator:get_config().title or other_mutator:get_name())
-					text = text .. (i == 1 and " " or ", ") .. name
+					text = text .. (i == 1 and " " or ", ") .. other_mutator:get_readable_name()
 				end
 			end
 
 		elseif config.compatible_with_all then
 			-- Special message when compatible with all
-			text = text .. "\n" .. manager:localize("tooltip_compatible_with_all")
+			text = text .. "\n" .. vmf:localize("tooltip_compatible_with_all")
 		end
 
 		-- Special message if switched to unsupported difficulty level
 		if mutator:is_enabled() and not supports_difficulty then
-			text = text .. "\n" .. manager:localize("tooltip_will_be_disabled")
+			text = text .. "\n" .. vmf:localize("tooltip_will_be_disabled")
 		end
 
 		-- Description
@@ -372,13 +372,13 @@ local mutators_view = {
 	setup_hooks = function(self)
 
 		-- Update the view after map_view has updated
-		manager:hook("MapView.update", function(func, map_view, dt, t)
+		vmf:hook("MapView.update", function(func, map_view, dt, t)
 			func(map_view, dt, t)
 			self:update(dt, t)
 		end)
 
 		-- Activate the view on enter if it was active on exit
-		manager:hook("MapView.on_enter", function(func, map_view)
+		vmf:hook("MapView.on_enter", function(func, map_view)
 			func(map_view)
 			if self.was_active then
 				self.widgets.mutators_button.content.toggled = true
@@ -387,47 +387,47 @@ local mutators_view = {
 		end)
 
 		-- Deactivate the view on exit
-		manager:hook("MapView.on_exit", function(func, map_view)
+		vmf:hook("MapView.on_exit", function(func, map_view)
 			func(map_view)
 			self:deactivate()
 		end)
 
 		-- We don't want to let the game disable steppers when mutators view is active
-		manager:hook("MapView.update_level_stepper", function(func, map_view)
+		vmf:hook("MapView.update_level_stepper", function(func, map_view)
 			if not self.active then
 				func(map_view)
 			end
 		end)
 
 		--[[
-		manager:hook("MapView.on_level_index_changed", function(func, map_view, ...)
+		vmf:hook("MapView.on_level_index_changed", function(func, map_view, ...)
 			func(map_view, ...)
 			print("on_level_index_changed")
-			manager.disable_impossible_mutators(true)
+			vmf.disable_impossible_mutators(true)
 		end)
 
-		manager:hook("MapView.on_difficulty_index_changed", function(func, map_view, ...)
+		vmf:hook("MapView.on_difficulty_index_changed", function(func, map_view, ...)
 			func(map_view, ...)
 			print("on_difficulty_index_changed")
-			manager.disable_impossible_mutators(true)
+			vmf.disable_impossible_mutators(true)
 		end)
 
-		manager:hook("MapView.set_difficulty_stepper_index", function(func, map_view, ...)
+		vmf:hook("MapView.set_difficulty_stepper_index", function(func, map_view, ...)
 			func(map_view, ...)
 			print("set_difficulty_stepper_index")
-			manager.disable_impossible_mutators(true)
+			vmf.disable_impossible_mutators(true)
 		end)
 		--]]
 	end,
 
 	reset_hooks = function(self)
-		manager:hook_remove("MapView.update")
-		manager:hook_remove("MapView.on_enter")
-		manager:hook_remove("MapView.on_exit")
-		manager:hook_remove("MapView.update_level_stepper")
-		-- manager:hook_remove("MapView.on_level_index_changed")
-		-- manager:hook_remove("MapView.on_difficulty_index_changed")
-		-- manager:hook_remove("MapView.set_difficulty_stepper_index")
+		vmf:hook_remove("MapView.update")
+		vmf:hook_remove("MapView.on_enter")
+		vmf:hook_remove("MapView.on_exit")
+		vmf:hook_remove("MapView.update_level_stepper")
+		-- vmf:hook_remove("MapView.on_level_index_changed")
+		-- vmf:hook_remove("MapView.on_difficulty_index_changed")
+		-- vmf:hook_remove("MapView.set_difficulty_stepper_index")
 	end,
 
 	get_map_view = function(self)
@@ -437,13 +437,13 @@ local mutators_view = {
 }
 
 -- Initialize mutators view after map view
-manager:hook("MapView.init", function(func, self, ...)
+vmf:hook("MapView.init", function(func, self, ...)
 	func(self, ...)
 	mutators_view:init(self)
 end)
 
 -- Destroy mutators view after map view
-manager:hook("MapView.destroy", function(func, ...)
+vmf:hook("MapView.destroy", function(func, ...)
 	mutators_view:deinitialize()
 	func(...)
 end)

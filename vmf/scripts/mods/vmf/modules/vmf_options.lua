@@ -1,6 +1,8 @@
 local vmf = get_mod("VMF")
 
-local options_widgets = {
+local vmf_mod_data = {}
+vmf_mod_data.name = "Vermintide Mod Framework"
+vmf_mod_data.options_widgets = {
   {
     ["setting_name"] = "open_vmf_options",
     ["widget_type"] = "keybind",
@@ -268,7 +270,7 @@ end
 -- ##### Script #######################################################################################################
 -- ####################################################################################################################
 
-vmf:create_options(options_widgets, false, "Vermintide Mod Framework")
+vmf:initialize_data(vmf_mod_data)
 
 -- first VMF initialization
 -- it will be run only 1 time, when the player launch the game with VMF for the first time

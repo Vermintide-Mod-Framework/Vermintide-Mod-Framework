@@ -1,6 +1,5 @@
 --[[ Add additional dice to end game roll --]]
-
-local manager = get_mod("vmf_mutator_manager")
+local vmf = get_mod("VMF")
 
 -- List of all die types
 local missions = {
@@ -16,7 +15,7 @@ local num_dice_per_mission = {
 	grimoire_hidden_mission = 0
 }
 
-manager:hook("GameModeManager.complete_level", function(func, self)
+vmf:hook("GameModeManager.complete_level", function(func, self)
 	local num_dice = 0
 	local max_dice = 7
 	local mission_system = Managers.state.entity:system("mission_system")
@@ -32,7 +31,7 @@ manager:hook("GameModeManager.complete_level", function(func, self)
 
 	-- Get total number of dice
 	for name, obj in pairs(active_mission) do
-		if table.has_item(missions, name) then
+		if table.contains(missions, name) then
 			num_dice = num_dice + obj.current_amount
 		end
 	end

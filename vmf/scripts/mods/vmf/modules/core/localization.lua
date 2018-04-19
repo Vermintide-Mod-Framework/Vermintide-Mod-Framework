@@ -82,11 +82,11 @@ VMFMod.localize = function (self, text_id, ...)
         end
       end
     end
-
-    return "<" .. tostring(text_id) .. ">"
   else
     self:error("(localize): localization file was not loaded for this mod")
   end
+
+  return "<" .. tostring(text_id) .. ">"
 end
 
 -- ####################################################################################################################

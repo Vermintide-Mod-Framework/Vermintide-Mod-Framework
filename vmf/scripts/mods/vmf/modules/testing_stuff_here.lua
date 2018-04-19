@@ -1,6 +1,11 @@
-local mod = new_mod("test_mod")
+local mod = get_mod("test_mod")
 
-local options_widgets = {
+local mod_data = {}
+mod_data.name = "Test"
+mod_data.description = "Test mod description"
+mod_data.is_togglable = true
+--mod_data.mutator_setting = nil
+mod_data.options_widgets = {
   {
     ["setting_name"] = "game_mode",
     ["widget_type"] = "dropdown",
@@ -106,8 +111,7 @@ local options_widgets = {
     ["default_value"] = 0
   }
 }
-
-mod:create_options(options_widgets, true, "Test", "Mod description")
+mod:initialize_data(mod_data)
 
 mod:command("whatever", "description whatever", function() mod:echo("whatever") end)
 mod:command("what", "description what", function() mod:echo("what") end)
@@ -115,7 +119,24 @@ mod:command("wh", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Susp
 mod:command("whoa", "description whoa", function() mod:echo("whoa") end)
 mod:command("wheat", "description wheat", function() mod:echo("wheat") end)
 mod:command("test", "short command description\n params: [parameter1] [parameter2]\nparameter1 - string\nparameter2 - number", function(p1, p2) mod:echo("Test function executed.\nParameter1: " .. tostring(p1) .. "\nParameter2: " .. tostring(p2)) end)
+
 -- chat_broadcast
+
+--[[
+  local what = 1337
+  local loadstring_function = assert( loadstring( "return UIAtlasHelper.has_atlas_settings_by_texture_name" ) )
+  local loadstring_locals = { what = what}
+  setfenv(loadstring_function, setmetatable(loadstring_locals, { __index = _G }))
+  mod:echo(loadstring_function())
+  mod:echo(getfenv(loadstring_function).what)
+]]
+
+-- for serialization:
+-- table.maxn (table)
+
+
+
+
 mod.whatever = function ()
   --mod:echo("whatever")
 
@@ -154,6 +175,27 @@ mod.whatever = function ()
   --mod.custom_mod_rpc()
 end
   --ingame_ui.handle_transition(ingame_ui, "leave_group")
+--[[
+
+  mod.update = function()
+    local experience = ScriptBackendProfileAttribute.get("experience")
+    local level = 30
+
+    if level ~= ExperienceSettings.get_level(experience) then
+      local new_experience = experience
+
+      while level > ExperienceSettings.get_level(new_experience) do
+        new_experience = new_experience + 500
+      end
+
+      while level < ExperienceSettings.get_level(new_experience) do
+        new_experience = new_experience - 500
+      end
+
+      ScriptBackendProfileAttribute.set("experience", new_experience)
+    end
+  end
+  ]]
 
 function mod.simulate(...)
 
@@ -229,19 +271,16 @@ mod:pcall(
 )
 
 
-mod:network_register("rpc_whatever", mod.game_state_changed)
-mod:network_register("yo",mod.game_state_changed)
-mod:network_register("test", mod.game_state_changed)
 
 --mod:hook("bla.bla", mod.game_state_changed)
 --mod:hook("bla.bla2", mod.game_state_changed)
 --mod:hook("bla.bla3", mod.game_state_changed)
 
-local mod3 = new_mod("test_mod3")
+--local mod3 = new_mod("test_mod3")
 --mod3:hook("bla.bla", mod.game_state_changed)
 --mod3:hook("bla.bla2", mod.game_state_changed)
 --mod3:hook("bla.bla3", mod.game_state_changed)
-mod3:network_register("what", mod.game_state_changed)
+--mod3:network_register("what", mod.game_state_changed)
 
 --[[
 mod:hook("ChatManager.rpc_chat_message", function (func, self, sender, channel_id, message_sender, message, localization_param, is_system_message, pop_chat, is_dev)

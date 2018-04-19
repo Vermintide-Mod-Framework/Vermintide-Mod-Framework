@@ -1,12 +1,14 @@
 return {
 	init = function(object)
 
-		dofile("scripts/mods/vmf/functions/table")
+		Managers.vmf = Managers.vmf or {}
 
 		dofile("scripts/mods/vmf/modules/mods")
 		dofile("scripts/mods/vmf/modules/core/events")
 		dofile("scripts/mods/vmf/modules/core/settings")
 		dofile("scripts/mods/vmf/modules/core/core_functions")
+		dofile("scripts/mods/vmf/modules/core/initialization")
+		dofile("scripts/mods/vmf/modules/core/persistent_tables")
 		dofile("scripts/mods/vmf/modules/debug/dev_console")
 		dofile("scripts/mods/vmf/modules/debug/table_dump")
 		dofile("scripts/mods/vmf/modules/core/hooks")
@@ -35,7 +37,8 @@ return {
 		end)
 
 		-- temporary solution:
-		dofile("scripts/mods/vmf/modules/testing_stuff_here")
+		local mod = new_mod("test_mod")
+		mod:initialize("scripts/mods/vmf/modules/testing_stuff_here")
 	end,
 
 	update = function(object, dt)
@@ -43,6 +46,7 @@ return {
 		object.vmf.mods_update_event(dt)
 		object.vmf.check_pressed_keybinds()
 		object.vmf.check_custom_menus_close_keybinds(dt)
+		object.vmf.check_mutators_state()
 
 		if not object.vmf.all_mods_were_loaded and Managers.mod._state == "done" then
 
@@ -79,9 +83,9 @@ return {
 		object.vmf.save_unsaved_settings_to_file()
 		object.vmf.apply_delayed_hooks()
 
-		if status == "exit" and state == "StateTitleScreen" then
-			object.vmf.hook_chat_manager()
-		end
+		--if status == "exit" and state == "StateTitleScreen" then
+		--	object.vmf.hook_chat_manager()
+		--end
 
 		if status == "enter" and state == "StateIngame" then
 			object.vmf.initialize_keybinds()

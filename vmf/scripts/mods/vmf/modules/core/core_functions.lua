@@ -175,7 +175,7 @@ end
 -- ####################################################################################################################
 -- ##### VMF internal functions and variables #########################################################################
 -- ####################################################################################################################
--- @TODO: maybe it doesn't belong in here
+-- @TODO: rename it (get rid of "wrong")
 vmf.check_wrong_argument_type = function(mod, vmf_function_name, argument_name, argument, ...)
 
   local allowed_types = {...}
