@@ -9,7 +9,7 @@ mod_data = {}
 mod_data.name = "Legendary"
 mod_data.description = "Legendary description"
 mod_data.is_mutator = true
-mod_data.mutator_setting = {
+mod_data.mutator_settings = {
 	incompatible_with_all = true,
 	compatible_with = {
 		--"mutator3"
@@ -26,7 +26,7 @@ local mutator3 = new_mod("mutator3")
 mod_data = {}
 mod_data.name = "Something"
 mod_data.is_mutator = true
-mod_data.mutator_setting = {
+mod_data.mutator_settings = {
 	incompatible_with = {
 		"mutator4"
 	},
@@ -43,7 +43,7 @@ local mutator2 = new_mod("mutator2")
 mod_data = {}
 mod_data.name = "?Deathwish"
 mod_data.is_mutator = true
-mod_data.mutator_setting = {
+mod_data.mutator_settings = {
 	difficulty_levels = {
 		"hardest",
 		"survival_hardest"
@@ -62,7 +62,7 @@ local slayer = new_mod("slayer")
 mod_data = {}
 mod_data.name = "Slayer's Oath"
 mod_data.is_mutator = true
-mod_data.mutator_setting = {
+mod_data.mutator_settings = {
 	difficulty_levels = {
 		"survival_hard",
 		"survival_harder",
@@ -81,7 +81,7 @@ local true_solo = new_mod("true_solo")
 mod_data = {}
 mod_data.name = "True Solo"
 mod_data.is_mutator = true
-mod_data.mutator_setting = {
+mod_data.mutator_settings = {
 	compatible_with_all = true,
 	--title = "True Solo",
 	title_placement = "before"
@@ -97,7 +97,7 @@ local onslaught = new_mod("onslaught")
 mod_data = {}
 mod_data.name = "Onslaught"
 mod_data.is_mutator = true
---mod_data.mutator_setting = {
+--mod_data.mutator_settings = {
 --	title = "Onslaught"
 --}
 onslaught:initialize_data(mod_data)
@@ -111,7 +111,7 @@ local one_hit_one_kill = new_mod("one_hit_one_kill")
 mod_data = {}
 mod_data.name = "One Hit One Kill"
 mod_data.is_mutator = true
-mod_data.mutator_setting = {
+mod_data.mutator_settings = {
 	--title = "One Hit One Kill",
 	difficulty_levels = {"hardest"},
 	enable_after_these = {"more_rat_weapons"}
@@ -127,7 +127,7 @@ local more_rat_weapons = new_mod("more_rat_weapons")
 mod_data = {}
 mod_data.name = "More Rat Weapons"
 mod_data.is_mutator = true
-mod_data.mutator_setting = {
+mod_data.mutator_settings = {
 	compatible_with_all = true,
 	--title = "More Rat Weapons",
 	difficulty_levels = {"hardest"}
