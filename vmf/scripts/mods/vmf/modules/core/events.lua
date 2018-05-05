@@ -49,7 +49,7 @@ vmf.mods_update_event = function(dt)
 end
 
 -- call 'on_game_state_changed' for every mod which defined it
-vmf.mods_game_state_changed_event = function(status, state)
+vmf.mods_game_state_changed_event = function(status, state_name)
 
   local event_name = "on_game_state_changed"
 
@@ -57,7 +57,7 @@ vmf.mods_game_state_changed_event = function(status, state)
 
     local event = mod[event_name]
     if event then
-      run_event(mod, event_name, event, status, state)
+      run_event(mod, event_name, event, status, state_name)
     end
   end
 end

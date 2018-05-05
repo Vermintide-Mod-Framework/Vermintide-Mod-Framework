@@ -1,3 +1,5 @@
+VT1 = true
+
 return {
 	init = function(object)
 
@@ -26,7 +28,7 @@ return {
 		dofile("scripts/mods/vmf/modules/ui/options/vmf_options_view")
 		dofile("scripts/mods/vmf/modules/vmf_options")
 
-		dofile("scripts/mods/vmf/modules/ui/mutators/mutator_manager")
+		if VT1 then dofile("scripts/mods/vmf/modules/ui/mutators/mutator_manager") end
 
 		object.vmf = get_mod("VMF")
 
@@ -35,6 +37,9 @@ return {
 			object.vmf.mods_unload_event(true)
 			func(self)
 		end)
+
+		-- @TODO: temporary V2 fix for not working event
+		if not VT1 then Boot._machine._notify_mod_manager = true end
 
 		-- temporary solution:
 		local mod = new_mod("test_mod")
@@ -46,7 +51,7 @@ return {
 		object.vmf.mods_update_event(dt)
 		object.vmf.check_pressed_keybinds()
 		object.vmf.check_custom_menus_close_keybinds(dt)
-		object.vmf.check_mutators_state()
+		if VT1 then object.vmf.check_mutators_state() end
 
 		if not object.vmf.all_mods_were_loaded and Managers.mod._state == "done" then
 

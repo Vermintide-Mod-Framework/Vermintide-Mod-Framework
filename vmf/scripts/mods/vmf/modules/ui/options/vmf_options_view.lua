@@ -105,6 +105,399 @@ local scenegraph_definition = {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local function create_scrollbar(height, scenegraph_id)
+    return {
+      element = {
+        passes = {
+          {
+            pass_type = "texture",
+            style_id = "scroll_bar_bottom",
+            texture_id = "scroll_bar_bottom",
+            content_check_function = function (content)
+              return not content.disable_frame
+            end
+          },
+          {
+            pass_type = "texture",
+            style_id = "scroll_bar_bottom_bg",
+            texture_id = "scroll_bar_bottom_bg",
+            content_check_function = function (content)
+              return not content.disable_frame
+            end
+          },
+          {
+            pass_type = "tiled_texture",
+            style_id = "scroll_bar_middle",
+            texture_id = "scroll_bar_middle",
+            content_check_function = function (content)
+              return not content.disable_frame
+            end
+          },
+          {
+            pass_type = "tiled_texture",
+            style_id = "scroll_bar_middle_bg",
+            texture_id = "scroll_bar_middle_bg",
+            content_check_function = function (content)
+              return not content.disable_frame
+            end
+          },
+          {
+            pass_type = "texture",
+            style_id = "scroll_bar_top",
+            texture_id = "scroll_bar_top",
+            content_check_function = function (content)
+              return not content.disable_frame
+            end
+          },
+          {
+            pass_type = "texture",
+            style_id = "scroll_bar_top_bg",
+            texture_id = "scroll_bar_top_bg",
+            content_check_function = function (content)
+              return not content.disable_frame
+            end
+          },
+          {
+            style_id = "button_down",
+            pass_type = "hotspot",
+            content_id = "button_down_hotspot"
+          },
+          {
+            style_id = "button_up",
+            pass_type = "hotspot",
+            content_id = "button_up_hotspot"
+          },
+          {
+            pass_type = "local_offset",
+            offset_function = function (ui_scenegraph, ui_style, ui_content, input_service)
+              local scroll_bar_info = ui_content.scroll_bar_info
+              local scroll_bar_box = ui_style.scroll_bar_box
+              local scroll_size_y = scroll_bar_box.scroll_size_y
+              local percentage = math.max(scroll_bar_info.bar_height_percentage, 0.05)
+              scroll_bar_box.size[2] = scroll_size_y * percentage
+              local button_up_hotspot = ui_content.button_up_hotspot
+
+              if button_up_hotspot.is_hover and button_up_hotspot.is_clicked == 0 then
+                ui_content.button_up = "scroll_bar_button_up_clicked"
+              else
+                ui_content.button_up = "scroll_bar_button_up"
+              end
+
+              local button_down_hotspot = ui_content.button_down_hotspot
+
+              if button_down_hotspot.is_hover and button_down_hotspot.is_clicked == 0 then
+                ui_content.button_down = "scroll_bar_button_down_clicked"
+              else
+                ui_content.button_down = "scroll_bar_button_down"
+              end
+
+              local button_scroll_step = ui_content.button_scroll_step or 0.1
+
+              if button_up_hotspot.on_release then
+                local size_y = scroll_bar_box.size[2]
+                local scroll_size_y = scroll_bar_box.scroll_size_y
+                local start_y = scroll_bar_box.start_offset[2]
+                local end_y = (start_y + scroll_size_y) - size_y
+                local step = size_y / (start_y + end_y)
+                scroll_bar_info.value = math.max(scroll_bar_info.value - button_scroll_step, 0)
+              elseif button_down_hotspot.on_release then
+                local size_y = scroll_bar_box.size[2]
+                local scroll_size_y = scroll_bar_box.scroll_size_y
+                local start_y = scroll_bar_box.start_offset[2]
+                local end_y = (start_y + scroll_size_y) - size_y
+                local step = size_y / (start_y + end_y)
+                scroll_bar_info.value = math.min(scroll_bar_info.value + button_scroll_step, 1)
+              end
+
+              return
+            end
+          },
+          {
+            pass_type = "texture",
+            style_id = "button_down",
+            texture_id = "button_down"
+          },
+          {
+            pass_type = "texture",
+            style_id = "button_up",
+            texture_id = "button_up"
+          },
+          {
+            style_id = "scroll_bar_box",
+            pass_type = "hotspot",
+            content_id = "scroll_bar_info"
+          },
+          {
+            style_id = "scroll_bar_box",
+            pass_type = "held",
+            content_id = "scroll_bar_info",
+            held_function = function (ui_scenegraph, ui_style, ui_content, input_service)
+              local cursor = UIInverseScaleVectorToResolution(input_service.get(input_service, "cursor"))
+              local cursor_y = cursor[2]
+              local world_pos = UISceneGraph.get_world_position(ui_scenegraph, ui_content.scenegraph_id)
+              local world_pos_y = world_pos[2]
+              local offset = ui_style.offset
+              local scroll_box_start = world_pos_y + offset[2]
+              local cursor_y_norm = cursor_y - scroll_box_start
+
+              if not ui_content.click_pos_y then
+                ui_content.click_pos_y = cursor_y_norm
+              end
+
+              local click_pos_y = ui_content.click_pos_y
+              local delta = cursor_y_norm - click_pos_y
+              local start_y = ui_style.start_offset[2]
+              local end_y = (start_y + ui_style.scroll_size_y) - ui_style.size[2]
+              local offset_y = math.clamp(offset[2] + delta, start_y, end_y)
+              local scroll_size = end_y - start_y
+              local scroll = end_y - offset_y
+              ui_content.value = (scroll ~= 0 and scroll / scroll_size) or 0
+
+              return
+            end,
+            release_function = function (ui_scenegraph, ui_style, ui_content, input_service)
+              ui_content.click_pos_y = nil
+
+              return
+            end
+          },
+          {
+            pass_type = "local_offset",
+            content_id = "scroll_bar_info",
+            offset_function = function (ui_scenegraph, ui_style, ui_content, input_service)
+              local box_style = ui_style.scroll_bar_box
+              local box_size_y = box_style.size[2]
+              local start_y = box_style.start_offset[2]
+              local end_y = (start_y + box_style.scroll_size_y) - box_size_y
+              local scroll_size = end_y - start_y
+              local value = ui_content.value
+              local offset_y = start_y + scroll_size * (1 - value)
+              box_style.offset[2] = offset_y
+              local box_bottom = ui_style.scroll_bar_box_bottom
+              local box_middle = ui_style.scroll_bar_box_middle
+              local box_top = ui_style.scroll_bar_box_top
+              local box_bottom_size_y = box_bottom.size[2]
+              local box_top_size_y = box_top.size[2]
+              box_bottom.offset[2] = offset_y
+              box_top.offset[2] = (offset_y + box_size_y) - box_top_size_y
+              box_middle.offset[2] = offset_y + box_bottom_size_y
+              box_middle.size[2] = box_size_y - box_bottom_size_y - box_top_size_y
+
+              return
+            end
+          },
+          {
+            pass_type = "texture",
+            style_id = "scroll_bar_box_bottom",
+            texture_id = "scroll_bar_box_bottom"
+          },
+          {
+            pass_type = "tiled_texture",
+            style_id = "scroll_bar_box_middle",
+            texture_id = "scroll_bar_box_middle"
+          },
+          {
+            pass_type = "texture",
+            style_id = "scroll_bar_box_top",
+            texture_id = "scroll_bar_box_top"
+          }
+        }
+      },
+      content = {
+        scroll_bar_bottom_bg = "scroll_bar_bottom_bg",
+        scroll_bar_top_bg = "scroll_bar_top_bg",
+        scroll_bar_middle = "scroll_bar_middle",
+        button_up = "scroll_bar_button_up",
+        scroll_bar_box_bottom = "scroll_bar_box_bottom",
+        scroll_bar_middle_bg = "scroll_bar_middle_bg",
+        scroll_bar_bottom = "scroll_bar_bottom",
+        disable_frame = false,
+        scroll_bar_box_middle = "scroll_bar_box_middle",
+        scroll_bar_box_top = "scroll_bar_box_top",
+        button_down = "scroll_bar_button_down",
+        scroll_bar_top = "scroll_bar_top",
+        scroll_bar_info = {
+          button_scroll_step = 0.1,
+          value = 0,
+          bar_height_percentage = 1,
+          scenegraph_id = scenegraph_id
+        },
+        button_up_hotspot = {},
+        button_down_hotspot = {}
+      },
+      style = {
+        scroll_bar_bottom = {
+          size = {
+            26,
+            116
+          }
+        },
+        scroll_bar_bottom_bg = {
+          offset = {
+            0,
+            0,
+            -1
+          },
+          size = {
+            26,
+            116
+          }
+        },
+        scroll_bar_middle = {
+          offset = {
+            0,
+            116,
+            0
+          },
+          size = {
+            26,
+            height - 232
+          },
+          texture_tiling_size = {
+            26,
+            44
+          }
+        },
+        scroll_bar_middle_bg = {
+          offset = {
+            0,
+            116,
+            -1
+          },
+          size = {
+            26,
+            height - 232
+          },
+          texture_tiling_size = {
+            26,
+            44
+          }
+        },
+        scroll_bar_top = {
+          offset = {
+            0,
+            height - 116,
+            0
+          },
+          size = {
+            26,
+            116
+          }
+        },
+        scroll_bar_top_bg = {
+          offset = {
+            0,
+            height - 116,
+            -1
+          },
+          size = {
+            26,
+            116
+          }
+        },
+        button_down = {
+          offset = {
+            5,
+            4,
+            0
+          },
+          size = {
+            16,
+            18
+          }
+        },
+        button_up = {
+          offset = {
+            5,
+            height - 22,
+            0
+          },
+          size = {
+            16,
+            18
+          }
+        },
+        scroll_bar_box = {
+          offset = {
+            4,
+            22,
+            100
+          },
+          size = {
+            18,
+            height - 44
+          },
+          color = {
+            255,
+            255,
+            255,
+            255
+          },
+          start_offset = {
+            4,
+            22,
+            0
+          },
+          scroll_size_y = height - 44
+        },
+        scroll_bar_box_bottom = {
+          offset = {
+            4,
+            0,
+            0
+          },
+          size = {
+            18,
+            8
+          }
+        },
+        scroll_bar_box_middle = {
+          offset = {
+            4,
+            0,
+            0
+          },
+          size = {
+            18,
+            26
+          },
+          texture_tiling_size = {
+            18,
+            26
+          }
+        },
+        scroll_bar_box_top = {
+          offset = {
+            4,
+            0,
+            0
+          },
+          size = {
+            18,
+            8
+          }
+        }
+      },
+      scenegraph_id = scenegraph_id
+    }
+  end
 --███╗   ███╗███████╗███╗   ██╗██╗   ██╗    ██╗    ██╗██╗██████╗  ██████╗ ███████╗████████╗███████╗
 --████╗ ████║██╔════╝████╗  ██║██║   ██║    ██║    ██║██║██╔══██╗██╔════╝ ██╔════╝╚══██╔══╝██╔════╝
 --██╔████╔██║█████╗  ██╔██╗ ██║██║   ██║    ██║ █╗ ██║██║██║  ██║██║  ███╗█████╗     ██║   ███████╗
@@ -293,7 +686,7 @@ local menu_widgets_definition = {
     }
   },
 
-  scrollbar = UIWidgets.create_scrollbar(scenegraph_definition.sg_scrollbar.size[2], "sg_scrollbar")
+  scrollbar = create_scrollbar(scenegraph_definition.sg_scrollbar.size[2], "sg_scrollbar")
 }
 
 -- @TODO: make scrollbar full windowed o_O
@@ -3789,6 +4182,8 @@ end
 
 VMFOptionsView.on_enter = function (self)
 
+  if ShowCursorStack.stack_depth == 0 then ShowCursorStack.push() end
+
   local input_manager = self.input_manager
   input_manager.block_device_except_service(input_manager, "vmf_options_menu", "keyboard", 1)
   input_manager.block_device_except_service(input_manager, "vmf_options_menu", "mouse", 1)
@@ -3805,6 +4200,9 @@ end
 
 VMFOptionsView.on_exit = function (self)
   WwiseWorld.trigger_event(self.wwise_world, "Play_hud_button_close")
+
+  -- in VT1 cursor will be romover automatically
+  if not VT1 then ShowCursorStack.pop() end
 
   vmf.save_unsaved_settings_to_file()
 end
@@ -4085,7 +4483,7 @@ local view_data = {
     },
     hotkey_name = "open_vmf_options",
     hotkey_action_name = "open_vmf_options",
-    hotkey_transition_name = "vmf_options_view_force",
+    hotkey_transition_name = "vmf_options_view",
     transition_fade = false
   },
   view_transitions = {
@@ -4097,6 +4495,7 @@ local view_data = {
     end,
 
     vmf_options_view_force = function (self)
+
       ShowCursorStack.push()
 
       self.current_view = "vmf_options_view"
@@ -4107,18 +4506,42 @@ local view_data = {
   }
 }
 
+if not V1 and not IngameView.umoes_is_hooked then
+
+  local umoes_original_function = IngameView.update_menu_options_enabled_states
+  IngameView.update_menu_options_enabled_states = function(self)
+    umoes_original_function(self)
+    if self.active_button_data then
+      for _, menu_option in ipairs(self.active_button_data) do
+        if menu_option.transition == "vmf_options_view" then
+          menu_option.widget.content.button_hotspot.disable_button = menu_option.widget.content.button_hotspot.disabled
+        end
+      end
+    end
+  end
+
+  IngameView.umoes_is_hooked = true
+end
+
 -- disables/enables mods options buttons in the
 local function change_mods_options_button_state(state)
 
-  local ingame_menu_buttons_exist, ingame_menu_buttons = pcall(function () return Managers.player.network_manager.matchmaking_manager.matchmaking_ui.ingame_ui.ingame_menu.active_button_data end)
+  local ingame_menu_buttons_exist, ingame_menu_buttons
+  if VT1 then
+    ingame_menu_buttons_exist, ingame_menu_buttons = pcall(function () return Managers.player.network_manager.matchmaking_manager.matchmaking_ui.ingame_ui.ingame_menu.active_button_data end)
+  else
+    ingame_menu_buttons_exist, ingame_menu_buttons = pcall(function () return Managers.player.network_manager.matchmaking_manager._ingame_ui.views.ingame_menu.active_button_data end)
+  end
+
   if ingame_menu_buttons_exist and type(ingame_menu_buttons) == "table" then
-
     for _, button_info in ipairs(ingame_menu_buttons) do
-
       if button_info.transition == "vmf_options_view" then
 
-        button_info.widget.content.disabled = state == "disable"
-        button_info.widget.content.button_hotspot.disabled =  state == "disable"
+        -- it's enough to enable/disable buttons in V1, but it doesn't do anything in V2
+        -- there is special hook for V2 that updates button state every tick
+        -- and it uses this value to figure out if button is enabled
+        button_info.widget.content.disabled = (state == "disable")
+        button_info.widget.content.button_hotspot.disabled = (state == "disable")
       end
     end
   end
@@ -4127,7 +4550,6 @@ end
 
 vmf.initialize_vmf_options_view = function ()
   vmf:register_new_view(view_data)
-
   change_mods_options_button_state("enable")
 end
 
@@ -4146,9 +4568,7 @@ vmf:hook("IngameView.setup_button_layout", function (func, self, layout_data)
   }
 
   for i, button_info in ipairs(layout_data) do
-
     if button_info.transition == "options_menu" then
-
       table.insert(layout_data, i + 1, mods_options_button)
       break
     end
@@ -4157,14 +4577,19 @@ vmf:hook("IngameView.setup_button_layout", function (func, self, layout_data)
   func(self, layout_data)
 
   for _, button_info in ipairs(self.active_button_data) do
-
     if button_info.transition == "vmf_options_view" then
 
-      button_info.widget.style.text.localize = false
-      button_info.widget.style.text_disabled.localize = false
-      button_info.widget.style.text_click.localize = false
-      button_info.widget.style.text_hover.localize = false
-      button_info.widget.style.text_selected.localize = false
+      if VT1 then
+        button_info.widget.style.text.localize = false
+        button_info.widget.style.text_disabled.localize = false
+        button_info.widget.style.text_click.localize = false
+        button_info.widget.style.text_hover.localize = false
+        button_info.widget.style.text_selected.localize = false
+      else
+        button_info.widget.style.title_text.localize = false
+        button_info.widget.style.title_text_disabled.localize = false
+        button_info.widget.style.title_text_shadow.localize = false
+      end
 
       if not self.ingame_ui.views["vmf_options_view"] then
         change_mods_options_button_state("disable")

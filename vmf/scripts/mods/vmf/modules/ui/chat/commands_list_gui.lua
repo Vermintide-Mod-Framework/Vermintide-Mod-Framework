@@ -1,6 +1,16 @@
 local vmf = get_mod("VMF") --@TODO: remove it?
 
-local _GUI = World.create_screen_gui(Managers.world:world("top_ingame_view"), "immediate", "material", "materials/fonts/gw_fonts", "material", "materials/ui/ui_1080p_ingame_common")
+local _GUI
+
+if VT1 then
+  -- @TODO: I don't think I need the 2nd texture
+  _GUI = World.create_screen_gui(Managers.world:world("top_ingame_view"), "immediate", "material", "materials/fonts/gw_fonts", "material", "materials/ui/ui_1080p_ingame_common")
+else
+  _GUI = World.create_screen_gui(Managers.world:world("top_ingame_view"), "material", "materials/fonts/gw_fonts", "immediate")
+end
+
+--	DebugScreen.gui = World.create_screen_gui(world, "material", "materials/fonts/gw_fonts", "material", "materials/menu/debug_screen", "immediate")
+
 
 local _FONT_TYPE = "hell_shark_arial"
 local _FONT_SIZE = 22

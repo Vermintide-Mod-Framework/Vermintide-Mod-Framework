@@ -1,6 +1,6 @@
 return {
   mods_options = {
-    en = "Mods Options",
+    en = "Mod Options",
     ru = "Настройки модов",
   },
   open_vmf_options = {

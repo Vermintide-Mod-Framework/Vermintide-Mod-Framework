@@ -51,6 +51,7 @@ VMFMod.echo = function (self, message, ...)
   message = safe_format(self, message, ...)
 
   if message then
+
     if _LOGGING_SETTINGS.echo.send_to_chat then
       send_to_chat(message)
     end
@@ -197,11 +198,11 @@ vmf.unsent_chat_messages = _UNSENT_CHAT_MESSAGES
 vmf.load_logging_settings = function ()
 
   _LOGGING_SETTINGS = {
-    echo    = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_echo"),--    or 3, @TODO: clean up?
-    error   = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_error"),--   or 3,
-    warning = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_warning"),-- or 3,
-    info    = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_info"),--    or 1,
-    debug   = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_debug"),--   or 0,
+    echo    = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_echo")    or 3, -- @TODO: clean up?
+    error   = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_error")   or 3,
+    warning = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_warning") or 3,
+    info    = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_info")    or 1,
+    debug   = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_debug")   or 0,
   }
 
   for method_name, logging_mode in pairs(_LOGGING_SETTINGS) do

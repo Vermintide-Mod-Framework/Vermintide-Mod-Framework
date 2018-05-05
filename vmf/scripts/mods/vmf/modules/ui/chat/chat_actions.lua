@@ -34,6 +34,12 @@ local function clean_chat_history()
   _CHAT_HISTORY_INDEX = 0
 end
 
+local function set_chat_message(chat_gui, message)
+  chat_gui.chat_message = message
+  chat_gui.chat_index   = KeystrokeHelper.num_utf8chars(chat_gui.chat_message) + 1
+  chat_gui.chat_input_widget.content.text_index = 1
+end
+
 -- ####################################################################################################################
 -- ##### Hooks ########################################################################################################
 -- ####################################################################################################################
@@ -98,7 +104,8 @@ vmf:hook("ChatGui._update_input", function(func, self, input_service, menu_input
       _COMMANDS_LIST = {}
       _COMMAND_INDEX = 0
 
-      self.chat_message = ""
+      set_chat_message(self, "")
+
       command_executed = true
     end
   end
@@ -108,7 +115,7 @@ vmf:hook("ChatGui._update_input", function(func, self, input_service, menu_input
   local chat_focused, chat_closed, chat_close_time = func(self, input_service, menu_input_service, dt, no_unblock, chat_enabled)
 
   if chat_closed then
-    self.chat_message = ""
+    set_chat_message(self, "")
 
     _CHAT_OPENED = false
 
@@ -141,6 +148,12 @@ vmf:hook("ChatGui._update_input", function(func, self, input_service, menu_input
 
     -- chat history
     if _CHAT_HISTORY_ENABLED then
+
+      -- reverse result of native chat history in VT2
+      if not VT1 and input_service.get(input_service, "chat_next_old_message") or input_service.get(input_service, "chat_previous_old_message") then
+        set_chat_message(self, old_chat_message)
+      end
+
       -- message was modified by player
       if self.chat_message ~= self.previous_chat_message then
         _CHAT_HISTORY_INDEX = 0
@@ -153,16 +166,13 @@ vmf:hook("ChatGui._update_input", function(func, self, input_service, menu_input
         if _CHAT_HISTORY_INDEX ~= new_index then
           if _CHAT_HISTORY[new_index] then
 
-            self.chat_message = _CHAT_HISTORY[new_index]
-            self.chat_index   = KeystrokeHelper.num_utf8chars(self.chat_message) + 1
-            self.chat_input_widget.content.text_index = 1
+            set_chat_message(self, _CHAT_HISTORY[new_index])
 
             self.previous_chat_message = self.chat_message
 
             _CHAT_HISTORY_INDEX = new_index
           else -- new_index == 0
-            self.chat_message = ""
-            self.chat_index   = 1
+            set_chat_message(self, "")
           end
         end
       end
@@ -170,8 +180,8 @@ vmf:hook("ChatGui._update_input", function(func, self, input_service, menu_input
 
     -- ctrl + v
     if Keyboard.pressed(Keyboard.button_index("v")) and Keyboard.button(Keyboard.button_index("left ctrl")) == 1 then
-      self.chat_message = self.chat_message .. tostring(Clipboard.get()):gsub(string.char(0x0D), "") -- remove CR characters
-      self.chat_index   = KeystrokeHelper.num_utf8chars(self.chat_message) + 1
+      local new_chat_message = self.chat_message .. tostring(Clipboard.get()):gsub(string.char(0x0D), "") -- remove CR characters
+      set_chat_message(self, new_chat_message)
     end
 
     -- ctrl + c
@@ -189,8 +199,7 @@ vmf:hook("ChatGui._update_input", function(func, self, input_service, menu_input
 
         _COMMAND_INDEX = _COMMAND_INDEX % #_COMMANDS_LIST + 1
 
-        self.chat_message = "/" .. _COMMANDS_LIST[_COMMAND_INDEX].name
-        self.chat_index   = KeystrokeHelper.num_utf8chars(self.chat_message) + 1
+        set_chat_message(self, "/" .. _COMMANDS_LIST[_COMMAND_INDEX].name)
 
         -- so the next block won't update the commands list
         old_chat_message = self.chat_message

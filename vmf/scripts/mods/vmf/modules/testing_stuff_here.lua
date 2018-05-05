@@ -4,7 +4,7 @@ local mod_data = {}
 mod_data.name = "Test"
 mod_data.description = "Test mod description"
 mod_data.is_togglable = true
---mod_data.mutator_setting = nil
+--mod_data.mutator_settings = nil
 mod_data.options_widgets = {
   {
     ["setting_name"] = "game_mode",
@@ -64,7 +64,7 @@ mod_data.options_widgets = {
     ["text"] = "Some keybind [toggle]",
     ["tooltip"] = "Probably keybind",
     ["default_value"] = {"f", "ctrl"},
-    ["action"] = "toggle_mod"
+    ["action"] = "toggle_mod_state"
   },
   {
     ["setting_name"] = "game_mode2",
@@ -134,12 +134,9 @@ mod:command("test", "short command description\n params: [parameter1] [parameter
 -- for serialization:
 -- table.maxn (table)
 
-
-
-
 mod.whatever = function ()
   --mod:echo("whatever")
-
+  --mod:dtf(Boot, "Boot", 5)
 --[[
   mod:pcall(function()
 
@@ -162,9 +159,11 @@ mod.whatever = function ()
 
   --mod:network_send("rpc_whatever", "all", 1, "yay", true, nil, {4, 5})
 
-  mod:pcall(function()
-    RPC.rpc_play_simple_particle_with_vector_variable(Managers.player:local_player().peer_id, 27, Vector3(-3.72465, -1.52876, 2.02713), 32, Vector3(5, 1, 1))
-  end)
+  --[[
+    mod:pcall(function()
+      RPC.rpc_play_simple_particle_with_vector_variable(Managers.player:local_player().peer_id, 27, Vector3(-3.72465, -1.52876, 2.02713), 32, Vector3(5, 1, 1))
+    end)
+    ]]
 
 
   --mod.simulate(1, "yay", true, Managers.player.network_manager.matchmaking_manager.matchmaking_ui.ingame_ui.wwise_world, {4, 5})

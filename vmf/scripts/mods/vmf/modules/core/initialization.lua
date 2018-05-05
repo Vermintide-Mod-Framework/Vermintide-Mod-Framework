@@ -34,7 +34,7 @@ VMFMod.initialize_data = function (self, mod_data)
   self._data.is_mutator   = mod_data.is_mutator
 
   if mod_data.is_mutator then
-    vmf.register_mod_as_mutator(self, mod_data.mutator_setting)
+    vmf.register_mod_as_mutator(self, mod_data.mutator_settings)
   end
 
   if mod_data.options_widgets or (mod_data.is_togglable and not mod_data.is_mutator) then
