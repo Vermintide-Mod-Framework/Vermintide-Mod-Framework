@@ -65,9 +65,9 @@ end
 
 -- Checks if mutators are compatible both ways
 local function is_compatible(mutator, other_mutator)
-	local config = vmf.get_mutator_config(mutator)
+	local config = mutator:get_config()
 	local name = mutator:get_name()
-	local other_config = vmf.get_mutator_config(other_mutator)
+	local other_config = other_mutator:get_config()
 	local other_name = other_mutator:get_name()
 
 	local incompatible_specifically = (
@@ -106,7 +106,7 @@ end
 
 -- Called after mutator is enabled
 local function on_enabled(mutator)
-	local config = vmf.get_mutator_config(mutator)
+	local config = mutator:get_config()
 	_DICE_MANAGER.addDice(config.dice)
 	_SET_LOBBY_DATA()
 	print("[MUTATORS] Enabled " .. mutator:get_name() .. " (" .. tostring(get_index(_MUTATORS, mutator)) .. ")")
@@ -116,7 +116,7 @@ end
 
 -- Called after mutator is disabled
 local function on_disabled(mutator)
-	local config = vmf.get_mutator_config(mutator)
+	local config = mutator:get_config()
 	_DICE_MANAGER.removeDice(config.dice)
 	_SET_LOBBY_DATA()
 	print("[MUTATORS] Disabled " .. mutator:get_name() .. " (" .. tostring(get_index(_MUTATORS, mutator)) .. ")")
@@ -219,7 +219,7 @@ function vmf.add_mutator_titles_to_string(_mutators, str, separator, short)
 	local replace = nil
 
 	for _, mutator in ipairs(_mutators) do
-		local config = vmf.get_mutator_config(mutator)
+		local config = mutator:get_config()
 		local added_name = (short and config.short_title or mutator:get_readable_name())
 		if config.title_placement == "before" then
 			if before then
@@ -295,7 +295,7 @@ end
 -- Only checks difficulty
 -- M, G
 function vmf.mutator_supports_current_difficulty(mutator)
-	local mutator_difficulty_levels = vmf.get_mutator_config(mutator).difficulty_levels
+	local mutator_difficulty_levels = mutator:get_config().difficulty_levels
 	local actual_difficulty = Managers.state and Managers.state.difficulty:get_difficulty()
 	local right_difficulty = not actual_difficulty or table.contains(mutator_difficulty_levels, actual_difficulty)
 
@@ -314,12 +314,6 @@ function vmf.mutator_supports_current_difficulty(mutator)
 	return (map_view_active and right_unapplied_difficulty) or (not map_view_active and right_difficulty)
 end
 
--- Returns the config object for mutator from _MUTATORS_CONFIG
--- M, G
-function vmf.get_mutator_config(mutator)
-	return mutator:get_config()
-end
-
 -- ##########
 -- # GLOBAL #
 -- ##########
@@ -333,7 +327,6 @@ function vmf.register_mod_as_mutator(mod, config)
 
 	-- Save config
 	mod._data.config = table.clone(_DEFAULT_CONFIG)
-
 	local _config = mod:get_config()
 	for k, _ in pairs(_config) do
 		if config[k] ~= nil then
