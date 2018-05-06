@@ -104,6 +104,55 @@ local function is_compatible(mutator, other_mutator)
 	return compatible
 end
 
+-- Creates 'compatibility' entry for the mutator, checks compatibility of given mutator with all other mutators.
+-- 'compatibility.mostly_compatible' is 'true' when mutator is not specifically set to be incompatible with
+-- all other mutators. All the incompatible mutators will be added to 'compatibility.except'. And vice versa,
+-- if 'mostly_compatible' is 'false', all the compatible mutators will be added to 'except'.
+local function update_compatibility(mutator)
+
+	-- Create default 'compatibility' entry
+	local config = mutator:get_config()
+	config.compatibility = {}
+	local compatibility = config.compatibility
+	compatibility.mostly_compatible = not config.incompatible_with_all
+	compatibility.except = {}
+
+	local mostly_compatible = compatibility.mostly_compatible
+	local except = compatibility.except
+
+	for _, other_mutator in ipairs(_MUTATORS) do
+
+		local other_config = other_mutator:get_config()
+		local other_mostly_compatible = other_config.compatibility.mostly_compatible
+		local other_except = other_config.compatibility.except
+
+		if is_compatible(mutator, other_mutator) then
+			if not mostly_compatible then except[other_mutator] = true end
+			if not other_mostly_compatible then other_except[mutator] = true end
+		else
+			if mostly_compatible then except[other_mutator] = true end
+			if other_mostly_compatible then other_except[mutator] = true end
+		end
+	end
+end
+
+function vmf.temp_show_mutator_compatibility()
+
+	print("MUTATORS COMPATIBILITY:")
+
+	for _, mutator in ipairs(_MUTATORS) do
+		local compatibility = mutator:get_config().compatibility
+
+		print("\n" .. mutator:get_readable_name() .. (compatibility.mostly_compatible and "[+]" or "[-]") .. ":")
+
+		local ident = compatibility.mostly_compatible and " - " or " + "
+
+		for other_mutator in pairs(compatibility.except) do
+			print(ident .. other_mutator:get_readable_name())
+		end
+	end
+end
+
 -- Called after mutator is enabled
 local function on_enabled(mutator)
 	local config = mutator:get_config()
@@ -321,13 +370,9 @@ end
 -- Turns a mod into a mutator
 function vmf.register_mod_as_mutator(mod, config)
 
+	-- Form config
 	config = config or {}
-
-	table.insert(_MUTATORS, mod)
-
-	-- Save config
-	mod._data.config = table.clone(_DEFAULT_CONFIG)
-	local _config = mod:get_config()
+	local _config = table.clone(_DEFAULT_CONFIG)
 	for k, _ in pairs(_config) do
 		if config[k] ~= nil then
 			_config[k] = config[k]
@@ -335,7 +380,10 @@ function vmf.register_mod_as_mutator(mod, config)
 	end
 	if _config.short_title == "" then _config.short_title = nil end
 
+	-- Save config inside the mod data
+	mod._data.config = _config
 
+	update_compatibility(mod)
 
 	local mod_name = mod:get_name()
 
@@ -349,6 +397,8 @@ function vmf.register_mod_as_mutator(mod, config)
 			update_mutators_sequence(other_mod_name, {mod_name})
 		end
 	end
+
+	table.insert(_MUTATORS, mod)
 
 	_MUTATORS_SORTED = false
 

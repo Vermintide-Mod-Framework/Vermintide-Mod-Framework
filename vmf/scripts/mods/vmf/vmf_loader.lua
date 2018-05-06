@@ -60,6 +60,8 @@ return {
 			object.vmf.create_network_dictionary()
 			object.vmf.ping_vmf_users()
 
+			object.vmf.temp_show_mutator_compatibility()
+
 			object.vmf.all_mods_loaded_event()
 
 			object.vmf.all_mods_were_loaded = true

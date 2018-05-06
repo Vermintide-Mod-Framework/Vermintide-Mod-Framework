@@ -317,7 +317,7 @@ local mutators_view = {
 
 	-- Creates and return text for checkbox tooltip
 	generate_tooltip_for = function(self, mutator)
-		local config = vmf.get_mutator_config(mutator)
+		local config = mutator:get_config()
 		local text = ""
 
 		-- Show supported difficulty when can't be enabled due to difficulty level
