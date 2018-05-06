@@ -283,6 +283,7 @@ if not vmf:get("vmf_initialized") then
   vmf.load_dev_console_settings()
   vmf.load_chat_history_settings()
   vmf.load_ui_scaling_settings()
+  vmf.load_vmf_options_view_settings()
 
   vmf:set("vmf_initialized", true)
 end
