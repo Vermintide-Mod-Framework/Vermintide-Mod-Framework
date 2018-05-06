@@ -5,9 +5,6 @@ local vmf = get_mod("VMF")
 -- This is populated via vmf.register_mod_as_mutator
 local _MUTATORS = {}
 
--- Table of mutators' configs by name
-local _MUTATORS_CONFIG = {}
-local _DEFAULT_CONFIG
 
 -- This lists mutators and which ones should be enabled after them
 -- This is populated via vmf.register_mod_as_mutator
@@ -32,6 +29,8 @@ local _DICE_MANAGER
 local _SET_LOBBY_DATA
 
 local _MUTATORS_GUI
+
+local _DEFAULT_CONFIG
 
 -- List of enabled mutators in case VMF is reloaded in the middle of the game
 local _ENABLED_MUTATORS = vmf:persistent_table("enabled_mutators")
@@ -318,7 +317,7 @@ end
 -- Returns the config object for mutator from _MUTATORS_CONFIG
 -- M, G
 function vmf.get_mutator_config(mutator)
-	return _MUTATORS_CONFIG[mutator:get_name()]
+	return mutator:get_config()
 end
 
 -- ##########
@@ -327,15 +326,15 @@ end
 
 -- Turns a mod into a mutator
 function vmf.register_mod_as_mutator(mod, config)
-	if not config then config = {} end
+
+	config = config or {}
 
 	table.insert(_MUTATORS, mod)
 
-	local mod_name = mod:get_name()
-
 	-- Save config
-	_MUTATORS_CONFIG[mod_name] = table.clone(_DEFAULT_CONFIG)
-	local _config = _MUTATORS_CONFIG[mod_name]
+	mod._data.config = table.clone(_DEFAULT_CONFIG)
+
+	local _config = mod:get_config()
 	for k, _ in pairs(_config) do
 		if config[k] ~= nil then
 			_config[k] = config[k]
@@ -343,6 +342,11 @@ function vmf.register_mod_as_mutator(mod, config)
 	end
 	if _config.short_title == "" then _config.short_title = nil end
 
+
+
+	local mod_name = mod:get_name()
+
+	-- @TODO: probably move these 2 blocks to the function of something like that
 	if config.enable_before_these then
 		update_mutators_sequence(mod_name, config.enable_before_these)
 	end
