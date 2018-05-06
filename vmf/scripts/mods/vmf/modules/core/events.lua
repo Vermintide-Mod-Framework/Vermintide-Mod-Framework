@@ -80,7 +80,7 @@ vmf.mod_enabled_event = function(mod, initial_call)
   if event then
     run_event(mod, event_name, event, initial_call)
   else
-    mod:warning("Attemt to call undefined event 'mod.%s'.", event_name)
+    mod:warning("Attempt to call undefined event 'mod.%s'.", event_name)
   end
 end
 
@@ -92,7 +92,7 @@ vmf.mod_disabled_event = function(mod, initial_call)
   if event then
     run_event(mod, event_name, event, initial_call)
   else
-    mod:warning("Attemt to call undefined event 'mod.%s'.", event_name)
+    mod:warning("Attempt to call undefined event 'mod.%s'.", event_name)
   end
 end
 
