@@ -53,7 +53,7 @@ local function log_message(self, msg_type, message, ...)
     if _LOGGING_SETTINGS[msg_type].send_to_log then
       send_to_log(self, msg_type, message)
     end
-    
+
   end
 end
 
@@ -62,27 +62,37 @@ end
 -- ####################################################################################################################
 --_LOGGING_SETTINGS.echo
 function VMFMod.echo(self, message, ...)
-  log_message(self, "echo", message, ...)
+  if _LOGGING_SETTINGS.echo.enabled then
+    log_message(self, "echo", message, ...)
+  end
 end
 
 
 function VMFMod.error(self, message, ...)
-  log_message(self, "error", message, ...)
+  if _LOGGING_SETTINGS.error.enabled then
+    log_message(self, "error", message, ...)
+  end
 end
 
 
 function VMFMod.warning(self, message, ...)
-  log_message(self, "warning", message, ...)
+  if _LOGGING_SETTINGS.warning.enabled then
+    log_message(self, "warning", message, ...)
+  end
 end
 
 
 function VMFMod.info(self, message, ...)
-  log_message(self, "info", message, ...)
+  if _LOGGING_SETTINGS.info.enabled then
+    log_message(self, "info", message, ...)
+  end
 end
 
 
 function VMFMod.debug(self, message, ...)
-  log_message(self, "debug", message, ...)
+  if _LOGGING_SETTINGS.debug.enabled then
+    log_message(self, "debug", message, ...)
+  end
 end
 
 
@@ -149,7 +159,8 @@ function vmf.load_logging_settings()
   for method_name, logging_mode in pairs(_LOGGING_SETTINGS) do
     _LOGGING_SETTINGS[method_name] = {
       send_to_chat = logging_mode and logging_mode >= 2,
-      send_to_log  = logging_mode and logging_mode % 2 == 1
+      send_to_log  = logging_mode and logging_mode % 2 == 1,
+      enabled      = logging_mode and logging_mode > 0
     }
   end
 end
