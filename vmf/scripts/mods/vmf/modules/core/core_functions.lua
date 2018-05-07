@@ -35,9 +35,9 @@ local function send_to_chat(message)
   end
 end
 
-local function send_to_log(message)
+local function send_to_log(self, msg_type, message)
 
-  print("[MOD]" .. message)
+  printf("[MOD][%s][%s] %s", self:get_name(), string.upper(msg_type), message)
 end
 
 local function log_message(self, msg_type, message, ...)
@@ -50,11 +50,10 @@ local function log_message(self, msg_type, message, ...)
       send_to_chat(message)
     end
 
-    message = "[" .. self:get_name() .. "][ECHO] " .. message
-
     if _LOGGING_SETTINGS[msg_type].send_to_log then
       send_to_log(self, msg_type, message)
     end
+    
   end
 end
 
