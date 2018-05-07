@@ -35,117 +35,68 @@ local function send_to_chat(message)
   end
 end
 
-local function send_to_log(message)
+local function send_to_log(self, msg_type, message)
 
-  print("[MOD]" .. message)
+  printf("[MOD][%s][%s] %s", self:get_name(), string.upper(msg_type), message)
+end
+
+local function log_message(self, msg_type, message, ...)
+
+  message = safe_format(self, tostring(message), ...)
+
+  if message then
+
+    if _LOGGING_SETTINGS[msg_type].send_to_chat then
+      send_to_chat(message)
+    end
+
+    if _LOGGING_SETTINGS[msg_type].send_to_log then
+      send_to_log(self, msg_type, message)
+    end
+
+  end
 end
 
 -- ####################################################################################################################
 -- ##### VMFMod #######################################################################################################
 -- ####################################################################################################################
-
-VMFMod.echo = function (self, message, ...)
-
-  message = tostring(message)
-
-  message = safe_format(self, message, ...)
-
-  if message then
-
-    if _LOGGING_SETTINGS.echo.send_to_chat then
-      send_to_chat(message)
-    end
-
-    message = "[" .. self:get_name() .. "][ECHO] " .. message
-
-    if _LOGGING_SETTINGS.echo.send_to_log then
-      send_to_log(message)
-    end
+--_LOGGING_SETTINGS.echo
+function VMFMod:echo(message, ...)
+  if _LOGGING_SETTINGS.echo.enabled then
+    log_message(self, "echo", message, ...)
   end
 end
 
 
-VMFMod.error = function (self, message, ...)
-
-  message = tostring(message)
-
-  message = safe_format(self, message, ...)
-
-  if message then
-    message = "[" .. self:get_name() .. "][ERROR] " .. message
-
-    if _LOGGING_SETTINGS.error.send_to_chat then
-      send_to_chat(message)
-    end
-
-    if _LOGGING_SETTINGS.error.send_to_log then
-      send_to_log(message)
-    end
+function VMFMod:error(message, ...)
+  if _LOGGING_SETTINGS.error.enabled then
+    log_message(self, "error", message, ...)
   end
 end
 
 
-VMFMod.warning = function (self, message, ...)
-
-  message = tostring(message)
-
-  message = safe_format(self, message, ...)
-
-  if message then
-    message = "[" .. self:get_name() .. "][WARNING] " .. message
-
-    if _LOGGING_SETTINGS.warning.send_to_chat then
-      send_to_chat(message)
-    end
-
-    if _LOGGING_SETTINGS.warning.send_to_log then
-      send_to_log(message)
-    end
+function VMFMod:warning(message, ...)
+  if _LOGGING_SETTINGS.warning.enabled then
+    log_message(self, "warning", message, ...)
   end
 end
 
 
-VMFMod.info = function (self, message, ...)
-
-  message = tostring(message)
-
-  message = safe_format(self, message, ...)
-
-  if message then
-    message = "[" .. self:get_name() .. "][INFO] " .. message
-
-    if _LOGGING_SETTINGS.info.send_to_chat then
-      send_to_chat(message)
-    end
-
-    if _LOGGING_SETTINGS.info.send_to_log then
-      send_to_log(message)
-    end
+function VMFMod:info(message, ...)
+  if _LOGGING_SETTINGS.info.enabled then
+    log_message(self, "info", message, ...)
   end
 end
 
 
-VMFMod.debug = function (self, message, ...)
-
-  message = tostring(message)
-
-  message = safe_format(self, message, ...)
-
-  if message then
-    message = "[" .. self:get_name() .. "][DEBUG] " .. message
-
-    if _LOGGING_SETTINGS.debug.send_to_chat then
-      send_to_chat(message)
-    end
-
-    if _LOGGING_SETTINGS.debug.send_to_log then
-      send_to_log(message)
-    end
+function VMFMod:debug(message, ...)
+  if _LOGGING_SETTINGS.debug.enabled then
+    log_message(self, "debug", message, ...)
   end
 end
 
 
-VMFMod.pcall = function (self, ...)
+function VMFMod:pcall(...)
   local status, values = pack_pcall(pcall(...))
 
   if not status then
@@ -156,7 +107,7 @@ VMFMod.pcall = function (self, ...)
 end
 
 
-VMFMod.dofile = function (self, script_path)
+function VMFMod:dofile(script_path)
 
   local success, values = pack_pcall(pcall(dofile, script_path))
 
@@ -195,7 +146,7 @@ end
 
 vmf.unsent_chat_messages = _UNSENT_CHAT_MESSAGES
 
-vmf.load_logging_settings = function ()
+function vmf.load_logging_settings()
 
   _LOGGING_SETTINGS = {
     echo    = vmf:get("logging_mode") == "custom" and vmf:get("output_mode_echo")    or 3, -- @TODO: clean up?
@@ -208,7 +159,8 @@ vmf.load_logging_settings = function ()
   for method_name, logging_mode in pairs(_LOGGING_SETTINGS) do
     _LOGGING_SETTINGS[method_name] = {
       send_to_chat = logging_mode and logging_mode >= 2,
-      send_to_log  = logging_mode and logging_mode % 2 == 1
+      send_to_log  = logging_mode and logging_mode % 2 == 1,
+      enabled      = logging_mode and logging_mode > 0
     }
   end
 end
