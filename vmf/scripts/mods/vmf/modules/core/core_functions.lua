@@ -61,42 +61,42 @@ end
 -- ##### VMFMod #######################################################################################################
 -- ####################################################################################################################
 --_LOGGING_SETTINGS.echo
-function VMFMod.echo(self, message, ...)
+function VMFMod:echo(message, ...)
   if _LOGGING_SETTINGS.echo.enabled then
     log_message(self, "echo", message, ...)
   end
 end
 
 
-function VMFMod.error(self, message, ...)
+function VMFMod:error(message, ...)
   if _LOGGING_SETTINGS.error.enabled then
     log_message(self, "error", message, ...)
   end
 end
 
 
-function VMFMod.warning(self, message, ...)
+function VMFMod:warning(message, ...)
   if _LOGGING_SETTINGS.warning.enabled then
     log_message(self, "warning", message, ...)
   end
 end
 
 
-function VMFMod.info(self, message, ...)
+function VMFMod:info(message, ...)
   if _LOGGING_SETTINGS.info.enabled then
     log_message(self, "info", message, ...)
   end
 end
 
 
-function VMFMod.debug(self, message, ...)
+function VMFMod:debug(message, ...)
   if _LOGGING_SETTINGS.debug.enabled then
     log_message(self, "debug", message, ...)
   end
 end
 
 
-function VMFMod.pcall(self, ...)
+function VMFMod:pcall(...)
   local status, values = pack_pcall(pcall(...))
 
   if not status then
@@ -107,7 +107,7 @@ function VMFMod.pcall(self, ...)
 end
 
 
-function VMFMod.dofile(self, script_path)
+function VMFMod:dofile(script_path)
 
   local success, values = pack_pcall(pcall(dofile, script_path))
 
