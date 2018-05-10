@@ -1,19 +1,15 @@
 max_line_length = 120
 
-redefined = false -- Ignore local variables defined twice in the same scope.
-unused_args = false -- Ignore unused arguments and loop variables.
-unused_secondaries = false -- Ignore unused values coming from a call of a multi-value function together with used ones.
-allow_defined = true -- Allow defining globals implicitly by setting them.
-allow_defined_top = true
-
-exclude_files = {
-    ".luacheckrc",
+include_files = {
+    "**/scripts/",
 }
 
 ignore = {
     "12.", -- ignore "Setting a read-only global variable/Setting a read-only field of a global variable."
-	"542", -- disable warnings for empty if branches. These are useful sometime and easy to notice otherwise.
-	"212/self", -- Disable unused self warnings.
+    "542", -- disable warnings for empty if branches. These are useful sometime and easy to notice otherwise.
+    "21./.*_", -- disable unused warnings for variables ending with _
+    "211/vmf", -- Disable warnings about unused mod object
+    "212/self", -- Disable unused self warnings.
     "611", -- disable "line contains only whitespace"
 }
 
