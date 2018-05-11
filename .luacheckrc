@@ -23,24 +23,24 @@ stds["VMF"] = {
 
 stds["VT1"] = {
     globals = {
-        string = { "split" },
-        debug = {
+        string = { fields = { "split" }},
+        debug = { fields = {
             "load_level", "level_loaded", "spawn_hero", "animation_log_specific_profile", "upvaluejoin", "upvalueid"
-        },
-        table = {
+        }},
+        table = { fields = {
             "merge", "table_to_array", "mirror_table", "tostring", "is_empty", "array_to_table", "reverse", "shuffle",
             "merge_recursive", "unpack_map", "remove_unordered_items", "append", "mirror_array_inplace", "size", "dump",
             "clear_array", "append_varargs", "find", "for_each", "crop", "mirror_array", "set", "create_copy", "clone",
             "contains", "add_meta_logging", "table_as_sorted_string_arrays", "clone_instance", "max", "clear",
-        },
-        math = {
+        }},
+        math = { fields = {
             "ease_exp", "lerp", "polar_to_cartesian", "smoothstep", "easeCubic", "round", "point_is_inside_2d_triangle",
             "radians_to_degrees", "circular_to_square_coordinates", "uuid", "easeInCubic", "round_with_precision",
             "clamp", "get_uniformly_random_point_inside_sector", "angle_lerp", "ease_out_exp", "rand_normal",
             "bounce", "point_is_inside_2d_box", "catmullrom", "clamp_direction", "ease_in_exp", "random_seed",
             "sign", "degrees_to_radians", "sirp", "ease_pulse", "cartesian_to_polar", "ease_out_quad",
             "easeOutCubic", "radian_lerp", "auto_lerp", "rand_utf8_string", "point_is_inside_oobb",
-        },
+        }},
         "flow_callback_complete_level", "GameModeAdventure", "ActionThrowGrimoire", "HitTemplates", "MissionTemplates",
         "MOOD_BLACKBOARD", "AlternatateGamepadSettings", "AttachmentUtils", "ConflictUtils", "RPC", "DarknessSystem",
         "flow_callback_damage_unit", "DiceRoller", "TutorialTooltipUI", "BackendSettings", "GwNavBot", "ItemMasterList",
