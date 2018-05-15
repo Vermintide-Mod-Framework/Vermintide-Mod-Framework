@@ -283,6 +283,6 @@ if _CHAT_HISTORY_SAVE then
   _CHAT_HISTORY = vmf:get("chat_history") or _CHAT_HISTORY
 end
 
-if Managers.world:has_world("top_ingame_view") then
+if Managers.world and Managers.world:has_world("top_ingame_view") then
   initialize_drawing_function()
 end

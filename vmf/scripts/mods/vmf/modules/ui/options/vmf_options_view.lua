@@ -2755,6 +2755,16 @@ local SETTINGS_LIST_WIDGETS_DEFINITIONS = {} -- numerical sorting [ipairs]
 local _DEFAULT_SCROLL_STEP = 40
 local _SCROLL_STEP
 
+
+-- copypasted 'math.point_is_inside_2d_box' from VT2 source code, since VT1 and VT2 have different implementations
+local function is_point_inside_2d_box(pos, lower_left_corner, size)
+	if lower_left_corner[1] < pos[1] and pos[1] < lower_left_corner[1] + size[1] and lower_left_corner[2] < pos[2] and pos[2] < lower_left_corner[2] + size[2] then
+		return true
+	else
+		return false
+	end
+end
+
 -- ####################################################################################################################
 -- ##### INITIALIZATION ###############################################################################################
 -- ####################################################################################################################
@@ -2792,7 +2802,12 @@ VMFOptionsView.init = function (self, ingame_ui_context)
   self.input_manager = input_manager
 
   -- wwise_world is used for making sounds (for opening menu, closing menu, etc.)
-  local world = ingame_ui_context.world_manager:world("music_world")
+  local world
+  if VT1 then
+    world = ingame_ui_context.world_manager:world("music_world")
+  else
+    world = ingame_ui_context.world_manager:world("level_world")
+  end
   self.wwise_world = Managers.world:wwise_world(world)
 
   self:create_ui_elements()
@@ -4139,7 +4154,6 @@ VMFOptionsView.draw_widgets = function (self, dt)
   UIRenderer.end_pass(ui_renderer)
 end
 
-
 -- update settings list widgets position, and draw widget which are inside the visible area
 VMFOptionsView.update_settings_list = function (self, settings_list_widgets, ui_renderer, ui_scenegraph)
 
@@ -4150,7 +4164,7 @@ VMFOptionsView.update_settings_list = function (self, settings_list_widgets, ui_
   local list_position = UISceneGraph.get_world_position(ui_scenegraph, scenegraph_id_start)
   local mask_pos = Vector3.deprecated_copy(UISceneGraph.get_world_position(ui_scenegraph, "sg_settings_list_mask"))
   local mask_size = UISceneGraph.get_size(ui_scenegraph, "sg_settings_list_mask")
-  local temp_pos_table = {x = 0, y = 0}
+  local temp_pos_table = {}
 
   for _, mod_widgets in ipairs(settings_list_widgets) do
     for _, widget in ipairs(mod_widgets) do
@@ -4159,11 +4173,12 @@ VMFOptionsView.update_settings_list = function (self, settings_list_widgets, ui_
         local size = style.size
         local offset = style.offset
 
-        temp_pos_table.x = list_position[1] + offset[1]
-        temp_pos_table.y = list_position[2] + offset[2] + widget.offset[2]
-        local lower_visible = math.point_is_inside_2d_box(temp_pos_table, mask_pos, mask_size)
-        temp_pos_table.y = temp_pos_table.y + size[2]
-        local top_visible = math.point_is_inside_2d_box(temp_pos_table, mask_pos, mask_size)
+        temp_pos_table[1] = list_position[1] + offset[1]
+        temp_pos_table[2] = list_position[2] + offset[2] + widget.offset[2]
+
+        local lower_visible = is_point_inside_2d_box(temp_pos_table, mask_pos, mask_size)
+        temp_pos_table[2] = temp_pos_table[2] + size[2]
+        local top_visible = is_point_inside_2d_box(temp_pos_table, mask_pos, mask_size)
 
         local visible = lower_visible or top_visible
         if visible then

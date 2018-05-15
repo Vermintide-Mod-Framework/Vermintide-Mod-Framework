@@ -1,4 +1,4 @@
-VT1 = true
+VT1 = false
 
 return {
 	init = function(object)
@@ -44,7 +44,7 @@ return {
 		end)
 
 		-- @TODO: temporary V2 fix for not working event
-		if not VT1 then Boot._machine._notify_mod_manager = true end
+		--if not VT1 then Boot._machine._notify_mod_manager = true end
 
 		-- temporary solution:
 		local mod = new_mod("test_mod")
@@ -65,8 +65,8 @@ return {
 			object.vmf.create_network_dictionary()
 			object.vmf.ping_vmf_users()
 
-			object.vmf.modify_map_view()
-			object.vmf.temp_show_mutator_compatibility()
+			if VT1 then object.vmf.modify_map_view() end
+			if VT1 then object.vmf.temp_show_mutator_compatibility() end
 
 			object.vmf.all_mods_loaded_event()
 
@@ -85,7 +85,7 @@ return {
 		print("VMF:ON_RELOAD()")
 		object.vmf.disable_mods_options_button()
 		object.vmf.close_opened_custom_menus()
-		object.vmf.reset_map_view()
+		if VT1 then object.vmf.reset_map_view() end
 		object.vmf.delete_keybinds()
 		object.vmf.mods_unload_event()
 		object.vmf.hooks_unload()
