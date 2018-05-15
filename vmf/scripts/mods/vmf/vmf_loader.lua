@@ -28,7 +28,12 @@ return {
 		dofile("scripts/mods/vmf/modules/ui/options/vmf_options_view")
 		dofile("scripts/mods/vmf/modules/vmf_options")
 
-		if VT1 then dofile("scripts/mods/vmf/modules/ui/mutators/mutator_manager") end
+		if VT1 then
+			dofile("scripts/mods/vmf/modules/ui/mutators/mutator_manager")
+			dofile("scripts/mods/vmf/modules/ui/mutators/mutators_gui")
+		end
+
+
 
 		object.vmf = get_mod("VMF")
 
@@ -60,6 +65,7 @@ return {
 			object.vmf.create_network_dictionary()
 			object.vmf.ping_vmf_users()
 
+			object.vmf.modify_map_view()
 			object.vmf.temp_show_mutator_compatibility()
 
 			object.vmf.all_mods_loaded_event()
@@ -79,6 +85,7 @@ return {
 		print("VMF:ON_RELOAD()")
 		object.vmf.disable_mods_options_button()
 		object.vmf.close_opened_custom_menus()
+		object.vmf.reset_map_view()
 		object.vmf.delete_keybinds()
 		object.vmf.mods_unload_event()
 		object.vmf.hooks_unload()

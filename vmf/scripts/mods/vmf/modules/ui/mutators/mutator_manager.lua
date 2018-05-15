@@ -1,3 +1,14 @@
+--[[
+
+
+INCOMPATIBLE WITH:
+
+COMPATIBLE ONLY WITH: (incompatible with everything except)
+
+
+]]
+
+
 --[[ Add ability to turn mods into mutators --]]
 local vmf = get_mod("VMF")
 
@@ -24,11 +35,9 @@ local _MUTATORS_SORTED = false
 local _ALL_MUTATORS_DISABLED = false
 
 -- External modules
-local _MUTATORS_VIEW
+--local _MUTATORS_VIEW
 local _DICE_MANAGER
 local _SET_LOBBY_DATA
-
-local _MUTATORS_GUI
 
 local _DEFAULT_CONFIG
 
@@ -139,17 +148,20 @@ end
 function vmf.temp_show_mutator_compatibility()
 
 	print("MUTATORS COMPATIBILITY:")
+	print("")
 
 	for _, mutator in ipairs(_MUTATORS) do
 		local compatibility = mutator:get_config().compatibility
 
-		print("\n" .. mutator:get_readable_name() .. (compatibility.mostly_compatible and "[+]" or "[-]") .. ":")
+		print(mutator:get_readable_name() .. (compatibility.mostly_compatible and "[+]" or "[-]") .. ":")
 
 		local ident = compatibility.mostly_compatible and " - " or " + "
 
 		for other_mutator in pairs(compatibility.except) do
 			print(ident .. other_mutator:get_readable_name())
 		end
+
+		print("")
 	end
 end
 
@@ -338,12 +350,10 @@ function vmf.mutator_supports_current_difficulty(mutator)
 	local actual_difficulty = Managers.state and Managers.state.difficulty:get_difficulty()
 	local right_difficulty = not actual_difficulty or table.contains(mutator_difficulty_levels, actual_difficulty)
 
-	local map_view = _MUTATORS_VIEW.map_view
-	local map_view_active = map_view and map_view.active
 	local right_unapplied_difficulty = false
-
+	local map_view_exists, map_view = pcall(function () return Managers.matchmaking.ingame_ui.views.map_view end)
+	local map_view_active = map_view_exists and map_view.active
 	if map_view_active then
-
 		local difficulty_data = map_view.selected_level_index and map_view:get_difficulty_data(map_view.selected_level_index)
 		local difficulty_layout = difficulty_data and difficulty_data[map_view.selected_difficulty_stepper_index]
 		local difficulty_key = difficulty_layout and difficulty_layout.key
@@ -392,7 +402,7 @@ function vmf.register_mod_as_mutator(mod, config)
 
 	_MUTATORS_SORTED = false
 
-	_MUTATORS_VIEW:update_mutator_list()
+	--_MUTATORS_VIEW:update_mutator_list()
 end
 
 -- Enables/disables mutator while preserving the sequence in which they were enabled
@@ -468,16 +478,14 @@ end)
 
 _DEFAULT_CONFIG = vmf:dofile("scripts/mods/vmf/modules/ui/mutators/mutator_default_config")
 
-_MUTATORS_VIEW = vmf:dofile("scripts/mods/vmf/modules/ui/mutators/mutator_gui")
+--_MUTATORS_VIEW = vmf:dofile("scripts/mods/vmf/modules/ui/mutators/mutator_gui")
 _DICE_MANAGER = vmf:dofile("scripts/mods/vmf/modules/ui/mutators/mutator_dice")
 _SET_LOBBY_DATA = vmf:dofile("scripts/mods/vmf/modules/ui/mutators/mutator_info")
 
-_MUTATORS_GUI = vmf:dofile("scripts/mods/vmf/modules/ui/mutators/mutators_gui")
-
 -- Initialize mutators view when map_view has been initialized already
-_MUTATORS_VIEW:init(_MUTATORS_VIEW:get_map_view())
+--_MUTATORS_VIEW:init(_MUTATORS_VIEW:get_map_view())
 
 -- Testing
---vmf:dofile("scripts/mods/vmf/modules/ui/mutators/test/mutator_test")
+vmf:dofile("scripts/mods/vmf/modules/ui/mutators/test/mutator_test")
 --vmf:dofile("scripts/mods/vmf/modules/ui/mutators/test/mutation")
 --vmf:dofile("scripts/mods/vmf/modules/ui/mutators/test/deathwish")

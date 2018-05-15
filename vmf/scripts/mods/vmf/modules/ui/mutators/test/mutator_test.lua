@@ -120,6 +120,31 @@ one_hit_one_kill:initialize_data(mod_data)
 one_hit_one_kill.on_enabled = function(init_call) mutator3:echo("One Hit One Kill on_enabled(" .. (init_call and "init)" or ")")) end
 one_hit_one_kill.on_disabled = function(init_call) mutator3:echo("One Hit One Kill on_disabled(" .. (init_call and "init)" or ")")) end
 vmf.initialize_mod_state(one_hit_one_kill)
+----------------------------------------------------------------------------------
+
+local ayyyy = new_mod("ayyyy")
+mod_data = {}
+mod_data.name = "ayyyy"
+mod_data.is_mutator = true
+ayyyy:initialize_data(mod_data)
+ayyyy.on_enabled = function(init_call) mutator3:echo("ayyyy on_enabled(" .. (init_call and "init)" or ")")) end
+ayyyy.on_disabled = function(init_call) mutator3:echo("ayyyy on_disabled(" .. (init_call and "init)" or ")")) end
+vmf.initialize_mod_state(ayyyy)
+----------------------------------------------------------------------------------
+
+local lmao = new_mod("lmao")
+mod_data = {}
+mod_data.name = "lmao"
+mod_data.is_mutator = true
+mod_data.mutator_settings = {
+	--title = "One Hit One Kill",
+	difficulty_levels = {"hardest"},
+	enable_after_these = {"ayyyy"}
+}
+lmao:initialize_data(mod_data)
+lmao.on_enabled = function(init_call) mutator3:echo("lmao on_enabled(" .. (init_call and "init)" or ")")) end
+lmao.on_disabled = function(init_call) mutator3:echo("lmao on_disabled(" .. (init_call and "init)" or ")")) end
+vmf.initialize_mod_state(lmao)
 
 ----------------------------------------------------------------------------------
 
