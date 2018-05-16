@@ -195,10 +195,6 @@ local function sort_mutators()
 	-- /LOG --
 	--]]
 
-	-- Preventing endless loops (worst case is n*(n+1)/2 I believe)
-	local maxIter = #_MUTATORS * (#_MUTATORS + 1) / 2
-	local numIter = 0
-
 	-- The idea is that all mutators before the current one are already in the right order
 	-- Starting from second mutator
 	local i = 2
@@ -224,12 +220,6 @@ local function sort_mutators()
 		end
 
 		i = i + 1
-
-		numIter = numIter + 1
-		if numIter > maxIter then
-			vmf:error("(mutators): too many iterations. Check for loops in 'enable_before_these'/'enable_after_these'.")
-			return
-		end
 	end
 	_MUTATORS_SORTED = true
 
