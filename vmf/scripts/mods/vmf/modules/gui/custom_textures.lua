@@ -149,6 +149,8 @@ VMFMod.inject_materials = function (self, ui_renderer_creator, ...)
 
       ui_renderer.gui = World.create_screen_gui(ui_renderer.world, "immediate", unpack(new_materials_list))
       ui_renderer.gui_retained = World.create_screen_gui(ui_renderer.world, unpack(new_materials_list))
+
+      vmf_data.is_modified = true
     end
   end
 end
@@ -158,6 +160,8 @@ end
 -- ####################################################################################################################
 
 vmf:hook("UIRenderer.create", function(func, world, ...)
+
+  local is_modified = false
 
   -- FINDING OUT WHO CREATED UI_RENDERER
 
@@ -191,6 +195,7 @@ vmf:hook("UIRenderer.create", function(func, world, ...)
       table.insert(ui_renderer_materials, "material")
       table.insert(ui_renderer_materials, injected_material)
     end
+    is_modified = true
   end
 
   -- DEBUG INFO
@@ -213,6 +218,7 @@ vmf:hook("UIRenderer.create", function(func, world, ...)
   local vmf_data = {}
   vmf_data.original_materials = {...}
   vmf_data.ui_renderer_creator = ui_renderer_creator
+  vmf_data.is_modified = is_modified
   rawset(ui_renderer, "vmf_data", vmf_data)
 
   return ui_renderer
@@ -256,6 +262,19 @@ end)
 
 vmf.load_custom_textures_settings = function()
   _SHOW_DEBUG_INFO = vmf:get("developer_mode") and vmf:get("log_ui_renderers_info")
+end
+
+vmf.reset_guis = function()
+  for ui_renderer, _ in pairs(UI_RENDERERS) do
+    local vmf_data = rawget(ui_renderer, "vmf_data")
+    if vmf_data.is_modified then
+      World.destroy_gui(ui_renderer.world, ui_renderer.gui)
+      World.destroy_gui(ui_renderer.world, ui_renderer.gui_retained)
+      ui_renderer.gui = World.create_screen_gui(ui_renderer.world, "immediate", unpack(vmf_data.original_materials))
+      ui_renderer.gui_retained = World.create_screen_gui(ui_renderer.world, unpack(vmf_data.original_materials))
+      vmf_data.is_modified = false
+    end
+  end
 end
 
 -- ####################################################################################################################

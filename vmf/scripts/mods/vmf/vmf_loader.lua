@@ -76,6 +76,7 @@ return {
 
 	on_unload = function(object)
 		print("VMF:ON_UNLOAD()")
+		object.vmf.reset_guis()
 		object.vmf.save_chat_history()
 		object.vmf.save_unsaved_settings_to_file()
 		object.vmf = nil
