@@ -17,7 +17,7 @@ std = "+VT1+VMF"
 
 stds["VMF"] = {
     globals = {
-        "new_mod", "get_mod", "VMFMod", "VMFModsKeyMap", "VMFOptionsView",
+        "new_mod", "get_mod", "VMFMod", "VMFModsKeyMap", "VMFOptionsView", "VT1"
     }
 }
 
