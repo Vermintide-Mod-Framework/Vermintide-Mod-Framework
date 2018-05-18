@@ -1,5 +1,5 @@
-VT1 = false
-
+VT1 = true
+--move vmf to local var
 return {
 	init = function(object)
 

@@ -114,35 +114,58 @@ local function is_compatible(mutator, other_mutator)
 end
 
 -- Creates 'compatibility' entry for the mutator, checks compatibility of given mutator with all other mutators.
--- 'compatibility.mostly_compatible' is 'true' when mutator is not specifically set to be incompatible with
+-- 'compatibility.is_mostly_compatible' is 'true' when mutator is not specifically set to be incompatible with
 -- all other mutators. All the incompatible mutators will be added to 'compatibility.except'. And vice versa,
--- if 'mostly_compatible' is 'false', all the compatible mutators will be added to 'except'.
+-- if 'is_mostly_compatible' is 'false', all the compatible mutators will be added to 'except'.
 local function update_compatibility(mutator)
 
 	-- Create default 'compatibility' entry
 	local config = mutator:get_config()
 	config.compatibility = {}
 	local compatibility = config.compatibility
-	compatibility.mostly_compatible = not config.incompatible_with_all
+
+	-- Compatibility with other mods
+	compatibility.is_mostly_compatible = not config.incompatible_with_all
 	compatibility.except = {}
 
-	local mostly_compatible = compatibility.mostly_compatible
+	local is_mostly_compatible = compatibility.is_mostly_compatible
 	local except = compatibility.except
 
 	for _, other_mutator in ipairs(_MUTATORS) do
 
 		local other_config = other_mutator:get_config()
-		local other_mostly_compatible = other_config.compatibility.mostly_compatible
+		local other_mostly_compatible = other_config.compatibility.is_mostly_compatible
 		local other_except = other_config.compatibility.except
 
 		if is_compatible(mutator, other_mutator) then
-			if not mostly_compatible then except[other_mutator] = true end
+			if not is_mostly_compatible then except[other_mutator] = true end
 			if not other_mostly_compatible then other_except[mutator] = true end
 		else
-			if mostly_compatible then except[other_mutator] = true end
+			if is_mostly_compatible then except[other_mutator] = true end
 			if other_mostly_compatible then other_except[mutator] = true end
 		end
 	end
+
+	-- Compatibility with current difficulty (This part works only for V1. Will see what to do with V2 later.)
+	compatibility.compatible_difficulties = {
+		easy = false,
+		normal = false,
+		hard = false,
+		harder = false,
+		hardest = false,
+		survival_hard = false,
+		survival_harder = false,
+		survival_hardest = false,
+	}
+	local compatible_difficulties = compatibility.compatible_difficulties
+	local compatible_difficulties_number = 0
+	for _, difficulty_key in ipairs(config.difficulty_levels) do
+		if type(compatible_difficulties[difficulty_key]) ~= "nil" then
+			compatible_difficulties[difficulty_key] = true
+			compatible_difficulties_number = compatible_difficulties_number + 1
+		end
+	end
+	compatibility.compatible_difficulties_number = compatible_difficulties_number
 end
 
 function vmf.temp_show_mutator_compatibility()
@@ -153,9 +176,9 @@ function vmf.temp_show_mutator_compatibility()
 	for _, mutator in ipairs(_MUTATORS) do
 		local compatibility = mutator:get_config().compatibility
 
-		print(mutator:get_readable_name() .. (compatibility.mostly_compatible and "[+]" or "[-]") .. ":")
+		print(mutator:get_readable_name() .. (compatibility.is_mostly_compatible and "[+]" or "[-]") .. ":")
 
-		local ident = compatibility.mostly_compatible and " - " or " + "
+		local ident = compatibility.is_mostly_compatible and " - " or " + "
 
 		for other_mutator in pairs(compatibility.except) do
 			print(ident .. other_mutator:get_readable_name())

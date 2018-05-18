@@ -1,17 +1,19 @@
 
 local vmf = get_mod("VMF")
 
-local _DEFINITIONS = dofile("scripts/mods/vmf/modules/ui/mutators/mutators_gui_definitions")
 
 local _MUTATORS = vmf.mutators
 
+local _SELECTED_DIFFICULTY_KEY
+
+local _DEFINITIONS = dofile("scripts/mods/vmf/modules/ui/mutators/mutators_gui_definitions")
 local _UI_SCENEGRAPH
 local _MUTATOR_LIST_WIDGETS = {}
 local _PARTY_BUTTON_WIDGET
 local _OTHER_WIDGETS = {}
 
 
-local _ORIGINAL_VALUES = {}
+local _ORIGINAL_VALUES = {} -- @TODO: get rid of it?
 
 local _MUTATOR_LIST_IS_VISIBLE
 local _CURRENT_PAGE_NUMBER
@@ -88,6 +90,162 @@ local function change_map_view_look(map_view, is_vmf_look)
   end
 end
 
+--@TODO: clean up, and probably do direct change instead of return
+local function calculate_tooltip_offset (widget_content, widget_style, ui_renderer)
+
+  --local cursor_offset_bottom = widget_style.cursor_offset_bottom
+
+  if ui_renderer.input_service then
+
+    local cursor_position = UIInverseScaleVectorToResolution(ui_renderer.input_service.get(ui_renderer.input_service, "cursor"))
+    if cursor_position then
+
+      local text = widget_content.tooltip_text
+      local max_width = widget_style.max_width
+
+      local font, font_size = UIFontByResolution(widget_style)
+      local font_name = font[3]
+      local font_material = font[1]
+
+      local _, font_min, font_max = UIGetFontHeight(ui_renderer.gui, font_name, font_size)
+
+      local texts = UIRenderer.word_wrap(ui_renderer, text, font_material, font_size, max_width)
+      local num_texts = #texts
+      local full_font_height = (font_max + math.abs(font_min)) * RESOLUTION_LOOKUP.inv_scale
+
+      local tooltip_height = full_font_height * num_texts
+
+      --if((cursor_offset_bottom[2] / UIResolutionScale() + tooltip_height) > cursor_position[2]) then
+
+        local cursor_offset_top = {}
+        cursor_offset_top[1] = widget_style.cursor_offset_top[1]
+        cursor_offset_top[2] = widget_style.cursor_offset_top[2] - (tooltip_height * UIResolutionScale())
+
+        return cursor_offset_top
+      --else
+      --  return cursor_offset_bottom
+      --end
+    end
+  end
+
+  --return cursor_offset_bottom
+end
+
+local function offset_function_callback(ui_scenegraph_, style, content, ui_renderer)
+
+  local mutator = content.mutator
+
+
+  local can_be_enabled = true
+
+  local mutator_compatibility_config = mutator:get_config().compatibility
+  local is_mostly_compatible = mutator_compatibility_config.is_mostly_compatible
+  local except = mutator_compatibility_config.except
+
+  for _, other_mutator in ipairs(_MUTATORS) do
+    if other_mutator:is_enabled() and other_mutator ~= mutator then
+      can_be_enabled = can_be_enabled and (is_mostly_compatible and not except[other_mutator] or
+                                           not is_mostly_compatible and except[other_mutator])
+    end
+  end
+
+  can_be_enabled = can_be_enabled and mutator_compatibility_config.compatible_difficulties[_SELECTED_DIFFICULTY_KEY]
+
+  content.can_be_enabled = can_be_enabled
+
+
+  -- Enable/disable mutator
+  if content.highlight_hotspot.on_release then
+    if mutator:is_enabled() then
+      vmf.set_mutator_state(mutator, false, false)
+    elseif can_be_enabled then
+      vmf.set_mutator_state(mutator, true, false)
+    end
+  end
+
+
+  -- Tooltip
+  -- Yup, a boilerplate code, kinda. I made it to divide tooltip code part, and to update it only for selected mod.
+  if content.highlight_hotspot.is_hover then
+
+    local tooltip_text = content.description
+
+
+    local incompatible_mods = {}
+    local conflicting_mods = {}
+
+    if next(except) then
+      tooltip_text = tooltip_text .. "\n\n" ..
+                     (is_mostly_compatible and "-- INCOMPATIBLE WITH [MUTATORS] --\n" or
+                      "-- COMPATIBLE ONLY WITH [MUTATORS] --\n") --@TODO: localize
+
+      for other_mutator, _ in pairs(except) do
+        table.insert(incompatible_mods, " * " .. other_mutator:get_readable_name())
+      end
+
+      tooltip_text = tooltip_text .. table.concat(incompatible_mods, "\n")
+    end
+
+
+
+    local difficulties = {}
+    local compatible_difficulties_number = mutator_compatibility_config.compatible_difficulties_number
+    if compatible_difficulties_number < 8 then
+      tooltip_text = tooltip_text .. "\n\n" ..
+                     (compatible_difficulties_number > 4 and "-- INCOMPATIBLE WITH [DIFFICULTIES] --\n" or
+                      "-- COMPATIBLE ONLY WITH [DIFFICULTIES] --\n") --@TODO: localize
+
+      for difficulty_key, is_compatible in pairs(mutator_compatibility_config.compatible_difficulties) do
+        if compatible_difficulties_number > 4 and not is_compatible
+        or not (compatible_difficulties_number > 4) and is_compatible then
+          table.insert(difficulties, " * " .. vmf:localize(difficulty_key))
+        end
+      end
+
+      tooltip_text = tooltip_text .. table.concat(difficulties, "\n")
+    end
+
+
+
+    for _, other_mutator in ipairs(_MUTATORS) do
+      if other_mutator:is_enabled() and other_mutator ~= mutator then
+        if not (is_mostly_compatible and not except[other_mutator] or
+                 not is_mostly_compatible and except[other_mutator]) then
+          table.insert(conflicting_mods, " * " .. other_mutator:get_readable_name() .. " (mutator)")
+        end
+      end
+    end
+
+    if not can_be_enabled then
+      --tooltip_text = tooltip_text .. "\n\n" .. "--[X]-- CONFLICTS --[X]--\n"
+      tooltip_text = tooltip_text .. "\n\n" .. "-- CONFLICTS --\n"
+      if #conflicting_mods > 0 then
+        tooltip_text = tooltip_text .. table.concat(conflicting_mods, "\n") .. "\n"
+      end
+
+      if not mutator_compatibility_config.compatible_difficulties[_SELECTED_DIFFICULTY_KEY] then
+        tooltip_text = tooltip_text .. " * " .. vmf:localize(_SELECTED_DIFFICULTY_KEY) .. " (difficulty)" .. "\n"
+      end
+      --tooltip_text = tooltip_text .. "--[X]--\n"
+    end
+
+
+    content.tooltip_text = tooltip_text
+
+    style.tooltip_text.cursor_offset = calculate_tooltip_offset(content, style.tooltip_text, ui_renderer)
+  end
+
+  -- VISUAL
+
+  local is_enabled = content.mutator:is_enabled()
+
+  style.text.text_color = content.can_be_enabled and (is_enabled and content.text_color_enabled or
+                           content.text_color_disabled) or content.text_color_inactive
+
+  content.checkbox_texture = is_enabled and content.checkbox_checked_texture or
+                              content.checkbox_unchecked_texture
+end
+
 
 local function initialize_mutators_ui(map_view)
 
@@ -97,8 +255,9 @@ local function initialize_mutators_ui(map_view)
   -- Creating mutator list widgets and calculating total pages number
   for i, mutator in ipairs(_MUTATORS) do
     local offset = ((i - 1) % 8) + 1
-    _MUTATOR_LIST_WIDGETS[i] = UIWidget.init(_DEFINITIONS.create_mutator_widget(mutator))
+    _MUTATOR_LIST_WIDGETS[i] = UIWidget.init(_DEFINITIONS.create_mutator_widget(mutator, offset_function_callback))
     _MUTATOR_LIST_WIDGETS[i].offset = {0, -32 * offset, 0}
+    _MUTATOR_LIST_WIDGETS[i].content.mutator = mutator
   end
   _CURRENT_PAGE_NUMBER = 1
   _TOTAL_PAGES_NUMBER = math.floor(#_MUTATORS / 8) + ((#_MUTATORS % 8 > 0) and 1 or 0)
@@ -190,7 +349,12 @@ end)
 vmf:hook("MapView.update", function (func, self, dt, t)
   func(self, dt, t)
 
-	if self.menu_active and _IS_MUTATORS_GUI_INITIALIZED then
+  if self.menu_active and _IS_MUTATORS_GUI_INITIALIZED then
+
+    local difficulty_data = self.selected_level_index and self:get_difficulty_data(self.selected_level_index)
+		local difficulty_layout = difficulty_data and difficulty_data[self.selected_difficulty_stepper_index]
+		_SELECTED_DIFFICULTY_KEY = difficulty_layout and difficulty_layout.key
+
     update_mutators_ui(self, dt)
 	end
 end)

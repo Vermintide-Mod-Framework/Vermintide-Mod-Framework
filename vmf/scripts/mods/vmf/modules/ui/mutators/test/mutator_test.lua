@@ -110,6 +110,7 @@ vmf.initialize_mod_state(onslaught)
 local one_hit_one_kill = new_mod("one_hit_one_kill")
 mod_data = {}
 mod_data.name = "One Hit One Kill"
+mod_data.description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tincidunt placerat nulla eget pharetra. Vivamus consequat tristique vestibulum. Nullam vitae feugiat arcu, non porta ante. Phasellus consequat facilisis quam quis dignissim"
 mod_data.is_mutator = true
 mod_data.mutator_settings = {
 	--title = "One Hit One Kill",
