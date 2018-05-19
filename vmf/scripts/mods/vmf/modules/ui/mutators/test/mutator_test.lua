@@ -163,9 +163,83 @@ more_rat_weapons.on_enabled = function(init_call) mutator3:echo("More Rat Weapon
 more_rat_weapons.on_disabled = function(init_call) mutator3:echo("More Rat Weapons on_disabled(" .. (init_call and "init)" or ")")) end
 vmf.initialize_mod_state(more_rat_weapons)
 
---[[for i=4,17 do
-	local mutator = new_mod("mutator" .. i)
-	mutator:register_as_mutator({})
-	mutator.on_enabled = function(init_call) end
-	mutator.on_disabled = function(init_call) end
-end--]]
+
+
+more_rat_weapons = new_mod("111")
+mod_data = {}
+mod_data.name = "111"
+mod_data.is_mutator = true
+more_rat_weapons:initialize_data(mod_data)
+more_rat_weapons.on_enabled = function(init_call) mutator3:echo("More Rat Weapons on_enabled(" .. (init_call and "init)" or ")")) end
+more_rat_weapons.on_disabled = function(init_call) mutator3:echo("More Rat Weapons on_disabled(" .. (init_call and "init)" or ")")) end
+vmf.initialize_mod_state(more_rat_weapons)
+
+
+more_rat_weapons = new_mod("222")
+mod_data = {}
+mod_data.name = "222"
+mod_data.is_mutator = true
+more_rat_weapons:initialize_data(mod_data)
+more_rat_weapons.on_enabled = function(init_call) mutator3:echo("More Rat Weapons on_enabled(" .. (init_call and "init)" or ")")) end
+more_rat_weapons.on_disabled = function(init_call) mutator3:echo("More Rat Weapons on_disabled(" .. (init_call and "init)" or ")")) end
+vmf.initialize_mod_state(more_rat_weapons)
+
+
+more_rat_weapons = new_mod("333")
+mod_data = {}
+mod_data.name = "333"
+mod_data.is_mutator = true
+more_rat_weapons:initialize_data(mod_data)
+more_rat_weapons.on_enabled = function(init_call) mutator3:echo("More Rat Weapons on_enabled(" .. (init_call and "init)" or ")")) end
+more_rat_weapons.on_disabled = function(init_call) mutator3:echo("More Rat Weapons on_disabled(" .. (init_call and "init)" or ")")) end
+vmf.initialize_mod_state(more_rat_weapons)
+
+
+more_rat_weapons = new_mod("444")
+mod_data = {}
+mod_data.name = "444"
+mod_data.is_mutator = true
+more_rat_weapons:initialize_data(mod_data)
+more_rat_weapons.on_enabled = function(init_call) mutator3:echo("More Rat Weapons on_enabled(" .. (init_call and "init)" or ")")) end
+more_rat_weapons.on_disabled = function(init_call) mutator3:echo("More Rat Weapons on_disabled(" .. (init_call and "init)" or ")")) end
+vmf.initialize_mod_state(more_rat_weapons)
+
+
+more_rat_weapons = new_mod("555")
+mod_data = {}
+mod_data.name = "555"
+mod_data.is_mutator = true
+more_rat_weapons:initialize_data(mod_data)
+more_rat_weapons.on_enabled = function(init_call) mutator3:echo("More Rat Weapons on_enabled(" .. (init_call and "init)" or ")")) end
+more_rat_weapons.on_disabled = function(init_call) mutator3:echo("More Rat Weapons on_disabled(" .. (init_call and "init)" or ")")) end
+vmf.initialize_mod_state(more_rat_weapons)
+
+
+more_rat_weapons = new_mod("666")
+mod_data = {}
+mod_data.name = "666"
+mod_data.is_mutator = true
+more_rat_weapons:initialize_data(mod_data)
+more_rat_weapons.on_enabled = function(init_call) mutator3:echo("More Rat Weapons on_enabled(" .. (init_call and "init)" or ")")) end
+more_rat_weapons.on_disabled = function(init_call) mutator3:echo("More Rat Weapons on_disabled(" .. (init_call and "init)" or ")")) end
+vmf.initialize_mod_state(more_rat_weapons)
+
+
+more_rat_weapons = new_mod("777")
+mod_data = {}
+mod_data.name = "777"
+mod_data.is_mutator = true
+more_rat_weapons:initialize_data(mod_data)
+more_rat_weapons.on_enabled = function(init_call) mutator3:echo("More Rat Weapons on_enabled(" .. (init_call and "init)" or ")")) end
+more_rat_weapons.on_disabled = function(init_call) mutator3:echo("More Rat Weapons on_disabled(" .. (init_call and "init)" or ")")) end
+vmf.initialize_mod_state(more_rat_weapons)
+
+
+more_rat_weapons = new_mod("888")
+mod_data = {}
+mod_data.name = "888"
+mod_data.is_mutator = true
+more_rat_weapons:initialize_data(mod_data)
+more_rat_weapons.on_enabled = function(init_call) mutator3:echo("More Rat Weapons on_enabled(" .. (init_call and "init)" or ")")) end
+more_rat_weapons.on_disabled = function(init_call) mutator3:echo("More Rat Weapons on_disabled(" .. (init_call and "init)" or ")")) end
+vmf.initialize_mod_state(more_rat_weapons)
