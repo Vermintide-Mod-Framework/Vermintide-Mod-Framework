@@ -248,6 +248,17 @@ local function offset_function_callback(ui_scenegraph_, style, content, ui_rende
                               content.checkbox_unchecked_texture
 end
 
+local function initialize_scrollbar()
+
+  local scrollbar_widget_content = _OTHER_WIDGETS.scrollbar.content
+
+  if _TOTAL_PAGES_NUMBER > 1 then
+    scrollbar_widget_content.visible = true
+    scrollbar_widget_content.scroll_bar_info.bar_height_percentage = 1 / _TOTAL_PAGES_NUMBER
+  else
+    scrollbar_widget_content.visible = false
+  end
+end
 
 local function initialize_mutators_ui(map_view)
 
@@ -275,6 +286,9 @@ local function initialize_mutators_ui(map_view)
   -- Modify original map_view look
   change_map_view_look(map_view, true)
   show_mutator_list(map_view, true)
+
+  -- Find out if scrollbar is needed, calculate scrollbar size
+  initialize_scrollbar()
 
   _IS_MUTATORS_GUI_INITIALIZED = true
 end
@@ -309,6 +323,24 @@ local function draw(map_view, dt)
   UIRenderer.end_pass(ui_renderer)
 end
 
+-- Sets new scrollbar position (called when user changes the current page number with mouse scroll input)
+local function update_scrollbar_position()
+  local scrollbar_widget_content = _OTHER_WIDGETS.scrollbar.content
+  local percentage = (1 / (_TOTAL_PAGES_NUMBER - 1)) * (_CURRENT_PAGE_NUMBER - 1)
+  scrollbar_widget_content.scroll_bar_info.value = percentage
+  scrollbar_widget_content.scroll_bar_info.old_value = percentage
+end
+
+-- Reads scrollbar input and if it was changed, set current page according to the new scrollbar position
+local function update_scrollbar_input()
+  local scrollbar_info = _OTHER_WIDGETS.scrollbar.content.scroll_bar_info
+  local value = scrollbar_info.value
+  local old_value = scrollbar_info.old_value
+  if value ~= old_value then
+    _CURRENT_PAGE_NUMBER = math.clamp(math.ceil(value / (1 / _TOTAL_PAGES_NUMBER)), 1, _TOTAL_PAGES_NUMBER)
+    scrollbar_info.old_value = value
+  end
+end
 
 -- Reads mousewheel scrolls from corresponding widget and changes current page number, if possible.
 local function update_mousewheel_scroll_area_input()
@@ -317,6 +349,7 @@ local function update_mousewheel_scroll_area_input()
   if mouse_scroll_value ~= 0 then
     _CURRENT_PAGE_NUMBER = math.clamp(_CURRENT_PAGE_NUMBER + mouse_scroll_value, 1, _TOTAL_PAGES_NUMBER)
     widget_content.scroll_value = 0
+    update_scrollbar_position()
   end
 end
 
@@ -335,8 +368,9 @@ local function update_mutators_ui(map_view, dt)
     end
   end
 
-  draw(map_view, dt)
   update_mousewheel_scroll_area_input()
+  update_scrollbar_input()
+  draw(map_view, dt)
 end
 
 -- ####################################################################################################################

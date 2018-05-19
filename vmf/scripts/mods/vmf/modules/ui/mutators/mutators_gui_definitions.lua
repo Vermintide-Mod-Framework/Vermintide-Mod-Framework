@@ -60,7 +60,17 @@ local scenegraph_definition = {
 
           vertical_alignment = "top",
           horizontal_alignment = "left"
-        }
+        },
+
+      sg_scrollbar = {
+        size = {0, 290}, -- X size doesn't affect scrollbar width
+        position = {452, 52, 3},
+
+        parent = "sg_placeholder",
+
+        vertical_alignment = "bottom",
+        horizontal_alignment = "left"
+      },
 }
 
 
@@ -125,8 +135,13 @@ local widgets_definition = {
       scroll_value = 0
     },
     style = {}
-  }
+  },
+
+  scrollbar = UIWidgets.create_scrollbar(scenegraph_definition.sg_scrollbar.size[2], "sg_scrollbar")
 }
+
+-- Hide scrollbar frame
+widgets_definition.scrollbar.content.disable_frame = true
 
 -- The 4th button, which will toggle old "Party" view (which is replaced by "Mutators" view)
 local party_button_widget_defenition = UIWidgets.create_octagon_button(
