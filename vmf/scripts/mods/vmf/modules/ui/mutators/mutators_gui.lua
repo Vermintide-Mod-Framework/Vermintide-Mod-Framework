@@ -9,6 +9,7 @@ local _DEFINITIONS = dofile("scripts/mods/vmf/modules/ui/mutators/mutators_gui_d
 local _UI_SCENEGRAPH
 local _MUTATOR_LIST_WIDGETS = {}
 local _PARTY_BUTTON_WIDGET
+local _NO_MUTATORS_TEXT_WIDGET
 local _OTHER_WIDGETS = {}
 
 local _ORIGINAL_VALUES = {} -- @TODO: get rid of it?
@@ -278,6 +279,9 @@ local function initialize_mutators_ui(map_view)
   -- Party button
   _PARTY_BUTTON_WIDGET = UIWidget.init(_DEFINITIONS.party_button_widget_defenition)
 
+  -- "No mutators installed" text
+  _NO_MUTATORS_TEXT_WIDGET = UIWidget.init(_DEFINITIONS.no_mutators_text_widget)
+
   -- Other widgets
   for widget_name, widget in pairs(_DEFINITIONS.widgets_definition) do
     _OTHER_WIDGETS[widget_name] = UIWidget.init(widget)
@@ -305,13 +309,16 @@ local function draw(map_view, dt)
   UIRenderer.draw_widget(ui_renderer, _PARTY_BUTTON_WIDGET)
 
   if _IS_MUTATOR_LIST_VISIBLE then
-
-    -- Mutator list (render only 8 (or less) currently visible mutator widgets)
-    for i = ((_CURRENT_PAGE_NUMBER - 1) * 8 + 1), (_CURRENT_PAGE_NUMBER * 8) do
-      if not _MUTATOR_LIST_WIDGETS[i] then
-        break
+    if #_MUTATORS > 0 then
+      -- Mutator list (render only 8 (or less) currently visible mutator widgets)
+      for i = ((_CURRENT_PAGE_NUMBER - 1) * 8 + 1), (_CURRENT_PAGE_NUMBER * 8) do
+        if not _MUTATOR_LIST_WIDGETS[i] then
+          break
+        end
+        UIRenderer.draw_widget(ui_renderer, _MUTATOR_LIST_WIDGETS[i])
       end
-      UIRenderer.draw_widget(ui_renderer, _MUTATOR_LIST_WIDGETS[i])
+    else
+      UIRenderer.draw_widget(ui_renderer, _NO_MUTATORS_TEXT_WIDGET)
     end
 
     -- Other widgets

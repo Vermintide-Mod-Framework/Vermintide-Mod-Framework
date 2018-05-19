@@ -62,6 +62,16 @@ local scenegraph_definition = {
           horizontal_alignment = "left"
         },
 
+        sg_no_mutators_text = {
+          size = {310, 30},
+          position = {0, 10, 1},
+
+          parent = "sg_mutators_list",
+
+          vertical_alignment = "center",
+          horizontal_alignment = "center",
+        },
+
       sg_scrollbar = {
         size = {0, 290}, -- X size doesn't affect scrollbar width
         position = {452, 52, 3},
@@ -137,11 +147,10 @@ local widgets_definition = {
     style = {}
   },
 
+  -- Scrollbar
   scrollbar = UIWidgets.create_scrollbar(scenegraph_definition.sg_scrollbar.size[2], "sg_scrollbar")
 }
-
--- Hide scrollbar frame
-widgets_definition.scrollbar.content.disable_frame = true
+widgets_definition.scrollbar.content.disable_frame = true -- Hide scrollbar frame
 
 -- The 4th button, which will toggle old "Party" view (which is replaced by "Mutators" view)
 local party_button_widget_defenition = UIWidgets.create_octagon_button(
@@ -156,17 +165,73 @@ local party_button_widget_defenition = UIWidgets.create_octagon_button(
   "sg_mutators_button"
 )
 
+-- Text displayed when user has 0 mutators
+local no_mutators_text_widget = {
+  scenegraph_id = "sg_no_mutators_text",
+  element = {
+    passes = {
+      {
+        pass_type = "text",
+
+        style_id = "text",
+        text_id = "text"
+      },
+      {
+        pass_type = "hotspot",
+
+        content_id = "tooltip_hotspot"
+      },
+      {
+        pass_type = "tooltip_text",
+
+        style_id = "tooltip_text",
+        text_id = "tooltip_text",
+        content_check_function = function (ui_content)
+          return ui_content.tooltip_hotspot.is_hover
+        end
+      }
+    }
+  },
+  content = {
+    text = vmf:localize("no_mutators"),
+    tooltip_text = vmf:localize("no_mutators_tooltip"),
+    tooltip_hotspot = {},
+    color = Colors.get_color_table_with_alpha("slate_gray", 255)
+  },
+  style = {
+
+    text = {
+      vertical_alignment = "center",
+      horizontal_alignment = "center",
+      font_size = 22,
+      localize = false,
+      word_wrap = true,
+      font_type = "hell_shark",
+      text_color = Colors.get_color_table_with_alpha("slate_gray", 255),
+      offset = {0, 2, 4}
+    },
+
+    tooltip_text = {
+      font_size = 24,
+      max_width = 500,
+      localize = false,
+      horizontal_alignment = "left",
+      vertical_alignment = "top",
+      font_type = "hell_shark",
+      text_color = Colors.get_color_table_with_alpha("white", 255),
+      line_colors = {},
+      offset = {0, 0, 50}
+    }
+  }
+}
+
+
 -- Creates a widget for every mutator (that string with checkbox)
 local function create_mutator_widget(mutator, offset_function_callback)
   return {
     scenegraph_id = "sg_mutators_list_start",
     element = {
       passes = {
-        -- {
-        --   pass_type = "rect",
-
-        --   style_id  = "mutators_list_background"
-        -- },
         {
           pass_type = "hotspot",
 
@@ -236,12 +301,6 @@ local function create_mutator_widget(mutator, offset_function_callback)
     },
     style = {
 
-      -- mutators_list_background = {
-      --   --scenegraph_id = "sg_mutators_list_start",
-      --   size = {370, 32},
-      --   color = {math.random(255), math.random(255), math.random(255), 255}
-      -- },
-
       text = {
         offset = {10, -2, 2},
         font_size = 24,
@@ -282,5 +341,6 @@ return {
   scenegraph_definition = scenegraph_definition,
   widgets_definition = widgets_definition,
   party_button_widget_defenition = party_button_widget_defenition,
+  no_mutators_text_widget = no_mutators_text_widget,
   create_mutator_widget = create_mutator_widget
 }
