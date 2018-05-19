@@ -191,7 +191,11 @@ return {
 
   -- MUTATORS
 
+  mutator_no_description_provided = {
+    en = "No description provided."
+  },
 
+  -- Difficulties' names [V1]
   easy = {
     en = "Easy"
   },
@@ -217,6 +221,7 @@ return {
     en = "Heroic"
   },
 
+  -- Chat messages
   broadcast_enabled_mutators = {
     en = "ENABLED MUTATORS"
   },
@@ -240,6 +245,7 @@ return {
     en = "DUE TO CHANGE IN DIFFICULTY"
   },
 
+  -- Interface
   mutators_title = {
     en = "Mutators"
   },
@@ -253,19 +259,38 @@ return {
     en = "Subscribe to mods and mutators on the workshop"
   },
 
-  tooltip_supported_difficulty = {
-    en = "Supported difficulty levels"
+  -- Mutator widgets' tooltips
+  tooltip_incompatible_mutators = {
+    en = "\n\n-- INCOMPATIBLE WITH MUTATORS --\n"
   },
-  tooltip_incompatible_with_all = {
-    en = "Incompatible with all other mutators"
+  tooltip_compatible_mutators = {
+    en = "\n\n-- COMPATIBLE ONLY WITH MUTATORS --\n"
   },
-  tooltip_incompatible_with = {
-    en = "Incompatible with"
+  tooltip_compatible_with_all_mutators = {
+    en = "\n\n-- COMPATIBLE WITH ALL MUTATORS --"
   },
-  tooltip_compatible_with_all = {
-    en = "Compatible with all other mutators"
+  tooltip_incompatible_with_all_mutators = {
+    en = "\n\n-- INCOMPATIBLE WITH ALL MUTATORS --"
   },
-  tooltip_will_be_disabled = {
-    en = "Will be disabled when Play is pressed"
-  }
+
+  tooltip_incompatible_diffs = {
+    en = "\n\n-- INCOMPATIBLE WITH DIFFICULTIES --\n"
+  },
+  tooltip_compatible_diffs = {
+    en = "\n\n-- COMPATIBLE ONLY WITH DIFFICULTIES --\n"
+  },
+  tooltip_compatible_with_all_diffs = {
+    en = "\n\n-- COMPATIBLE WITH ALL DIFFICULTIES --"
+  },
+
+  tooltip_conflicts = {
+    en = "\n\n-- CONFLICTS --\n"
+  },
+
+  tooltip_append_mutator = {
+    en = " (mutator)"
+  },
+  tooltip_append_difficulty = {
+    en = " (difficulty)"
+  },
 }

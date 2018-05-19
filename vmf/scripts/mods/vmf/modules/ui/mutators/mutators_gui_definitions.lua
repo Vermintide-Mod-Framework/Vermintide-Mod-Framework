@@ -1,51 +1,72 @@
+local vmf = get_mod("VMF")
+
+
 local scenegraph_definition = {
 
 	sg_root = {
-		is_root = true,
 		size = {1920, 1080},
-		position = {0, 0, UILayer.default}
+    position = {0, 0, UILayer.default},
+
+    is_root = true,
   },
 
-  sg_mutators_list_background = {
-		vertical_alignment = "bottom",
-		parent = "sg_root",
-		horizontal_alignment = "left",
-		size = {547, 313},
-		position = {-2, -2, 10} -- @TODO: fix the actual image
-  },
+    -- fix for fullhd windowed (not fullscreen) mode (if everything else will inherit from sg_root, its children will
+    -- stick to the window border instead of the black gap)
+    sg_placeholder = {
+      size = {1920, 1080},
+      position = {0, 0, 1},
 
-  sg_mutators_button = {
-		vertical_alignment = "bottom",
-		parent = "sg_root",
-		horizontal_alignment = "left",
-		size = {64, 64},
-		position = {87, 430.5, 10}
-  },
+      parent = "sg_root",
 
-  sg_mutators_list = {
-    vertical_alignment = "bottom",
-    horizontal_alignment = "left",
-
-    size = {370, 265},
-    position = {80, 61, 11}, --122
-
-    parent = "sg_root"
-  },
-
-    sg_mutators_list_start = {
-      vertical_alignment = "top",
-      horizontal_alignment = "left",
-
-      size = {1, 1},
-      offset = {0, 0, 1},
-
-      parent = "sg_mutators_list"
+      horizontal_alignment = "center",
+      vertical_alignment = "center"
     },
+
+      sg_mutators_list_background = {
+        size = {547, 313},
+        position = {-2, -2, 2}, -- @TODO: fix the actual image (-2 px plus image overlaping text)
+
+        parent = "sg_placeholder",
+
+        horizontal_alignment = "left",
+        vertical_alignment = "bottom"
+      },
+
+      sg_mutators_button = {
+        size = {64, 64},
+        position = {87, 430.5, 2},
+
+        parent = "sg_placeholder",
+
+        horizontal_alignment = "left",
+        vertical_alignment = "bottom"
+      },
+
+      sg_mutators_list = {
+        size = {370, 265},
+        position = {80, 61, 3},
+
+        parent = "sg_placeholder",
+
+        vertical_alignment = "bottom",
+        horizontal_alignment = "left"
+      },
+
+        sg_mutators_list_start = {
+          size = {1, 1},
+          offset = {0, 0, 3},
+
+          parent = "sg_mutators_list",
+
+          vertical_alignment = "top",
+          horizontal_alignment = "left"
+        }
 }
 
 
 local widgets_definition = {
 
+  -- That photoshopped background texture which expands displayed list area
   mutator_list_background = {
     scenegraph_id = "sg_root",
     element = {
@@ -66,8 +87,7 @@ local widgets_definition = {
       }
     }
   },
---[[
-
+  --[[
   mutators_list_debug = {
     scenegraph_id = "sg_mutators_list",
     element = {
@@ -86,8 +106,9 @@ local widgets_definition = {
       },
     }
   },
-
   ]]
+
+  -- Widgets that detects mousewheel scrolls inside itself
   mousewheel_scroll_area = {
     scenegraph_id = "sg_mutators_list",
     element = {
@@ -104,10 +125,10 @@ local widgets_definition = {
       scroll_value = 0
     },
     style = {}
-  },
+  }
 }
 
-
+-- The 4th button, which will toggle old "Party" view (which is replaced by "Mutators" view)
 local party_button_widget_defenition = UIWidgets.create_octagon_button(
   {
     "map_view_party_button",
@@ -120,7 +141,7 @@ local party_button_widget_defenition = UIWidgets.create_octagon_button(
   "sg_mutators_button"
 )
 
-
+-- Creates a widget for every mutator (that string with checkbox)
 local function create_mutator_widget(mutator, offset_function_callback)
   return {
     scenegraph_id = "sg_mutators_list_start",
@@ -139,12 +160,14 @@ local function create_mutator_widget(mutator, offset_function_callback)
         {
           pass_type = "local_offset",
 
+          -- The function is executed inside of 'mutators_gui.lua', since it has to interact with mutator list a lot
           offset_function = offset_function_callback
         },
         {
           pass_type = "texture",
+
 					style_id = "hover_texture",
-					texture_id = "hover_texture",
+          texture_id = "hover_texture",
 					content_check_function = function (content)
 						return content.can_be_enabled and content.highlight_hotspot.is_hover
 					end
@@ -156,7 +179,8 @@ local function create_mutator_widget(mutator, offset_function_callback)
           text_id  = "text"
         },
         {
-					pass_type = "texture",
+          pass_type = "texture",
+
 					style_id = "checkbox_style",
 					texture_id = "checkbox_texture"
         },
@@ -175,22 +199,21 @@ local function create_mutator_widget(mutator, offset_function_callback)
       mutator = nil, -- is added after creation (i can't add mutator here now, becuase UIWidget.init() clones tables)
 
       text = mutator:get_readable_name(),
-
-      description = mutator:get_description() or "No description provided.", --@TODO: localize
+      description = mutator:get_description() or vmf:localize("mutator_no_description_provided"),
 
       can_be_enabled = false,
 
-      mutators_list_background_texture_id = "map_view_mutators_area",
       highlight_hotspot = {},
 
-      tooltip_text = "",
-      --hover_texture = "map_setting_bg_fade",
+      tooltip_text = "", -- is always being changed in local_offset pass
+
       hover_texture = "playerlist_hover",
 
-      checkbox_texture = "checkbox_unchecked",
+      checkbox_texture = "checkbox_unchecked", -- is always being changed in local_offset pass
 
-      checkbox_unchecked_texture = "checkbox_unchecked", -- unsused
-      checkbox_checked_texture = "checkbox_checked", -- unsused
+      -- Presets
+      checkbox_unchecked_texture = "checkbox_unchecked",
+      checkbox_checked_texture = "checkbox_checked",
 
       text_color_disabled = Colors.get_color_table_with_alpha("white", 255),
       text_color_enabled = Colors.get_color_table_with_alpha("cheeseburger", 255),
@@ -209,7 +232,7 @@ local function create_mutator_widget(mutator, offset_function_callback)
         font_size = 24,
         font_type = "hell_shark",
         dynamic_font = true,
-        text_color = Colors.get_color_table_with_alpha("white", 255)
+        text_color = Colors.get_color_table_with_alpha("white", 255)  -- is always being changed in local_offset pass
       },
 
       hover_texture = {
@@ -230,9 +253,8 @@ local function create_mutator_widget(mutator, offset_function_callback)
         vertical_alignment = "top",
         cursor_side = "right",
         max_width = 425,
-        cursor_offset = {27, 27},
-        cursor_offset_bottom = {27, 27},
-        cursor_offset_top = {27, -27}
+        cursor_offset = {0, 0}, -- is always being changed in local_offset pass
+        cursor_default_offset = {27, -27}
       },
 
       size = {370, 32},

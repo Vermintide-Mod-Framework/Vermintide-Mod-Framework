@@ -1,10 +1,9 @@
-
 local vmf = get_mod("VMF")
 
 
 local _MUTATORS = vmf.mutators
 
-local _SELECTED_DIFFICULTY_KEY
+local _SELECTED_DIFFICULTY_KEY -- Currently selected difficulty in the map view.
 
 local _DEFINITIONS = dofile("scripts/mods/vmf/modules/ui/mutators/mutators_gui_definitions")
 local _UI_SCENEGRAPH
@@ -12,10 +11,9 @@ local _MUTATOR_LIST_WIDGETS = {}
 local _PARTY_BUTTON_WIDGET
 local _OTHER_WIDGETS = {}
 
-
 local _ORIGINAL_VALUES = {} -- @TODO: get rid of it?
 
-local _MUTATOR_LIST_IS_VISIBLE
+local _IS_MUTATOR_LIST_VISIBLE -- 'true' if Mutator view is active, 'false' if Party view is active.
 local _CURRENT_PAGE_NUMBER
 local _TOTAL_PAGES_NUMBER
 
@@ -34,9 +32,10 @@ local function get_map_view()
 end
 
 
+-- Toggles mutator list (switches between Party and Mutators views).
 local function show_mutator_list(map_view, is_visible)
 
-  _MUTATOR_LIST_IS_VISIBLE = is_visible
+  _IS_MUTATOR_LIST_VISIBLE = is_visible
 
   if is_visible then
 
@@ -90,14 +89,14 @@ local function change_map_view_look(map_view, is_vmf_look)
   end
 end
 
---@TODO: clean up, and probably do direct change instead of return
+-- Used in the next function to calculate tooltip offset, since Fatshark's solution doesn't support
+-- tooltips with cursor being in the left-bottom corner.
 local function calculate_tooltip_offset (widget_content, widget_style, ui_renderer)
 
-  --local cursor_offset_bottom = widget_style.cursor_offset_bottom
+  local input_service = ui_renderer.input_service
+  if input_service then
 
-  if ui_renderer.input_service then
-
-    local cursor_position = UIInverseScaleVectorToResolution(ui_renderer.input_service.get(ui_renderer.input_service, "cursor"))
+    local cursor_position = UIInverseScaleVectorToResolution(input_service:get("cursor"))
     if cursor_position then
 
       local text = widget_content.tooltip_text
@@ -115,27 +114,20 @@ local function calculate_tooltip_offset (widget_content, widget_style, ui_render
 
       local tooltip_height = full_font_height * num_texts
 
-      --if((cursor_offset_bottom[2] / UIResolutionScale() + tooltip_height) > cursor_position[2]) then
-
-        local cursor_offset_top = {}
-        cursor_offset_top[1] = widget_style.cursor_offset_top[1]
-        cursor_offset_top[2] = widget_style.cursor_offset_top[2] - (tooltip_height * UIResolutionScale())
-
-        return cursor_offset_top
-      --else
-      --  return cursor_offset_bottom
-      --end
+      widget_style.cursor_offset[1] = widget_style.cursor_default_offset[1]
+      widget_style.cursor_offset[2] = widget_style.cursor_default_offset[2] - (tooltip_height * UIResolutionScale())
     end
   end
-
-  --return cursor_offset_bottom
 end
 
+-- Callback function for mutator widgets. It's not defined in definitions file because it works with
+-- mutators array and vmf.various_internal_functions.
 local function offset_function_callback(ui_scenegraph_, style, content, ui_renderer)
 
   local mutator = content.mutator
 
 
+  -- Find out if mutator can be enabled.
   local can_be_enabled = true
 
   local mutator_compatibility_config = mutator:get_config().compatibility
@@ -145,7 +137,7 @@ local function offset_function_callback(ui_scenegraph_, style, content, ui_rende
   for _, other_mutator in ipairs(_MUTATORS) do
     if other_mutator:is_enabled() and other_mutator ~= mutator then
       can_be_enabled = can_be_enabled and (is_mostly_compatible and not except[other_mutator] or
-                                           not is_mostly_compatible and except[other_mutator])
+                                            not is_mostly_compatible and except[other_mutator])
     end
   end
 
@@ -154,7 +146,7 @@ local function offset_function_callback(ui_scenegraph_, style, content, ui_rende
   content.can_be_enabled = can_be_enabled
 
 
-  -- Enable/disable mutator
+  -- Enable/disable mutator.
   if content.highlight_hotspot.on_release then
     if mutator:is_enabled() then
       vmf.set_mutator_state(mutator, false, false)
@@ -164,36 +156,41 @@ local function offset_function_callback(ui_scenegraph_, style, content, ui_rende
   end
 
 
-  -- Tooltip
-  -- Yup, a boilerplate code, kinda. I made it to divide tooltip code part, and to update it only for selected mod.
+  -- Build tooltip (only for currently selected mutator widget).
   if content.highlight_hotspot.is_hover then
+
+    -- DESCRIPTION
 
     local tooltip_text = content.description
 
+    -- MUTATORS COMPATIBILITY
 
     local incompatible_mods = {}
-    local conflicting_mods = {}
-
     if next(except) then
-      tooltip_text = tooltip_text .. "\n\n" ..
-                     (is_mostly_compatible and "-- INCOMPATIBLE WITH [MUTATORS] --\n" or
-                      "-- COMPATIBLE ONLY WITH [MUTATORS] --\n") --@TODO: localize
+      tooltip_text = tooltip_text .. (is_mostly_compatible and vmf:localize("tooltip_incompatible_mutators") or
+                                       vmf:localize("tooltip_compatible_mutators"))
 
       for other_mutator, _ in pairs(except) do
         table.insert(incompatible_mods, " * " .. other_mutator:get_readable_name())
       end
 
       tooltip_text = tooltip_text .. table.concat(incompatible_mods, "\n")
+    else
+      if is_mostly_compatible then
+        tooltip_text = tooltip_text .. vmf:localize("tooltip_compatible_with_all_mutators")
+      else
+        tooltip_text = tooltip_text .. vmf:localize("tooltip_incompatible_with_all_mutators")
+      end
     end
 
-
+    -- DIFFICULTIES COMPATIBILITY
 
     local difficulties = {}
     local compatible_difficulties_number = mutator_compatibility_config.compatible_difficulties_number
     if compatible_difficulties_number < 8 then
-      tooltip_text = tooltip_text .. "\n\n" ..
-                     (compatible_difficulties_number > 4 and "-- INCOMPATIBLE WITH [DIFFICULTIES] --\n" or
-                      "-- COMPATIBLE ONLY WITH [DIFFICULTIES] --\n") --@TODO: localize
+      tooltip_text = tooltip_text .. (compatible_difficulties_number > 4 and
+                                       vmf:localize("tooltip_incompatible_diffs") or
+                                        vmf:localize("tooltip_compatible_diffs"))
 
       for difficulty_key, is_compatible in pairs(mutator_compatibility_config.compatible_difficulties) do
         if compatible_difficulties_number > 4 and not is_compatible
@@ -203,40 +200,45 @@ local function offset_function_callback(ui_scenegraph_, style, content, ui_rende
       end
 
       tooltip_text = tooltip_text .. table.concat(difficulties, "\n")
+    else
+      tooltip_text = tooltip_text .. vmf:localize("tooltip_compatible_with_all_diffs")
     end
 
-
-
-    for _, other_mutator in ipairs(_MUTATORS) do
-      if other_mutator:is_enabled() and other_mutator ~= mutator then
-        if not (is_mostly_compatible and not except[other_mutator] or
-                 not is_mostly_compatible and except[other_mutator]) then
-          table.insert(conflicting_mods, " * " .. other_mutator:get_readable_name() .. " (mutator)")
-        end
-      end
-    end
+    -- CONFLICTS
 
     if not can_be_enabled then
-      --tooltip_text = tooltip_text .. "\n\n" .. "--[X]-- CONFLICTS --[X]--\n"
-      tooltip_text = tooltip_text .. "\n\n" .. "-- CONFLICTS --\n"
+      tooltip_text = tooltip_text .. vmf:localize("tooltip_conflicts")
+
+      local conflicting_mods = {}
+      for _, other_mutator in ipairs(_MUTATORS) do
+        if other_mutator:is_enabled() and other_mutator ~= mutator then
+          if not (is_mostly_compatible and not except[other_mutator] or
+                   not is_mostly_compatible and except[other_mutator]) then
+
+            table.insert(conflicting_mods, " * " .. other_mutator:get_readable_name() ..
+                          vmf:localize("tooltip_append_mutator"))
+          end
+        end
+      end
+
       if #conflicting_mods > 0 then
         tooltip_text = tooltip_text .. table.concat(conflicting_mods, "\n") .. "\n"
       end
 
       if not mutator_compatibility_config.compatible_difficulties[_SELECTED_DIFFICULTY_KEY] then
-        tooltip_text = tooltip_text .. " * " .. vmf:localize(_SELECTED_DIFFICULTY_KEY) .. " (difficulty)" .. "\n"
+        tooltip_text = tooltip_text .. " * " .. vmf:localize(_SELECTED_DIFFICULTY_KEY) ..
+                        vmf:localize("tooltip_append_difficulty")
       end
-      --tooltip_text = tooltip_text .. "--[X]--\n"
     end
 
+    -- Applying tooltip
 
     content.tooltip_text = tooltip_text
-
-    style.tooltip_text.cursor_offset = calculate_tooltip_offset(content, style.tooltip_text, ui_renderer)
+    calculate_tooltip_offset(content, style.tooltip_text, ui_renderer)
   end
 
-  -- VISUAL
 
+  -- Visual changing (text color and checkboxes).
   local is_enabled = content.mutator:is_enabled()
 
   style.text.text_color = content.can_be_enabled and (is_enabled and content.text_color_enabled or
@@ -288,7 +290,7 @@ local function draw(map_view, dt)
   -- Party button
   UIRenderer.draw_widget(ui_renderer, _PARTY_BUTTON_WIDGET)
 
-  if _MUTATOR_LIST_IS_VISIBLE then
+  if _IS_MUTATOR_LIST_VISIBLE then
 
     -- Mutator list (render only 8 (or less) currently visible mutator widgets)
     for i = ((_CURRENT_PAGE_NUMBER - 1) * 8 + 1), (_CURRENT_PAGE_NUMBER * 8) do
@@ -308,6 +310,7 @@ local function draw(map_view, dt)
 end
 
 
+-- Reads mousewheel scrolls from corresponding widget and changes current page number, if possible.
 local function update_mousewheel_scroll_area_input()
   local widget_content = _OTHER_WIDGETS.mousewheel_scroll_area.content
   local mouse_scroll_value = widget_content.scroll_value
@@ -363,14 +366,7 @@ end)
 -- ##### VMF internal functions and variables #########################################################################
 -- ####################################################################################################################
 
-function vmf.reset_map_view()
-  local map_view = get_map_view()
-  if map_view then
-    change_map_view_look(map_view, false)
-    show_mutator_list(map_view, false)
-  end
-end
-
+-- Changes map_view VMF way
 function vmf.modify_map_view()
   local map_view = get_map_view()
   if map_view then
@@ -378,6 +374,11 @@ function vmf.modify_map_view()
   end
 end
 
--- ####################################################################################################################
--- ##### Script #######################################################################################################
--- ####################################################################################################################
+-- Restores map_view to its defaults
+function vmf.reset_map_view()
+  local map_view = get_map_view()
+  if map_view then
+    change_map_view_look(map_view, false)
+    show_mutator_list(map_view, false)
+  end
+end
