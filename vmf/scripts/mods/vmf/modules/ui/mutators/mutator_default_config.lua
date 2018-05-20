@@ -6,7 +6,6 @@ return {
 	},
 	short_title = "", --@TODO: rename it?
 	title_placement = "after",
-	description = "No description provided",
 	difficulty_levels = {
 		"easy",
 		"normal",
@@ -21,5 +20,7 @@ return {
 	incompatible_with_all = false,
 	compatible_with_all = false,
 	incompatible_with = {},
-	compatible_with = {}
+	compatible_with = {},
+	enable_before_these = {},
+	enable_after_these = {}
 }

@@ -1,6 +1,5 @@
 local vmf = get_mod("VMF")
 
-
 local _MUTATORS = vmf.mutators
 
 local _SELECTED_DIFFICULTY_KEY -- Currently selected difficulty in the map view.
@@ -17,7 +16,6 @@ local _ORIGINAL_VALUES = {} -- @TODO: get rid of it?
 local _IS_MUTATOR_LIST_VISIBLE -- 'true' if Mutator view is active, 'false' if Party view is active.
 local _CURRENT_PAGE_NUMBER
 local _TOTAL_PAGES_NUMBER
-
 
 local _IS_MUTATORS_GUI_INITIALIZED = false
 
@@ -121,8 +119,7 @@ local function calculate_tooltip_offset (widget_content, widget_style, ui_render
   end
 end
 
--- Callback function for mutator widgets. It's not defined in definitions file because it works with
--- mutators array and vmf.various_internal_functions.
+-- Callback function for mutator widgets. It's not defined in definitions file because it works with mutators array.
 local function offset_function_callback(ui_scenegraph_, style, content, ui_renderer)
 
   local mutator = content.mutator
@@ -150,7 +147,7 @@ local function offset_function_callback(ui_scenegraph_, style, content, ui_rende
   -- Enable/disable mutator.
   if content.highlight_hotspot.on_release then
     if mutator:is_enabled() then
-      vmf.set_mutator_state(mutator, false, false)
+      vmf.set_mutator_state(mutator, false, false) --@TODO: change method?
     elseif can_be_enabled then
       vmf.set_mutator_state(mutator, true, false)
     end
