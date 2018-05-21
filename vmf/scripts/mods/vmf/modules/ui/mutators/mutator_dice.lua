@@ -1,4 +1,6 @@
---[[ Add additional dice to end game roll --]]
+--[[
+	Add additional dice to end game roll
+--]]
 local vmf = get_mod("VMF")
 
 -- List of all die types
@@ -15,7 +17,29 @@ local num_dice_per_mission = {
 	grimoire_hidden_mission = 0
 }
 
-vmf:hook("GameModeManager.complete_level", function(func, self)
+-- ####################################################################################################################
+-- ##### Local functions ##############################################################################################
+-- ####################################################################################################################
+
+-- Adds/remove dice
+local function adjustDice(grims, tomes, bonus, multiplier)
+	if grims then
+		num_dice_per_mission.grimoire_hidden_mission = num_dice_per_mission.grimoire_hidden_mission + grims * multiplier
+	end
+	if tomes then
+		num_dice_per_mission.tome_bonus_mission = num_dice_per_mission.tome_bonus_mission + tomes * multiplier
+	end
+	if bonus then
+		num_dice_per_mission.bonus_dice_hidden_mission = num_dice_per_mission.bonus_dice_hidden_mission + bonus *
+		                                                                                                   multiplier
+	end
+end
+
+-- ####################################################################################################################
+-- ##### Hooks ########################################################################################################
+-- ####################################################################################################################
+
+vmf:hook("GameModeManager.complete_level", function(func, ...)
 	local num_dice = 0
 	local max_dice = 7
 	local mission_system = Managers.state.entity:system("mission_system")
@@ -50,27 +74,19 @@ vmf:hook("GameModeManager.complete_level", function(func, self)
 		if num_dice <= max_dice then break end
 	end
 
-	return func(self)
+	func(...)
 end)
 
--- Adds/remove dice
-local function adjustDice(grims, tomes, bonus, multiplier)
-	if grims then num_dice_per_mission.grimoire_hidden_mission = num_dice_per_mission.grimoire_hidden_mission + grims * multiplier end
-	if tomes then num_dice_per_mission.tome_bonus_mission = num_dice_per_mission.tome_bonus_mission + tomes * multiplier end
-	if bonus then num_dice_per_mission.bonus_dice_hidden_mission = num_dice_per_mission.bonus_dice_hidden_mission + bonus * multiplier end
-end
-
-local addDice = function(dice)
-	dice = dice or {}
-	adjustDice(dice.grims, dice.tomes, dice.bonus, 1)
-end
-
-local removeDice = function(dice)
-	dice = dice or {}
-	adjustDice(dice.grims, dice.tomes, dice.bonus, -1)
-end
+-- ####################################################################################################################
+-- ##### Return #######################################################################################################
+-- ####################################################################################################################
 
 return {
-	addDice = addDice,
-	removeDice = removeDice
+	addDice = function(dice)
+		adjustDice(dice.grims, dice.tomes, dice.bonus, 1)
+	end,
+
+	removeDice = function(dice)
+		adjustDice(dice.grims, dice.tomes, dice.bonus, -1)
+	end
 }

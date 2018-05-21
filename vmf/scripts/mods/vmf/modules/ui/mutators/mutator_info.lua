@@ -3,14 +3,12 @@
 --]]
 local vmf = get_mod("VMF")
 
-local _MUTATORS = vmf.mutators
-
 local _WERE_ENABLED_BEFORE = false
 
 -- Assembles a list of enabled mutators
 local function add_enabled_mutators_titles_to_string(separator, is_short)
 	local enabled_mutators = {}
-	for _, mutator in ipairs(_MUTATORS) do
+	for _, mutator in ipairs(vmf.mutators) do
 		if mutator:is_enabled() then
 			table.insert(enabled_mutators, mutator)
 		end
@@ -55,6 +53,9 @@ local function get_peer_id_from_cookie(client_cookie)
 	peer_id = string.sub(peer_id, 2)
 	peer_id = string.reverse(peer_id)
 
+	vmf:echo("PEER ID FROM COOKIE #1: [" .. tostring(peer_id) .. "]")
+	vmf:echo("PEER ID FROM COOKIE #2: [" .. tostring(string.match(client_cookie, "%[(%a+)%]")) .. "]")
+
 	return peer_id
 end
 
@@ -77,8 +78,8 @@ vmf:hook("IngamePlayerListUI.update_difficulty", function(func_, self)
 end)
 
 -- Notify everybody about enabled/disabled mutators when Play button is pressed on the map screen
-vmf:hook("MatchmakingStateHostGame.host_game", function(func, self, ...)
-	func(self, ...)
+vmf:hook("MatchmakingStateHostGame.host_game", function(func, ...)
+	func(...)
 	set_lobby_data()
 	local names = add_enabled_mutators_titles_to_string(", ")
 	if names ~= "" then

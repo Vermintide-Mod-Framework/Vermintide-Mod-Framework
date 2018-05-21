@@ -134,7 +134,10 @@ mod_data.name = "lmao"
 mod_data.is_mutator = true
 mod_data.mutator_settings = {
 	difficulty_levels = {"hardest"},
-	enable_after_these = {"ayyyy"}
+	enable_after_these = {"ayyyy"},
+	dice = {
+		bonus = 2
+	}
 }
 mod:initialize_data(mod_data)
 mod.on_enabled = function(init_call) mod:echo("lmao on_enabled(" .. (init_call and "init)" or ")")) end

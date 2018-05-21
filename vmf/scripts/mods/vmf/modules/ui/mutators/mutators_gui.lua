@@ -11,8 +11,6 @@ local _PARTY_BUTTON_WIDGET
 local _NO_MUTATORS_TEXT_WIDGET
 local _OTHER_WIDGETS = {}
 
-local _ORIGINAL_VALUES = {} -- @TODO: get rid of it?
-
 local _IS_MUTATOR_LIST_VISIBLE -- 'true' if Mutator view is active, 'false' if Party view is active.
 local _CURRENT_PAGE_NUMBER
 local _TOTAL_PAGES_NUMBER
@@ -71,22 +69,20 @@ local function show_mutator_list(map_view, is_visible)
   end
 end
 
+
 local function change_map_view_look(map_view, is_vmf_look)
 
   if is_vmf_look then
-    _ORIGINAL_VALUES.settings_button_position_x = map_view.ui_scenegraph.settings_button.position[1]
-    _ORIGINAL_VALUES.friends_button_position_x  = map_view.ui_scenegraph.friends_button.position[1]
-    _ORIGINAL_VALUES.lobby_button_position_x    = map_view.ui_scenegraph.lobby_button.position[1]
-
     map_view.ui_scenegraph.settings_button.position[1] = -50
 		map_view.ui_scenegraph.friends_button.position[1] = 50
     map_view.ui_scenegraph.lobby_button.position[1] = 150
   else
-    map_view.ui_scenegraph.settings_button.position[1] = _ORIGINAL_VALUES.settings_button_position_x
-		map_view.ui_scenegraph.friends_button.position[1] = _ORIGINAL_VALUES.friends_button_position_x
-    map_view.ui_scenegraph.lobby_button.position[1] = _ORIGINAL_VALUES.lobby_button_position_x
+    map_view.ui_scenegraph.settings_button.position[1] = -100
+		map_view.ui_scenegraph.friends_button.position[1] = 0
+    map_view.ui_scenegraph.lobby_button.position[1] = 100
   end
 end
+
 
 -- Used in the next function to calculate tooltip offset, since Fatshark's solution doesn't support
 -- tooltips with cursor being in the left-bottom corner.
@@ -119,11 +115,12 @@ local function calculate_tooltip_offset (widget_content, widget_style, ui_render
   end
 end
 
+
 -- Callback function for mutator widgets. It's not defined in definitions file because it works with mutators array.
+-- And it's easier to work with it from there.
 local function offset_function_callback(ui_scenegraph_, style, content, ui_renderer)
 
   local mutator = content.mutator
-
 
   -- Find out if mutator can be enabled.
   local can_be_enabled = true
@@ -143,16 +140,14 @@ local function offset_function_callback(ui_scenegraph_, style, content, ui_rende
 
   content.can_be_enabled = can_be_enabled
 
-
   -- Enable/disable mutator.
   if content.highlight_hotspot.on_release then
     if mutator:is_enabled() then
-      vmf.set_mutator_state(mutator, false, false) --@TODO: change method?
+      vmf.mod_state_changed(mutator:get_name(), false)
     elseif can_be_enabled then
-      vmf.set_mutator_state(mutator, true, false)
+      vmf.mod_state_changed(mutator:get_name(), true)
     end
   end
-
 
   -- Build tooltip (only for currently selected mutator widget).
   if content.highlight_hotspot.is_hover then
@@ -235,7 +230,6 @@ local function offset_function_callback(ui_scenegraph_, style, content, ui_rende
     calculate_tooltip_offset(content, style.tooltip_text, ui_renderer)
   end
 
-
   -- Visual changing (text color and checkboxes).
   local is_enabled = content.mutator:is_enabled()
 
@@ -245,6 +239,7 @@ local function offset_function_callback(ui_scenegraph_, style, content, ui_rende
   content.checkbox_texture = is_enabled and content.checkbox_checked_texture or
                               content.checkbox_unchecked_texture
 end
+
 
 local function initialize_scrollbar()
 
@@ -257,6 +252,7 @@ local function initialize_scrollbar()
     scrollbar_widget_content.visible = false
   end
 end
+
 
 local function initialize_mutators_ui(map_view)
 
@@ -327,6 +323,7 @@ local function draw(map_view, dt)
   UIRenderer.end_pass(ui_renderer)
 end
 
+
 -- Sets new scrollbar position (called when user changes the current page number with mouse scroll input)
 local function update_scrollbar_position()
   local scrollbar_widget_content = _OTHER_WIDGETS.scrollbar.content
@@ -334,6 +331,7 @@ local function update_scrollbar_position()
   scrollbar_widget_content.scroll_bar_info.value = percentage
   scrollbar_widget_content.scroll_bar_info.old_value = percentage
 end
+
 
 -- Reads scrollbar input and if it was changed, set current page according to the new scrollbar position
 local function update_scrollbar_input()
@@ -345,6 +343,7 @@ local function update_scrollbar_input()
     scrollbar_info.old_value = value
   end
 end
+
 
 -- Reads mousewheel scrolls from corresponding widget and changes current page number, if possible.
 local function update_mousewheel_scroll_area_input()
@@ -387,11 +386,13 @@ vmf:hook("MapView.init", function (func, self, ingame_ui_context)
   initialize_mutators_ui(self)
 end)
 
+
 vmf:hook("MapView.update", function (func, self, dt, t)
   func(self, dt, t)
 
   if self.menu_active and _IS_MUTATORS_GUI_INITIALIZED then
 
+    -- Parse currently selected difficulty in the map_view
     local difficulty_data = self.selected_level_index and self:get_difficulty_data(self.selected_level_index)
 		local difficulty_layout = difficulty_data and difficulty_data[self.selected_difficulty_stepper_index]
 		_SELECTED_DIFFICULTY_KEY = difficulty_layout and difficulty_layout.key
@@ -411,6 +412,7 @@ function vmf.modify_map_view()
     initialize_mutators_ui(map_view)
   end
 end
+
 
 -- Restores map_view to its defaults
 function vmf.reset_map_view()

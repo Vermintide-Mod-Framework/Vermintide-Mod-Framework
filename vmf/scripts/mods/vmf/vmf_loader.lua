@@ -66,7 +66,7 @@ return {
 			object.vmf.ping_vmf_users()
 
 			if VT1 then object.vmf.modify_map_view() end
-			if VT1 then object.vmf.temp_show_mutator_compatibility() end
+			if VT1 then object.vmf.mutators_delete_raw_config() end
 
 			object.vmf.all_mods_loaded_event()
 

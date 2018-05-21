@@ -10,7 +10,7 @@ local scenegraph_definition = {
     is_root = true,
   },
 
-    -- fix for fullhd windowed (not fullscreen) mode (if everything else will inherit from sg_root, its children will
+    -- Fix for FullHD windowed (not fullscreen) mode (if everything else will inherit from sg_root, its children will
     -- stick to the window border instead of the black gap)
     sg_placeholder = {
       size = {1920, 1080},
@@ -107,26 +107,6 @@ local widgets_definition = {
       }
     }
   },
-  --[[
-  mutators_list_debug = {
-    scenegraph_id = "sg_mutators_list",
-    element = {
-      passes = {
-        {
-          pass_type = "rect",
-          style_id  = "mutators_list_background",
-        }
-      }
-    },
-    content = {},
-    style = {
-      mutators_list_background = {
-        scenegraph_id = "sg_mutators_list",
-        color = {255, 0, 0, 0}
-      },
-    }
-  },
-  ]]
 
   -- Widgets that detects mousewheel scrolls inside itself
   mousewheel_scroll_area = {
@@ -152,6 +132,7 @@ local widgets_definition = {
 }
 widgets_definition.scrollbar.content.disable_frame = true -- Hide scrollbar frame
 
+
 -- The 4th button, which will toggle old "Party" view (which is replaced by "Mutators" view)
 local party_button_widget_defenition = UIWidgets.create_octagon_button(
   {
@@ -164,6 +145,7 @@ local party_button_widget_defenition = UIWidgets.create_octagon_button(
   },
   "sg_mutators_button"
 )
+
 
 -- Text displayed when user has 0 mutators
 local no_mutators_text_widget = {
@@ -285,11 +267,11 @@ local function create_mutator_widget(mutator, offset_function_callback)
 
       highlight_hotspot = {},
 
-      tooltip_text = "", -- is always being changed in local_offset pass
+      tooltip_text = "", -- always changes in local_offset pass
 
       hover_texture = "playerlist_hover",
 
-      checkbox_texture = "checkbox_unchecked", -- is always being changed in local_offset pass
+      checkbox_texture = "checkbox_unchecked", -- always changes in local_offset pass
 
       -- Presets
       checkbox_unchecked_texture = "checkbox_unchecked",
@@ -306,7 +288,7 @@ local function create_mutator_widget(mutator, offset_function_callback)
         font_size = 24,
         font_type = "hell_shark",
         dynamic_font = true,
-        text_color = Colors.get_color_table_with_alpha("white", 255)  -- is always being changed in local_offset pass
+        text_color = Colors.get_color_table_with_alpha("white", 255)  -- always changes in local_offset pass
       },
 
       hover_texture = {
@@ -323,15 +305,13 @@ local function create_mutator_widget(mutator, offset_function_callback)
       tooltip_text = {
         font_type = "hell_shark",
         font_size = 18,
-        horizontal_alignment = "left",
-        vertical_alignment = "top",
         cursor_side = "right",
         max_width = 425,
-        cursor_offset = {0, 0}, -- is always being changed in local_offset pass
+        cursor_offset = {0, 0}, -- always changes in local_offset pass
         cursor_default_offset = {27, -27}
       },
 
-      size = {370, 32},
+      size = {370, 32}
     }
   }
 end
