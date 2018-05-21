@@ -3,8 +3,8 @@ local vmf = get_mod("VMF")
 
 local scenegraph_definition = {
 
-	sg_root = {
-		size = {1920, 1080},
+  sg_root = {
+    size = {1920, 1080},
     position = {0, 0, UILayer.default},
 
     is_root = true,
@@ -228,12 +228,12 @@ local function create_mutator_widget(mutator, offset_function_callback)
         {
           pass_type = "texture",
 
-					style_id = "hover_texture",
+          style_id = "hover_texture",
           texture_id = "hover_texture",
-					content_check_function = function (content)
-						return content.can_be_enabled and content.highlight_hotspot.is_hover
-					end
-				},
+          content_check_function = function (content)
+            return content.can_be_enabled and content.highlight_hotspot.is_hover
+          end
+        },
         {
           pass_type = "text",
 
@@ -243,8 +243,8 @@ local function create_mutator_widget(mutator, offset_function_callback)
         {
           pass_type = "texture",
 
-					style_id = "checkbox_style",
-					texture_id = "checkbox_texture"
+          style_id = "checkbox_style",
+          texture_id = "checkbox_texture"
         },
         {
           pass_type = "tooltip_text",
@@ -292,14 +292,14 @@ local function create_mutator_widget(mutator, offset_function_callback)
       },
 
       hover_texture = {
-				size = {370, 32},
-				offset = {0, 0, 1}
-			},
+        size = {370, 32},
+        offset = {0, 0, 1}
+      },
 
       checkbox_style = {
-				size = {20, 20},
-				offset = {340, 6, 2},
-				color = {255, 255, 255, 255}
+        size = {20, 20},
+        offset = {340, 6, 2},
+        color = {255, 255, 255, 255}
       },
 
       tooltip_text = {

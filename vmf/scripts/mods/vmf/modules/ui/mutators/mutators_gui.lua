@@ -74,11 +74,11 @@ local function change_map_view_look(map_view, is_vmf_look)
 
   if is_vmf_look then
     map_view.ui_scenegraph.settings_button.position[1] = -50
-		map_view.ui_scenegraph.friends_button.position[1] = 50
+    map_view.ui_scenegraph.friends_button.position[1] = 50
     map_view.ui_scenegraph.lobby_button.position[1] = 150
   else
     map_view.ui_scenegraph.settings_button.position[1] = -100
-		map_view.ui_scenegraph.friends_button.position[1] = 0
+    map_view.ui_scenegraph.friends_button.position[1] = 0
     map_view.ui_scenegraph.lobby_button.position[1] = 100
   end
 end
@@ -394,11 +394,11 @@ vmf:hook("MapView.update", function (func, self, dt, t)
 
     -- Parse currently selected difficulty in the map_view
     local difficulty_data = self.selected_level_index and self:get_difficulty_data(self.selected_level_index)
-		local difficulty_layout = difficulty_data and difficulty_data[self.selected_difficulty_stepper_index]
-		_SELECTED_DIFFICULTY_KEY = difficulty_layout and difficulty_layout.key
+    local difficulty_layout = difficulty_data and difficulty_data[self.selected_difficulty_stepper_index]
+    _SELECTED_DIFFICULTY_KEY = difficulty_layout and difficulty_layout.key
 
     update_mutators_ui(self, dt)
-	end
+  end
 end)
 
 -- ####################################################################################################################
