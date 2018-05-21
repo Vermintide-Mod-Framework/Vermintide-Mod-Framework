@@ -1,4 +1,4 @@
-VT1 = true
+VT1 = (type(script_data["eac-untrusted"]) == "nil")
 --move vmf to local var
 return {
 	init = function(object)
