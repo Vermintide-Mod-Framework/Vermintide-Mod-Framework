@@ -23,10 +23,10 @@ local _MUTATORS_SORTED = false
 local _ALL_MUTATORS_DISABLED = false
 
 -- External modules
-local _DICE_MANAGER = vmf:dofile("scripts/mods/vmf/modules/ui/mutators/mutator_dice")
-local _SET_LOBBY_DATA = vmf:dofile("scripts/mods/vmf/modules/ui/mutators/mutator_info")
+local _DICE_MANAGER = vmf:dofile("scripts/mods/vmf/modules/core/mutators/mutators_dice")
+local _SET_LOBBY_DATA = vmf:dofile("scripts/mods/vmf/modules/core/mutators/mutators_info")
 
-local _DEFAULT_CONFIG = vmf:dofile("scripts/mods/vmf/modules/ui/mutators/mutator_default_config")
+local _DEFAULT_CONFIG = vmf:dofile("scripts/mods/vmf/modules/core/mutators/mutators_default_config")
 
 -- List of enabled mutators in case VMF is reloaded in the middle of the game
 local _ENABLED_MUTATORS = vmf:persistent_table("enabled_mutators")
@@ -501,4 +501,4 @@ end)
 -- ####################################################################################################################
 
 -- Testing
-vmf:dofile("scripts/mods/vmf/modules/ui/mutators/test/mutator_test")
+vmf:dofile("scripts/mods/vmf/modules/core/mutators/test/mutators_test")

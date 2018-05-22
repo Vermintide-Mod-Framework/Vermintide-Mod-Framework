@@ -16,12 +16,13 @@ lua = [
   "scripts/mods/vmf/*"
   "scripts/mods/vmf/modules/*"
   "scripts/mods/vmf/modules/core/*"
+  "scripts/mods/vmf/modules/core/mutators/*"
+  "scripts/mods/vmf/modules/core/mutators/test/*"
   "scripts/mods/vmf/modules/debug/*"
   "scripts/mods/vmf/modules/gui/*"
   "scripts/mods/vmf/modules/ui/options/*"
   "scripts/mods/vmf/modules/ui/chat/*"
   "scripts/mods/vmf/modules/ui/mutators/*"
-  "scripts/mods/vmf/modules/ui/mutators/test/*"
 
   "materials/vmf/vmf_atlas"
 ]
