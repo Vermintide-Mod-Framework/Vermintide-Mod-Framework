@@ -5,6 +5,10 @@ local vmf = get_mod("VMF")
 
 local _WERE_ENABLED_BEFORE = false
 
+-- ####################################################################################################################
+-- ##### Local functions ##############################################################################################
+-- ####################################################################################################################
+
 -- Assembles a list of enabled mutators
 local function add_enabled_mutators_titles_to_string(separator, is_short)
   local enabled_mutators = {}
@@ -15,6 +19,7 @@ local function add_enabled_mutators_titles_to_string(separator, is_short)
   end
   return vmf.add_mutator_titles_to_string(enabled_mutators, separator, is_short)
 end
+
 
 -- Sets the lobby name
 local function set_lobby_data()
@@ -42,22 +47,14 @@ local function set_lobby_data()
   Managers.matchmaking.lobby:set_lobby_data(lobby_data)
 end
 
---@TODO: maybe rewrite?
+
 local function get_peer_id_from_cookie(client_cookie)
-  local peer_id = tostring(client_cookie)
-  for _ = 1, 3 do
-    peer_id = string.sub(peer_id, 1 + tonumber(tostring(string.find(peer_id, "-"))))
-  end
-  peer_id = string.sub(peer_id, 2)
-  peer_id = string.reverse(peer_id)
-  peer_id = string.sub(peer_id, 2)
-  peer_id = string.reverse(peer_id)
-
-  vmf:echo("PEER ID FROM COOKIE #1: [" .. tostring(peer_id) .. "]")
-  vmf:echo("PEER ID FROM COOKIE #2: [" .. tostring(string.match(client_cookie, "%[(%a+)%]")) .. "]")
-
-  return peer_id
+  return string.match(client_cookie, "%[(.-)%]")
 end
+
+-- ####################################################################################################################
+-- ##### Hooks ########################################################################################################
+-- ####################################################################################################################
 
 -- Append difficulty name with enabled mutators' titles
 vmf:hook("IngamePlayerListUI.update_difficulty", function(func_, self)
@@ -77,6 +74,7 @@ vmf:hook("IngamePlayerListUI.update_difficulty", function(func_, self)
   self.current_difficulty_name = difficulty_name
 end)
 
+
 -- Notify everybody about enabled/disabled mutators when Play button is pressed on the map screen
 vmf:hook("MatchmakingStateHostGame.host_game", function(func, ...)
   func(...)
@@ -91,6 +89,7 @@ vmf:hook("MatchmakingStateHostGame.host_game", function(func, ...)
   end
 end)
 
+
 -- Send special messages with enabled mutators list to players just joining the lobby
 vmf:hook("MatchmakingManager.rpc_matchmaking_request_join_lobby", function(func, self, sender, client_cookie, ...)
   local name = add_enabled_mutators_titles_to_string(", ")
@@ -100,5 +99,9 @@ vmf:hook("MatchmakingManager.rpc_matchmaking_request_join_lobby", function(func,
   end
   func(self, sender, client_cookie, ...)
 end)
+
+-- ####################################################################################################################
+-- ##### Return #######################################################################################################
+-- ####################################################################################################################
 
 return set_lobby_data
