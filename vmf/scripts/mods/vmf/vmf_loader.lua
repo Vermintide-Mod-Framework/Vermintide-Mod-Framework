@@ -29,7 +29,7 @@ return {
 		dofile("scripts/mods/vmf/modules/vmf_options")
 
 		if VT1 then
-			dofile("scripts/mods/vmf/modules/ui/mutators/mutator_manager")
+			dofile("scripts/mods/vmf/modules/core/mutators/mutators_manager")
 			dofile("scripts/mods/vmf/modules/ui/mutators/mutators_gui")
 		end
 

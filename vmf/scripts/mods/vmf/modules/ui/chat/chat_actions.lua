@@ -21,6 +21,8 @@ local _CHAT_HISTORY_REMOVE_DUPS_LAST = false
 local _CHAT_HISTORY_REMOVE_DUPS_ALL = false
 local _CHAT_HISTORY_SAVE_COMMANDS_ONLY = false
 
+local _QUEUED_COMMAND -- is a workaround for VT2 where raycast is blocked during ui update
+
 -- ####################################################################################################################
 -- ##### Local functions ##############################################################################################
 -- ####################################################################################################################
@@ -99,7 +101,10 @@ vmf:hook("ChatGui._update_input", function(func, self, input_service, menu_input
       end
       table.remove(args, 1)
 
-      vmf.run_command(_COMMANDS_LIST[_COMMAND_INDEX].name, unpack(args))
+      _QUEUED_COMMAND = {
+        name = _COMMANDS_LIST[_COMMAND_INDEX].name,
+        args = args
+      }
 
       _COMMANDS_LIST = {}
       _COMMAND_INDEX = 0
@@ -270,6 +275,13 @@ end
 vmf.save_chat_history = function()
   if _CHAT_HISTORY_SAVE then
     vmf:set("chat_history", _CHAT_HISTORY)
+  end
+end
+
+vmf.execute_queued_chat_command = function()
+  if _QUEUED_COMMAND then
+    vmf.run_command(_QUEUED_COMMAND.name, unpack(_QUEUED_COMMAND.args))
+    _QUEUED_COMMAND = nil
   end
 end
 
