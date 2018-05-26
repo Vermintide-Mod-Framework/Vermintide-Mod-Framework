@@ -7,7 +7,7 @@ VMFModsKeyMap = {
     ["shift"] = {"keyboard", "left shift", "held"}
   },
   xb1 = {}
-  }
+}
 
 -- ["mod_name"]["setting_name"] = {"action_name", {"primary_key", "special_key", "special_key", "special_key"}} (special_key - "ctrl"/"shift"/"alt")
 local _RAW_KEYBINDS = {}
@@ -89,9 +89,9 @@ end
 -- ####################################################################################################################
 
 vmf.initialize_keybinds = function()
-  Managers.input.create_input_service(Managers.input, "VMFMods", "VMFModsKeyMap")
-  Managers.input.map_device_to_service(Managers.input, "VMFMods", "keyboard")
-  Managers.input.map_device_to_service(Managers.input, "VMFMods", "mouse")
+  Managers.input:create_input_service("VMFMods", "VMFModsKeyMap")
+  Managers.input:map_device_to_service("VMFMods", "keyboard")
+  Managers.input:map_device_to_service("VMFMods", "mouse")
 
   vmf.keybind_input_service = Managers.input:get_service("VMFMods")
 

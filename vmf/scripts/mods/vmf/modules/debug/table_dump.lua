@@ -42,7 +42,7 @@ end
 VMFMod.dump = function (self, dumped_object, dumped_object_name, max_depth)
 
   if not dumped_object or not max_depth then
-    self:error("(dump_to_file): not all arguments are specified.")
+    self:error("(dump): not all arguments are specified.")
     return
   end
 

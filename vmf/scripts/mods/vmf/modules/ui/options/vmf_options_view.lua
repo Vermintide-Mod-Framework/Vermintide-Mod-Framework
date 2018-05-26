@@ -4521,7 +4521,8 @@ local view_data = {
   }
 }
 
-if not V1 and not IngameView.umoes_is_hooked then
+-- @TODO: won't it conflict with hooking system if I'll decided to hook this function via mod:hook?
+if not VT1 and not IngameView.umoes_is_hooked then
 
   local umoes_original_function = IngameView.update_menu_options_enabled_states
   IngameView.update_menu_options_enabled_states = function(self)
