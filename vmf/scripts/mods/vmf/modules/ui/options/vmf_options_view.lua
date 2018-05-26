@@ -4582,8 +4582,8 @@ vmf:hook("IngameView.setup_button_layout", function (func, self, layout_data)
     fade = false
   }
 
-  for i, button_info in ipairs(layout_data) do
-    if button_info.transition == "options_menu" then
+  for i = 1, #layout_data do
+    if layout_data[i].transition == "options_menu" and layout_data[i + 1].transition ~= "vmf_options_view" then
       table.insert(layout_data, i + 1, mods_options_button)
       break
     end
