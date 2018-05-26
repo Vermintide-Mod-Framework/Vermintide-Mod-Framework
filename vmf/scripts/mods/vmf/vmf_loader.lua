@@ -56,6 +56,7 @@ return {
 		object.vmf.mods_update_event(dt)
 		object.vmf.check_pressed_keybinds()
 		object.vmf.check_custom_menus_close_keybinds(dt)
+		object.vmf.execute_queued_chat_command()
 		if VT1 then object.vmf.check_mutators_state() end
 
 		if not object.vmf.all_mods_were_loaded and Managers.mod._state == "done" then
