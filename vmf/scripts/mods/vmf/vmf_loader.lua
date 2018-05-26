@@ -42,13 +42,6 @@ return {
 			object.vmf.mods_unload_event(true)
 			func(self)
 		end)
-
-		-- @TODO: temporary V2 fix for not working event
-		--if not VT1 then Boot._machine._notify_mod_manager = true end
-
-		-- temporary solution:
-		local mod = new_mod("test_mod")
-		mod:initialize("scripts/mods/vmf/modules/testing_stuff_here")
 	end,
 
 	update = function(object, dt)
