@@ -5,8 +5,9 @@ VMFModsKeyMap = {
     ["ctrl"]  = {"keyboard", "left ctrl",  "held"},
     ["alt"]   = {"keyboard", "left alt",   "held"},
     ["shift"] = {"keyboard", "left shift", "held"}
+  },
+  xb1 = {}
   }
-}
 
 -- ["mod_name"]["setting_name"] = {"action_name", {"primary_key", "special_key", "special_key", "special_key"}} (special_key - "ctrl"/"shift"/"alt")
 local _RAW_KEYBINDS = {}
