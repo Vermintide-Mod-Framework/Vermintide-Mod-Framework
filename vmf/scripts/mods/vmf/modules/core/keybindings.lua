@@ -134,10 +134,8 @@ vmf.check_pressed_keybinds = function()
 
               local action_exists, action_function = pcall(function() return mod[binding_info[2]] end)
               if action_exists then
-                local success, error_message = pcall(action_function)
-                if not success then
-                  mod:error("(keybindings)(mod.%s): %s", tostring(binding_info[2]), tostring(error_message))
-                end
+                local error_prefix = "(keybindings) " .. tostring(binding_info[2])
+                vmf.xpcall_no_return_values(mod, error_prefix, action_function)
               else
                 mod:error("(keybindings): function '%s' wasn't found.", tostring(binding_info[2]))
               end

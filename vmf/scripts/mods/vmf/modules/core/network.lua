@@ -150,13 +150,13 @@ end
 
 local function send_rpc_vmf_data_local(mod_name, rpc_name, ...)
 
-  if get_mod(mod_name):is_enabled() then
+  local mod = get_mod(mod_name)
+
+  if mod:is_enabled() then
     network_debug("data", "local", nil, mod_name, rpc_name, {...})
 
-    local success, error_message = pcall(_RPC_CALLBACKS[mod_name][rpc_name], Network.peer_id(), ...)
-    if not success then
-      get_mod(mod_name):error("(local rpc) in rpc '%s': %s", tostring(rpc_name), tostring(error_message))
-    end
+    local error_prefix = "(local rpc) " .. tostring(rpc_name)
+    vmf.xpcall_no_return_values(mod, error_prefix, _RPC_CALLBACKS[mod_name][rpc_name], Network.peer_id(), ...)
   end
 end
 
@@ -277,10 +277,12 @@ vmf:hook("ChatManager.rpc_chat_message", function(func, self, sender, channel_id
         network_debug("data", "received", sender, mod_name, rpc_name, localization_param)
 
         -- can be error in both callback_function() and deserialize_data()
-        local success, error_message = pcall(function() _RPC_CALLBACKS[mod_name][rpc_name](sender, deserialize_data(localization_param)) end)
-        if not success then
-          get_mod(mod_name):error("(network) in rpc function '%s': %s", rpc_name, tostring(error_message))
-        end
+        local error_prefix = "(network) " .. tostring(rpc_name)
+        vmf.xpcall_no_return_values(
+         get_mod(mod_name),
+         error_prefix,
+         function() _RPC_CALLBACKS[mod_name][rpc_name](sender, deserialize_data(localization_param)) end
+        )
       end
     end
 	end

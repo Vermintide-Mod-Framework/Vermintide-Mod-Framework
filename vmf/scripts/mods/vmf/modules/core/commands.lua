@@ -139,10 +139,8 @@ vmf.run_command = function(command_name, ...)
 
   local command_entry = _COMMANDS[command_name]
   if command_entry then
-    local success, error_message = pcall(command_entry.exec_function, ...)
-    if not success then
-      command_entry.mod:error("(commands) in command '%s': %s", command_name, tostring(error_message))
-    end
+    local error_prefix = "(commands) " .. tostring(command_name)
+    vmf.xpcall_no_return_values(command_entry.mod, error_prefix, command_entry.exec_function, ...)
   else
     vmf:error("(commands): command '%s' wasn't found.", command_name) -- should never see this
   end

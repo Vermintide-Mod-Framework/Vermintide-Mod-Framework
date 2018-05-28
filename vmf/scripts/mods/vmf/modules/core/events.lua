@@ -8,11 +8,7 @@ local _MODS_UNLOADING_ORDER = vmf.mods_unloading_order
 -- ####################################################################################################################
 
 local function run_event(mod, event_name, event, ...)
-
-  local success, error_message = pcall(event, ...)
-  if not success then
-    mod:error("(mod.%s): %s", event_name, error_message)
-  end
+  vmf.xpcall_no_return_values(mod, "(event) " .. event_name, event, ...)
 end
 
 -- ####################################################################################################################

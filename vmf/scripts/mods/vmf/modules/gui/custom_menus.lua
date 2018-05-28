@@ -169,14 +169,14 @@ vmf.close_opened_custom_menus = function()
     if views_settings[current_view] then
         ingame_ui:handle_transition("exit_menu")
 
-      --if current_view ~= "vmf_options_view" then
         if ingame_ui.views[current_view].destroy and get_mod(views_settings[ingame_ui.current_view].mod_name) then
 
-          get_mod(views_settings[ingame_ui.current_view].mod_name):pcall(ingame_ui.views[current_view].destroy)
+          local mod = get_mod(views_settings[current_view].mod_name)
+          local destroy_method = ingame_ui.views[current_view].destroy
+          vmf.xpcall_no_return_values(mod, "(custom menus) destroy view", destroy_method)
         end
 
         ingame_ui.views[current_view] = nil
-      --end
     end
   end
 end
