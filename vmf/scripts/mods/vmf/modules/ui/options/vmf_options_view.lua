@@ -17,9 +17,9 @@
 local vmf = get_mod("VMF")
 
 --vmf:custom_textures("header_fav_icon", "header_fav_icon_lit", "header_fav_arrow", "search_bar_icon")
-vmf:custom_atlas("materials/vmf/vmf_atlas", "vmf_atlas", "vmf_atlas_masked")
+vmf.custom_atlas(vmf, "materials/vmf/vmf_atlas", "vmf_atlas", "vmf_atlas_masked")
 
-vmf:inject_materials("ingame_ui", "materials/vmf/vmf_atlas")
+vmf.inject_materials(vmf, "ingame_ui", "materials/vmf/vmf_atlas")
 
 -- ####################################################################################################################
 -- ##### MENU WIDGETS DEFINITIONS #####################################################################################

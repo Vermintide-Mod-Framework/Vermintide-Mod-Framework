@@ -163,7 +163,6 @@ function VMFMod:pcall(...)
   return vmf.xpcall(self, "(pcall)", ...)
 end
 
-
 function VMFMod:dofile(file_path)
   local _, return_values = pack_pcall(vmf.xpcall_dofile(self, "(dofile)", file_path))
 	return unpack(return_values, 1, return_values.n)
@@ -236,6 +235,30 @@ function vmf.initialize_mod_data(mod, mod_data)
 
   if mod_data.options_widgets or (mod_data.is_togglable and not mod_data.is_mutator) then
     vmf.create_options(mod, mod_data.options_widgets)
+  end
+
+  if type(mod_data.custom_gui_textures) == "table" then
+    local custom_gui_textures = mod_data.custom_gui_textures
+
+    if type(custom_gui_textures.textures) == "table" then
+      vmf.custom_textures(mod, unpack(custom_gui_textures.textures))
+    end
+
+    if type(custom_gui_textures.atlases) == "table" then
+      for _, atlas_settings in ipairs(custom_gui_textures.atlases) do
+        if type(atlas_settings) == "table" then
+          vmf.custom_atlas(mod, unpack(atlas_settings))
+        end
+      end
+    end
+
+    if type(custom_gui_textures.ui_renderer_injections) == "table" then
+      for _, injection_settings in ipairs(custom_gui_textures.ui_renderer_injections) do
+        if type(injection_settings) == "table" then
+          vmf.inject_materials(mod, unpack(injection_settings))
+        end
+      end
+    end
   end
 end
 

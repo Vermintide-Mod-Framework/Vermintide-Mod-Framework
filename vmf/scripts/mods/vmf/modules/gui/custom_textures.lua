@@ -46,38 +46,38 @@ end
 -- ##### VMFMod #######################################################################################################
 -- ####################################################################################################################
 
-VMFMod.custom_textures = function (self, ...)
+vmf.custom_textures = function (mod, ...)
 
   for i, texture_name in ipairs({...}) do
     if type(texture_name) == "string" then
-      if check_texture_availability(self, texture_name) then
-        _CUSTOM_NONE_ATLAS_TEXTURES[texture_name] = self:get_name()
+      if check_texture_availability(mod, texture_name) then
+        _CUSTOM_NONE_ATLAS_TEXTURES[texture_name] = mod:get_name()
       end
     else
-      self:error("(custom_textures): all arguments should have the string type, but the argument #%s is %s", i, type(texture_name))
+      mod:error("(custom_textures): all arguments should have the string type, but the argument #%s is %s", i, type(texture_name))
     end
   end
 end
 
-VMFMod.custom_atlas = function (self, material_settings_file, material_name, masked_material_name, point_sample_material_name,
+vmf.custom_atlas = function (mod, material_settings_file, material_name, masked_material_name, point_sample_material_name,
                                       masked_point_sample_material_name, saturated_material_name)
 
-  if vmf.check_wrong_argument_type(self, "custom_atlas", "material_settings_file", material_settings_file, "string") or
-     vmf.check_wrong_argument_type(self, "custom_atlas", "material_name", material_name, "string", "nil") or
-     vmf.check_wrong_argument_type(self, "custom_atlas", "masked_material_name", masked_material_name, "string", "nil") or
-     vmf.check_wrong_argument_type(self, "custom_atlas", "point_sample_material_name", point_sample_material_name, "string", "nil") or
-     vmf.check_wrong_argument_type(self, "custom_atlas", "masked_point_sample_material_name", masked_point_sample_material_name, "string", "nil") or
-     vmf.check_wrong_argument_type(self, "custom_atlas", "saturated_material_name", saturated_material_name, "string", "nil") then
+  if vmf.check_wrong_argument_type(mod, "custom_atlas", "material_settings_file", material_settings_file, "string") or
+     vmf.check_wrong_argument_type(mod, "custom_atlas", "material_name", material_name, "string", "nil") or
+     vmf.check_wrong_argument_type(mod, "custom_atlas", "masked_material_name", masked_material_name, "string", "nil") or
+     vmf.check_wrong_argument_type(mod, "custom_atlas", "point_sample_material_name", point_sample_material_name, "string", "nil") or
+     vmf.check_wrong_argument_type(mod, "custom_atlas", "masked_point_sample_material_name", masked_point_sample_material_name, "string", "nil") or
+     vmf.check_wrong_argument_type(mod, "custom_atlas", "saturated_material_name", saturated_material_name, "string", "nil") then
     return
   end
 
-  local material_settings = self:dofile(material_settings_file)
+  local material_settings = mod:dofile(material_settings_file)
   if material_settings then
 
-    local mod_name = self:get_name()
+    local mod_name = mod:get_name()
 
     for texture_name, texture_settings in pairs(material_settings) do
-      if check_texture_availability(self, texture_name) then
+      if check_texture_availability(mod, texture_name) then
         texture_settings.mod_name                          = mod_name
 
         texture_settings.material_name                     = material_name
@@ -91,19 +91,19 @@ VMFMod.custom_atlas = function (self, material_settings_file, material_name, mas
     end
 
   else
-    self:error("(custom_atlas): can't load 'material_settings'")
+    mod:error("(custom_atlas): can't load 'material_settings'")
   end
 end
 
-VMFMod.inject_materials = function (self, ui_renderer_creator, ...)
+vmf.inject_materials = function (mod, ui_renderer_creator, ...)
 
-  if vmf.check_wrong_argument_type(self, "inject_materials", "ui_renderer_creator", ui_renderer_creator, "string") then
+  if vmf.check_wrong_argument_type(mod, "inject_materials", "ui_renderer_creator", ui_renderer_creator, "string") then
     return
   end
 
   local injected_materials_list = _INJECTED_MATERIALS[ui_renderer_creator] or {}
 
-  local can_inject = true
+  local can_inject
   for i, new_injected_material in ipairs({...}) do
     if type(new_injected_material) == "string" then
 
@@ -122,7 +122,7 @@ VMFMod.inject_materials = function (self, ui_renderer_creator, ...)
       end
 
     else
-      self:error("(inject_materials): all arguments should have the string type, but the argument #%s is %s", i + 1, type(new_injected_material))
+      mod:error("(inject_materials): all arguments should have the string type, but the argument #%s is %s", i + 1, type(new_injected_material))
     end
   end
 
