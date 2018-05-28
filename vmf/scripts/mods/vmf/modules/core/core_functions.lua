@@ -22,7 +22,11 @@ local function safe_format(mod, str, ...)
 end
 
 
-local function send_to_chat(message)
+local function send_to_chat(self, msg_type, message)
+
+  if msg_type ~= "echo" then
+    message = string.format("[%s][%s] %s", self:get_name(), string.upper(msg_type), message)
+  end
 
   if Managers.chat and Managers.chat:has_channel(1) then
     Managers.chat:add_local_system_message(1, message, true)
@@ -43,7 +47,7 @@ local function log_message(self, msg_type, message, ...)
   if message then
 
     if _LOGGING_SETTINGS[msg_type].send_to_chat then
-      send_to_chat(message)
+      send_to_chat(self, msg_type, message)
     end
 
     if _LOGGING_SETTINGS[msg_type].send_to_log then
