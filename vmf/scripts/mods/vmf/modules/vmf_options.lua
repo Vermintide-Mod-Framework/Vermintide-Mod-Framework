@@ -270,7 +270,7 @@ end
 -- ##### Script #######################################################################################################
 -- ####################################################################################################################
 
-vmf:initialize_data(vmf_mod_data)
+vmf.initialize_mod_data(vmf, vmf_mod_data)
 
 -- first VMF initialization
 -- it will be run only 1 time, when the player launch the game with VMF for the first time

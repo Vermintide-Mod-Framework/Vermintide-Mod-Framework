@@ -21,10 +21,6 @@ local function safe_format(mod, str, ...)
   end
 end
 
-local function pack_pcall(status, ...)
-
-  return status, {...}
-end
 
 local function send_to_chat(message)
 
@@ -96,33 +92,6 @@ function VMFMod:debug(message, ...)
 end
 
 
-function VMFMod:pcall(...)
-  local status, values = pack_pcall(pcall(...))
-
-  if not status then
-    self:error("(pcall): %s", tostring(values[1]))
-  end
-
-  return status, unpack(values)
-end
-
-
-function VMFMod:dofile(script_path)
-
-  local success, values = pack_pcall(pcall(dofile, script_path))
-
-  if not success then
-
-    if values[1].error then
-      self:error("(dofile): %s", values[1].error)
-      print("\nTRACEBACK:\n\n" .. values[1].traceback .. "\nLOCALS:\n\n" .. values[1].locals)
-    else
-      self:error("(dofile): %s", tostring(values[1]))
-    end
-  end
-
-  return unpack(values)
-end
 
 -- ####################################################################################################################
 -- ##### VMF internal functions and variables #########################################################################

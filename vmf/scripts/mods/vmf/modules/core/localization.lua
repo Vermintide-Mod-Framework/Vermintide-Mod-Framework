@@ -34,28 +34,6 @@ end
 -- ##### VMFMod #######################################################################################################
 -- ####################################################################################################################
 
-VMFMod.localization = function (self, path)
-
-  local success, value = pcall(dofile, path)
-
-  if not success then
-    self:error("(localization): %s", value.error)
-    return
-  end
-
-  if type(value) ~= "table" then
-    self:error("(localization): localization file should return table")
-    return
-  end
-
-  if _LOCALIZATION_DATABASE[self:get_name()] then
-    self:warning("(localization): overwritting already loaded localization file")
-  end
-
-  _LOCALIZATION_DATABASE[self:get_name()] = value
-end
-
-
 VMFMod.localize = function (self, text_id, ...)
 
   local mod_localization_table = _LOCALIZATION_DATABASE[self:get_name()]
@@ -90,7 +68,26 @@ VMFMod.localize = function (self, text_id, ...)
 end
 
 -- ####################################################################################################################
+-- ##### VMF internal functions and variables #########################################################################
+-- ####################################################################################################################
+
+vmf.load_mod_localization = function (mod, localization_table)
+
+  if type(localization_table) ~= "table" then
+    mod:error("(localization): localization file should return table")
+    return
+  end
+
+  if _LOCALIZATION_DATABASE[mod:get_name()] then
+    mod:warning("(localization): overwritting already loaded localization file")
+  end
+
+  _LOCALIZATION_DATABASE[mod:get_name()] = localization_table
+end
+
+-- ####################################################################################################################
 -- ##### Script #######################################################################################################
 -- ####################################################################################################################
 
-vmf:localization("localization/vmf")
+local localization_table = vmf:dofile("localization/vmf")
+vmf.load_mod_localization(vmf, localization_table)
