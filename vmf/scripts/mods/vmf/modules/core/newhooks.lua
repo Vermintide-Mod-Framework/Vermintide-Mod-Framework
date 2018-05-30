@@ -39,18 +39,18 @@ _registry.origs = {}
 -- ####################################################################################################################
 
 local function is_orig_hooked(obj, method)
-    if obj and _registry.origs[obj] and _registry.origs[obj][method] then
+    local orig_registry = _registry.origs
+    if obj and orig_registry[obj] and orig_registry[obj][method] then
         return true
-    elseif _registry.origs[method] then
+    elseif orig_registry[method] then
         return true
     end
     return false
 end
 
 local function is_existing_hook(self, orig, hook_type)
-    if _registry[self][hook_type] and
-       _registry[self][hook_type].handler and
-       _registry[self][hook_type].handler[orig] then
+    local registry = _registry[self][hook_type]
+    if registry and registry.handler and registry.handler[orig] then
         return true
     end
 end
@@ -63,14 +63,15 @@ end
 -- Since all hooks of the chain contains the call to the previous one, we don't need to do any manual loops.
 -- This continues until the end of the chain, where the original function is called.
 local function get_hook_chain(orig)
-    local hooks = _registry.hooks[HOOK_TYPE_NORMAL][orig]
+    local hook_registry = _registry.hooks
+    local hooks = hook_registry[HOOK_TYPE_NORMAL][orig]
     if hooks and #hooks > 0 then
         return hooks[#hooks]
     end
     -- We can't simply return orig here, or it would cause rawhooks to depend on load order.
     return function(...)
-        if _registry.hooks[HOOK_TYPE_RAW][orig] then
-            return _registry.hooks[HOOK_TYPE_RAW][orig](...)
+        if hook_registry[HOOK_TYPE_RAW][orig] then
+            return hook_registry[HOOK_TYPE_RAW][orig](...)
         else
             return orig(...)
         end
@@ -286,6 +287,24 @@ function HookMixin:new_rawhook(obj, method, handler)
 
     local orig = get_orig_function(self, obj, method)
     create_hook(self, orig, obj, method, handler, HOOK_TYPE_RAW)
+end
+
+function HookMixin:enable_all_hooks()
+    -- Using pairs because the self table may contain nils, and order isnt important.
+    for _, hooks in pairs(_registry[self]) do
+        for orig, _ in pairs(hooks.active) do
+            hooks.active[orig] = true
+        end
+    end
+end
+
+function HookMixin:disable_all_hooks()
+    -- Using pairs because the self table may contain nils, and order isnt important.
+    for _, hooks in pairs(_registry[self]) do
+        for orig, _ in pairs(hooks.active) do
+            hooks.active[orig] = false
+        end
+    end
 end
 
 -- ####################################################################################################################
