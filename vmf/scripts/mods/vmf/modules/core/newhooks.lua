@@ -1,13 +1,15 @@
 local vmf = get_mod("VMF")
 
--- Private members
-local HookMixin = {}
+-- ####################################################################################################################
+-- ##### Locals and Variables #########################################################################################
+-- ####################################################################################################################
 
-local HOOK_TYPE_BEFORE = 1
-local HOOK_TYPE_AFTER  = 2
-local HOOK_TYPE_NORMAL = 3
+-- Constants for hook_type
+local HOOK_TYPE_NORMAL = 1
+local HOOK_TYPE_BEFORE = 2
+local HOOK_TYPE_AFTER  = 3
 local HOOK_TYPE_RAW = 4
-local HOOK_ERR_NAME = { "before-hook", "after-hook", "hook", "rawhook", }
+local HOOK_ERR_NAME = { "hook", "before", "after", "rawhook", }
 
 --[[ Planned registry structure:
   _registry[self][hook_type] = {
@@ -154,7 +156,7 @@ local function create_hook(self, orig, obj, method, handler, hook_type)
     end
 
     if type(obj) == "string" then
-        if not _G[obj] then
+        if not rawget(_G, obj) then
             return
         end
         obj = _G[obj]
@@ -197,11 +199,11 @@ end
 local function get_orig_function(self, obj, method)
     -- Validate types
     if obj and not (type(obj) == "table" or type(obj) == "string")  then
-        self:error("(hook): 'object' - table or string expected, got %s", type(obj))
+        self:error("(hook): 'object' - table or string expected, got %s [args: %s, %s", type(obj), obj or "nil", method or "nil")
         return
     end
     if type(method) ~= "string" then
-        self:error("(hook): 'method' - string expected, got %s", type(method))
+        self:error("(hook): 'method' - string expected, got %s [args: %s, %s]", type(method), obj or "nil", method or "nil")
         return
     end
 
@@ -209,7 +211,7 @@ local function get_orig_function(self, obj, method)
         -- obj can be a string. We'll need to grab the actual object first.
         -- if we can't find object, we don't need to go any further.
         if type(obj) == "string" then
-            if not _G[obj] then return end
+            if not rawget(_G, obj) then return end
             obj = _G[obj]
         end
         if is_orig_hooked(obj, method) then
@@ -240,7 +242,7 @@ end
 -- This type of hook is typically used if you need to know a function was called, but dont want to modify it.
 -- These will always be executed before the hook chain.
 -- Due to discussion, handler may not receive any arguments, but will see what the use cases are with them first.
-function HookMixin:new_before(obj, method, handler)
+function VMFMod:before(obj, method, handler)
     if type(method) == "function" then
         method, handler, obj = obj, method, nil
     end
@@ -253,7 +255,7 @@ end
 --          original function, nor can you change its return values.
 -- These will always be executed after the hook chain.
 -- This is similar to :front() functionality in V1 modding.
-function HookMixin:new_after(obj, method, handler)
+function VMFMod:after(obj, method, handler)
     if type(method) == "function" then
         method, handler, obj = obj, method, nil
     end
@@ -266,7 +268,7 @@ end
 --         and control it's execution. All hooks on the same function will be part of a chain, with the
 --         original function at the end. Your handler has to call the next function in the chain manually.
 -- The chain of event is determined by mod load order.
-function HookMixin:new_hook(obj, method, handler)
+function VMFMod:hook(obj, method, handler)
     if type(method) == "function" then
         method, handler, obj = obj, method, nil
     end
@@ -280,7 +282,7 @@ end
 -- This is similar to :back functionality that was sparsely used in old V1 mods.
 -- This there is a limit of a single rawhook for any given function.
 -- This should only be used as a last resort due to its limitation and its potential to break the game if not careful.
-function HookMixin:new_rawhook(obj, method, handler)
+function VMFMod:rawhook(obj, method, handler)
     if type(method) == "function" then
         method, handler, obj = obj, method, nil
     end
@@ -289,7 +291,7 @@ function HookMixin:new_rawhook(obj, method, handler)
     create_hook(self, orig, obj, method, handler, HOOK_TYPE_RAW)
 end
 
-function HookMixin:enable_all_hooks()
+function VMFMod:enable_all_hooks()
     -- Using pairs because the self table may contain nils, and order isnt important.
     for _, hooks in pairs(_registry[self]) do
         for orig, _ in pairs(hooks.active) do
@@ -298,7 +300,7 @@ function HookMixin:enable_all_hooks()
     end
 end
 
-function HookMixin:disable_all_hooks()
+function VMFMod:disable_all_hooks()
     -- Using pairs because the self table may contain nils, and order isnt important.
     for _, hooks in pairs(_registry[self]) do
         for orig, _ in pairs(hooks.active) do
@@ -314,10 +316,3 @@ end
 -- -- removes all hooks when VMF is about to be reloaded
 -- vmf.hooks_unload = function()
 -- end
-
--- put the hook mixin inside VMFMod
-do
-    for k, v in pairs(HookMixin) do
-        VMFMod[k] = v
-    end
-end
