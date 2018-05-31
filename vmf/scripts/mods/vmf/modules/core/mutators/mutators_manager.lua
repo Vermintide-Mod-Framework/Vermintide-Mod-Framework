@@ -501,4 +501,4 @@ end)
 -- ####################################################################################################################
 
 -- Testing
-vmf:dofile("scripts/mods/vmf/modules/core/mutators/test/mutators_test")
+--vmf:dofile("scripts/mods/vmf/modules/core/mutators/test/mutators_test")
