@@ -20,6 +20,8 @@ local HOOK_ERR_NAME = { "hook", "before", "after", "rawhook", }
   _registry.origs
 ]]
 
+local _delayed = {} -- dont need to attach this to registry.
+
 -- This metatable will automatically create a table entry if one doesnt exist.
 local auto_table_meta = {__index = function(t, k) t[k] = {} return t[k] end }
 
@@ -48,6 +50,24 @@ local function is_orig_hooked(obj, method)
         return true
     end
     return false
+end
+
+-- Since we replace the original function, we need to keep its reference around.
+-- This will grab the cached reference if we hooked it before, otherwise return the function.
+local function get_orig_function(self, obj, method)
+    if obj then
+        if is_orig_hooked(obj, method) then
+            return _registry.origs[obj][method]
+        else
+            return obj[method]
+        end
+    else
+        if is_orig_hooked(obj, method) then
+            return _registry.origs[method]
+        else
+            return rawget(_G, method)
+        end
+    end
 end
 
 local function is_existing_hook(self, orig, hook_type)
@@ -150,17 +170,6 @@ end
 
 local function create_hook(self, orig, obj, method, handler, hook_type)
     local err_name = HOOK_ERR_NAME[hook_type]
-    if type(handler) ~= "function" then
-        self:error("(%s): 'handler' - function expected, got %s", err_name, type(handler))
-        return
-    end
-
-    if type(obj) == "string" then
-        if not rawget(_G, obj) then
-            return
-        end
-        obj = _G[obj]
-    end
 
     if not is_orig_hooked(obj, method) then
         create_internal_hook(orig, obj, method)
@@ -170,7 +179,6 @@ local function create_hook(self, orig, obj, method, handler, hook_type)
     if not is_existing_hook(self, orig, hook_type) then
         -- Also set up related info accessible to the hook object under self.
         if not _registry[self][hook_type] then
-
             _registry[self][hook_type] = {
                 active = {},
                 handler = {},
@@ -194,38 +202,60 @@ local function create_hook(self, orig, obj, method, handler, hook_type)
 
 end
 
--- Since we replace the original function, we need to keep its reference around.
--- This will grab the cached reference if we hooked it before, otherwise return the function.
-local function get_orig_function(self, obj, method)
-    -- Validate types
-    if obj and not (type(obj) == "table" or type(obj) == "string")  then
-        self:error("(hook): 'object' - table or string expected, got %s [args: %s, %s", type(obj), obj or "nil", method or "nil")
+-- ####################################################################################################################
+-- ##### GENERIC API ##################################################################################################
+-- ####################################################################################################################
+-- Singular functions that works on a generic basis so the VMFMod API can be tailored for user simplicity.
+
+-- Valid styles:
+
+-- Giving a string pointing to a global object table and method string and hook function
+--     self, string (obj), string (method), function (handler), hook_type(number)
+-- Giving an object table and a method string and hook function
+--     self, table (obj), string (method), function (handler), hook_type(number)
+-- Giving a method string or a Obj.Method string (VT1 Style) and a hook function
+--     self, string (method), function (handler), nil, hook_type(number)
+
+local function generic_hook(self, obj, method, handler, hook_type)
+    local func_name = HOOK_ERR_NAME[hook_type]
+    if vmf.check_wrong_argument_type(self, func_name, "obj", obj, "string", "table") or
+    vmf.check_wrong_argument_type(self, func_name, "method", method, "string", "function") or
+    vmf.check_wrong_argument_type(self, func_name, "handler", handler, "function", "nil") then
         return
     end
-    if type(method) ~= "string" then
-        self:error("(hook): 'method' - string expected, got %s [args: %s, %s]", type(method), obj or "nil", method or "nil")
-        return
+    
+    -- Adjust the arguments.
+    if type(method) == "function" then
+        handler = method
+
+        -- VT1 hooked everything using a "Obj.Method" string
+        -- Add backward compatibility for that format.
+        local find_position = string.find(obj, "%.")
+        if find_position then
+            method = string.sub(obj, find_position + 1)
+            obj = string.sub(obj, 1, find_position - 1)
+        end
     end
 
-    if obj then
-        -- obj can be a string. We'll need to grab the actual object first.
-        -- if we can't find object, we don't need to go any further.
-        if type(obj) == "string" then
-            if not rawget(_G, obj) then return end
-            obj = _G[obj]
-        end
-        if is_orig_hooked(obj, method) then
-            return _registry.origs[obj][method]
+    -- Check if hook should be delayed.
+    if type(obj) == "string" then
+        local obj_table = rawget(_G, obj)
+        if obj_table then
+            -- No delay required, grab object and move on
+            obj = obj_table
         else
-            return obj[method]
-        end
-    else
-        if is_orig_hooked(obj, method) then
-            return _registry.origs[method]
-        else
-            return _G[method]
+            -- Call this func at a later time, using upvalues.
+            vmf:info("[%s.%s] needs to be delayed.", obj, method)
+            table.insert(_delayed, function()
+                generic_hook(self, obj, method, handler, hook_type)
+            end)
+            return
         end
     end
+
+    -- obj can't be a string for these.
+    local orig = get_orig_function(self, obj, method)
+    return create_hook(self, orig, obj, method, handler, hook_type)
 end
 
 -- ####################################################################################################################
@@ -243,12 +273,7 @@ end
 -- These will always be executed before the hook chain.
 -- Due to discussion, handler may not receive any arguments, but will see what the use cases are with them first.
 function VMFMod:before(obj, method, handler)
-    if type(method) == "function" then
-        method, handler, obj = obj, method, nil
-    end
-
-    local orig = get_orig_function(self, obj, method)
-    create_hook(self, orig, obj, method, handler, HOOK_TYPE_BEFORE)
+    return generic_hook(self, obj, method, handler, HOOK_TYPE_BEFORE)
 end
 
 -- :after() provides callback after a function is called. You have no control over the execution of the
@@ -256,12 +281,7 @@ end
 -- These will always be executed after the hook chain.
 -- This is similar to :front() functionality in V1 modding.
 function VMFMod:after(obj, method, handler)
-    if type(method) == "function" then
-        method, handler, obj = obj, method, nil
-    end
-
-    local orig = get_orig_function(self, obj, method)
-    create_hook(self, orig, obj, method, handler, HOOK_TYPE_AFTER)
+    return generic_hook(self, obj, method, handler, HOOK_TYPE_AFTER)
 end
 
 -- :hook() will allow you to hook a function, allowing your handler to replace the function in the stack,
@@ -269,12 +289,7 @@ end
 --         original function at the end. Your handler has to call the next function in the chain manually.
 -- The chain of event is determined by mod load order.
 function VMFMod:hook(obj, method, handler)
-    if type(method) == "function" then
-        method, handler, obj = obj, method, nil
-    end
-
-    local orig = get_orig_function(self, obj, method)
-    create_hook(self, orig, obj, method, handler, HOOK_TYPE_NORMAL)
+    return generic_hook(self, obj, method, handler, HOOK_TYPE_NORMAL)
 end
 
 -- :rawhook() allows you to directly hook a function, replacing it. The original function will bever be called.
@@ -283,12 +298,7 @@ end
 -- This there is a limit of a single rawhook for any given function.
 -- This should only be used as a last resort due to its limitation and its potential to break the game if not careful.
 function VMFMod:rawhook(obj, method, handler)
-    if type(method) == "function" then
-        method, handler, obj = obj, method, nil
-    end
-
-    local orig = get_orig_function(self, obj, method)
-    create_hook(self, orig, obj, method, handler, HOOK_TYPE_RAW)
+    return generic_hook(self, obj, method, handler, HOOK_TYPE_RAW)
 end
 
 function VMFMod:enable_all_hooks()
@@ -316,3 +326,13 @@ end
 -- -- removes all hooks when VMF is about to be reloaded
 -- vmf.hooks_unload = function()
 -- end
+
+vmf.apply_delayed_hooks = function()
+    if #_delayed > 0 then
+        -- Go through the table in reverse so we don't get any issues removing entries inside the loop
+        for i = #_delayed, 1, -1 do
+            _delayed[i]()
+            table.remove(_delayed, i)
+        end
+    end
+end
