@@ -77,6 +77,32 @@ local function is_existing_hook(self, orig, hook_type)
     end
 end
 
+-- Return an object from the global table. Second return value is if it was sucessful.
+local function get_object_from_string(obj)
+    if type(obj) == "table" then
+        return obj, true
+    elseif type(obj) == "string" then
+        local obj_table = rawget(_G, obj)
+        return obj_table, (type(obj_table) == "table")
+    else
+        return obj, false
+    end
+end
+
+-- VT1 hooked everything using a "Obj.Method" string
+-- Add backward compatibility for that format.
+local function split_function_string(str)
+    local find_position = string.find(str, "%.")
+    local method, obj
+    if find_position then
+        method = string.sub(str, find_position + 1)
+        obj = string.sub(str, 1, find_position - 1)
+    else
+        method = str
+    end
+    return method, obj
+end
+
 -- ####################################################################################################################
 -- ##### Hook Creation ################################################################################################
 -- ####################################################################################################################
@@ -169,7 +195,7 @@ local function create_internal_hook(orig, obj, method)
 end
 
 local function create_hook(self, orig, obj, method, handler, hook_type)
-    local err_name = HOOK_ERR_NAME[hook_type]
+    local func_name = HOOK_ERR_NAME[hook_type]
 
     if not is_orig_hooked(obj, method) then
         create_internal_hook(orig, obj, method)
@@ -189,7 +215,7 @@ local function create_hook(self, orig, obj, method, handler, hook_type)
         -- Add to the hook to registry. Raw hooks are unique, so we check for that too.
         if hook_type == HOOK_TYPE_RAW then
             if _registry.hooks[hook_type][orig] then
-                self:error("(%s): Attempting to rawhook already hooked function %s", err_name, method)
+                self:error("(%s): Attempting to rawhook already hooked function %s", func_name, method)
             else
                 _registry.hooks[hook_type][orig] = create_specialized_hook(self, orig, handler, hook_type)
             end
@@ -197,7 +223,8 @@ local function create_hook(self, orig, obj, method, handler, hook_type)
             table.insert(_registry.hooks[hook_type][orig], create_specialized_hook(self, orig, handler, hook_type))
         end
     else
-        self:error("(%s): Attempting to rehook already active %s %s.", err_name, err_name, method)
+        local hook_type_name = (hook_type == HOOK_TYPE_NORMAL) and func_name or func_name.."-hook"
+        self:error("(%s): Attempting to rehook already active %s %s.", func_name, hook_type_name, method)
     end
 
 end
@@ -223,39 +250,62 @@ local function generic_hook(self, obj, method, handler, hook_type)
     vmf.check_wrong_argument_type(self, func_name, "handler", handler, "function", "nil") then
         return
     end
-    
+
     -- Adjust the arguments.
     if type(method) == "function" then
         handler = method
-
-        -- VT1 hooked everything using a "Obj.Method" string
-        -- Add backward compatibility for that format.
-        local find_position = string.find(obj, "%.")
-        if find_position then
-            method = string.sub(obj, find_position + 1)
-            obj = string.sub(obj, 1, find_position - 1)
-        end
+        method, obj = split_function_string(obj)
     end
 
     -- Check if hook should be delayed.
-    if type(obj) == "string" then
-        local obj_table = rawget(_G, obj)
-        if obj_table then
-            -- No delay required, grab object and move on
-            obj = obj_table
-        else
-            -- Call this func at a later time, using upvalues.
-            vmf:info("[%s.%s] needs to be delayed.", obj, method)
-            table.insert(_delayed, function()
-                generic_hook(self, obj, method, handler, hook_type)
-            end)
-            return
-        end
+    local obj, sucess = get_object_from_string(obj) --luacheck: ignore
+    if not sucess then
+        -- Call this func at a later time, using upvalues.
+        vmf:info("[%s.%s] needs to be delayed.", obj, method)
+        table.insert(_delayed, function()
+            generic_hook(self, obj, method, handler, hook_type)
+        end)
+        return
     end
 
-    -- obj can't be a string for these.
+    -- obj can't be a string for these now.
     local orig = get_orig_function(self, obj, method)
     return create_hook(self, orig, obj, method, handler, hook_type)
+end
+
+local function generic_hook_toggle(self, obj, method, hook_type, enabled_state)
+    local func_name = HOOK_ERR_NAME[hook_type]
+    if vmf.check_wrong_argument_type(self, func_name, "obj", obj, "string", "table") or
+    vmf.check_wrong_argument_type(self, func_name, "method", method, "string", "nil") then
+        return
+    end
+
+    -- Adjust the arguments.
+    if not method then
+        method, obj = split_function_string(obj)
+    end
+
+    local obj, sucess = get_object_from_string(obj) --luacheck: ignore
+    if not sucess then
+        self:error("(%s): object doesn't exist: %s", func_name, obj)
+        return
+    end
+    
+    local registry = _registry[self][hook_type]
+    if registry then
+        local orig = get_orig_function(self, obj, method)
+
+        -- Check if handler exists, because active[orig] would fail if disabled (false)
+        if registry.handler[orig] then
+            registry.active[orig] = enabled_state
+        else
+            self:warning("(%s): trying to toggle hook that doesn't exist: %s", func_name)
+            return
+        end
+    else
+        self:warning("(%s): trying to toggle hook that doesn't exist: %s", func_name)
+        return
+    end
 end
 
 -- ####################################################################################################################
@@ -300,6 +350,17 @@ end
 function VMFMod:rawhook(obj, method, handler)
     return generic_hook(self, obj, method, handler, HOOK_TYPE_RAW)
 end
+
+-- Enable/disable functions for all hook types:
+function VMFMod:enable_hook(obj, method)    generic_hook_toggle(self, obj, method, HOOK_TYPE_NORMAL, true) end
+function VMFMod:enable_before(obj, method)  generic_hook_toggle(self, obj, method, HOOK_TYPE_BEFORE, true) end
+function VMFMod:enable_after(obj, method)   generic_hook_toggle(self, obj, method, HOOK_TYPE_AFTER,  true) end
+function VMFMod:enable_rawhook(obj, method) generic_hook_toggle(self, obj, method, HOOK_TYPE_RAW,    true) end
+
+function VMFMod:disable_hook(obj, method)    generic_hook_toggle(self, obj, method, HOOK_TYPE_NORMAL, false) end
+function VMFMod:disable_before(obj, method)  generic_hook_toggle(self, obj, method, HOOK_TYPE_BEFORE, false) end
+function VMFMod:disable_after(obj, method)   generic_hook_toggle(self, obj, method, HOOK_TYPE_AFTER,  false) end
+function VMFMod:disable_rawhook(obj, method) generic_hook_toggle(self, obj, method, HOOK_TYPE_RAW,    false) end
 
 function VMFMod:enable_all_hooks()
     -- Using pairs because the self table may contain nils, and order isnt important.
