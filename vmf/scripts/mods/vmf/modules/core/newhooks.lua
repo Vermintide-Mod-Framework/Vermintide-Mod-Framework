@@ -5,11 +5,18 @@ local vmf = get_mod("VMF")
 -- ####################################################################################################################
 
 -- Constants for hook_type
-local HOOK_TYPE_NORMAL = 1
-local HOOK_TYPE_BEFORE = 2
-local HOOK_TYPE_AFTER  = 3
-local HOOK_TYPE_RAW = 4
-local HOOK_ERR_NAME = { "hook", "before", "after", "rawhook", }
+local HOOK_TYPES = {
+    hook = 1,
+    before = 2,
+    after = 3,
+    rawhook = 4,
+}
+
+-- Upvalued constants to ease on table lookups when not needed
+local HOOK_TYPE_NORMAL = HOOK_TYPES.hook
+local HOOK_TYPE_BEFORE = HOOK_TYPES.before
+local HOOK_TYPE_AFTER  = HOOK_TYPES.after
+local HOOK_TYPE_RAW = HOOK_TYPES.rawhook
 
 --[[ Planned registry structure:
   _registry[self][hook_type] = {
@@ -194,8 +201,7 @@ local function create_internal_hook(orig, obj, method)
     end
 end
 
-local function create_hook(self, orig, obj, method, handler, hook_type)
-    local func_name = HOOK_ERR_NAME[hook_type]
+local function create_hook(self, orig, obj, method, handler, func_name, hook_type)
 
     if not is_orig_hooked(obj, method) then
         create_internal_hook(orig, obj, method)
@@ -223,8 +229,11 @@ local function create_hook(self, orig, obj, method, handler, hook_type)
             table.insert(_registry.hooks[hook_type][orig], create_specialized_hook(self, orig, handler, hook_type))
         end
     else
-        local hook_type_name = (hook_type == HOOK_TYPE_NORMAL) and func_name or func_name.."-hook"
-        self:error("(%s): Attempting to rehook already active %s %s.", func_name, hook_type_name, method)
+        local hook_type_name = func_name
+        if hook_type == HOOK_TYPE_BEFORE or hook_type == HOOK_TYPE_AFTER then
+            hook_type_name = func_name.."-hook"
+        end
+        self:error("(%s): Attempting to rehook already active %s.", func_name, hook_type_name, method)
     end
 
 end
@@ -243,8 +252,7 @@ end
 -- Giving a method string or a Obj.Method string (VT1 Style) and a hook function
 --     self, string (method), function (handler), nil, hook_type(number)
 
-local function generic_hook(self, obj, method, handler, hook_type)
-    local func_name = HOOK_ERR_NAME[hook_type]
+local function generic_hook(self, obj, method, handler, func_name)
     if vmf.check_wrong_argument_type(self, func_name, "obj", obj, "string", "table") or
     vmf.check_wrong_argument_type(self, func_name, "method", method, "string", "function") or
     vmf.check_wrong_argument_type(self, func_name, "handler", handler, "function", "nil") then
@@ -257,11 +265,14 @@ local function generic_hook(self, obj, method, handler, hook_type)
         method, obj = split_function_string(obj)
     end
 
+    -- Get hook_type based on name
+    local hook_type = HOOK_TYPES[func_name]
+
     -- Check if hook should be delayed.
     local obj, sucess = get_object_from_string(obj) --luacheck: ignore
     if not sucess then
         -- Call this func at a later time, using upvalues.
-        vmf:info("[%s.%s] needs to be delayed.", obj, method)
+        vmf:info("(%s): [%s.%s] needs to be delayed.", func_name, obj, method)
         table.insert(_delayed, function()
             generic_hook(self, obj, method, handler, hook_type)
         end)
@@ -270,11 +281,10 @@ local function generic_hook(self, obj, method, handler, hook_type)
 
     -- obj can't be a string for these now.
     local orig = get_orig_function(self, obj, method)
-    return create_hook(self, orig, obj, method, handler, hook_type)
+    return create_hook(self, orig, obj, method, handler, func_name, hook_type)
 end
 
-local function generic_hook_toggle(self, obj, method, hook_type, enabled_state)
-    local func_name = HOOK_ERR_NAME[hook_type]
+local function generic_hook_toggle(self, obj, method, func_name)
     if vmf.check_wrong_argument_type(self, func_name, "obj", obj, "string", "table") or
     vmf.check_wrong_argument_type(self, func_name, "method", method, "string", "nil") then
         return
@@ -290,6 +300,11 @@ local function generic_hook_toggle(self, obj, method, hook_type, enabled_state)
         self:error("(%s): object doesn't exist: %s", func_name, obj)
         return
     end
+    
+    -- get hook_type and enabled_state from function name
+    local underscore_position = string.find(func_name, "_")
+    local hook_type = HOOK_TYPES[string.sub(func_name, 1, underscore_position - 1)]
+    local enabled_state = (string.sub(func_name, underscore_position + 1) == "enable")
     
     local registry = _registry[self][hook_type]
     if registry then
@@ -323,7 +338,7 @@ end
 -- These will always be executed before the hook chain.
 -- Due to discussion, handler may not receive any arguments, but will see what the use cases are with them first.
 function VMFMod:before(obj, method, handler)
-    return generic_hook(self, obj, method, handler, HOOK_TYPE_BEFORE)
+    return generic_hook(self, obj, method, handler, "before")
 end
 
 -- :after() provides callback after a function is called. You have no control over the execution of the
@@ -331,7 +346,7 @@ end
 -- These will always be executed after the hook chain.
 -- This is similar to :front() functionality in V1 modding.
 function VMFMod:after(obj, method, handler)
-    return generic_hook(self, obj, method, handler, HOOK_TYPE_AFTER)
+    return generic_hook(self, obj, method, handler, "after")
 end
 
 -- :hook() will allow you to hook a function, allowing your handler to replace the function in the stack,
@@ -339,7 +354,7 @@ end
 --         original function at the end. Your handler has to call the next function in the chain manually.
 -- The chain of event is determined by mod load order.
 function VMFMod:hook(obj, method, handler)
-    return generic_hook(self, obj, method, handler, HOOK_TYPE_NORMAL)
+    return generic_hook(self, obj, method, handler, "hook")
 end
 
 -- :rawhook() allows you to directly hook a function, replacing it. The original function will bever be called.
@@ -348,20 +363,20 @@ end
 -- This there is a limit of a single rawhook for any given function.
 -- This should only be used as a last resort due to its limitation and its potential to break the game if not careful.
 function VMFMod:rawhook(obj, method, handler)
-    return generic_hook(self, obj, method, handler, HOOK_TYPE_RAW)
+    return generic_hook(self, obj, method, handler, "rawhook")
 end
-
+    
 -- Enable/disable functions for all hook types:
-function VMFMod:enable_hook(obj, method)    generic_hook_toggle(self, obj, method, HOOK_TYPE_NORMAL, true) end
-function VMFMod:enable_before(obj, method)  generic_hook_toggle(self, obj, method, HOOK_TYPE_BEFORE, true) end
-function VMFMod:enable_after(obj, method)   generic_hook_toggle(self, obj, method, HOOK_TYPE_AFTER,  true) end
-function VMFMod:enable_rawhook(obj, method) generic_hook_toggle(self, obj, method, HOOK_TYPE_RAW,    true) end
+function VMFMod:hook_enable(obj, method)    generic_hook_toggle(self, obj, method, "hook_enable") end
+function VMFMod:before_enable(obj, method)  generic_hook_toggle(self, obj, method, "before_enable") end
+function VMFMod:after_enable(obj, method)   generic_hook_toggle(self, obj, method, "after_enable") end
+function VMFMod:rawhook_enable(obj, method) generic_hook_toggle(self, obj, method, "rawhook_enable") end
 
-function VMFMod:disable_hook(obj, method)    generic_hook_toggle(self, obj, method, HOOK_TYPE_NORMAL, false) end
-function VMFMod:disable_before(obj, method)  generic_hook_toggle(self, obj, method, HOOK_TYPE_BEFORE, false) end
-function VMFMod:disable_after(obj, method)   generic_hook_toggle(self, obj, method, HOOK_TYPE_AFTER,  false) end
-function VMFMod:disable_rawhook(obj, method) generic_hook_toggle(self, obj, method, HOOK_TYPE_RAW,    false) end
-
+function VMFMod:hook_disable(obj, method)    generic_hook_toggle(self, obj, method, "hook_disable") end
+function VMFMod:before_disable(obj, method)  generic_hook_toggle(self, obj, method, "before_disable") end
+function VMFMod:after_disable(obj, method)   generic_hook_toggle(self, obj, method, "after_disable") end
+function VMFMod:rawhook_disable(obj, method) generic_hook_toggle(self, obj, method, "rawhook_disable") end
+    
 function VMFMod:enable_all_hooks()
     -- Using pairs because the self table may contain nils, and order isnt important.
     for _, hooks in pairs(_registry[self]) do
