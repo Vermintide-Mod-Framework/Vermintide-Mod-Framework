@@ -400,8 +400,19 @@ end
 -- ####################################################################################################################
 
 -- -- removes all hooks when VMF is about to be reloaded
--- vmf.hooks_unload = function()
--- end
+vmf.hooks_unload = function()
+    for key, value in pairs(_registry.origs) do
+        -- origs[method] = orig
+        if type(value) == "function" then
+            _G[key] = value
+        -- origs[obj][method] = orig
+        elseif type(value) == "table" then
+            for method, orig in pairs(value) do
+                key[method] = orig
+            end
+        end
+    end
+end
 
 vmf.apply_delayed_hooks = function()
     if #_delayed > 0 then
