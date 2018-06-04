@@ -1,0 +1,11 @@
+# .travis.yaml
+language: python
+sudo: false
+
+env:
+  - LUA="luajit=2.1"
+
+before_install:
+  - pip install hererocks
+  - hererocks lua_install -r^ --$LUA
+  - export PATH=$PATH:$PWD/lua_install/bin
