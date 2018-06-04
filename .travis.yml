@@ -19,4 +19,4 @@ install:
   - luarocks install luacheck
 
 script:
-  - luacheck -g --std lua51c+luajit *.lua spec
+  - luacheck --config .luacheckrc --std lua51c+luajit *.lua vmf
