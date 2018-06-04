@@ -16,4 +16,4 @@ install:
   - luarocks install luacheck
 
 script:
-  - luacheck *.lua vmf IN (0, 1)
+  - luacheck *.lua vmf || (luacheck *.lua vmf) - 1
