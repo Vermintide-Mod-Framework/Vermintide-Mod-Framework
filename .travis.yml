@@ -15,4 +15,4 @@ install:
   - luarocks install luacheck
 
 script:
-  - luacheck *.lua vmf || (luacheck *.lua vmf) == 1
+  - luacheck --no-unused --no-max-line-length --no-global *.lua vmf 
