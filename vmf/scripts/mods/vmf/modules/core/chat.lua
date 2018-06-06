@@ -1,53 +1,60 @@
 local vmf = get_mod("VMF")
 
+-- Constants, used as parameters in some 'chat_manager's functions
+local CHANNEL_ID = 1
+local MESSAGE_SENDER = ""
+local LOCALIZATION_PARAM = ""
+local IS_SYSTEM_MESSAGE = false
+local POP_CHAT = true
+local IS_DEV = true
+
+-- ####################################################################################################################
+-- ##### Local functions ##############################################################################################
+-- ####################################################################################################################
+
+local function send_system_message(peer_id, message)
+  RPC.rpc_chat_message(peer_id, CHANNEL_ID, MESSAGE_SENDER, message, LOCALIZATION_PARAM, IS_SYSTEM_MESSAGE, POP_CHAT,
+                        IS_DEV)
+end
+
 -- ####################################################################################################################
 -- ##### VMFMod #######################################################################################################
 -- ####################################################################################################################
 
-VMFMod.chat_broadcast = function(self, message)
-
+--[[
+  Broadcasts the message to all players in the lobby.
+  * message [string]: message to broadcast
+--]]
+function VMFMod:chat_broadcast(message)
   local chat = Managers.chat
   if chat and chat:has_channel(1) then
-    local channel_id = 1
-    local my_peer_id = chat.my_peer_id
-    local localization_param = ""
-    local is_system_message = true
-    local pop_chat = true
-    local is_dev = false
-
     if chat.is_server then
-      local members = chat:channel_members(channel_id)
-
-      for _, member in pairs(members) do
-        if member ~= my_peer_id then
-          RPC.rpc_chat_message(member, channel_id, my_peer_id, message, localization_param, is_system_message, pop_chat, is_dev)
+      local members = chat:channel_members(CHANNEL_ID)
+      local my_peer_id = chat.my_peer_id
+      for _, member_peer_id in pairs(members) do
+        if member_peer_id ~= my_peer_id then
+          send_system_message(member_peer_id, message)
         end
       end
     else
       local host_peer_id = chat.host_peer_id
-
       if host_peer_id then
-        RPC.rpc_chat_message(host_peer_id, channel_id, my_peer_id, message, localization_param, is_system_message, pop_chat, is_dev)
+        send_system_message(host_peer_id, message)
       end
     end
-
-    message = Localize(message)
-
-    chat:_add_message_to_list(channel_id, "SYSTEM", message, is_system_message, pop_chat, is_dev)
+    chat:_add_message_to_list(CHANNEL_ID, MESSAGE_SENDER, message, IS_SYSTEM_MESSAGE, POP_CHAT, IS_DEV)
   end
 end
 
-VMFMod.chat_whisper = function(self, peer_id, message)
-
+--[[
+  Sends message only to 1 player. Only host can use this method. Because if message will be sent to host, it will be
+  broadcasted to all other players. That's how Fathshark's system works and there's no workaround for that.
+  * peer_id [peer_id]: peer_id of the player who will recieve the message (can't be host's peer_id)
+  * message [string] : message to send
+--]]
+function VMFMod:chat_whisper(peer_id, message)
   local chat = Managers.chat
-  if chat and chat:has_channel(1) and chat.is_server then
-    local channel_id = 1
-    local my_peer_id = chat.my_peer_id
-    local localization_param = ""
-    local is_system_message = true
-    local pop_chat = true
-    local is_dev = false
-
-    RPC.rpc_chat_message(peer_id, channel_id, my_peer_id, message, localization_param, is_system_message, pop_chat, is_dev)
+  if chat and chat:has_channel(1) and chat.is_server and peer_id ~= chat.host_peer_id then
+    send_system_message(peer_id, message)
   end
 end
