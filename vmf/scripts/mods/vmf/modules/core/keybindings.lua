@@ -127,13 +127,17 @@ vmf.check_pressed_keybinds = function()
     end
 
     local key_has_active_keybind = false
+    local input_ctrl = input_service:get("ctrl")
+    local input_shift = input_service:get("shift")
+    local input_alt = input_service:get("alt")
 
     for key, key_bindings in pairs(_optimized_keybinds) do
       if input_service:get(key) then
+
         for _, binding_info in ipairs(key_bindings) do
-          if (not binding_info[3] and not input_service:get("ctrl") or binding_info[3] and input_service:get("ctrl")) and
-            (not binding_info[4] and not input_service:get("alt") or binding_info[4] and input_service:get("alt")) and
-            (not binding_info[5] and not input_service:get("shift") or binding_info[5] and input_service:get("shift")) then
+          if (not binding_info[3] and not input_ctrl or binding_info[3] and input_ctrl) and
+            (not binding_info[4] and not input_alt or binding_info[4] and input_alt) and
+            (not binding_info[5] and not input_shift or binding_info[5] and input_shift) then
 
             local mod = get_mod(binding_info[1])
 
