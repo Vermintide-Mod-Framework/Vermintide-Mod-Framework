@@ -24,7 +24,9 @@ local HOOK_TYPE_RAW = HOOK_TYPES.rawhook
   _registry.origs
 ]]
 
-local _delayed = {} -- dont need to attach this to registry.
+-- dont need to attach this to registry.
+local _delayed = {}
+local _delaying_enabled = true
 
 -- This metatable will automatically create a table entry if one doesnt exist.
 local auto_table_meta = {__index = function(t, k) t[k] = {} return t[k] end }
@@ -255,12 +257,17 @@ local function generic_hook(self, obj, method, handler, func_name)
     -- Check if hook should be delayed.
     local obj, sucess = get_object_from_string(obj) --luacheck: ignore
     if not sucess then
-        -- Call this func at a later time, using upvalues.
-        vmf:info("(%s): [%s.%s] needs to be delayed.", func_name, obj, method)
-        table.insert(_delayed, function()
-            generic_hook(self, obj, method, handler, hook_type)
-        end)
-        return
+        if _delaying_enabled then
+            -- Call this func at a later time, using upvalues.
+            vmf:info("(%s): [%s.%s] needs to be delayed.", func_name, obj, method)
+            table.insert(_delayed, function()
+                generic_hook(self, obj, method, handler, func_name)
+            end)
+            return
+        else
+            self:error("(%s): trying to hook object that doesn't exist: %s", func_name, obj)
+            return
+        end
     end
 
     -- obj can't be a string for these now.
@@ -376,6 +383,7 @@ vmf.hooks_unload = function()
 end
 
 vmf.apply_delayed_hooks = function()
+    _delaying_enabled = false
     if #_delayed > 0 then
         -- Go through the table in reverse so we don't get any issues removing entries inside the loop
         for i = #_delayed, 1, -1 do
