@@ -36,10 +36,11 @@ vmf.mods_update_event = function(dt)
   local event_name = "update"
 
   for _, mod in pairs(_MODS) do
-
-    local event = mod[event_name]
-    if event then
-      run_event(mod, event_name, event, dt)
+    if mod:is_enabled() then
+      local event = mod[event_name]
+      if event then
+        run_event(mod, event_name, event, dt)
+      end
     end
   end
 end
