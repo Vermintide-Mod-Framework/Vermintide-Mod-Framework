@@ -30,9 +30,10 @@ VMFMod.command = function (self, command_name, command_description, command_func
 
   command_name = command_name:lower()
 
-  if _commands[command_name] and _commands[command_name].mod ~= self then
+  local command_data = _commands[command_name]
+  if command_data and command_data.mod ~= self then
     self:error("(command): command name '%s' is already used by another mod '%s'",
-               command_name, _commands[command_name].mod:get_name())
+               command_name, command_data.mod:get_name())
     return
   end
 
@@ -81,8 +82,8 @@ end
 
 VMFMod.remove_all_commands = function (self)
 
-  for command_name, command_entry in pairs(_commands) do
-    if command_entry.mod == self then
+  for command_name, command_data in pairs(_commands) do
+    if command_data.mod == self then
       _commands[command_name] = nil
     end
   end
@@ -90,18 +91,18 @@ end
 
 
 VMFMod.disable_all_commands = function (self)
-  for _, command_entry in pairs(_commands) do
-    if command_entry.mod == self then
-      command_entry.is_enabled = false
+  for _, command_data in pairs(_commands) do
+    if command_data.mod == self then
+      command_data.is_enabled = false
     end
   end
 end
 
 
 VMFMod.enable_all_commands = function (self)
-  for _, command_entry in pairs(_commands) do
-    if command_entry.mod == self then
-      command_entry.is_enabled = true
+  for _, command_data in pairs(_commands) do
+    if command_data.mod == self then
+      command_data.is_enabled = true
     end
   end
 end
@@ -116,19 +117,21 @@ vmf.get_commands_list = function(name_contains, exact_match)
 
   local commands_list = {}
 
-  for command_name, command_entry in pairs(_commands) do
-
+  for command_name, command_data in pairs(_commands) do
     if exact_match then
-      if command_name == name_contains and command_entry.is_enabled then
-        table.insert(commands_list, {name = command_name, description = command_entry.description})
+
+      if command_name == name_contains and command_data.is_enabled then
+        table.insert(commands_list, {name = command_name, description = command_data.description})
         break
       end
+
     else
       local command_match = ( string.sub(command_name, 1, string.len(name_contains)) == name_contains )
-      if command_match and command_entry.is_enabled and command_entry.mod:is_enabled() then
-        table.insert(commands_list, {name = command_name, description = command_entry.description})
+      if command_match and command_data.is_enabled and command_data.mod:is_enabled() then
+        table.insert(commands_list, {name = command_name, description = command_data.description})
       end
     end
+
   end
 
   table.sort(commands_list, function(a, b) return a.name < b.name end)
@@ -139,10 +142,10 @@ end
 
 vmf.run_command = function(command_name, ...)
 
-  local command_entry = _commands[command_name]
-  if command_entry then
+  local command_data = _commands[command_name]
+  if command_data then
     local error_prefix = "(commands) " .. tostring(command_name)
-    vmf.xpcall_no_return_values(command_entry.mod, error_prefix, command_entry.exec_function, ...)
+    vmf.xpcall_no_return_values(command_data.mod, error_prefix, command_data.exec_function, ...)
   else
     vmf:error("(commands): command '%s' wasn't found.", command_name) -- should never see this
   end
