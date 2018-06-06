@@ -90,10 +90,11 @@ local function get_object_from_string(obj)
         return obj, true
     elseif type(obj) == "string" then
         local obj_table = rawget(_G, obj)
-        return obj_table, (type(obj_table) == "table")
-    else
-        return obj, false
+        if obj_table then
+            return obj_table, true
+        end
     end
+    return obj, false
 end
 
 -- VT1 hooked everything using a "Obj.Method" string
