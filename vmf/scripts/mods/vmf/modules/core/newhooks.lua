@@ -4,19 +4,17 @@ local vmf = get_mod("VMF")
 -- ##### Locals and Variables #########################################################################################
 -- ####################################################################################################################
 
--- Constants for hook_type
+-- hook_type is an identifier to help distinguish the different api calls.
 local HOOK_TYPES = {
-    hook = 1,
-    before = 1,
-    after = 2,
-    rawhook = 3,
+    hook   = 1,
+    safe   = 2,
+    origin = 3,
 }
 
--- Upvalued constants to ease on table lookups when not needed
-local HOOK_TYPE_NORMAL = HOOK_TYPES.hook
-local HOOK_TYPE_BEFORE = HOOK_TYPES.before
-local HOOK_TYPE_AFTER  = HOOK_TYPES.after
-local HOOK_TYPE_RAW = HOOK_TYPES.rawhook
+-- Constants to ease on table lookups when not needed
+local HOOK_TYPE_NORMAL = 1
+local HOOK_TYPE_SAFE   = 2
+local HOOK_TYPE_ORIGIN = 3
 
 --[[ Planned registry structure:
   _registry[self][orig] = { active = true}
@@ -29,17 +27,17 @@ local _delayed = {}
 local _delaying_enabled = true
 
 -- This metatable will automatically create a table entry if one doesnt exist.
+-- This lets us easily do _registry[self] without having to worry about nil-checking it.
 local auto_table_meta = {__index = function(t, k) t[k] = {} return t[k] end }
 
--- This lets us easily do _registry[self] without having to worry about nil-checking it.
 local _registry = setmetatable({}, auto_table_meta)
 -- This table will hold all of the hooks, in the format of _registry.hooks[hook_type]
 _registry.hooks = {
     -- Do the same thing with these tables to allow .hooks[hook_type][orig] without a ton of nil-checks.
     setmetatable({}, auto_table_meta), -- normal
-    setmetatable({}, auto_table_meta), -- after
-    -- Since there can only be one rawhook per function, it doesnt need to generate a table.
-    {}, -- raw
+    setmetatable({}, auto_table_meta), -- safe
+    -- Since there can only be one origin per function, it doesnt need to generate a table.
+    {}, -- origin
 }
 _registry.origs = {}
 
@@ -102,6 +100,13 @@ local function split_function_string(str)
     return method, obj
 end
 
+-- We need to get the number of return values for accurate unpacking
+-- This is based on Lupo/Propjoe table.pack, but without putting the number inside the table
+local function get_return_values(...)
+    local num = select('#', ...)
+    return num, { ... }
+end
+
 -- ####################################################################################################################
 -- ##### Hook Creation ################################################################################################
 -- ####################################################################################################################
@@ -115,10 +120,10 @@ local function get_hook_chain(orig)
     if hooks and #hooks > 0 then
         return hooks[#hooks]
     end
-    -- We can't simply return orig here, or it would cause rawhooks to depend on load order.
+    -- We can't simply return orig here, or it would cause origins to depend on load order.
     return function(...)
-        if hook_registry[HOOK_TYPE_RAW][orig] then
-            return hook_registry[HOOK_TYPE_RAW][orig](...)
+        if hook_registry[HOOK_TYPE_ORIGIN][orig] then
+            return hook_registry[HOOK_TYPE_ORIGIN][orig](...)
         else
             return orig(...)
         end
@@ -145,7 +150,7 @@ local function create_specialized_hook(self, orig, handler, hook_type)
             end
         end
     -- Rawhooks need to directly call the original function is inactive.
-    elseif hook_type == HOOK_TYPE_RAW then
+    elseif hook_type == HOOK_TYPE_ORIGIN then
         func = function(...)
             if hook_data.active then
                 return handler(...)
@@ -153,7 +158,7 @@ local function create_specialized_hook(self, orig, handler, hook_type)
                 return orig(...)
             end
         end
-    elseif hook_type == HOOK_TYPE_AFTER then
+    elseif hook_type == HOOK_TYPE_SAFE then
         func = function(...)
             if hook_data.active then
                 return handler(...)
@@ -165,7 +170,6 @@ local function create_specialized_hook(self, orig, handler, hook_type)
     return func
 end
 
--- TODO: Check to see if before-hooks are slower with or without 1 rawhook.
 -- The hook system makes internal functions that replace the original function and handles all the hooks.
 local function create_internal_hook(orig, obj, method)
     local fn = function(...)
@@ -173,13 +177,13 @@ local function create_internal_hook(orig, obj, method)
         -- in case another function depends on them.
         local hook_chain = get_hook_chain(orig)
         -- We need to keep return values in case another function depends on them
-        local values = { hook_chain(...) }
-        local after_hooks = _registry.hooks[HOOK_TYPE_AFTER][orig]
-        if after_hooks and #after_hooks > 0 then
-            for i = 1, #after_hooks do after_hooks[i](...) end
+        local num_values, values = get_return_values( hook_chain(...) )
+        
+        local safe_hooks = _registry.hooks[HOOK_TYPE_SAFE][orig]
+        if safe_hooks and #safe_hooks > 0 then
+            for i = 1, #safe_hooks do safe_hooks[i](...) end
         end
-        --print(#values)
-        return unpack(values)
+        return unpack(values, 1, num_values)
     end
 
     if obj then
@@ -205,21 +209,17 @@ local function create_hook(self, orig, obj, method, handler, func_name, hook_typ
 
         local hook_registry = _registry.hooks[hook_type]
         -- Add to the hook to registry. Raw hooks are unique, so we check for that too.
-        if hook_type == HOOK_TYPE_RAW then
+        if hook_type == HOOK_TYPE_ORIGIN then
             if hook_registry[orig] then
-                self:error("(%s): Attempting to rawhook already hooked function %s", func_name, method)
+                self:error("(%s): Attempting to hook origin of already hooked function %s", func_name, method)
             else
                 hook_registry[orig] = create_specialized_hook(self, orig, handler, hook_type)
             end
         else
-            table.insert(hook_registry[orig], create_specialized_hook(self, orig, handler, hook_type))
+            table.insert(hook_registry[orig], create_specialized_hook(self, orig, handler, hook_type) )
         end
     else
-        local hook_type_name = func_name
-        if hook_type == HOOK_TYPE_BEFORE or hook_type == HOOK_TYPE_AFTER then
-            hook_type_name = func_name.."-hook"
-        end
-        self:error("(%s): Attempting to rehook already active %s.", func_name, hook_type_name, method)
+        self:error("(%s): Attempting to rehook already active hook %s.", func_name, method)
     end
 
 end
@@ -232,16 +232,17 @@ end
 -- Valid styles:
 
 -- Giving a string pointing to a global object table and method string and hook function
---     self, string (obj), string (method), function (handler), hook_type(number)
+--     self, string (obj), string (method), function (handler), string (func_name)
 -- Giving an object table and a method string and hook function
---     self, table (obj), string (method), function (handler), hook_type(number)
+--     self, table (obj), string (method), function (handler), string (func_name)
 -- Giving a method string or a Obj.Method string (VT1 Style) and a hook function
---     self, string (method), function (handler), nil, hook_type(number)
+--     self, string (method), function (handler), nil, string (func_name)
 
 local function generic_hook(self, obj, method, handler, func_name)
     if vmf.check_wrong_argument_type(self, func_name, "obj", obj, "string", "table") or
-    vmf.check_wrong_argument_type(self, func_name, "method", method, "string", "function") or
-    vmf.check_wrong_argument_type(self, func_name, "handler", handler, "function", "nil") then
+       vmf.check_wrong_argument_type(self, func_name, "method", method, "string", "function") or
+       vmf.check_wrong_argument_type(self, func_name, "handler", handler, "function", "nil")
+    then
         return
     end
 
@@ -308,24 +309,12 @@ end
 -- ##### VMFMod #######################################################################################################
 -- ####################################################################################################################
 
--- NEW API
--- Based on discord discussion, this is a refined version of the api functions,
--- with better definitions for their roles. These functions will also return an object
--- for the modders to control the hooks that they define, should they decide to do it.
-
--- :before() provides a callback before a function is called. You have no control over the execution of the
---           original function, nor can you change its return values.
--- This type of hook is typically used if you need to know a function was called, but dont want to modify it.
-function VMFMod:before(obj, method, handler)
-    return generic_hook(self, obj, method, handler, "before")
-end
-
--- :after() provides callback after a function is called. You have no control over the execution of the
---          original function, nor can you change its return values.
--- These will always be executed after the hook chain.
--- This is similar to :front() functionality in V1 modding.
-function VMFMod:after(obj, method, handler)
-    return generic_hook(self, obj, method, handler, "after")
+-- :hook_safe() provides callback after a function is called. You have no control over the execution of the
+--          original function, nor can you change its return values, making it much safer to use.
+-- The handler is never given the a "func" parameter.
+-- These will always be executed the original function and the hook chain.
+function VMFMod:hook_safe(obj, method, handler)
+    return generic_hook(self, obj, method, handler, "safe")
 end
 
 -- :hook() will allow you to hook a function, allowing your handler to replace the function in the stack,
@@ -336,13 +325,14 @@ function VMFMod:hook(obj, method, handler)
     return generic_hook(self, obj, method, handler, "hook")
 end
 
--- :rawhook() allows you to directly hook a function, replacing it. The original function will bever be called.
+-- :hook_origin() allows you to directly hook a function, replacing it. The original function will bever be called.
 --            This hook will not be part of the hook chain proper, instead taking the place of the original function.
 -- This is similar to :back functionality that was sparsely used in old V1 mods.
--- This there is a limit of a single rawhook for any given function.
+-- The handler is never given the a "func" parameter.
+-- This there is a limit of a single origin hook for any given function.
 -- This should only be used as a last resort due to its limitation and its potential to break the game if not careful.
-function VMFMod:rawhook(obj, method, handler)
-    return generic_hook(self, obj, method, handler, "rawhook")
+function VMFMod:hook_origin(obj, method, handler)
+    return generic_hook(self, obj, method, handler, "origin")
 end
     
 -- Enable/disable functions for all hook types:
