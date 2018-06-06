@@ -1,17 +1,16 @@
 local vmf = get_mod("VMF")
 
-local _VMF_USERS = {}
-local _RPC_CALLBACKS = {}
+local _vmf_users = {}
+local _rpc_callbacks = {}
 
-local _LOCAL_MODS_MAP = {}
-local _LOCAL_RPCS_MAP = {}
+local _local_mods_map = {}
+local _local_rpcs_map = {}
 
-local _SHARED_MODS_MAP = ""
-local _SHARED_RPCS_MAP = ""
+local _shared_mods_map = ""
+local _shared_rpcs_map = ""
 
-local _NETWORK_MODULE_IS_INITIALIZED = false
-
-local _NETWORK_DEBUG = false
+local _network_module_is_initialized = false
+local _network_debug = false
 
 -- ####################################################################################################################
 -- ##### Local functions ##############################################################################################
@@ -19,7 +18,7 @@ local _NETWORK_DEBUG = false
 
 local function is_rpc_registered(mod_name, rpc_name)
 
-  local success = pcall(function() return _RPC_CALLBACKS[mod_name][rpc_name] end)
+  local success = pcall(function() return _rpc_callbacks[mod_name][rpc_name] end)
   return success
 end
 
@@ -27,7 +26,7 @@ end
 
 local function convert_names_to_numbers(peer_id, mod_name, rpc_name)
 
-  local user_rpcs_dictionary = _VMF_USERS[peer_id]
+  local user_rpcs_dictionary = _vmf_users[peer_id]
   if user_rpcs_dictionary then
 
     local mod_number = user_rpcs_dictionary[1][mod_name]
@@ -45,10 +44,10 @@ end
 
 local function convert_numbers_to_names(mod_number, rpc_number)
 
-  local mod_name = _LOCAL_MODS_MAP[mod_number]
+  local mod_name = _local_mods_map[mod_number]
   if mod_name then
 
-    local rpc_name = _LOCAL_RPCS_MAP[mod_number][rpc_number]
+    local rpc_name = _local_rpcs_map[mod_number][rpc_number]
     if rpc_name then
 
       return mod_name, rpc_name
@@ -84,7 +83,7 @@ end
 
 local function network_debug(rpc_type, action_type, peer_id, mod_name, rpc_name, data)
 
-  if _NETWORK_DEBUG then
+  if _network_debug then
 
     local debug_message = nil
 
@@ -131,7 +130,7 @@ end
 local function send_rpc_vmf_pong(peer_id)
 
   network_debug("pong", "sent", peer_id)
-  RPC.rpc_chat_message(peer_id, 4, Network.peer_id(), _SHARED_MODS_MAP, _SHARED_RPCS_MAP, false, true, false)
+  RPC.rpc_chat_message(peer_id, 4, Network.peer_id(), _shared_mods_map, _shared_rpcs_map, false, true, false)
 end
 
 local function send_rpc_vmf_data(peer_id, mod_name, rpc_name, ...)
@@ -156,7 +155,7 @@ local function send_rpc_vmf_data_local(mod_name, rpc_name, ...)
     network_debug("data", "local", nil, mod_name, rpc_name, {...})
 
     local error_prefix = "(local rpc) " .. tostring(rpc_name)
-    vmf.xpcall_no_return_values(mod, error_prefix, _RPC_CALLBACKS[mod_name][rpc_name], Network.peer_id(), ...)
+    vmf.xpcall_no_return_values(mod, error_prefix, _rpc_callbacks[mod_name][rpc_name], Network.peer_id(), ...)
   end
 end
 
@@ -166,7 +165,7 @@ end
 
 VMFMod.network_register = function (self, rpc_name, rpc_function)
 
-  if _NETWORK_MODULE_IS_INITIALIZED then
+  if _network_module_is_initialized then
     self:error("(network_register): you can't register new rpc after mod initialization")
     return
   end
@@ -176,9 +175,9 @@ VMFMod.network_register = function (self, rpc_name, rpc_function)
     return
   end
 
-  _RPC_CALLBACKS[self:get_name()] = _RPC_CALLBACKS[self:get_name()] or {}
+  _rpc_callbacks[self:get_name()] = _rpc_callbacks[self:get_name()] or {}
 
-  _RPC_CALLBACKS[self:get_name()][rpc_name] = rpc_function
+  _rpc_callbacks[self:get_name()][rpc_name] = rpc_function
 end
 
 -- recipient = "all", "local", "others", peer_id
@@ -192,7 +191,7 @@ VMFMod.network_send = function (self, rpc_name, recipient, ...)
 
   if recipient == "all" then
 
-    for peer_id, _ in pairs(_VMF_USERS) do
+    for peer_id, _ in pairs(_vmf_users) do
       send_rpc_vmf_data(peer_id, self:get_name(), rpc_name, ...)
     end
 
@@ -200,7 +199,7 @@ VMFMod.network_send = function (self, rpc_name, recipient, ...)
 
   elseif recipient == "others" then
 
-    for peer_id, _ in pairs(_VMF_USERS) do
+    for peer_id, _ in pairs(_vmf_users) do
       send_rpc_vmf_data(peer_id, self:get_name(), rpc_name, ...)
     end
 
@@ -225,7 +224,7 @@ vmf:hook("ChatManager.rpc_chat_message", function(func, self, sender, channel_id
     func(self, sender, channel_id, message_sender, message, localization_param, ...)
   else
 
-    if not _NETWORK_MODULE_IS_INITIALIZED then
+    if not _network_module_is_initialized then
       return
     end
 
@@ -238,7 +237,7 @@ vmf:hook("ChatManager.rpc_chat_message", function(func, self, sender, channel_id
     elseif channel_id == 4 then -- rpc_vmf_responce (@TODO: maybe I should protect it from sending by the player who's not in the game?)
 
       network_debug("pong", "received", sender)
-      if _NETWORK_DEBUG then
+      if _network_debug then
         vmf:info("[RECEIVED MODS TABLE]: " .. message)
         vmf:info("[RECEIVED RPCS TABLE]: " .. localization_param)
       end
@@ -250,7 +249,7 @@ vmf:hook("ChatManager.rpc_chat_message", function(func, self, sender, channel_id
         user_rpcs_dictionary[1] = cjson.decode(message) -- mods
         user_rpcs_dictionary[2] = cjson.decode(localization_param) -- rpcs
 
-        _VMF_USERS[sender] = user_rpcs_dictionary
+        _vmf_users[sender] = user_rpcs_dictionary
 
         vmf:info("Added %s to the VMF users list.", sender)
 
@@ -281,7 +280,7 @@ vmf:hook("ChatManager.rpc_chat_message", function(func, self, sender, channel_id
         vmf.xpcall_no_return_values(
          get_mod(mod_name),
          error_prefix,
-         function() _RPC_CALLBACKS[mod_name][rpc_name](sender, deserialize_data(localization_param)) end
+         function() _rpc_callbacks[mod_name][rpc_name](sender, deserialize_data(localization_param)) end
         )
       end
     end
@@ -299,7 +298,7 @@ end)
 
 vmf:hook("PlayerManager.remove_player", function (func, self, peer_id, local_player_id)
 
-  if _VMF_USERS[peer_id] then
+  if _vmf_users[peer_id] then
 
     -- make sure it's not the bot
     for _, player in pairs(Managers.player:human_players()) do
@@ -308,14 +307,14 @@ vmf:hook("PlayerManager.remove_player", function (func, self, peer_id, local_pla
         vmf:info("Removed %s from the VMF users list.", peer_id)
 
         -- event
-        for mod_name, _ in pairs(_VMF_USERS[peer_id][1]) do
+        for mod_name, _ in pairs(_vmf_users[peer_id][1]) do
           local mod = get_mod(mod_name)
           if mod then
             vmf.mod_user_left_the_game(mod, player)
           end
         end
 
-        _VMF_USERS[peer_id] = nil
+        _vmf_users[peer_id] = nil
         break
       end
     end
@@ -330,34 +329,34 @@ end)
 
 vmf.create_network_dictionary = function()
 
-  _SHARED_MODS_MAP = {}
-  _SHARED_RPCS_MAP = {}
+  _shared_mods_map = {}
+  _shared_rpcs_map = {}
 
   local i = 0
-  for mod_name, mod_rpcs in pairs(_RPC_CALLBACKS) do
+  for mod_name, mod_rpcs in pairs(_rpc_callbacks) do
 
     i = i + 1
 
-    _SHARED_MODS_MAP[mod_name] = i
-    _LOCAL_MODS_MAP[i] = mod_name
+    _shared_mods_map[mod_name] = i
+    _local_mods_map[i] = mod_name
 
-    _SHARED_RPCS_MAP[i] = {}
-    _LOCAL_RPCS_MAP[i] = {}
+    _shared_rpcs_map[i] = {}
+    _local_rpcs_map[i] = {}
 
     local j = 0
     for rpc_name, _ in pairs(mod_rpcs) do
 
       j = j + 1
 
-      _SHARED_RPCS_MAP[i][rpc_name] = j
-      _LOCAL_RPCS_MAP[i][j] = rpc_name
+      _shared_rpcs_map[i][rpc_name] = j
+      _local_rpcs_map[i][j] = rpc_name
     end
   end
 
-  _SHARED_MODS_MAP = cjson.encode(_SHARED_MODS_MAP)
-  _SHARED_RPCS_MAP = cjson.encode(_SHARED_RPCS_MAP)
+  _shared_mods_map = cjson.encode(_shared_mods_map)
+  _shared_rpcs_map = cjson.encode(_shared_rpcs_map)
 
-  _NETWORK_MODULE_IS_INITIALIZED = true
+  _network_module_is_initialized = true
 end
 
 vmf.ping_vmf_users = function()
@@ -374,7 +373,7 @@ vmf.ping_vmf_users = function()
 end
 
 vmf.load_network_settings = function()
-  _NETWORK_DEBUG = vmf:get("developer_mode") and vmf:get("show_network_debug_info")
+  _network_debug = vmf:get("developer_mode") and vmf:get("show_network_debug_info")
 end
 
 -- ####################################################################################################################

@@ -3,7 +3,7 @@
 --]]
 local vmf = get_mod("VMF")
 
-local _WERE_ENABLED_BEFORE = false
+local _were_enabled_before = false
 
 -- ####################################################################################################################
 -- ##### Local functions ##############################################################################################
@@ -82,10 +82,10 @@ vmf:hook("MatchmakingStateHostGame.host_game", function(func, ...)
   local names = add_enabled_mutators_titles_to_string(", ")
   if names ~= "" then
     vmf:chat_broadcast(vmf:localize("broadcast_enabled_mutators") .. ": " .. names)
-    _WERE_ENABLED_BEFORE = true
-  elseif _WERE_ENABLED_BEFORE then
+    _were_enabled_before = true
+  elseif _were_enabled_before then
     vmf:chat_broadcast(vmf:localize("broadcast_all_disabled"))
-    _WERE_ENABLED_BEFORE = false
+    _were_enabled_before = false
   end
 end)
 

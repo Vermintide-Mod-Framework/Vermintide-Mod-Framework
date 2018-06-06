@@ -10,12 +10,12 @@ VMFModsKeyMap = {
 }
 
 -- ["mod_name"]["setting_name"] = {"action_name", {"primary_key", "special_key", "special_key", "special_key"}} (special_key - "ctrl"/"shift"/"alt")
-local _RAW_KEYBINDS = {}
+local _raw_keybinds = {}
 
 -- ["primary_key"] = {{"mod_name", "action_name", ctrl_used(bool), alt_used(bool), shift_used(bool)}, {}, {}, ...}
-local _OPTIMIZED_KEYBINDS = {}
+local _optimized_keybinds = {}
 
-local _ACTIVATED_PRESSED_KEY
+local _activated_pressed_key
 
 -- ####################################################################################################################
 -- ##### Local functions ##############################################################################################
@@ -23,9 +23,9 @@ local _ACTIVATED_PRESSED_KEY
 
 local function apply_keybinds()
 
-  _OPTIMIZED_KEYBINDS = {}
+  _optimized_keybinds = {}
 
-  for mod_name, mod_keybinds in pairs(_RAW_KEYBINDS) do
+  for mod_name, mod_keybinds in pairs(_raw_keybinds) do
     for _, keybind in pairs(mod_keybinds) do
       local action_name = keybind[1]
       local primary_key = keybind[2][1]
@@ -46,8 +46,8 @@ local function apply_keybinds()
         special_keys[special_key3] = true
       end
 
-      _OPTIMIZED_KEYBINDS[primary_key] = _OPTIMIZED_KEYBINDS[primary_key] or {}
-      table.insert(_OPTIMIZED_KEYBINDS[primary_key], {mod_name, action_name, special_keys["ctrl"], special_keys["alt"], special_keys["shift"]})
+      _optimized_keybinds[primary_key] = _optimized_keybinds[primary_key] or {}
+      table.insert(_optimized_keybinds[primary_key], {mod_name, action_name, special_keys["ctrl"], special_keys["alt"], special_keys["shift"]})
     end
   end
 end
@@ -65,14 +65,14 @@ VMFMod.keybind = function (self, setting_name, action_name, keys)
 
   if keys[1] then
 
-    local mod_keybinds = _RAW_KEYBINDS[self:get_name()] or {}
+    local mod_keybinds = _raw_keybinds[self:get_name()] or {}
 
     mod_keybinds[setting_name] = {action_name, keys}
 
-    _RAW_KEYBINDS[self:get_name()] = mod_keybinds
+    _raw_keybinds[self:get_name()] = mod_keybinds
   else
 
-    local mod_keybinds = _RAW_KEYBINDS[self:get_name()]
+    local mod_keybinds = _raw_keybinds[self:get_name()]
 
     if mod_keybinds and mod_keybinds[setting_name] then
       mod_keybinds[setting_name] = nil
@@ -104,17 +104,17 @@ vmf.check_pressed_keybinds = function()
   if input_service then
 
     -- don't check for the pressed keybindings until player will release already pressed keybind
-    if _ACTIVATED_PRESSED_KEY then
-      if input_service:get(_ACTIVATED_PRESSED_KEY) then
+    if _activated_pressed_key then
+      if input_service:get(_activated_pressed_key) then
         return
       else
-        _ACTIVATED_PRESSED_KEY = nil
+        _activated_pressed_key = nil
       end
     end
 
     local key_has_active_keybind = false
 
-    for key, key_bindings in pairs(_OPTIMIZED_KEYBINDS) do
+    for key, key_bindings in pairs(_optimized_keybinds) do
       if input_service:get(key) then
         for _, binding_info in ipairs(key_bindings) do
           if (not binding_info[3] and not input_service:get("ctrl") or binding_info[3] and input_service:get("ctrl")) and
@@ -128,7 +128,7 @@ vmf.check_pressed_keybinds = function()
               vmf.mod_state_changed(mod:get_name(), not mod:is_enabled())
 
               key_has_active_keybind = true
-              _ACTIVATED_PRESSED_KEY = key
+              _activated_pressed_key = key
 
             elseif mod:is_enabled() then
 
@@ -141,7 +141,7 @@ vmf.check_pressed_keybinds = function()
               end
 
               key_has_active_keybind = true
-              _ACTIVATED_PRESSED_KEY = key
+              _activated_pressed_key = key
             end
           end
         end

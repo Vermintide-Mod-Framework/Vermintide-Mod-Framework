@@ -2,12 +2,12 @@ local vmf = get_mod("VMF")
 
 UI_RENDERERS = UI_RENDERERS or {}
 
-local _CUSTOM_NONE_ATLAS_TEXTURES = {}
-local _CUSTOM_UI_ATLAS_SETTINGS = {}
+local _custom_none_atlas_textures = {}
+local _custom_ui_atlas_settings = {}
 
-local _INJECTED_MATERIALS = {}
+local _injected_materials = {}
 
-local _SHOW_DEBUG_INFO = false
+local _show_debug_info = false
 
 -- ####################################################################################################################
 -- ##### Local functions ##############################################################################################
@@ -28,13 +28,13 @@ local function check_texture_availability(mod, texture_name)
     return false
   end
 
-  if _CUSTOM_NONE_ATLAS_TEXTURES[texture_name] then
-    mod:error("(custom texture/atlas): texture name '%s' is already used by the mod '%s' as none atlas texture", texture_name, _CUSTOM_NONE_ATLAS_TEXTURES[texture_name])
+  if _custom_none_atlas_textures[texture_name] then
+    mod:error("(custom texture/atlas): texture name '%s' is already used by the mod '%s' as none atlas texture", texture_name, _custom_none_atlas_textures[texture_name])
     return false
   end
 
-  if _CUSTOM_UI_ATLAS_SETTINGS[texture_name] then
-    texture_settings = _CUSTOM_UI_ATLAS_SETTINGS[texture_name]
+  if _custom_ui_atlas_settings[texture_name] then
+    texture_settings = _custom_ui_atlas_settings[texture_name]
     mod:error("(custom texture/atlas): texture name '%s' is already used by the mod '%s' in atlas '%s'", texture_name, texture_settings.mod_name, tostring(texture_settings.material_name))
     return false
   end
@@ -51,7 +51,7 @@ vmf.custom_textures = function (mod, ...)
   for i, texture_name in ipairs({...}) do
     if type(texture_name) == "string" then
       if check_texture_availability(mod, texture_name) then
-        _CUSTOM_NONE_ATLAS_TEXTURES[texture_name] = mod:get_name()
+        _custom_none_atlas_textures[texture_name] = mod:get_name()
       end
     else
       mod:error("(custom_textures): all arguments should have the string type, but the argument #%s is %s", i, type(texture_name))
@@ -86,7 +86,7 @@ vmf.custom_atlas = function (mod, material_settings_file, material_name, masked_
         texture_settings.masked_point_sample_material_name = masked_point_sample_material_name
         texture_settings.saturated_material_name           = saturated_material_name
 
-        _CUSTOM_UI_ATLAS_SETTINGS[texture_name] = texture_settings
+        _custom_ui_atlas_settings[texture_name] = texture_settings
       end
     end
 
@@ -101,7 +101,7 @@ vmf.inject_materials = function (mod, ui_renderer_creator, ...)
     return
   end
 
-  local injected_materials_list = _INJECTED_MATERIALS[ui_renderer_creator] or {}
+  local injected_materials_list = _injected_materials[ui_renderer_creator] or {}
 
   local can_inject
   for i, new_injected_material in ipairs({...}) do
@@ -126,7 +126,7 @@ vmf.inject_materials = function (mod, ui_renderer_creator, ...)
     end
   end
 
-  _INJECTED_MATERIALS[ui_renderer_creator] = injected_materials_list
+  _injected_materials[ui_renderer_creator] = injected_materials_list
 
   -- recreate GUIs with injected materials for ui_renderers created by 'ui_renderer_creator'
   local vmf_data
@@ -190,8 +190,8 @@ vmf:hook("UIRenderer.create", function(func, world, ...)
 
   local ui_renderer_materials = {...}
 
-  if _INJECTED_MATERIALS[ui_renderer_creator] then
-    for _, injected_material in ipairs(_INJECTED_MATERIALS[ui_renderer_creator]) do
+  if _injected_materials[ui_renderer_creator] then
+    for _, injected_material in ipairs(_injected_materials[ui_renderer_creator]) do
       table.insert(ui_renderer_materials, "material")
       table.insert(ui_renderer_materials, injected_material)
     end
@@ -200,7 +200,7 @@ vmf:hook("UIRenderer.create", function(func, world, ...)
 
   -- DEBUG INFO
 
-  if _SHOW_DEBUG_INFO then
+  if _show_debug_info then
     vmf:info("UI_RENDERER CREATED BY:")
     vmf:info("   %s", ui_renderer_creator)
     vmf:info("UI_RENDERER MATERIALS:")
@@ -235,7 +235,7 @@ end)
 
 vmf:hook("UIAtlasHelper.has_atlas_settings_by_texture_name", function(func, texture_name)
 
-  if _CUSTOM_UI_ATLAS_SETTINGS[texture_name] then
+  if _custom_ui_atlas_settings[texture_name] then
     return true
   end
 
@@ -245,12 +245,12 @@ end)
 
 vmf:hook("UIAtlasHelper.get_atlas_settings_by_texture_name", function(func, texture_name)
 
-  if _CUSTOM_NONE_ATLAS_TEXTURES[texture_name] then
+  if _custom_none_atlas_textures[texture_name] then
     return
   end
 
-  if _CUSTOM_UI_ATLAS_SETTINGS[texture_name] then
-    return _CUSTOM_UI_ATLAS_SETTINGS[texture_name]
+  if _custom_ui_atlas_settings[texture_name] then
+    return _custom_ui_atlas_settings[texture_name]
   end
 
   return func(texture_name)
@@ -261,7 +261,7 @@ end)
 -- ####################################################################################################################
 
 vmf.load_custom_textures_settings = function()
-  _SHOW_DEBUG_INFO = vmf:get("developer_mode") and vmf:get("log_ui_renderers_info")
+  _show_debug_info = vmf:get("developer_mode") and vmf:get("log_ui_renderers_info")
 end
 
 vmf.reset_guis = function()
