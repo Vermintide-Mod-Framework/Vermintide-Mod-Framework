@@ -4366,7 +4366,8 @@ vmf.create_options = function (mod, widgets_definition)
         new_widget_definition.mod_name        = mod:get_name()                 -- all [gen]
         new_widget_definition.setting_name    = current_widget.setting_name    -- all
         new_widget_definition.text            = current_widget.text            -- all
-        new_widget_definition.tooltip         = current_widget.tooltip         -- all [optional]
+        new_widget_definition.tooltip         = current_widget.tooltip and (current_widget.text .. "\n" ..
+                                                                             current_widget.tooltip)  -- all [optional]
         new_widget_definition.unit_text       = current_widget.unit_text       -- numeric [optional]
         new_widget_definition.range           = current_widget.range           -- numeric
         new_widget_definition.decimals_number = current_widget.decimals_number -- numeric [optional]
