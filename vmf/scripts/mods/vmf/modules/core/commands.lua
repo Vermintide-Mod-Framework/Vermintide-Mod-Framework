@@ -31,7 +31,8 @@ VMFMod.command = function (self, command_name, command_description, command_func
   command_name = command_name:lower()
 
   if _commands[command_name] and _commands[command_name].mod ~= self then
-    self:error("(command): command name '%s' is already used by another mod '%s'", command_name, _commands[command_name].mod:get_name())
+    self:error("(command): command name '%s' is already used by another mod '%s'",
+               command_name, _commands[command_name].mod:get_name())
     return
   end
 
@@ -123,7 +124,8 @@ vmf.get_commands_list = function(name_contains, exact_match)
         break
       end
     else
-      if string.sub(command_name, 1, string.len(name_contains)) == name_contains and command_entry.is_enabled and command_entry.mod:is_enabled() then
+      local command_match = ( string.sub(command_name, 1, string.len(name_contains)) == name_contains )
+      if command_match and command_entry.is_enabled and command_entry.mod:is_enabled() then
         table.insert(commands_list, {name = command_name, description = command_entry.description})
       end
     end

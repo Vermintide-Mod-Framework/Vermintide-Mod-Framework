@@ -20,22 +20,26 @@ local function check_texture_availability(mod, texture_name)
   if texture_exists then
 
     if type(texture_settings) == "nil" then
-      mod:error("(custom texture/atlas): texture name '%s' is already used by Fatshark in 'none_atlas_textures'", texture_name)
+      mod:error("(custom texture/atlas): texture name '%s' is already used by Fatshark in 'none_atlas_textures'",
+                texture_name)
     else
-      mod:error("(custom texture/atlas): texture name '%s' is already used by Fatshark in atlas '%s'", texture_name, tostring(texture_settings.material_name))
+      mod:error("(custom texture/atlas): texture name '%s' is already used by Fatshark in atlas '%s'",
+                texture_name, tostring(texture_settings.material_name))
     end
 
     return false
   end
 
   if _custom_none_atlas_textures[texture_name] then
-    mod:error("(custom texture/atlas): texture name '%s' is already used by the mod '%s' as none atlas texture", texture_name, _custom_none_atlas_textures[texture_name])
+    mod:error("(custom texture/atlas): texture name '%s' is already used by the mod '%s' as none atlas texture",
+              texture_name, _custom_none_atlas_textures[texture_name])
     return false
   end
 
   if _custom_ui_atlas_settings[texture_name] then
     texture_settings = _custom_ui_atlas_settings[texture_name]
-    mod:error("(custom texture/atlas): texture name '%s' is already used by the mod '%s' in atlas '%s'", texture_name, texture_settings.mod_name, tostring(texture_settings.material_name))
+    mod:error("(custom texture/atlas): texture name '%s' is already used by the mod '%s' in atlas '%s'",
+              texture_name, texture_settings.mod_name, tostring(texture_settings.material_name))
     return false
   end
 
@@ -54,20 +58,28 @@ vmf.custom_textures = function (mod, ...)
         _custom_none_atlas_textures[texture_name] = mod:get_name()
       end
     else
-      mod:error("(custom_textures): all arguments should have the string type, but the argument #%s is %s", i, type(texture_name))
+      mod:error("(custom_textures): all arguments should have the string type, but the argument #%s is %s",
+                i, type(texture_name))
     end
   end
 end
 
-vmf.custom_atlas = function (mod, material_settings_file, material_name, masked_material_name, point_sample_material_name,
-                                      masked_point_sample_material_name, saturated_material_name)
+vmf.custom_atlas = function (mod, material_settings_file, material_name, masked_material_name,
+                                    point_sample_material_name, masked_point_sample_material_name,
+                                    saturated_material_name)
 
-  if vmf.check_wrong_argument_type(mod, "custom_atlas", "material_settings_file", material_settings_file, "string") or
-     vmf.check_wrong_argument_type(mod, "custom_atlas", "material_name", material_name, "string", "nil") or
-     vmf.check_wrong_argument_type(mod, "custom_atlas", "masked_material_name", masked_material_name, "string", "nil") or
-     vmf.check_wrong_argument_type(mod, "custom_atlas", "point_sample_material_name", point_sample_material_name, "string", "nil") or
-     vmf.check_wrong_argument_type(mod, "custom_atlas", "masked_point_sample_material_name", masked_point_sample_material_name, "string", "nil") or
-     vmf.check_wrong_argument_type(mod, "custom_atlas", "saturated_material_name", saturated_material_name, "string", "nil") then
+  if vmf.check_wrong_argument_type(mod, "custom_atlas", "material_settings_file",
+                                                         material_settings_file, "string") or
+     vmf.check_wrong_argument_type(mod, "custom_atlas", "material_name",
+                                                         material_name, "string", "nil") or
+     vmf.check_wrong_argument_type(mod, "custom_atlas", "masked_material_name",
+                                                         masked_material_name, "string", "nil") or
+     vmf.check_wrong_argument_type(mod, "custom_atlas", "point_sample_material_name",
+                                                         point_sample_material_name, "string", "nil") or
+     vmf.check_wrong_argument_type(mod, "custom_atlas", "masked_point_sample_material_name",
+                                                         masked_point_sample_material_name, "string", "nil") or
+     vmf.check_wrong_argument_type(mod, "custom_atlas", "saturated_material_name",
+                                                         saturated_material_name, "string", "nil") then
     return
   end
 
@@ -122,7 +134,8 @@ vmf.inject_materials = function (mod, ui_renderer_creator, ...)
       end
 
     else
-      mod:error("(inject_materials): all arguments should have the string type, but the argument #%s is %s", i + 1, type(new_injected_material))
+      mod:error("(inject_materials): all arguments should have the string type, but the argument #%s is %s",
+                i + 1, type(new_injected_material) )
     end
   end
 

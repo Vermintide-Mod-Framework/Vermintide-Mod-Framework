@@ -29,9 +29,11 @@ end
 -- ####################################################################################################################
 
 --[[
-  * setting_name               [string]  : setting name, can contain any characters lua-string can
-  * setting_value              [anything]: setting value, will be serialized to SJSON format, so you can save whole tables
-  * call_setting_changed_event [bool]    : if 'true', when some setting will be changed, 'setting_changed' event will be called (if mod defined one)
+  * setting_name  [string]  : setting name, can contain any characters lua-string can
+  * setting_value [anything]: setting value, will be serialized to SJSON format, so you can save whole tables
+  
+  * call_setting_changed_event [bool]:
+      if 'true', when some setting will be changed, 'setting_changed' event will be called (if mod defined one)
 --]]
 VMFMod.set = function (self, setting_name, setting_value, call_setting_changed_event)
 

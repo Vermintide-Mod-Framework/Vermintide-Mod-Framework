@@ -9,10 +9,19 @@ VMFModsKeyMap = {
   xb1 = {}
 }
 
--- ["mod_name"]["setting_name"] = {"action_name", {"primary_key", "special_key", "special_key", "special_key"}} (special_key - "ctrl"/"shift"/"alt")
+-- ["mod_name"]["setting_name"] = {
+--   "action_name",
+--   {"primary_key", "special_key", "special_key", "special_key"}
+-- }
+-- Special Keys: "ctrl" / "shift" / "alt"
 local _raw_keybinds = {}
 
--- ["primary_key"] = {{"mod_name", "action_name", ctrl_used(bool), alt_used(bool), shift_used(bool)}, {}, {}, ...}
+-- ["primary_key"] = {
+--   {"mod_name", "action_name", ctrl_used(bool), alt_used(bool), shift_used(bool)},
+--   {},
+--   {},
+--   ...
+-- }
 local _optimized_keybinds = {}
 
 local _activated_pressed_key
@@ -47,7 +56,12 @@ local function apply_keybinds()
       end
 
       _optimized_keybinds[primary_key] = _optimized_keybinds[primary_key] or {}
-      table.insert(_optimized_keybinds[primary_key], {mod_name, action_name, special_keys["ctrl"], special_keys["alt"], special_keys["shift"]})
+      table.insert(_optimized_keybinds[primary_key], {
+        mod_name, action_name,
+        special_keys["ctrl"],
+        special_keys["alt"],
+        special_keys["shift"]
+      })
     end
   end
 end

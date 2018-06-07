@@ -37,7 +37,8 @@ VMFMod.register_new_view = function (self, new_view_data)
          and not ingame_ui.menu_active
          and not ingame_ui.leave_game
          and not ingame_ui.return_to_title_screen
-         and not (ingame_ui.popup_join_lobby_handler and ingame_ui.popup_join_lobby_handler.visible) -- V2 doesn't have 'popup_join_lobby_handler'
+         -- V2 doesn't have 'popup_join_lobby_handler'
+         and not (ingame_ui.popup_join_lobby_handler and ingame_ui.popup_join_lobby_handler.visible)
       then
         ingame_ui:handle_transition(new_view_data.view_settings.hotkey_transition_name)
       end
@@ -188,9 +189,13 @@ end
 
 local ingame_ui_exists, ingame_ui_return
 if VT1 then
-  ingame_ui_exists, ingame_ui_return = pcall(function () return Managers.player.network_manager.matchmaking_manager.matchmaking_ui.ingame_ui end)
+  ingame_ui_exists, ingame_ui_return = pcall(function()
+    return Managers.player.network_manager.matchmaking_manager.matchmaking_ui.ingame_ui
+  end)
 else
-  ingame_ui_exists, ingame_ui_return = pcall(function () return Managers.player.network_manager.matchmaking_manager._ingame_ui end)
+  ingame_ui_exists, ingame_ui_return = pcall(function()
+    return Managers.player.network_manager.matchmaking_manager._ingame_ui
+  end)
 end
 
 -- if VMF is reloaded mid-game

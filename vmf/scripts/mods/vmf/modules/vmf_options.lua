@@ -257,7 +257,9 @@ vmf.on_setting_changed = function (setting_name)
       or setting_name == "chat_history_remove_dups_mode"
       or setting_name == "chat_history_commands_only" then
 
-    vmf.load_chat_history_settings(setting_name == "chat_history_enable" or setting_name == "chat_history_buffer_size" or setting_name == "chat_history_commands_only")
+    vmf.load_chat_history_settings(setting_name == "chat_history_enable" or
+                                   setting_name == "chat_history_buffer_size" or
+                                   setting_name == "chat_history_commands_only")
   end
 end
 

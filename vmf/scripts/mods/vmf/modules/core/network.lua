@@ -85,12 +85,16 @@ local function network_debug(rpc_type, action_type, peer_id, mod_name, rpc_name,
 
   if _network_debug then
 
-    local debug_message = nil
+    local debug_message
 
     if action_type == "local" then
       debug_message = "[NETWORK][LOCAL]"
     else
-      debug_message = "[NETWORK][" .. peer_id .. " (" .. tostring(Managers.player:player_from_peer_id(peer_id)) .. ")]" .. (action_type == "sent" and "<-" or "->")
+      local msg_direction = (action_type == "sent" and "<-" or "->")
+      local player_string = tostring(Managers.player:player_from_peer_id(peer_id))
+      --NOTE (Siku): Multiple concatenation requires the creation of multiple strings, look into it.
+      --debug_message = string.format("[NETWORK][%s (%s)] %s", peer_id, player_string, msg_direction)
+      debug_message = "[NETWORK][" .. peer_id .. " (" .. player_string .. ")]" .. msg_direction
     end
 
     if rpc_type == "ping" then
@@ -103,6 +107,7 @@ local function network_debug(rpc_type, action_type, peer_id, mod_name, rpc_name,
 
     elseif rpc_type == "data" then
 
+      --debug_message = string.format("%s[DATA][%s][%s]: ", debug_message, mod_name, rpc_name)
       debug_message = debug_message .. "[DATA][" .. mod_name .. "][" .. rpc_name .. "]: "
 
       if type(data) == "string" then
@@ -217,7 +222,8 @@ end
 -- ##### Hooks ########################################################################################################
 -- ####################################################################################################################
 
-vmf:hook("ChatManager.rpc_chat_message", function(func, self, sender, channel_id, message_sender, message, localization_param, ...)
+vmf:hook("ChatManager.rpc_chat_message",
+         function(func, self, sender, channel_id, message_sender, message, localization_param, ...)
 
   if channel_id == 1 then
 
@@ -234,7 +240,8 @@ vmf:hook("ChatManager.rpc_chat_message", function(func, self, sender, channel_id
 
       send_rpc_vmf_pong(sender)
 
-    elseif channel_id == 4 then -- rpc_vmf_responce (@TODO: maybe I should protect it from sending by the player who's not in the game?)
+    elseif channel_id == 4 then -- rpc_vmf_responce
+      -- @TODO: maybe I should protect it from sending by the player who's not in the game?
 
       network_debug("pong", "received", sender)
       if _network_debug then

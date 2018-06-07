@@ -187,8 +187,9 @@ local function table_dump_to_file(dumped_table, dumped_table_name, max_depth)
 
             table_entry[key] = "[" .. value_type .. "]"
           else
-
-            table_entry[key] = tostring(value):gsub('\\','\\\\'):gsub('\"','\\\"'):gsub('\t','\\t'):gsub('\n','\\n') .. " (" .. value_type .. ")"
+            
+            value = tostring(value):gsub('\\','\\\\'):gsub('\"','\\\"'):gsub('\t','\\t'):gsub('\n','\\n')
+            table_entry[key] = value .. " (" .. value_type .. ")"
           end
         end
       end
