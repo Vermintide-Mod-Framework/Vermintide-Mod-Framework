@@ -11,8 +11,6 @@ local vmf_mod_object = {}
 -- ####################################################################################################################
 
 function vmf_mod_object:init()
-	Managers.vmf = Managers.vmf or {} -- @TODO: move mod data to on_reload when it will be implemented in vt1
-
 	dofile("scripts/mods/vmf/modules/vmf_mod_manager")
 	dofile("scripts/mods/vmf/modules/core/events")
 	dofile("scripts/mods/vmf/modules/core/settings")
