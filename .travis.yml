@@ -16,4 +16,3 @@ install:
 
 script:
   - luacheck *.lua vmf
-  - luacheck *.mod vmf
