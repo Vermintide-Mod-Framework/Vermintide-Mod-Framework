@@ -2,7 +2,7 @@
   <a href="#welcome-to-the-vermintide-mod-framework-vmf-repository">
     <img
       alt="Vermintide Mod Framework"
-      src="https://i.imgur.com/ggIsleN.png"
+      src="https://github.com/Vermintide-Mod-Framework/Vermintide-Mod-Framework/blob/master/assets/vmf_logo_black.png"
       width="600"
     />
   </a>
