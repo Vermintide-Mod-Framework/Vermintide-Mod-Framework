@@ -1,6 +1,6 @@
 local vmf = get_mod("VMF")
 
-UI_RENDERERS = UI_RENDERERS or {}
+local _ui_renderers = vmf:persistent_table("_ui_renderers")
 
 local _custom_none_atlas_textures = {}
 local _custom_ui_atlas_settings = {}
@@ -144,7 +144,7 @@ vmf.inject_materials = function (mod, ui_renderer_creator, ...)
   -- recreate GUIs with injected materials for ui_renderers created by 'ui_renderer_creator'
   local vmf_data
 
-  for ui_renderer, _ in pairs(UI_RENDERERS) do
+  for ui_renderer, _ in pairs(_ui_renderers) do
 
     vmf_data = rawget(ui_renderer, "vmf_data")
 
@@ -226,7 +226,7 @@ vmf:hook("UIRenderer.create", function(func, world, ...)
 
   local ui_renderer = func(world, unpack(ui_renderer_materials))
 
-  UI_RENDERERS[ui_renderer] = true
+  _ui_renderers[ui_renderer] = true
 
   local vmf_data = {}
   vmf_data.original_materials = {...}
@@ -240,7 +240,7 @@ end)
 
 vmf:hook("UIRenderer.destroy", function(func, self, world)
 
-  UI_RENDERERS[self] = nil
+  _ui_renderers[self] = nil
 
   func(self, world)
 end)
@@ -274,11 +274,11 @@ end)
 -- ####################################################################################################################
 
 vmf.load_custom_textures_settings = function()
-  _show_debug_info = vmf:get("developer_mode") and vmf:get("log_ui_renderers_info")
+  _show_debug_info = vmf:get("developer_mode") and vmf:get("log__ui_renderers_info")
 end
 
 vmf.reset_guis = function()
-  for ui_renderer, _ in pairs(UI_RENDERERS) do
+  for ui_renderer, _ in pairs(_ui_renderers) do
     local vmf_data = rawget(ui_renderer, "vmf_data")
     if vmf_data.is_modified then
       World.destroy_gui(ui_renderer.world, ui_renderer.gui)
