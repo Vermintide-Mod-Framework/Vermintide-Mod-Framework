@@ -1,6 +1,6 @@
 local vmf = get_mod("VMF")
 
-local _DISABLED_MODS = vmf:get("disabled_mods_list") or {}
+local _disabled_mods = vmf:get("disabled_mods_list") or {}
 
 -- ####################################################################################################################
 -- ##### VMF internal functions and variables #########################################################################
@@ -20,11 +20,11 @@ vmf.set_mod_state = function (mod, is_enabled, initial_call)
 
   if not (initial_call or mod:is_mutator()) then
     if is_enabled then
-      _DISABLED_MODS[mod:get_name()] = nil
+      _disabled_mods[mod:get_name()] = nil
     else
-      _DISABLED_MODS[mod:get_name()] = true
+      _disabled_mods[mod:get_name()] = true
     end
-    vmf:set("disabled_mods_list", _DISABLED_MODS)
+    vmf:set("disabled_mods_list", _disabled_mods)
   end
 end
 
@@ -41,7 +41,7 @@ vmf.initialize_mod_state = function (mod)
     end
     vmf.set_mutator_state(mod, state, true)
   else
-    state = not _DISABLED_MODS[mod:get_name()]
+    state = not _disabled_mods[mod:get_name()]
     vmf.set_mod_state(mod, state, true)
   end
 end

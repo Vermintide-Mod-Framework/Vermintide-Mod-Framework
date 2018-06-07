@@ -11,8 +11,8 @@ Italian (it)
 Polish (pl)
 ]]
 
-local _LANGUAGE_ID = Application.user_setting("language_id")
-local _LOCALIZATION_DATABASE = {}
+local _language_id = Application.user_setting("language_id")
+local _localization_database = {}
 
 -- ####################################################################################################################
 -- ##### Local functions ##############################################################################################
@@ -36,7 +36,7 @@ end
 
 VMFMod.localize = function (self, text_id, ...)
 
-  local mod_localization_table = _LOCALIZATION_DATABASE[self:get_name()]
+  local mod_localization_table = _localization_database[self:get_name()]
   if mod_localization_table then
 
     local text_translations = mod_localization_table[text_id]
@@ -44,9 +44,9 @@ VMFMod.localize = function (self, text_id, ...)
 
       local message
 
-      if text_translations[_LANGUAGE_ID] then
+      if text_translations[_language_id] then
 
-        message = safe_string_format(self, text_translations[_LANGUAGE_ID], ...)
+        message = safe_string_format(self, text_translations[_language_id], ...)
         if message then
           return message
         end
@@ -78,11 +78,11 @@ vmf.load_mod_localization = function (mod, localization_table)
     return
   end
 
-  if _LOCALIZATION_DATABASE[mod:get_name()] then
+  if _localization_database[mod:get_name()] then
     mod:warning("(localization): overwritting already loaded localization file")
   end
 
-  _LOCALIZATION_DATABASE[mod:get_name()] = localization_table
+  _localization_database[mod:get_name()] = localization_table
 end
 
 -- ####################################################################################################################

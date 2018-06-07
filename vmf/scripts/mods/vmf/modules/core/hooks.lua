@@ -1,5 +1,5 @@
 local vmf = get_mod("VMF")
-
+--luacheck: ignore
 HOOKED_FUNCTIONS = {} -- global, because 'loadstring' doesn't see local variables
 
 if type(DELAYED_HOOKING_ENABLED) == "boolean" then

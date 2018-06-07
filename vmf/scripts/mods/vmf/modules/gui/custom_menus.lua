@@ -37,7 +37,8 @@ VMFMod.register_new_view = function (self, new_view_data)
          and not ingame_ui.menu_active
          and not ingame_ui.leave_game
          and not ingame_ui.return_to_title_screen
-         and not (ingame_ui.popup_join_lobby_handler and ingame_ui.popup_join_lobby_handler.visible) -- V2 doesn't have 'popup_join_lobby_handler'
+         -- V2 doesn't have 'popup_join_lobby_handler'
+         and not (ingame_ui.popup_join_lobby_handler and ingame_ui.popup_join_lobby_handler.visible)
       then
         ingame_ui:handle_transition(new_view_data.view_settings.hotkey_transition_name)
       end
@@ -137,12 +138,16 @@ vmf.check_custom_menus_close_keybinds = function()
         opening_keybind_is_pressed = false
       end
 
+      local input_ctrl = input_service:get("ctrl")
+      local input_shift = input_service:get("shift")
+      local input_alt = input_service:get("alt")
+
       local close_menu = false
       if not opening_keybind_is_pressed then
         if input_service:get(close_keybind[1]) and
-          (not close_keybind[2] and not input_service:get("ctrl") or close_keybind[2] and input_service:get("ctrl")) and
-          (not close_keybind[3] and not input_service:get("alt") or close_keybind[3] and input_service:get("alt")) and
-          (not close_keybind[4] and not input_service:get("shift") or close_keybind[4] and input_service:get("shift")) then
+          (not close_keybind[2] and not input_ctrl or close_keybind[2] and input_ctrl) and
+          (not close_keybind[3] and not input_alt or close_keybind[3] and input_alt) and
+          (not close_keybind[4] and not input_shift or close_keybind[4] and input_shift) then
 
           close_menu = not ingame_ui.views[ingame_ui.current_view]:input_service():is_blocked()
         end
@@ -188,9 +193,13 @@ end
 
 local ingame_ui_exists, ingame_ui_return
 if VT1 then
-  ingame_ui_exists, ingame_ui_return = pcall(function () return Managers.player.network_manager.matchmaking_manager.matchmaking_ui.ingame_ui end)
+  ingame_ui_exists, ingame_ui_return = pcall(function()
+    return Managers.player.network_manager.matchmaking_manager.matchmaking_ui.ingame_ui
+  end)
 else
-  ingame_ui_exists, ingame_ui_return = pcall(function () return Managers.player.network_manager.matchmaking_manager._ingame_ui end)
+  ingame_ui_exists, ingame_ui_return = pcall(function()
+    return Managers.player.network_manager.matchmaking_manager._ingame_ui
+  end)
 end
 
 -- if VMF is reloaded mid-game

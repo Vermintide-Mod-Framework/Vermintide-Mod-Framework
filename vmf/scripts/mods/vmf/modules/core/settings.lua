@@ -6,9 +6,9 @@
 --]]
 local vmf = get_mod("VMF")
 
-local _MODS_SETTINGS = Application.user_setting("mods_settings") or {}
+local _mods_settings = Application.user_setting("mods_settings") or {}
 
-local _THERE_ARE_UNSAVED_CHANGES = false
+local _there_are_unsaved_changes = false
 
 -- ####################################################################################################################
 -- ##### Local functions ##############################################################################################
@@ -16,11 +16,11 @@ local _THERE_ARE_UNSAVED_CHANGES = false
 
 local function save_all_settings()
 
-  if _THERE_ARE_UNSAVED_CHANGES then
-    Application.set_user_setting("mods_settings", _MODS_SETTINGS)
+  if _there_are_unsaved_changes then
+    Application.set_user_setting("mods_settings", _mods_settings)
     Application.save_user_settings()
 
-    _THERE_ARE_UNSAVED_CHANGES = false
+    _there_are_unsaved_changes = false
   end
 end
 
@@ -29,23 +29,25 @@ end
 -- ####################################################################################################################
 
 --[[
-  * setting_name               [string]  : setting name, can contain any characters lua-string can
-  * setting_value              [anything]: setting value, will be serialized to SJSON format, so you can save whole tables
-  * call_setting_changed_event [bool]    : if 'true', when some setting will be changed, 'setting_changed' event will be called (if mod defined one)
+  * setting_name  [string]  : setting name, can contain any characters lua-string can
+  * setting_value [anything]: setting value, will be serialized to SJSON format, so you can save whole tables
+  
+  * call_setting_changed_event [bool]:
+      if 'true', when some setting will be changed, 'setting_changed' event will be called (if mod defined one)
 --]]
 VMFMod.set = function (self, setting_name, setting_value, call_setting_changed_event)
 
   local mod_name = self:get_name()
 
-  if not _MODS_SETTINGS[mod_name] then
-    _MODS_SETTINGS[mod_name] = {}
+  if not _mods_settings[mod_name] then
+    _mods_settings[mod_name] = {}
   end
 
-  local mod_settings = _MODS_SETTINGS[mod_name]
+  local mod_settings = _mods_settings[mod_name]
 
   mod_settings[setting_name] = type(setting_value) == "table" and table.clone(setting_value) or setting_value
 
-  _THERE_ARE_UNSAVED_CHANGES = true
+  _there_are_unsaved_changes = true
 
   if call_setting_changed_event then
     vmf.mod_setting_changed_event(self, setting_name)
@@ -59,7 +61,7 @@ VMFMod.get = function (self, setting_name)
 
   local mod_name = self:get_name()
 
-  local mod_settings = _MODS_SETTINGS[mod_name]
+  local mod_settings = _mods_settings[mod_name]
 
   local setting_value
 

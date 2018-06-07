@@ -1,7 +1,12 @@
 local vmf = get_mod("VMF")
 
-DEV_CONSOLE_ENABLED = DEV_CONSOLE_ENABLED or false
-PRINT_ORIGINAL_FUNCTION = PRINT_ORIGINAL_FUNCTION or print
+-- Note(Siku): This file could definitely use the hooking system if we could figure out a way.
+-- It would requires hooks to be pushed higher in the loading order, but then we lose hooks printing to console
+-- Unless we find a way to store our logging messages in memory before the console is loaded.
+
+local _console_data = vmf:persistent_table("dev_console_data")
+if not _console_data.enabled then _console_data.enabled = false end
+if not _console_data.original_print then _console_data.original_print = print end
 
 -- ####################################################################################################################
 -- ##### Local functions ##############################################################################################
@@ -9,10 +14,10 @@ PRINT_ORIGINAL_FUNCTION = PRINT_ORIGINAL_FUNCTION or print
 
 local function open_dev_console()
 
-  if not DEV_CONSOLE_ENABLED then
+  if not _console_data.enabled then
 
     local print_hook_function = function(func, ...)
-      if DEV_CONSOLE_ENABLED then
+      if _console_data.enabled then
         CommandWindow.print(...)
         func(...)
       else
@@ -21,19 +26,19 @@ local function open_dev_console()
     end
 
     print = function(...)
-      print_hook_function(PRINT_ORIGINAL_FUNCTION, ...)
+      print_hook_function(_console_data.original_print, ...)
     end
 
     CommandWindow.open("Developer console")
-    DEV_CONSOLE_ENABLED = true
+    _console_data.enabled = true
   end
 end
 
 local function close_dev_console()
 
-  if DEV_CONSOLE_ENABLED then
+  if _console_data.enabled then
 
-    print = PRINT_ORIGINAL_FUNCTION
+    print = _console_data.original_print
 
     CommandWindow.close()
 
@@ -49,7 +54,7 @@ local function close_dev_console()
       ffi.C.SendMessageA(hwnd, WM_CLOSE, 0, 0)
     end)
 
-    DEV_CONSOLE_ENABLED = false
+    _console_data.enabled = false
   end
 end
 
