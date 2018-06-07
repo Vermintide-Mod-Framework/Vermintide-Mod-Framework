@@ -77,7 +77,6 @@ end
 
 function vmf_mod_object:on_unload()
 	print("VMF:ON_UNLOAD()")
-	vmf.reset_guis()
 	vmf.save_chat_history()
 	vmf.save_unsaved_settings_to_file()
 end
@@ -91,6 +90,7 @@ function vmf_mod_object:on_reload()
 	vmf.delete_keybinds()
 	vmf.mods_unload_event(false)
 	vmf.hooks_unload()
+	vmf.reset_guis()
 end
 
 
