@@ -12,6 +12,11 @@ local _shared_rpcs_map = ""
 local _network_module_is_initialized = false
 local _network_debug = false
 
+local VERMINTIDE_CHANNEL_ID = 1
+local RPC_VMF_REQUEST_CHANNEL_ID = 3
+local RPC_VMF_RESPONCE_CHANNEL_ID = 4
+local RPC_VMF_UNKNOWN_CHANNEL_ID = 5 -- Note(Siku): No clue what 5 is supposed to mean.
+
 -- ####################################################################################################################
 -- ##### Local functions ##############################################################################################
 -- ####################################################################################################################
@@ -225,7 +230,7 @@ end
 vmf:hook("ChatManager.rpc_chat_message",
          function(func, self, sender, channel_id, message_sender, message, localization_param, ...)
 
-  if channel_id == 1 then
+  if channel_id == VERMINTIDE_CHANNEL_ID then
 
     func(self, sender, channel_id, message_sender, message, localization_param, ...)
   else
@@ -234,13 +239,13 @@ vmf:hook("ChatManager.rpc_chat_message",
       return
     end
 
-    if channel_id == 3 then -- rpc_vmf_request
+    if channel_id == RPC_VMF_REQUEST_CHANNEL_ID then -- rpc_vmf_request
 
       network_debug("ping", "received", sender)
 
       send_rpc_vmf_pong(sender)
 
-    elseif channel_id == 4 then -- rpc_vmf_responce
+    elseif channel_id == RPC_VMF_RESPONCE_CHANNEL_ID then -- rpc_vmf_responce
       -- @TODO: maybe I should protect it from sending by the player who's not in the game?
 
       network_debug("pong", "received", sender)
@@ -273,7 +278,7 @@ vmf:hook("ChatManager.rpc_chat_message",
         end
       end)
 
-    elseif channel_id == 5 then
+    elseif channel_id == RPC_VMF_UNKNOWN_CHANNEL_ID then
 
       local mod_number, rpc_number = unpack(cjson.decode(message))
 
@@ -341,7 +346,6 @@ vmf.create_network_dictionary = function()
 
   local i = 0
   for mod_name, mod_rpcs in pairs(_rpc_callbacks) do
-
     i = i + 1
 
     _shared_mods_map[mod_name] = i
@@ -352,7 +356,6 @@ vmf.create_network_dictionary = function()
 
     local j = 0
     for rpc_name, _ in pairs(mod_rpcs) do
-
       j = j + 1
 
       _shared_rpcs_map[i][rpc_name] = j
