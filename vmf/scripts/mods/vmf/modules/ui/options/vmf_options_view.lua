@@ -25,6 +25,10 @@ vmf.inject_materials(vmf, "ingame_ui", "materials/vmf/vmf_atlas")
 -- ##### MENU WIDGETS DEFINITIONS #####################################################################################
 -- ####################################################################################################################
 
+-- Bandaid Fix for fancy ass ascii causing line checking errors.
+-- luacheck: no max_line_length
+-- Bandaid Fix for this file using lots of duplicated code and shadowed variables that could be refactored
+-- luacheck: ignore 4
 
 -- ███████╗ ██████╗███████╗███╗   ██╗███████╗ ██████╗ ██████╗  █████╗ ██████╗ ██╗  ██╗███████╗
 -- ██╔════╝██╔════╝██╔════╝████╗  ██║██╔════╝██╔════╝ ██╔══██╗██╔══██╗██╔══██╗██║  ██║██╔════╝
@@ -186,7 +190,7 @@ local function create_scrollbar(height, scenegraph_id)
           },
           {
             pass_type = "local_offset",
-            offset_function = function (ui_scenegraph, ui_style, ui_content, input_service)
+            offset_function = function (ui_scenegraph_, ui_style, ui_content, input_service_)
               local scroll_bar_info = ui_content.scroll_bar_info
               local scroll_bar_box = ui_style.scroll_bar_box
               local scroll_size_y = scroll_bar_box.scroll_size_y
@@ -215,14 +219,14 @@ local function create_scrollbar(height, scenegraph_id)
                 local scroll_size_y = scroll_bar_box.scroll_size_y
                 local start_y = scroll_bar_box.start_offset[2]
                 local end_y = (start_y + scroll_size_y) - size_y
-                local step = size_y / (start_y + end_y)
+                local step_ = size_y / (start_y + end_y)
                 scroll_bar_info.value = math.max(scroll_bar_info.value - button_scroll_step, 0)
               elseif button_down_hotspot.on_release then
                 local size_y = scroll_bar_box.size[2]
                 local scroll_size_y = scroll_bar_box.scroll_size_y
                 local start_y = scroll_bar_box.start_offset[2]
                 local end_y = (start_y + scroll_size_y) - size_y
-                local step = size_y / (start_y + end_y)
+                local step_ = size_y / (start_y + end_y)
                 scroll_bar_info.value = math.min(scroll_bar_info.value + button_scroll_step, 1)
               end
 
@@ -272,7 +276,7 @@ local function create_scrollbar(height, scenegraph_id)
 
               return
             end,
-            release_function = function (ui_scenegraph, ui_style, ui_content, input_service)
+            release_function = function (ui_scenegraph_, ui_style_, ui_content, input_service_)
               ui_content.click_pos_y = nil
 
               return
@@ -281,7 +285,7 @@ local function create_scrollbar(height, scenegraph_id)
           {
             pass_type = "local_offset",
             content_id = "scroll_bar_info",
-            offset_function = function (ui_scenegraph, ui_style, ui_content, input_service)
+            offset_function = function (ui_scenegraph_, ui_style, ui_content, input_service_)
               local box_style = ui_style.scroll_bar_box
               local box_size_y = box_style.size[2]
               local start_y = box_style.start_offset[2]
@@ -2848,7 +2852,7 @@ VMFOptionsView.initialize_settings_list_widgets = function (self)
   local list_size_y = 0
 
   local all_widgets = {}
-  local mod_widgets = nil
+  local mod_widgets
 
   for _, mod_settings_list_definitions in ipairs(self.definitions.settings_list_widgets) do
 
@@ -3151,7 +3155,7 @@ VMFOptionsView.callback_move_favorite = function (self, widget_content, is_moved
 
   local mod_name = widget_content.mod_name
 
-  local new_index = nil
+  local new_index
 
   local favorite_mods_list = vmf:get("options_menu_favorite_mods")
 
@@ -3774,9 +3778,9 @@ end
 
 VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
 
-  local widget_content = nil
-  local widget_type = nil
-  local loaded_setting_value = nil
+  local widget_content
+  local widget_type
+  local loaded_setting_value
 
   for _, mod_widgets in ipairs(self.settings_list_widgets) do
     for _, widget in ipairs(mod_widgets) do
@@ -4298,8 +4302,8 @@ vmf.create_options = function (mod, widgets_definition)
 
   local mod_settings_list_widgets_definitions = {}
 
-  local new_widget_definition = nil
-  local new_widget_index      = nil
+  local new_widget_definition
+  local new_widget_index
 
   local options_menu_favorite_mods     = vmf:get("options_menu_favorite_mods")
   local options_menu_collapsed_widgets = vmf:get("options_menu_collapsed_widgets")
