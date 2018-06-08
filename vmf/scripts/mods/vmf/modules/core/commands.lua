@@ -39,7 +39,7 @@ VMFMod.command = function (self, command_name, command_description, command_func
   _commands[command_name] = {
     mod = self,
     exec_function = command_function,
-    description = command_description,
+    description = command_description or "",
     is_enabled = true
   }
 end
