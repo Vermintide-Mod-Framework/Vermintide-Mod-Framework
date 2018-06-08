@@ -74,7 +74,7 @@ local function get_orig_function(self, obj, method)
 end
 
 -- Return an object from the global table. Second return value is if it was sucessful.
-local function get_object_from_string(obj)
+local function get_object_reference(obj)
     if type(obj) == "table" then
         return obj, true
     elseif type(obj) == "string" then
@@ -239,7 +239,7 @@ end
 --     self, string (method), function (handler), nil, string (func_name)
 
 local function generic_hook(self, obj, method, handler, func_name)
-    if vmf.check_wrong_argument_type(self, func_name, "obj", obj, "string", "table") or
+    if vmf.check_wrong_argument_type(self, func_name, "obj", obj, "string", "table", "nil") or
        vmf.check_wrong_argument_type(self, func_name, "method", method, "string", "function") or
        vmf.check_wrong_argument_type(self, func_name, "handler", handler, "function", "nil")
     then
@@ -250,15 +250,19 @@ local function generic_hook(self, obj, method, handler, func_name)
     if type(method) == "function" then
         handler = method
         method, obj = split_function_string(obj)
+        if not method then
+            self:error("(%s): trying to create hook without giving a method name. %s", func_name)
+            return
+        end
     end
 
     -- Get hook_type based on name
     local hook_type = HOOK_TYPES[func_name]
 
-    -- Check if hook should be delayed.
-    local obj, sucess = get_object_from_string(obj) --luacheck: ignore
-    if not sucess then
-        if _delaying_enabled then
+    -- Grab the object's reference, if this fails, obj will remains a string and the hook will be delayed.
+    local obj, sucess = get_object_reference(obj) --luacheck: ignore
+    if obj and not sucess then
+        if _delaying_enabled and type(obj) == "string" then
             -- Call this func at a later time, using upvalues.
             vmf:info("(%s): [%s.%s] needs to be delayed.", func_name, obj, method)
             table.insert(_delayed, function()
@@ -269,6 +273,15 @@ local function generic_hook(self, obj, method, handler, func_name)
             self:error("(%s): trying to hook object that doesn't exist: %s", func_name, obj)
             return
         end
+    end
+
+    -- Quick check to make sure the target exists
+    if obj and not obj[method] then
+        self:error("(%s): trying to hook method that doesn't exist: [%s.%s]", func_name, obj, method)
+        return
+    elseif not obj and not rawget(_G, method) then
+        self:error("(%s): trying to hook function that doesn't exist: [%s]", func_name, method)
+        return
     end
 
     -- obj can't be a string for these now.
@@ -286,11 +299,15 @@ local function generic_hook_toggle(self, obj, method, enabled_state)
 
     -- Adjust the arguments.
     if not method then
-        method, obj = split_function_string(obj)
+        if type(obj) == "string" then
+            method, obj = split_function_string(obj)
+        else
+            self:error("(%s): trying to toggle hook without giving a method name. %s", func_name)
+        end
     end
 
-    local obj, sucess = get_object_from_string(obj) --luacheck: ignore
-    if not sucess then
+    local obj, sucess = get_object_reference(obj) --luacheck: ignore
+    if obj and not sucess then
         self:error("(%s): object doesn't exist.", func_name)
         return
     end
@@ -375,6 +392,7 @@ end
 vmf.apply_delayed_hooks = function()
     _delaying_enabled = false
     if #_delayed > 0 then
+        vmf:info("Attempt to hook %s delayed hooks", #_delayed)
         -- Go through the table in reverse so we don't get any issues removing entries inside the loop
         for i = #_delayed, 1, -1 do
             _delayed[i]()
