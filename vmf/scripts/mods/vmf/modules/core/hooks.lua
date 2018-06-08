@@ -198,6 +198,7 @@ local function create_internal_hook(orig, obj, method)
 end
 
 local function create_hook(self, orig, obj, method, handler, func_name, hook_type)
+    self:info("(%s): Hooking '%s' from [%s] (Origin: %s)", func_name, method, obj or "_G", orig)
 
     if not is_orig_hooked(obj, method) then
         create_internal_hook(orig, obj, method)
