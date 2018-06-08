@@ -61,14 +61,8 @@ function new_mod(mod_name, mod_resources)
   end
 
   if type(mod_resources) ~= "table" then
-    --vmf:error("(new_mod): 'mod_resources' argument should have the 'table' type, not '%s'", type(mod_resources))
-    --return
-    vmf:error("ERROR: '%s' can't be loaded. Wait until its author updates their mod to the newest VMF structure.",
-               mod_name)
-    return {
-      localization = function() end,
-      initialize = function() end
-    }
+    vmf:error("(new_mod): 'mod_resources' argument should have the 'table' type, not '%s'", type(mod_resources))
+    return
   end
 
   if not mod_resources.mod_script then
