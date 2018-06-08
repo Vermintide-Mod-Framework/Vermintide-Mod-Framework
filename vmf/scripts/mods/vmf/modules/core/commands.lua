@@ -22,9 +22,8 @@ VMFMod.command = function (self, command_name, command_description, command_func
     return
   end
 
-  if string.find(command_name, " ") then
-
-    self:error("(command): command name can't contain spaces: [%s]", command_name)
+  if string.match(command_name, "[^%w_]") then
+    self:error("(command) '%s': command name can contain only [a-z, A-Z, 0-9, _] characters", command_name)
     return
   end
 
