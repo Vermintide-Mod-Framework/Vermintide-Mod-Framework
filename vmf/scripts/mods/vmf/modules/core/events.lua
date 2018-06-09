@@ -7,8 +7,11 @@ local _mods_unloading_order = vmf.mods_unloading_order
 -- ##### Local functions ###############################################################################################
 -- #####################################################################################################################
 
-local function run_event(mod, event_name, event, ...)
-  vmf.xpcall_no_return_values(mod, "(event) " .. event_name, event, ...)
+local function run_event(mod, event_name, ...)
+  local event = mod[event_name]
+  if event then
+    vmf.xpcall_no_return_values(mod, "(event) " .. event_name, event, ...)
+  end
 end
 
 -- #####################################################################################################################
@@ -27,10 +30,7 @@ function vmf.mods_unload_event(exit_game)
 
   for _, mod_name in ipairs(_mods_unloading_order) do
     local mod = _mods[mod_name]
-    local event = mod[event_name]
-    if event then
-      run_event(mod, event_name, event, exit_game)
-    end
+    run_event(mod, event_name, exit_game)
   end
 end
 
@@ -46,10 +46,7 @@ function vmf.mods_update_event(dt)
   local event_name = "update"
 
   for _, mod in pairs(_mods) do
-    local event = mod[event_name]
-    if event then
-      run_event(mod, event_name, event, dt)
-    end
+    run_event(mod, event_name, dt)
   end
 end
 
@@ -67,10 +64,7 @@ function vmf.mods_game_state_changed_event(status, state_name)
   local event_name = "on_game_state_changed"
 
   for _, mod in pairs(_mods) do
-    local event = mod[event_name]
-    if event then
-      run_event(mod, event_name, event, status, state_name)
-    end
+    run_event(mod, event_name, status, state_name)
   end
 end
 
@@ -86,10 +80,7 @@ function vmf.mod_setting_changed_event(mod, setting_name)
 
   local event_name = "on_setting_changed"
 
-  local event = mod[event_name]
-  if event then
-    run_event(mod, event_name, event, setting_name)
-  end
+  run_event(mod, event_name, setting_name)
 end
 
 
@@ -104,10 +95,7 @@ function vmf.mod_enabled_event(mod, initial_call)
 
   local event_name = "on_enabled"
 
-  local event = mod[event_name]
-  if event then
-    run_event(mod, event_name, event, initial_call)
-  end
+  run_event(mod, event_name, initial_call)
 end
 
 
@@ -122,10 +110,7 @@ function vmf.mod_disabled_event(mod, initial_call)
 
   local event_name = "on_disabled"
 
-  local event = mod[event_name]
-  if event then
-    run_event(mod, event_name, event, initial_call)
-  end
+  run_event(mod, event_name, initial_call)
 end
 
 
@@ -140,10 +125,7 @@ function vmf.mod_user_joined_the_game(mod, player)
 
   local event_name = "on_user_joined"
 
-  local event = mod[event_name]
-  if event then
-    run_event(mod, event_name, event, player)
-  end
+  run_event(mod, event_name, player)
 end
 
 
@@ -158,10 +140,7 @@ function vmf.mod_user_left_the_game(mod, player)
 
   local event_name = "on_user_left"
 
-  local event = mod[event_name]
-  if event then
-    run_event(mod, event_name, event, player)
-  end
+  run_event(mod, event_name, player)
 end
 
 
@@ -176,9 +155,6 @@ function vmf.all_mods_loaded_event()
 
   for _, mod_name in ipairs(_mods_unloading_order) do
     local mod = _mods[mod_name]
-    local event = mod[event_name]
-    if event then
-      run_event(mod, event_name, event)
-    end
+    run_event(mod, event_name)
   end
 end
