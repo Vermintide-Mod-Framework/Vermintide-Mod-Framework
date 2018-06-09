@@ -73,7 +73,7 @@ local function get_orig_function(self, obj, method)
     end
 end
 
--- Return an object from the global table. Second return value is if it was sucessful.
+-- Return an object from the global table. Second return value is if it was successful.
 local function get_object_reference(obj)
     if type(obj) == "table" then
         return obj, true
@@ -112,7 +112,7 @@ end
 -- ####################################################################################################################
 
 -- For any given original function, return the newest entry of the hook_chain.
--- Since all hooks of the chain contains the call to the previous one, we don't need to do any manual loops.
+-- Since all hooks of the chain contain the call to the previous one, we don't need to do any manual loops.
 -- This continues until the end of the chain, where the original function is called.
 local function get_hook_chain(orig)
     local hook_registry = _registry.hooks
@@ -136,7 +136,7 @@ local function create_specialized_hook(self, orig, handler, hook_type)
     local hook_data = _registry[self][orig]
 
     -- Determine the previous function in the hook stack
-    -- Note: If a previous hook is removed from the table, these functions wouldnt be updated
+    -- Note: If a previous hook is removed from the table, these functions wouldn't be updated
     -- This would break the chain, solution is to not remove the hooks, simply make them inactive
     -- Make sure inactive hooks that rely on the chain still call the next function seamlessly.
     local previous_hook = get_hook_chain(orig)
@@ -149,7 +149,7 @@ local function create_specialized_hook(self, orig, handler, hook_type)
                 return previous_hook(...)
             end
         end
-    -- Rawhooks need to directly call the original function is inactive.
+    -- Make sure hook_origin directly calls the original function if inactive.
     elseif hook_type == HOOK_TYPE_ORIGIN then
         func = function(...)
             if hook_data.active then
@@ -164,8 +164,6 @@ local function create_specialized_hook(self, orig, handler, hook_type)
                 vmf.xpcall_no_return_values(self, "(safe_hook)", handler, ...)
             end
         end
-    else
-        self:error("(create_specialized_hook): Invalid hook_type given. You should never this see.")
     end
     return func
 end
@@ -209,7 +207,7 @@ local function create_hook(self, orig, obj, method, handler, func_name, hook_typ
         _registry[self][orig] = { active = true }
 
         local hook_registry = _registry.hooks[hook_type]
-        -- Add to the hook to registry. Raw hooks are unique, so we check for that too.
+        -- Add to the hook to registry. Origin hooks are unique, so we check for that too.
         if hook_type == HOOK_TYPE_ORIGIN then
             if hook_registry[orig] then
                 self:error("(%s): Attempting to hook origin of already hooked function %s", func_name, method)
@@ -220,7 +218,13 @@ local function create_hook(self, orig, obj, method, handler, func_name, hook_typ
             table.insert(hook_registry[orig], create_specialized_hook(self, orig, handler, hook_type) )
         end
     else
-        self:error("(%s): Attempting to rehook already active hook %s.", func_name, method)
+        -- This should be a warning log, but currently there are no differences between warning and error.
+        -- Wouldn't want to scare users that mods are broken because this used to be acceptable.
+        if vmf:get("developer_mode") then
+            self:warning("(%s): Attempting to rehook already active hook %s.", func_name, method)
+        else
+            self:info("(%s): Attempting to rehook already active hook %s.", func_name, method)
+        end
     end
 
 end
@@ -260,9 +264,9 @@ local function generic_hook(self, obj, method, handler, func_name)
     -- Get hook_type based on name
     local hook_type = HOOK_TYPES[func_name]
 
-    -- Grab the object's reference, if this fails, obj will remains a string and the hook will be delayed.
-    local obj, sucess = get_object_reference(obj) --luacheck: ignore
-    if obj and not sucess then
+    -- Grab the object's reference, if this fails, obj will remain a string and the hook will be delayed.
+    local obj, success = get_object_reference(obj) --luacheck: ignore
+    if obj and not success then
         if _delaying_enabled and type(obj) == "string" then
             -- Call this func at a later time, using upvalues.
             vmf:info("(%s): [%s.%s] needs to be delayed.", func_name, obj, method)
@@ -307,8 +311,8 @@ local function generic_hook_toggle(self, obj, method, enabled_state)
         end
     end
 
-    local obj, sucess = get_object_reference(obj) --luacheck: ignore
-    if obj and not sucess then
+    local obj, success = get_object_reference(obj) --luacheck: ignore
+    if obj and not success then
         self:error("(%s): object doesn't exist.", func_name)
         return
     end
@@ -318,8 +322,8 @@ local function generic_hook_toggle(self, obj, method, enabled_state)
     if _registry[self][orig] then
         _registry[self][orig].active = enabled_state
     else
+        -- This has the potential for mod-breaking behavior, but not guaranteed
         self:warning("(%s): trying to toggle hook that doesn't exist: %s", func_name, method)
-        return
     end
 end
 
@@ -336,7 +340,7 @@ function VMFMod:hook_safe(obj, method, handler)
 end
 
 -- :hook() will allow you to hook a function, allowing your handler to replace the function in the stack,
---         and control it's execution. All hooks on the same function will be part of a chain, with the
+--         and control its execution. All hooks on the same function will be part of a chain, with the
 --         original function at the end. Your handler has to call the next function in the chain manually.
 -- The chain of event is determined by mod load order.
 function VMFMod:hook(obj, method, handler)
@@ -358,16 +362,16 @@ function VMFMod:hook_enable(obj, method)  generic_hook_toggle(self, obj, method,
 function VMFMod:hook_disable(obj, method) generic_hook_toggle(self, obj, method, false) end
 
 function VMFMod:enable_all_hooks()
-    -- Using pairs because the self table may contain nils, and order isnt important.
-    for _, hook in pairs(_registry[self]) do
-        hook.active = true
+    self:info("(hooks): Enabling all hooks for mod: %s", self:get_name())
+    for _, hook_data in pairs(_registry[self]) do
+        hook_data.active = true
     end
 end
 
 function VMFMod:disable_all_hooks()
-    -- Using pairs because the self table may contain nils, and order isnt important.
-    for _, hook in pairs(_registry[self]) do
-        hook.active = false
+    self:info("(hooks): Disabling all hooks for mod: %s", self:get_name())
+    for _, hook_data in pairs(_registry[self]) do
+        hook_data.active = false
     end
 end
 
@@ -375,7 +379,7 @@ end
 -- ##### VMF internal functions and variables #########################################################################
 -- ####################################################################################################################
 
--- -- removes all hooks when VMF is about to be reloaded
+-- Remove all hooks when VMF is about to be reloaded
 vmf.hooks_unload = function()
     for key, value in pairs(_registry.origs) do
         -- origs[method] = orig
