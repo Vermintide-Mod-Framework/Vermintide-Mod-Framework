@@ -1,367 +1,407 @@
 local vmf = get_mod("VMF")
---luacheck: ignore
-HOOKED_FUNCTIONS = {} -- global, because 'loadstring' doesn't see local variables
-
-if type(DELAYED_HOOKING_ENABLED) == "boolean" then
-  DELAYED_HOOKING_ENABLED = DELAYED_HOOKING_ENABLED
-else
-  DELAYED_HOOKING_ENABLED = true
-end
-
-local _DELAYED_HOOKS = {} -- _DELAYED_HOOKS[hook_name] = {{mod_name, hooked_function},{}}
 
 -- ####################################################################################################################
--- ##### Local functions ##############################################################################################
+-- ##### Locals and Variables #########################################################################################
 -- ####################################################################################################################
 
-local function check_function_name(mod, hook_function_name, hooked_function_name)
-  if type(hooked_function_name) ~= "string" then
-    mod:error("(%s): hooked function argument should be the string, not %s", hook_function_name, type(hooked_function_name))
+-- hook_type is an identifier to help distinguish the different api calls.
+local HOOK_TYPES = {
+    hook   = 1,
+    safe   = 2,
+    origin = 3,
+}
+
+-- Constants to ease on table lookups when not needed
+local HOOK_TYPE_NORMAL = 1
+local HOOK_TYPE_SAFE   = 2
+local HOOK_TYPE_ORIGIN = 3
+
+--[[ Planned registry structure:
+  _registry[self][orig] = { active = true}
+  _registry.hooks[hook_type]
+  _registry.origs
+]]
+
+-- dont need to attach this to registry.
+local _delayed = {}
+local _delaying_enabled = true
+
+-- This metatable will automatically create a table entry if one doesnt exist.
+-- This lets us easily do _registry[self] without having to worry about nil-checking it.
+local auto_table_meta = {__index = function(t, k) t[k] = {} return t[k] end }
+
+local _registry = setmetatable({}, auto_table_meta)
+-- This table will hold all of the hooks, in the format of _registry.hooks[hook_type]
+_registry.hooks = {
+    -- Do the same thing with these tables to allow .hooks[hook_type][orig] without a ton of nil-checks.
+    setmetatable({}, auto_table_meta), -- normal
+    setmetatable({}, auto_table_meta), -- safe
+    -- Since there can only be one origin per function, it doesnt need to generate a table.
+    {}, -- origin
+}
+_registry.origs = {}
+
+-- ####################################################################################################################
+-- ##### Util functions ###############################################################################################
+-- ####################################################################################################################
+
+local function is_orig_hooked(obj, method)
+    local orig_registry = _registry.origs
+    if obj and orig_registry[obj] and orig_registry[obj][method] then
+        return true
+    elseif orig_registry[method] then
+        return true
+    end
     return false
-  end
-
-  return true
 end
 
-
-local function get_function_by_name(function_name)
-
-  local _, value = pcall(loadstring("return " .. function_name))
-  -- no need to check status of 'pcall' - if there will be error, it's gonna be string instead of function
-  -- also, it can be anything else instead of function, even if 'loadstring' run will be successful, so check it
-  if type(value) == "function" then
-    return value
-  else
-    return nil
-  end
-end
-
-
-local function create_hooked_function_entry(hooked_function_name)
-
-  local hooked_function = get_function_by_name(hooked_function_name)
-  if not hooked_function then
-    return nil
-  end
-
-  local hooked_function_entry = {}
-
-  hooked_function_entry.name              = hooked_function_name
-  hooked_function_entry.original_function = hooked_function
-  hooked_function_entry.exec_function     = hooked_function
-  hooked_function_entry.hooks             = {}
-
-  table.insert(HOOKED_FUNCTIONS, hooked_function_entry)
-
-  return hooked_function_entry
-end
-
-
-local function create_hook_entry(mod, hooked_function_entry, hook_function)
-
-  local hook_entry = {}
-
-  hook_entry.mod           = mod
-  hook_entry.hook_function = hook_function
-  hook_entry.exec_function = nil
-  hook_entry.is_enabled    = true
-
-  table.insert(hooked_function_entry.hooks, hook_entry)
-end
-
-
--- Pick already existing function entry if it's already being hooked by some mod
-local function get_hooked_function_entry(hooked_function_name)
-
-  for i, hooked_function_entry in ipairs(HOOKED_FUNCTIONS) do
-    if hooked_function_entry.name == hooked_function_name then
-      return hooked_function_entry, i
-    end
-  end
-
-  return nil
-end
-
-
--- Pick already existing hook entry if there is one
-local function get_hook_entry(mod, hooked_function_entry)
-
-  for i, hook_entry in ipairs(hooked_function_entry.hooks) do
-    if hook_entry.mod == mod then
-      return hook_entry, i
-    end
-  end
-
-  return nil
-end
-
-
-local function update_function_hook_chain(hooked_function_name)
-
-  local hooked_function_entry, hooked_function_entry_index = get_hooked_function_entry(hooked_function_name)
-
-  for i, hook_entry in ipairs(hooked_function_entry.hooks) do
-    if i == 1 then
-      if hook_entry.is_enabled then
-        hook_entry.exec_function = function(...)
-          return hook_entry.hook_function(hooked_function_entry.original_function, ...)
+-- Since we replace the original function, we need to keep its reference around.
+-- This will grab the cached reference if we hooked it before, otherwise return the function.
+local function get_orig_function(self, obj, method)
+    if obj then
+        if is_orig_hooked(obj, method) then
+            return _registry.origs[obj][method]
+        else
+            return obj[method]
         end
-      else
-        hook_entry.exec_function = hooked_function_entry.original_function
-      end
     else
-      if hook_entry.is_enabled then
-        hook_entry.exec_function = function(...)
-          return hook_entry.hook_function(hooked_function_entry.hooks[i - 1].exec_function, ...)
+        if is_orig_hooked(obj, method) then
+            return _registry.origs[method]
+        else
+            return rawget(_G, method)
         end
-      else
-        hook_entry.exec_function = hooked_function_entry.hooks[i - 1].exec_function
-      end
     end
-  end
-
-  if #hooked_function_entry.hooks > 0 then
-    hooked_function_entry.exec_function = hooked_function_entry.hooks[#hooked_function_entry.hooks].exec_function
-  else
-    hooked_function_entry.exec_function = hooked_function_entry.original_function
-  end
-
-  assert(loadstring(hooked_function_name .. " = HOOKED_FUNCTIONS[" .. hooked_function_entry_index .. "].exec_function"))()
 end
 
-
-local function modify_hook(mod, hooked_function_name, action)
-
-  -- @TODO: I guess I don't need this check?
-  if not get_function_by_name(hooked_function_name) then
-    mod:error("(hook_%s): function [%s] doesn't exist", action, hooked_function_name)
-    return
-  end
-
-  local hooked_function_entry, hooked_function_entry_index = get_hooked_function_entry(hooked_function_name)
-  if not hooked_function_entry then
-    return
-  end
-
-  local hook_entry, hook_entry_index = get_hook_entry(mod, hooked_function_entry)
-
-  if hook_entry then
-    if action == "remove" then
-      table.remove(hooked_function_entry.hooks, hook_entry_index)
-    elseif action == "enable" then
-      hook_entry.is_enabled = true
-    elseif action == "disable" then
-      hook_entry.is_enabled = false
-    end
-
-    update_function_hook_chain(hooked_function_name)
-  end
-
-  if #hooked_function_entry.hooks == 0 then
-    table.remove(HOOKED_FUNCTIONS, hooked_function_entry_index)
-  end
-
-end
-
-
-local function modify_all_hooks(mod, action)
-
-  local no_hooks_functions_indexes = {}
-
-  for i, hooked_function_entry in ipairs(HOOKED_FUNCTIONS) do
-    for j, hook_entry in ipairs(hooked_function_entry.hooks) do
-      if hook_entry.mod == mod then
-
-        if action == "remove" then
-          table.remove(hooked_function_entry.hooks, j)
-        elseif action == "enable" then
-          hook_entry.is_enabled = true
-        elseif action == "disable" then
-          hook_entry.is_enabled = false
+-- Return an object from the global table. Second return value is if it was successful.
+local function get_object_reference(obj)
+    if type(obj) == "table" then
+        return obj, true
+    elseif type(obj) == "string" then
+        local obj_table = rawget(_G, obj)
+        if obj_table then
+            return obj_table, true
         end
-
-        update_function_hook_chain(hooked_function_entry.name)
-        break
-
-      end
     end
-
-    -- can't delete functions entries right away
-    -- because next function entry will be skiped by 'for'
-    -- so it have to be done later
-    if #hooked_function_entry.hooks == 0 then
-      table.insert(no_hooks_functions_indexes, 1, i)
-    end
-  end
-
-  for _, no_hooks_function_index in ipairs(no_hooks_functions_indexes) do
-    table.remove(HOOKED_FUNCTIONS, no_hooks_function_index)
-  end
+    return obj, false
 end
 
+-- VT1 hooked everything using a "Obj.Method" string
+-- Add backward compatibility for that format.
+local function split_function_string(str)
+    local find_position = string.find(str, "%.")
+    local method, obj
+    if find_position then
+        method = string.sub(str, find_position + 1)
+        obj = string.sub(str, 1, find_position - 1)
+    else
+        method = str
+    end
+    return method, obj
+end
 
--- DELAYED HOOKING
+-- We need to get the number of return values for accurate unpacking
+-- This is based on Lupo/Propjoe table.pack, but without putting the number inside the table
+local function get_return_values(...)
+    local num = select('#', ...)
+    return num, { ... }
+end
 
+-- ####################################################################################################################
+-- ##### Hook Creation ################################################################################################
+-- ####################################################################################################################
 
-local function add_delayed_hook(mod, hooked_function_name, hook_function)
+-- For any given original function, return the newest entry of the hook_chain.
+-- Since all hooks of the chain contain the call to the previous one, we don't need to do any manual loops.
+-- This continues until the end of the chain, where the original function is called.
+local function get_hook_chain(orig)
+    local hook_registry = _registry.hooks
+    local hooks = hook_registry[HOOK_TYPE_NORMAL][orig]
+    if hooks and #hooks > 0 then
+        return hooks[#hooks]
+    end
+    -- We can't simply return orig here, or it would cause origins to depend on load order.
+    return function(...)
+        if hook_registry[HOOK_TYPE_ORIGIN][orig] then
+            return hook_registry[HOOK_TYPE_ORIGIN][orig](...)
+        else
+            return orig(...)
+        end
+    end
+end
 
-  if _DELAYED_HOOKS[hooked_function_name] then
+-- Returns a function closure with all the information needed for a given hook to be handled correctly.
+local function create_specialized_hook(self, orig, handler, hook_type)
+    local func
+    local hook_data = _registry[self][orig]
 
-    for _, hook_info in ipairs(_DELAYED_HOOKS[hooked_function_name]) do
+    -- Determine the previous function in the hook stack
+    -- Note: If a previous hook is removed from the table, these functions wouldn't be updated
+    -- This would break the chain, solution is to not remove the hooks, simply make them inactive
+    -- Make sure inactive hooks that rely on the chain still call the next function seamlessly.
+    local previous_hook = get_hook_chain(orig)
+   
+    if hook_type == HOOK_TYPE_NORMAL then
+        func = function(...)
+            if hook_data.active then
+                return handler(previous_hook, ...)
+            else
+                return previous_hook(...)
+            end
+        end
+    -- Make sure hook_origin directly calls the original function if inactive.
+    elseif hook_type == HOOK_TYPE_ORIGIN then
+        func = function(...)
+            if hook_data.active then
+                return handler(...)
+            else
+                return orig(...)
+            end
+        end
+    elseif hook_type == HOOK_TYPE_SAFE then
+        func = function(...)
+            if hook_data.active then
+                vmf.xpcall_no_return_values(self, "(safe_hook)", handler, ...)
+            end
+        end
+    end
+    return func
+end
 
-      if hook_info[1] == mod then
-        hook_info[2] = hook_function
+-- The hook system makes internal functions that replace the original function and handles all the hooks.
+local function create_internal_hook(orig, obj, method)
+    local fn = function(...)
+        -- Execute the hook chain. Note that we need to keep the return values
+        -- in case another function depends on them.
+        local hook_chain = get_hook_chain(orig)
+        -- We need to keep return values in case another function depends on them
+        local num_values, values = get_return_values( hook_chain(...) )
+        
+        local safe_hooks = _registry.hooks[HOOK_TYPE_SAFE][orig]
+        if safe_hooks and #safe_hooks > 0 then
+            for i = 1, #safe_hooks do safe_hooks[i](...) end
+        end
+        return unpack(values, 1, num_values)
+    end
+
+    if obj then
+        -- object cannot be a string at this point, so we don't need to check for that.
+        if not _registry.origs[obj] then _registry.origs[obj] = {} end
+        _registry.origs[obj][method] = orig
+        obj[method] = fn
+    else
+        _registry.origs[method] = orig
+        _G[method] = fn
+    end
+end
+
+local function create_hook(self, orig, obj, method, handler, func_name, hook_type)
+    self:info("(%s): Hooking '%s' from [%s] (Origin: %s)", func_name, method, obj or "_G", orig)
+
+    if not is_orig_hooked(obj, method) then
+        create_internal_hook(orig, obj, method)
+    end
+
+    -- Check to make sure it wasn't hooked before
+    if not _registry[self][orig] then
+        _registry[self][orig] = { active = true }
+
+        local hook_registry = _registry.hooks[hook_type]
+        -- Add to the hook to registry. Origin hooks are unique, so we check for that too.
+        if hook_type == HOOK_TYPE_ORIGIN then
+            if hook_registry[orig] then
+                self:error("(%s): Attempting to hook origin of already hooked function %s", func_name, method)
+            else
+                hook_registry[orig] = create_specialized_hook(self, orig, handler, hook_type)
+            end
+        else
+            table.insert(hook_registry[orig], create_specialized_hook(self, orig, handler, hook_type) )
+        end
+    else
+        -- This should be a warning log, but currently there are no differences between warning and error.
+        -- Wouldn't want to scare users that mods are broken because this used to be acceptable.
+        if vmf:get("developer_mode") then
+            self:warning("(%s): Attempting to rehook already active hook %s.", func_name, method)
+        else
+            self:info("(%s): Attempting to rehook already active hook %s.", func_name, method)
+        end
+    end
+
+end
+
+-- ####################################################################################################################
+-- ##### GENERIC API ##################################################################################################
+-- ####################################################################################################################
+-- Singular functions that works on a generic basis so the VMFMod API can be tailored for user simplicity.
+
+-- Valid styles:
+
+-- Giving a string pointing to a global object table and method string and hook function
+--     self, string (obj), string (method), function (handler), string (func_name)
+-- Giving an object table and a method string and hook function
+--     self, table (obj), string (method), function (handler), string (func_name)
+-- Giving a method string or a Obj.Method string (VT1 Style) and a hook function
+--     self, string (method), function (handler), nil, string (func_name)
+
+local function generic_hook(self, obj, method, handler, func_name)
+    if vmf.check_wrong_argument_type(self, func_name, "obj", obj, "string", "table", "nil") or
+       vmf.check_wrong_argument_type(self, func_name, "method", method, "string", "function") or
+       vmf.check_wrong_argument_type(self, func_name, "handler", handler, "function", "nil")
+    then
         return
-      end
     end
-  else
 
-    _DELAYED_HOOKS[hooked_function_name] = _DELAYED_HOOKS[hooked_function_name] or {}
-  end
+    -- Adjust the arguments.
+    if type(method) == "function" then
+        handler = method
+        method, obj = split_function_string(obj)
+        if not method then
+            self:error("(%s): trying to create hook without giving a method name. %s", func_name)
+            return
+        end
+    end
 
-  table.insert(_DELAYED_HOOKS[hooked_function_name], {mod, hook_function})
+    -- Get hook_type based on name
+    local hook_type = HOOK_TYPES[func_name]
+
+    -- Grab the object's reference, if this fails, obj will remain a string and the hook will be delayed.
+    local obj, success = get_object_reference(obj) --luacheck: ignore
+    if obj and not success then
+        if _delaying_enabled and type(obj) == "string" then
+            -- Call this func at a later time, using upvalues.
+            vmf:info("(%s): [%s.%s] needs to be delayed.", func_name, obj, method)
+            table.insert(_delayed, function()
+                generic_hook(self, obj, method, handler, func_name)
+            end)
+            return
+        else
+            self:error("(%s): trying to hook object that doesn't exist: %s", func_name, obj)
+            return
+        end
+    end
+
+    -- Quick check to make sure the target exists
+    if obj and not obj[method] then
+        self:error("(%s): trying to hook method that doesn't exist: [%s.%s]", func_name, obj, method)
+        return
+    elseif not obj and not rawget(_G, method) then
+        self:error("(%s): trying to hook function that doesn't exist: [%s]", func_name, method)
+        return
+    end
+
+    -- obj can't be a string for these now.
+    local orig = get_orig_function(self, obj, method)
+    return create_hook(self, orig, obj, method, handler, func_name, hook_type)
 end
 
+local function generic_hook_toggle(self, obj, method, enabled_state)
+    local func_name = (enabled_state) and "hook_enable" or "hook_disable"
 
-local function delayed_hook(hooked_function_name)
+    if vmf.check_wrong_argument_type(self, func_name, "obj", obj, "string", "table") or
+    vmf.check_wrong_argument_type(self, func_name, "method", method, "string", "nil") then
+        return
+    end
 
-  local hooked_function_entry = create_hooked_function_entry(hooked_function_name)
-  if not hooked_function_entry then
-    return
-  end
+    -- Adjust the arguments.
+    if not method then
+        if type(obj) == "string" then
+            method, obj = split_function_string(obj)
+        else
+            self:error("(%s): trying to toggle hook without giving a method name. %s", func_name)
+        end
+    end
 
-  for _, hook_info in ipairs(_DELAYED_HOOKS[hooked_function_name]) do
+    local obj, success = get_object_reference(obj) --luacheck: ignore
+    if obj and not success then
+        self:error("(%s): object doesn't exist.", func_name)
+        return
+    end
 
-    create_hook_entry(hook_info[1], hooked_function_entry, hook_info[2])
-  end
+    local orig = get_orig_function(self, obj, method)
 
-  update_function_hook_chain(hooked_function_name)
-
-  _DELAYED_HOOKS[hooked_function_name] = nil
+    if _registry[self][orig] then
+        _registry[self][orig].active = enabled_state
+    else
+        -- This has the potential for mod-breaking behavior, but not guaranteed
+        self:warning("(%s): trying to toggle hook that doesn't exist: %s", func_name, method)
+    end
 end
 
 -- ####################################################################################################################
 -- ##### VMFMod #######################################################################################################
 -- ####################################################################################################################
 
-VMFMod.hook = function (self, hooked_function_name, hook_function)
+-- :hook_safe() provides callback after a function is called. You have no control over the execution of the
+--          original function, nor can you change its return values, making it much safer to use.
+-- The handler is never given the a "func" parameter.
+-- These will always be executed the original function and the hook chain.
+function VMFMod:hook_safe(obj, method, handler)
+    return generic_hook(self, obj, method, handler, "safe")
+end
 
-  if not check_function_name(self, "hook", hooked_function_name) then
-    return
-  end
+-- :hook() will allow you to hook a function, allowing your handler to replace the function in the stack,
+--         and control its execution. All hooks on the same function will be part of a chain, with the
+--         original function at the end. Your handler has to call the next function in the chain manually.
+-- The chain of event is determined by mod load order.
+function VMFMod:hook(obj, method, handler)
+    return generic_hook(self, obj, method, handler, "hook")
+end
 
-  local hooked_function_entry = get_hooked_function_entry(hooked_function_name) or create_hooked_function_entry(hooked_function_name)
-  if not hooked_function_entry then
+-- :hook_origin() allows you to directly hook a function, replacing it. The original function will bever be called.
+--            This hook will not be part of the hook chain proper, instead taking the place of the original function.
+-- This is similar to :back functionality that was sparsely used in old V1 mods.
+-- The handler is never given the a "func" parameter.
+-- This there is a limit of a single origin hook for any given function.
+-- This should only be used as a last resort due to its limitation and its potential to break the game if not careful.
+function VMFMod:hook_origin(obj, method, handler)
+    return generic_hook(self, obj, method, handler, "origin")
+end
+    
+-- Enable/disable functions for all hook types:
+function VMFMod:hook_enable(obj, method)  generic_hook_toggle(self, obj, method, true) end
+function VMFMod:hook_disable(obj, method) generic_hook_toggle(self, obj, method, false) end
 
-    if DELAYED_HOOKING_ENABLED then
-      add_delayed_hook(self, hooked_function_name, hook_function)
-    else
-      self:error("(hook): function [%s] doesn't exist", hooked_function_name)
+function VMFMod:enable_all_hooks()
+    self:info("(hooks): Enabling all hooks for mod: %s", self:get_name())
+    for _, hook_data in pairs(_registry[self]) do
+        hook_data.active = true
     end
-
-    return
-  end
-
-  if DELAYED_HOOKING_ENABLED and _DELAYED_HOOKS[hooked_function_name] then
-    add_delayed_hook(self, hooked_function_name, hook_function)
-    delayed_hook(hooked_function_name)
-    return
-  end
-
-  local hook_entry = get_hook_entry(self, hooked_function_entry)
-
-  -- overwrite existing hook
-  if hook_entry then
-    hook_entry.hook_function = hook_function
-    hook_entry.is_enabled    = true
-  -- create the new one
-  else
-    create_hook_entry(self, hooked_function_entry, hook_function)
-  end
-
-  update_function_hook_chain(hooked_function_name)
 end
 
-
-VMFMod.hook_remove = function (self, hooked_function_name)
-
-  if not check_function_name(self, "hook_remove", hooked_function_name) then
-    return
-  end
-
-  modify_hook(self, hooked_function_name, "remove")
-end
-
-
-VMFMod.hook_disable = function (self, hooked_function_name)
-
-  if not check_function_name(self, "hook_disable", hooked_function_name) then
-    return
-  end
-
-  modify_hook(self, hooked_function_name, "disable")
-end
-
-
-VMFMod.hook_enable = function (self, hooked_function_name)
-
-  if not check_function_name(self, "hook_enable", hooked_function_name) then
-    return
-  end
-
-  modify_hook(self, hooked_function_name, "enable")
-end
-
-
-VMFMod.remove_all_hooks = function (self)
-  modify_all_hooks(self, "remove")
-end
-
-
-VMFMod.disable_all_hooks = function (self)
-  modify_all_hooks(self, "disable")
-end
-
-
-VMFMod.enable_all_hooks = function (self)
-  modify_all_hooks(self, "enable")
+function VMFMod:disable_all_hooks()
+    self:info("(hooks): Disabling all hooks for mod: %s", self:get_name())
+    for _, hook_data in pairs(_registry[self]) do
+        hook_data.active = false
+    end
 end
 
 -- ####################################################################################################################
 -- ##### VMF internal functions and variables #########################################################################
 -- ####################################################################################################################
 
--- removes all hooks when VMF is about to be reloaded
+-- Remove all hooks when VMF is about to be reloaded
 vmf.hooks_unload = function()
-  for _, hooked_function_entry in ipairs(HOOKED_FUNCTIONS) do
-    hooked_function_entry.hooks = {}
-    update_function_hook_chain(hooked_function_entry.name)
-  end
-
-  HOOKED_FUNCTIONS = {}
+    for key, value in pairs(_registry.origs) do
+        -- origs[method] = orig
+        if type(value) == "function" then
+            _G[key] = value
+        -- origs[obj][method] = orig
+        elseif type(value) == "table" then
+            for method, orig in pairs(value) do
+                key[method] = orig
+            end
+        end
+    end
 end
 
 vmf.apply_delayed_hooks = function()
-
-  if DELAYED_HOOKING_ENABLED then
-
-    -- if chat is initialized, the game is fully loaded
-    if Managers.chat and Managers.chat:has_channel(1) then
-
-      DELAYED_HOOKING_ENABLED = false
-      for hooked_function_name, hooks in pairs(_DELAYED_HOOKS) do
-        for _, hook_info in ipairs(hooks) do
-          hook_info[1]:hook(hooked_function_name, hook_info[2]) -- mod:hook(hooked_function_name, hook_function)
+    _delaying_enabled = false
+    if #_delayed > 0 then
+        vmf:info("Attempt to hook %s delayed hooks", #_delayed)
+        -- Go through the table in reverse so we don't get any issues removing entries inside the loop
+        for i = #_delayed, 1, -1 do
+            _delayed[i]()
+            table.remove(_delayed, i)
         end
-        _DELAYED_HOOKS[hooked_function_name] = nil
-      end
-
-    else
-
-      for hooked_function_name, _ in pairs(_DELAYED_HOOKS) do
-        delayed_hook(hooked_function_name)
-      end
-
     end
-  end
 end

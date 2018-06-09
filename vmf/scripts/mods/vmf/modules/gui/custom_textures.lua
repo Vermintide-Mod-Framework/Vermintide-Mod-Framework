@@ -172,6 +172,7 @@ end
 -- ##### Hooks ########################################################################################################
 -- ####################################################################################################################
 
+local LUA_SCRIPT_CALLER_POSITION = 4
 vmf:hook("UIRenderer.create", function(func, world, ...)
 
   local is_modified = false
@@ -182,11 +183,11 @@ vmf:hook("UIRenderer.create", function(func, world, ...)
 
   local callstack = debug.traceback()
   -- get the name of lua script which called 'UIRenderer.create'
-  -- it's always the 3rd string of the 'debug.traceback()' output
+  -- it's the 4th string of the 'debug.traceback()' output
   local i = 0
   for s in callstack:gmatch("(.-)\n") do
     i = i + 1
-    if i == 3 then
+    if i == LUA_SCRIPT_CALLER_POSITION then
       ui_renderer_creator = s:match("([^%/]+)%.lua:")
       break
     end
