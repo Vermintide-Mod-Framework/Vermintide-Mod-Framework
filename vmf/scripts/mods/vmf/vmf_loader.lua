@@ -98,7 +98,7 @@ function vmf_mod_object:on_game_state_changed(status, state)
 	print("VMF:ON_GAME_STATE_CHANGED(), status: " .. tostring(status) .. ", state: " .. tostring(state))
 	vmf.mods_game_state_changed_event(status, state)
 	vmf.save_unsaved_settings_to_file()
-	vmf.apply_delayed_hooks()
+	vmf.apply_delayed_hooks(status, state)
 
 	if status == "enter" and state == "StateIngame" then
 		vmf.initialize_keybinds()

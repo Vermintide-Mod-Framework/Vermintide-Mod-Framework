@@ -269,7 +269,7 @@ local function generic_hook(self, obj, method, handler, func_name)
     if obj and not success then
         if _delaying_enabled and type(obj) == "string" then
             -- Call this func at a later time, using upvalues.
-            vmf:info("(%s): [%s.%s] needs to be delayed.", func_name, obj, method)
+            self:info("(%s): [%s.%s] needs to be delayed.", func_name, obj, method)
             table.insert(_delayed, function()
                 generic_hook(self, obj, method, handler, func_name)
             end)
@@ -394,8 +394,10 @@ vmf.hooks_unload = function()
     end
 end
 
-vmf.apply_delayed_hooks = function()
-    _delaying_enabled = false
+vmf.apply_delayed_hooks = function(status, state)
+    if status == "enter" and state == "StateIngame" then
+		_delaying_enabled = false
+	end
     if #_delayed > 0 then
         vmf:info("Attempt to hook %s delayed hooks", #_delayed)
         -- Go through the table in reverse so we don't get any issues removing entries inside the loop
