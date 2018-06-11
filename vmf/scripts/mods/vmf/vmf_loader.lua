@@ -12,6 +12,7 @@ local vmf_mod_object = {}
 
 function vmf_mod_object:init()
 	dofile("scripts/mods/vmf/modules/vmf_mod_manager")
+	dofile("scripts/mods/vmf/modules/core/safe_calls")
 	dofile("scripts/mods/vmf/modules/core/events")
 	dofile("scripts/mods/vmf/modules/core/settings")
 	dofile("scripts/mods/vmf/modules/core/logging")
