@@ -335,12 +335,15 @@ end
 
 -- Reads scrollbar input and if it was changed, set current page according to the new scrollbar position
 local function update_scrollbar_input()
-  local scrollbar_info = _OTHER_WIDGETS.scrollbar.content.scroll_bar_info
-  local value = scrollbar_info.value
-  local old_value = scrollbar_info.old_value
-  if value ~= old_value then
-    _CURRENT_PAGE_NUMBER = math.clamp(math.ceil(value / (1 / _TOTAL_PAGES_NUMBER)), 1, _TOTAL_PAGES_NUMBER)
-    scrollbar_info.old_value = value
+  local scrollbar_widget_content = _OTHER_WIDGETS.scrollbar.content
+  if scrollbar_widget_content.visible then
+    local scrollbar_info = scrollbar_widget_content.scroll_bar_info
+    local value = scrollbar_info.value
+    local old_value = scrollbar_info.old_value
+    if value ~= old_value then
+      _CURRENT_PAGE_NUMBER = math.clamp(math.ceil(value / (1 / _TOTAL_PAGES_NUMBER)), 1, _TOTAL_PAGES_NUMBER)
+      scrollbar_info.old_value = value
+    end
   end
 end
 
