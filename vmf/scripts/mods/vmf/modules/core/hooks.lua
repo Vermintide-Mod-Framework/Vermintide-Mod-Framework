@@ -6,9 +6,9 @@ local vmf = get_mod("VMF")
 
 -- hook_type is an identifier to help distinguish the different api calls.
 local HOOK_TYPES = {
-    hook   = 1,
-    safe   = 2,
-    origin = 3,
+    hook        = 1,
+    hook_safe   = 2,
+    hook_origin = 3,
 }
 
 -- Constants to ease on table lookups when not needed
@@ -291,6 +291,11 @@ local function generic_hook(self, obj, method, handler, func_name)
 
     -- obj can't be a string for these now.
     local orig = get_orig_function(self, obj, method)
+    if type(orig) ~= "function" then
+        self:error("(%s): trying to hook %s (a %s), not a function.", func_name, method, type(orig))
+        return
+    end
+
     return create_hook(self, orig, obj, method, handler, func_name, hook_type)
 end
 
@@ -336,7 +341,7 @@ end
 -- The handler is never given the a "func" parameter.
 -- These will always be executed the original function and the hook chain.
 function VMFMod:hook_safe(obj, method, handler)
-    return generic_hook(self, obj, method, handler, "safe")
+    return generic_hook(self, obj, method, handler, "hook_safe")
 end
 
 -- :hook() will allow you to hook a function, allowing your handler to replace the function in the stack,
@@ -354,7 +359,7 @@ end
 -- This there is a limit of a single origin hook for any given function.
 -- This should only be used as a last resort due to its limitation and its potential to break the game if not careful.
 function VMFMod:hook_origin(obj, method, handler)
-    return generic_hook(self, obj, method, handler, "origin")
+    return generic_hook(self, obj, method, handler, "hook_origin")
 end
     
 -- Enable/disable functions for all hook types:
