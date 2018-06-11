@@ -6,9 +6,9 @@ local vmf = get_mod("VMF")
 
 -- hook_type is an identifier to help distinguish the different api calls.
 local HOOK_TYPES = {
-    hook   = 1,
-    safe   = 2,
-    origin = 3,
+    hook        = 1,
+    hook_safe   = 2,
+    hook_origin = 3,
 }
 
 -- Constants to ease on table lookups when not needed
@@ -204,7 +204,7 @@ local function create_hook(self, orig, obj, method, handler, func_name, hook_typ
 
     -- Check to make sure it wasn't hooked before
     if not _registry[self][orig] then
-        _registry[self][orig] = { active = true }
+        _registry[self][orig] = { active = self:is_enabled() }
 
         local hook_registry = _registry.hooks[hook_type]
         -- Add to the hook to registry. Origin hooks are unique, so we check for that too.
@@ -269,7 +269,7 @@ local function generic_hook(self, obj, method, handler, func_name)
     if obj and not success then
         if _delaying_enabled and type(obj) == "string" then
             -- Call this func at a later time, using upvalues.
-            vmf:info("(%s): [%s.%s] needs to be delayed.", func_name, obj, method)
+            self:info("(%s): [%s.%s] needs to be delayed.", func_name, obj, method)
             table.insert(_delayed, function()
                 generic_hook(self, obj, method, handler, func_name)
             end)
@@ -291,6 +291,11 @@ local function generic_hook(self, obj, method, handler, func_name)
 
     -- obj can't be a string for these now.
     local orig = get_orig_function(self, obj, method)
+    if type(orig) ~= "function" then
+        self:error("(%s): trying to hook %s (a %s), not a function.", func_name, method, type(orig))
+        return
+    end
+
     return create_hook(self, orig, obj, method, handler, func_name, hook_type)
 end
 
@@ -313,8 +318,17 @@ local function generic_hook_toggle(self, obj, method, enabled_state)
 
     local obj, success = get_object_reference(obj) --luacheck: ignore
     if obj and not success then
-        self:error("(%s): object doesn't exist.", func_name)
-        return
+        if _delaying_enabled and type(obj) == "string" then
+            -- Call this func at a later time, using upvalues.
+            self:info("(%s): [%s.%s] needs to be delayed.", func_name, obj, method)
+            table.insert(_delayed, function()
+                generic_hook_toggle(self, obj, method, enabled_state)
+            end)
+            return
+        else
+            self:error("(%s): trying to toggle hook on object that doesn't exist: %s", func_name, obj)
+            return
+        end
     end
 
     local orig = get_orig_function(self, obj, method)
@@ -336,7 +350,7 @@ end
 -- The handler is never given the a "func" parameter.
 -- These will always be executed the original function and the hook chain.
 function VMFMod:hook_safe(obj, method, handler)
-    return generic_hook(self, obj, method, handler, "safe")
+    return generic_hook(self, obj, method, handler, "hook_safe")
 end
 
 -- :hook() will allow you to hook a function, allowing your handler to replace the function in the stack,
@@ -354,7 +368,7 @@ end
 -- This there is a limit of a single origin hook for any given function.
 -- This should only be used as a last resort due to its limitation and its potential to break the game if not careful.
 function VMFMod:hook_origin(obj, method, handler)
-    return generic_hook(self, obj, method, handler, "origin")
+    return generic_hook(self, obj, method, handler, "hook_origin")
 end
     
 -- Enable/disable functions for all hook types:
@@ -394,8 +408,10 @@ vmf.hooks_unload = function()
     end
 end
 
-vmf.apply_delayed_hooks = function()
-    _delaying_enabled = false
+vmf.apply_delayed_hooks = function(status, state)
+    if status == "enter" and state == "StateIngame" then
+		_delaying_enabled = false
+	end
     if #_delayed > 0 then
         vmf:info("Attempt to hook %s delayed hooks", #_delayed)
         -- Go through the table in reverse so we don't get any issues removing entries inside the loop
