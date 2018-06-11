@@ -4364,14 +4364,21 @@ vmf.create_options = function (mod, widgets_definition)
 
         new_widget_definition = {}
 
+        local text = current_widget.text
+        local tooltip = current_widget.tooltip
+
+        -- Account for mods that have already included option titles in tooltips
+        if tooltip and tooltip:sub(1, #text) ~= text then
+          tooltip = text .. "\n" .. tooltip
+        end
+
         new_widget_definition.widget_type     = current_widget.widget_type     -- all
         new_widget_definition.widget_index    = new_widget_index               -- all [gen]
         new_widget_definition.widget_level    = level                          -- all [gen]
         new_widget_definition.mod_name        = mod:get_name()                 -- all [gen]
         new_widget_definition.setting_name    = current_widget.setting_name    -- all
-        new_widget_definition.text            = current_widget.text            -- all
-        new_widget_definition.tooltip         = current_widget.tooltip and (current_widget.text .. "\n" ..
-                                                                             current_widget.tooltip)  -- all [optional]
+        new_widget_definition.text            = text                           -- all
+        new_widget_definition.tooltip         = tooltip                        -- all [optional]
         new_widget_definition.unit_text       = current_widget.unit_text       -- numeric [optional]
         new_widget_definition.range           = current_widget.range           -- numeric
         new_widget_definition.decimals_number = current_widget.decimals_number -- numeric [optional]
