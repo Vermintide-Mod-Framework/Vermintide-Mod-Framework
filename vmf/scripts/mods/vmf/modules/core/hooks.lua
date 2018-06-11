@@ -204,7 +204,7 @@ local function create_hook(self, orig, obj, method, handler, func_name, hook_typ
 
     -- Check to make sure it wasn't hooked before
     if not _registry[self][orig] then
-        _registry[self][orig] = { active = true }
+        _registry[self][orig] = { active = self:is_enabled() }
 
         local hook_registry = _registry.hooks[hook_type]
         -- Add to the hook to registry. Origin hooks are unique, so we check for that too.
@@ -318,8 +318,17 @@ local function generic_hook_toggle(self, obj, method, enabled_state)
 
     local obj, success = get_object_reference(obj) --luacheck: ignore
     if obj and not success then
-        self:error("(%s): object doesn't exist.", func_name)
-        return
+        if _delaying_enabled and type(obj) == "string" then
+            -- Call this func at a later time, using upvalues.
+            self:info("(%s): [%s.%s] needs to be delayed.", func_name, obj, method)
+            table.insert(_delayed, function()
+                generic_hook_toggle(self, obj, method, enabled_state)
+            end)
+            return
+        else
+            self:error("(%s): trying to toggle hook on object that doesn't exist: %s", func_name, obj)
+            return
+        end
     end
 
     local orig = get_orig_function(self, obj, method)
