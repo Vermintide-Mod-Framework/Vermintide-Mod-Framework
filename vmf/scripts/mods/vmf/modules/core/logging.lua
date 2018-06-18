@@ -7,6 +7,25 @@ local _logging_settings
 -- ##### Local functions ###############################################################################################
 -- #####################################################################################################################
 
+local function add_chat_message(message)
+  local chat_manager = Managers.chat
+  local new_message = {
+		channel_id = 1,
+		message_sender = "System",
+		message = message,
+    is_system_message = VT1 and true,
+    type = not VT1 and Irc.SYSTEM_MSG, -- luacheck: ignore Irc
+		pop_chat = true,
+		is_dev = false
+  }
+
+  table.insert(chat_manager.chat_messages, new_message)
+  if not VT1 then
+    table.insert(chat_manager.global_messages, new_message)
+  end
+end
+
+
 local function safe_format(mod, str, ...)
   -- the game still crash with unknown error if there is non-standard character after '%'
   local success, message = pcall(string.format, str, ...)
@@ -25,7 +44,7 @@ local function send_to_chat(self, msg_type, message)
   end
 
   if Managers.chat and Managers.chat:has_channel(1) then
-    Managers.chat:add_local_system_message(1, message, true)
+    add_chat_message(message)
   else
     table.insert(_unsent_chat_messages, message)
   end
@@ -98,7 +117,7 @@ function vmf.delayed_chat_messages_hook()
   vmf:hook_safe("ChatManager", "register_channel", function (self, channel_id)
     if (channel_id == 1) and (#_unsent_chat_messages > 0) then
       for _, message in ipairs(_unsent_chat_messages) do
-        self:add_local_system_message(1, message, true)
+        add_chat_message(message)
       end
 
       for i, _ in ipairs(_unsent_chat_messages) do
