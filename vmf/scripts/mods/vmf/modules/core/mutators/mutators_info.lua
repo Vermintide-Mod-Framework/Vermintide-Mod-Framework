@@ -57,7 +57,7 @@ end
 -- #####################################################################################################################
 
 -- Append difficulty name with enabled mutators' titles
-vmf:hook("IngamePlayerListUI.update_difficulty", function(func_, self)
+vmf:hook_origin(IngamePlayerListUI, "update_difficulty", function(self)
   local difficulty_settings = Managers.state.difficulty:get_difficulty_settings()
   local difficulty_name =  difficulty_settings.display_name
 
@@ -76,8 +76,7 @@ end)
 
 
 -- Notify everybody about enabled/disabled mutators when Play button is pressed on the map screen
-vmf:hook("MatchmakingStateHostGame.host_game", function(func, ...)
-  func(...)
+vmf:hook_safe(MatchmakingStateHostGame, "host_game", function()
   set_lobby_data()
   local names = add_enabled_mutators_titles_to_string(", ")
   if names ~= "" then
@@ -90,8 +89,9 @@ vmf:hook("MatchmakingStateHostGame.host_game", function(func, ...)
 end)
 
 
+-- @TODO: can't I do it with hook_safe? Also can't I just use 'sender' intead of extracting peer_id form cookie?
 -- Send special messages with enabled mutators list to players just joining the lobby
-vmf:hook("MatchmakingManager.rpc_matchmaking_request_join_lobby", function(func, self, sender, client_cookie, ...)
+vmf:hook(MatchmakingManager, "rpc_matchmaking_request_join_lobby", function(func, self, sender, client_cookie, ...)
   local name = add_enabled_mutators_titles_to_string(", ")
   if name ~= "" then
     local message = vmf:localize("whisper_enabled_mutators") .. ": " .. name

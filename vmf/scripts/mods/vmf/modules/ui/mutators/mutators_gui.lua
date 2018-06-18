@@ -383,15 +383,12 @@ end
 -- ##### Hooks ########################################################################################################
 -- ####################################################################################################################
 
-vmf:hook("MapView.init", function (func, self, ingame_ui_context)
-  func(self, ingame_ui_context)
-
+vmf:hook_safe(MapView, "init", function (self)
   initialize_mutators_ui(self)
 end)
 
 
-vmf:hook("MapView.update", function (func, self, dt, t)
-  func(self, dt, t)
+vmf:hook_safe(MapView, "update", function (self, dt)
 
   if self.menu_active and _IS_MUTATORS_GUI_INITIALIZED then
 

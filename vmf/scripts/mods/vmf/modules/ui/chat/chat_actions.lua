@@ -46,25 +46,19 @@ end
 -- ##### Hooks ########################################################################################################
 -- ####################################################################################################################
 
-vmf:hook("WorldManager.create_world", function(func, self, name, ...)
-  local world = func(self, name, ...)
-
+vmf:hook_safe(WorldManager, "create_world", function(self_, name)
   if name == "top_ingame_view" then
     initialize_drawing_function()
   end
-
-  return world
 end)
 
 
-vmf:hook("ChatGui.block_input", function(func, ...)
-  func(...)
-
+vmf:hook_safe("ChatGui", "block_input", function()
   _chat_opened = true
 end)
 
 
-vmf:hook("ChatGui._update_input", function(func, self, input_service, menu_input_service, dt, no_unblock, chat_enabled)
+vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_input_service, dt, no_unblock, chat_enabled)
 
   local command_executed = false
 

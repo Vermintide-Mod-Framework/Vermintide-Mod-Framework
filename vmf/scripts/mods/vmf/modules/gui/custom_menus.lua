@@ -72,8 +72,7 @@ end
 -- ##### Hooks ########################################################################################################
 -- ####################################################################################################################
 
-vmf:hook("IngameUI.setup_views", function(func, self, ingame_ui_context)
-  func(self, ingame_ui_context)
+vmf:hook_safe(IngameUI, "setup_views", function(self, ingame_ui_context)
 
   for view_name, view_settings in pairs(views_settings) do
 
@@ -97,15 +96,11 @@ vmf:hook("IngameUI.setup_views", function(func, self, ingame_ui_context)
   end
 end)
 
-vmf:hook("IngameUI.init", function(func, self, ingame_ui_context)
-  func(self, ingame_ui_context)
-
+vmf:hook_safe(IngameUI, "init", function(self)
   ingame_ui = self
 end)
 
-vmf:hook("IngameUI.destroy", function(func, self)
-  func(self)
-
+vmf:hook_safe(IngameUI, "destroy", function()
   ingame_ui = nil
 end)
 

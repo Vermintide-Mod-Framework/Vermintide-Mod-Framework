@@ -173,7 +173,7 @@ end
 -- ####################################################################################################################
 
 local LUA_SCRIPT_CALLER_POSITION = 4
-vmf:hook("UIRenderer.create", function(func, world, ...)
+vmf:hook(UIRenderer, "create", function(func, world, ...)
 
   local is_modified = false
 
@@ -239,25 +239,22 @@ vmf:hook("UIRenderer.create", function(func, world, ...)
 end)
 
 
-vmf:hook("UIRenderer.destroy", function(func, self, world)
-
+vmf:hook_safe(UIRenderer, "destroy", function(self)
   _ui_renderers[self] = nil
-
-  func(self, world)
 end)
 
 
-vmf:hook("UIAtlasHelper.has_atlas_settings_by_texture_name", function(func, texture_name)
+vmf:hook(UIAtlasHelper, "has_atlas_settings_by_texture_name", function(func, texture_name, ...)
 
   if _custom_ui_atlas_settings[texture_name] then
     return true
   end
 
-  return func(texture_name)
+  return func(texture_name, ...)
 end)
 
 
-vmf:hook("UIAtlasHelper.get_atlas_settings_by_texture_name", function(func, texture_name)
+vmf:hook(UIAtlasHelper, "get_atlas_settings_by_texture_name", function(func, texture_name, ...)
 
   if _custom_none_atlas_textures[texture_name] then
     return
@@ -267,7 +264,7 @@ vmf:hook("UIAtlasHelper.get_atlas_settings_by_texture_name", function(func, text
     return _custom_ui_atlas_settings[texture_name]
   end
 
-  return func(texture_name)
+  return func(texture_name, ...)
 end)
 
 -- ####################################################################################################################

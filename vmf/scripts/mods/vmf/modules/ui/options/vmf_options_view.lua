@@ -4578,9 +4578,8 @@ vmf.disable_mods_options_button = function ()
   change_mods_options_button_state("disable")
 end
 
--- @BUG: Game crashes occasionaly here. See attached log
 -- create mods options menu button in Esc-menu
-vmf:hook("IngameView.setup_button_layout", function (func, self, layout_data)
+vmf:hook(IngameView, "setup_button_layout", function (func, self, layout_data, ...)
 
   local mods_options_button = {
     display_name = vmf:localize("mods_options"),
@@ -4595,7 +4594,7 @@ vmf:hook("IngameView.setup_button_layout", function (func, self, layout_data)
     end
   end
 
-  func(self, layout_data)
+  func(self, layout_data, ...)
 
   for _, button_info in ipairs(self.active_button_data) do
     if button_info.transition == "vmf_options_view" then

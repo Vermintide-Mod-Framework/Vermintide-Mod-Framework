@@ -39,7 +39,7 @@ end
 -- ##### Hooks #########################################################################################################
 -- #####################################################################################################################
 
-vmf:hook("GameModeManager.complete_level", function(func, ...)
+vmf:hook(GameModeManager, "complete_level", function(func, ...)
   local num_dice = 0
   local max_dice = 7
   local mission_system = Managers.state.entity:system("mission_system")

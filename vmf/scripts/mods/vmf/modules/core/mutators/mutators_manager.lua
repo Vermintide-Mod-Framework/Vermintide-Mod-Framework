@@ -493,8 +493,7 @@ end
 -- ##### Hooks #########################################################################################################
 -- #####################################################################################################################
 
-vmf:hook("DifficultyManager.set_difficulty", function(func, ...)
-  func(...)
+vmf:hook_safe(DifficultyManager, "set_difficulty", function()
   disable_impossible_mutators(true, "disabled_reason_difficulty_change")
 end)
 

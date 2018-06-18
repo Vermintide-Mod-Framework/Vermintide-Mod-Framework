@@ -227,8 +227,8 @@ end
 -- ##### Hooks ########################################################################################################
 -- ####################################################################################################################
 
-vmf:hook("ChatManager.rpc_chat_message",
-         function(func, self, sender, channel_id, message_sender, message, localization_param, ...)
+vmf:hook("ChatManager", "rpc_chat_message",
+          function(func, self, sender, channel_id, message_sender, message, localization_param, ...)
 
   if channel_id == VERMINTIDE_CHANNEL_ID then
 
@@ -299,16 +299,16 @@ vmf:hook("ChatManager.rpc_chat_message",
 	end
 end)
 
-vmf:hook("PlayerManager.add_remote_player", function (func, self, peer_id, player_controlled, local_player_id, clan_tag)
+vmf:hook(PlayerManager, "add_remote_player", function (func, self, peer_id, player_controlled, ...)
 
   if player_controlled then
     send_rpc_vmf_ping(peer_id)
   end
 
-  return func(self, peer_id, player_controlled, local_player_id, clan_tag)
+  return func(self, peer_id, player_controlled, ...)
 end)
 
-vmf:hook("PlayerManager.remove_player", function (func, self, peer_id, local_player_id)
+vmf:hook(PlayerManager, "remove_player", function (func, self, peer_id, ...)
 
   if _vmf_users[peer_id] then
 
@@ -332,7 +332,7 @@ vmf:hook("PlayerManager.remove_player", function (func, self, peer_id, local_pla
     end
   end
 
-  func(self, peer_id, local_player_id)
+  func(self, peer_id, ...)
 end)
 
 -- ####################################################################################################################
