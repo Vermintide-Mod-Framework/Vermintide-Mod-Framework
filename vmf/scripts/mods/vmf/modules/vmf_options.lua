@@ -7,8 +7,7 @@ vmf_mod_data.options_widgets = {
     ["setting_name"] = "open_vmf_options",
     ["widget_type"] = "keybind",
     ["text"] = vmf:localize("open_vmf_options"),
-    ["tooltip"] = vmf:localize("open_vmf_options") .. "\n" ..
-                  vmf:localize("open_vmf_options_tooltip"),
+    ["tooltip"] = vmf:localize("open_vmf_options_tooltip"),
     ["default_value"] = {"f4"},
     ["action"] = "open_vmf_options"
   },
@@ -24,24 +23,21 @@ vmf_mod_data.options_widgets = {
     ["setting_name"] = "ui_scaling",
     ["widget_type"] = "checkbox",
     ["text"] = vmf:localize("ui_scaling"),
-    ["tooltip"] = vmf:localize("ui_scaling") .. "\n" ..
-                  vmf:localize("ui_scaling_tooltip"),
+    ["tooltip"] = vmf:localize("ui_scaling_tooltip"),
     ["default_value"] = true
   },
   {
     ["setting_name"] = "developer_mode",
     ["widget_type"] = "checkbox",
     ["text"] = vmf:localize("developer_mode"),
-    ["tooltip"] = vmf:localize("developer_mode") .. "\n" ..
-                  vmf:localize("developer_mode_tooltip"),
+    ["tooltip"] = vmf:localize("developer_mode_tooltip"),
     ["default_value"] = false,
     ["sub_widgets"] = {
       {
         ["setting_name"] = "show_developer_console",
         ["widget_type"] = "checkbox",
         ["text"] = vmf:localize("show_developer_console"),
-        ["tooltip"] = vmf:localize("show_developer_console") .. "\n" ..
-                      vmf:localize("show_developer_console_tooltip"),
+        ["tooltip"] = vmf:localize("show_developer_console_tooltip"),
         ["default_value"] = false
       },
       {
@@ -55,16 +51,14 @@ vmf_mod_data.options_widgets = {
         ["setting_name"] = "show_network_debug_info",
         ["widget_type"] = "checkbox",
         ["text"] = vmf:localize("show_network_debug_info"),
-        ["tooltip"] = vmf:localize("show_network_debug_info") .. "\n" ..
-                      vmf:localize("show_network_debug_info_tooltip"),
+        ["tooltip"] = vmf:localize("show_network_debug_info_tooltip"),
         ["default_value"] = false
       },
       {
         ["setting_name"] = "log_ui_renderers_info",
         ["widget_type"] = "checkbox",
         ["text"] = vmf:localize("log_ui_renderers_info"),
-        ["tooltip"] = vmf:localize("log_ui_renderers_info") .. "\n" ..
-                      vmf:localize("log_ui_renderers_info_tooltip"),
+        ["tooltip"] = vmf:localize("log_ui_renderers_info_tooltip"),
         ["default_value"] = false
       }
     }
@@ -155,24 +149,21 @@ vmf_mod_data.options_widgets = {
     ["setting_name"] = "chat_history_enable",
     ["widget_type"] = "checkbox",
     ["text"] = vmf:localize("chat_history_enable"),
-    ["tooltip"] = vmf:localize("chat_history_enable") .. "\n" ..
-                  vmf:localize("chat_history_enable_tooltip"),
+    ["tooltip"] = vmf:localize("chat_history_enable_tooltip"),
     ["default_value"] = true,
     ["sub_widgets"] = {
       {
         ["setting_name"] = "chat_history_save",
         ["widget_type"] = "checkbox",
         ["text"] = vmf:localize("chat_history_save"),
-        ["tooltip"] = vmf:localize("chat_history_save") .. "\n" ..
-                      vmf:localize("chat_history_save_tooltip"),
+        ["tooltip"] = vmf:localize("chat_history_save_tooltip"),
         ["default_value"] = true
       },
       {
         ["setting_name"] = "chat_history_buffer_size",
         ["widget_type"] = "numeric",
         ["text"] = vmf:localize("chat_history_buffer_size"),
-        ["tooltip"] = vmf:localize("chat_history_buffer_size") .. "\n" ..
-                      vmf:localize("chat_history_buffer_size_tooltip"),
+        ["tooltip"] = vmf:localize("chat_history_buffer_size_tooltip"),
         ["range"] = {10, 200},
         ["default_value"] = 50
       },
@@ -186,8 +177,7 @@ vmf_mod_data.options_widgets = {
             ["setting_name"] = "chat_history_remove_dups_mode",
             ["widget_type"] = "dropdown",
             ["text"] = vmf:localize("chat_history_remove_dups_mode"),
-            ["tooltip"] = vmf:localize("chat_history_remove_dups_mode") .. "\n" ..
-                          vmf:localize("chat_history_remove_dups_mode_tooltip"),
+            ["tooltip"] = vmf:localize("chat_history_remove_dups_mode_tooltip"),
             ["options"] = {
               {text = vmf:localize("settings_last"), value = "last"},
               {text = vmf:localize("settings_all"),  value = "all"},
@@ -200,8 +190,7 @@ vmf_mod_data.options_widgets = {
         ["setting_name"] = "chat_history_commands_only",
         ["widget_type"] = "checkbox",
         ["text"] = vmf:localize("chat_history_commands_only"),
-        ["tooltip"] = vmf:localize("chat_history_commands_only") .. "\n" ..
-                      vmf:localize("chat_history_commands_only_tooltip"),
+        ["tooltip"] = vmf:localize("chat_history_commands_only_tooltip"),
         ["default_value"] = false
       }
     }
