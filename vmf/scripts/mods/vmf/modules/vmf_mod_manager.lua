@@ -17,15 +17,8 @@ local function create_mod(mod_name)
 
   table.insert(_mods_unloading_order, 1, mod_name)
 
-  local mod = VMFMod:new()
+  local mod = VMFMod:new(mod_name)
   _mods[mod_name] = mod
-
-  mod._data = {}
-  mod._data.name = mod_name
-  mod._data.readable_name = mod_name
-  mod._data.is_enabled = true
-  mod._data.is_togglable = false
-  mod._data.is_mutator = false
 
   return mod
 end
@@ -97,42 +90,6 @@ function get_mod(mod_name)
 end
 
 -- #####################################################################################################################
--- ##### VMFMod ########################################################################################################
--- #####################################################################################################################
-
-VMFMod = class(VMFMod)
-
--- DATA
-
-function VMFMod:get_name()
-  return self._data.name
-end
-
-function VMFMod:get_readable_name()
-  return self._data.readable_name
-end
-
-function VMFMod:get_description()
-  return self._data.description
-end
-
-function VMFMod:is_enabled()
-  return self._data.is_enabled
-end
-
-function VMFMod:is_togglable()
-    return self._data.is_togglable
-end
-
-function VMFMod:is_mutator()
-  return self._data.is_mutator
-end
-
-function VMFMod:get_config()
-  return self._data.config
-end
-
--- #####################################################################################################################
 -- ##### VMF Initialization ############################################################################################
 -- #####################################################################################################################
 
@@ -152,11 +109,11 @@ function vmf.initialize_mod_data(mod, mod_data)
   end
 
   if mod_data.name then
-    mod._data.readable_name = mod_data.name
+    rawset(mod._data, "readable_name", mod_data.name)
   end
-  mod._data.description  = mod_data.description
-  mod._data.is_togglable = mod_data.is_togglable or mod_data.is_mutator
-  mod._data.is_mutator   = mod_data.is_mutator
+  rawset(mod._data, "description",  mod_data.description)
+  rawset(mod._data, "is_togglable", mod_data.is_togglable or mod_data.is_mutator)
+  rawset(mod._data, "is_mutator",   mod_data.is_mutator)
 
   if mod_data.is_mutator then
     vmf.register_mod_as_mutator(mod, mod_data.mutator_settings)

@@ -8,7 +8,7 @@ local _disabled_mods = vmf:get("disabled_mods_list") or {}
 
 vmf.set_mod_state = function (mod, is_enabled, initial_call)
 
-  mod._data.is_enabled = is_enabled
+  rawset(mod._data, "is_enabled", is_enabled)
 
   if is_enabled then
     mod:enable_all_hooks()

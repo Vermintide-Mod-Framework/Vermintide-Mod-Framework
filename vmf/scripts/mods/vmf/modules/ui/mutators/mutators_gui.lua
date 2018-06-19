@@ -125,7 +125,7 @@ local function offset_function_callback(ui_scenegraph_, style, content, ui_rende
   -- Find out if mutator can be enabled.
   local can_be_enabled = true
 
-  local mutator_compatibility_config = mutator:get_config().compatibility
+  local mutator_compatibility_config = mutator:get_internal_data("mutator_config").compatibility
   local is_mostly_compatible = mutator_compatibility_config.is_mostly_compatible
   local except = mutator_compatibility_config.except
 
