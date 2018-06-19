@@ -58,7 +58,8 @@ vmf:hook_safe("ChatGui", "block_input", function()
 end)
 
 
-vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_input_service, dt, no_unblock, chat_enabled)
+vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_input_service, dt, no_unblock,
+                                               chat_enabled, ...)
 
   local command_executed = false
 
@@ -112,7 +113,7 @@ vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_in
   local old_chat_message = self.chat_message
 
   local chat_focused, chat_closed, chat_close_time = func(self, input_service, menu_input_service,
-                                                                dt, no_unblock, chat_enabled)
+                                                                dt, no_unblock, chat_enabled, ...)
 
   if chat_closed then
     set_chat_message(self, "")
