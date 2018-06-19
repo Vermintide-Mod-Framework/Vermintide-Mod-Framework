@@ -109,11 +109,11 @@ function vmf.initialize_mod_data(mod, mod_data)
   end
 
   if mod_data.name then
-    rawset(mod._data, "readable_name", mod_data.name)
+    vmf.set_internal_data(mod, "readable_name", mod_data.name)
   end
-  rawset(mod._data, "description",  mod_data.description)
-  rawset(mod._data, "is_togglable", mod_data.is_togglable or mod_data.is_mutator)
-  rawset(mod._data, "is_mutator",   mod_data.is_mutator)
+  vmf.set_internal_data(mod, "description",  mod_data.description)
+  vmf.set_internal_data(mod, "is_togglable", mod_data.is_togglable or mod_data.is_mutator)
+  vmf.set_internal_data(mod, "is_mutator",   mod_data.is_mutator)
 
   if mod_data.is_mutator then
     vmf.register_mod_as_mutator(mod, mod_data.mutator_settings)

@@ -338,7 +338,7 @@ local function initialize_mutator_config(mutator, _raw_config)
   end
   if raw_config.short_title == "" then raw_config.short_title = nil end
 
-  rawset(mutator._data, "mutator_config", {})
+  vmf.set_internal_data(mutator, "mutator_config", {})
 
   local config = mutator:get_internal_data("mutator_config")
 

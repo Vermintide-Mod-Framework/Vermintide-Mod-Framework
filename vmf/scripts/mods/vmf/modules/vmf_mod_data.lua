@@ -1,19 +1,35 @@
+-- #####################################################################################################################
+-- ##### Local functions ###############################################################################################
+-- #####################################################################################################################
+
+local function set_internal_data(mod, key, value)
+  getmetatable(mod._data).__index[key] = value
+end
+
+-- #####################################################################################################################
+-- ##### VMFMod (not API) ##############################################################################################
+-- #####################################################################################################################
+
 -- Defining VMFMod class.
 VMFMod = class(VMFMod)
 
 -- Creating mod data table when object of VMFMod class is created.
 function VMFMod:init(mod_name)
-  self._data = {}
-  setmetatable(self._data, {
+  if mod_name == "VMF" then
+    self.set_internal_data = set_internal_data
+  end
+
+  self._data = setmetatable({}, {
+    __index = {},
     __newindex = function(t_, k)
       self:warning("Attempt to change internal mod data value (\"%s\"). Changing internal mod data is forbidden.", k)
     end
   })
-  rawset(self._data, "name",          mod_name)
-  rawset(self._data, "readable_name", mod_name)
-  rawset(self._data, "is_enabled",    true)
-  rawset(self._data, "is_togglable",  false)
-  rawset(self._data, "is_mutator",    false)
+  set_internal_data(self, "name",          mod_name)
+  set_internal_data(self, "readable_name", mod_name)
+  set_internal_data(self, "is_enabled",    true)
+  set_internal_data(self, "is_togglable",  false)
+  set_internal_data(self, "is_mutator",    false)
 end
 
 -- #####################################################################################################################
@@ -55,7 +71,7 @@ function VMFMod:is_enabled()
   return self._data.is_enabled
 end
 function VMFMod:is_togglable()
-    return self._data.is_togglable
+  return self._data.is_togglable
 end
 function VMFMod:is_mutator()
   return self._data.is_mutator
