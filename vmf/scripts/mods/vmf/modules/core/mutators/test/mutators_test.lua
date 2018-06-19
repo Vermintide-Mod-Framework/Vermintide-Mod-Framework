@@ -5,7 +5,7 @@ local mod_data
 
 ----------------------------------------------------------------------------------
 
-new_mod("test_legendary", {mod_script = "scripts/mods/vmf/core/mutators/mutators_test_empty_file"})
+new_mod("test_legendary", {mod_script = "scripts/mods/vmf/modules/core/mutators/test/mutators_test_empty_file"})
 mod = get_mod("test_legendary")
 mod_data = {}
 mod_data.name = "Legendary"
@@ -24,7 +24,7 @@ vmf.initialize_mod_state(mod)
 
 ----------------------------------------------------------------------------------
 
-new_mod("test_something", {mod_script = "scripts/mods/vmf/core/mutators/mutators_test_empty_file"})
+new_mod("test_something", {mod_script = "scripts/mods/vmf/modules/core/mutators/test/mutators_test_empty_file"})
 mod = get_mod("test_something")
 mod_data = {}
 mod_data.name = "Something"
@@ -42,7 +42,7 @@ vmf.initialize_mod_state(mod)
 
 ----------------------------------------------------------------------------------
 
-new_mod("test_deathwish", {mod_script = "scripts/mods/vmf/core/mutators/mutators_test_empty_file"})
+new_mod("test_deathwish", {mod_script = "scripts/mods/vmf/modules/core/mutators/test/mutators_test_empty_file"})
 mod = get_mod("test_deathwish")
 mod_data = {}
 mod_data.name = "?Deathwish"
@@ -61,7 +61,7 @@ vmf.initialize_mod_state(mod)
 
 ----------------------------------------------------------------------------------
 
-new_mod("test_slayer", {mod_script = "scripts/mods/vmf/core/mutators/mutators_test_empty_file"})
+new_mod("test_slayer", {mod_script = "scripts/mods/vmf/modules/core/mutators/test/mutators_test_empty_file"})
 mod = get_mod("test_slayer")
 mod_data = {}
 mod_data.name = "Slayer's Oath"
@@ -80,7 +80,7 @@ vmf.initialize_mod_state(mod)
 
 ----------------------------------------------------------------------------------
 
-new_mod("test_true_solo", {mod_script = "scripts/mods/vmf/core/mutators/mutators_test_empty_file"})
+new_mod("test_true_solo", {mod_script = "scripts/mods/vmf/modules/core/mutators/test/mutators_test_empty_file"})
 mod = get_mod("test_true_solo")
 mod_data = {}
 mod_data.name = "True Solo"
@@ -96,7 +96,7 @@ vmf.initialize_mod_state(mod)
 
 ----------------------------------------------------------------------------------
 
-new_mod("test_onslaught", {mod_script = "scripts/mods/vmf/core/mutators/mutators_test_empty_file"})
+new_mod("test_onslaught", {mod_script = "scripts/mods/vmf/modules/core/mutators/test/mutators_test_empty_file"})
 mod = get_mod("test_onslaught")
 mod_data = {}
 mod_data.name = "Onslaught"
@@ -108,7 +108,7 @@ vmf.initialize_mod_state(mod)
 
 ----------------------------------------------------------------------------------
 
-new_mod("test_one_hit_one_kill", {mod_script = "scripts/mods/vmf/core/mutators/mutators_test_empty_file"})
+new_mod("test_one_hit_one_kill", {mod_script = "scripts/mods/vmf/modules/core/mutators/test/mutators_test_empty_file"})
 mod = get_mod("test_one_hit_one_kill")
 mod_data = {}
 mod_data.name = "One Hit One Kill"
@@ -127,7 +127,7 @@ vmf.initialize_mod_state(mod)
 
 ----------------------------------------------------------------------------------
 
-new_mod("ayyyy", {mod_script = "scripts/mods/vmf/core/mutators/mutators_test_empty_file"})
+new_mod("ayyyy", {mod_script = "scripts/mods/vmf/modules/core/mutators/test/mutators_test_empty_file"})
 mod = get_mod("ayyyy")
 mod_data = {}
 mod_data.name = "ayyyy"
@@ -138,7 +138,7 @@ mod.on_disabled = function(init_call) mod:echo("ayyyy on_disabled(" .. (init_cal
 vmf.initialize_mod_state(mod)
 ----------------------------------------------------------------------------------
 
-new_mod("lmao", {mod_script = "scripts/mods/vmf/core/mutators/mutators_test_empty_file"})
+new_mod("lmao", {mod_script = "scripts/mods/vmf/modules/core/mutators/test/mutators_test_empty_file"})
 mod = get_mod("lmao")
 mod_data = {}
 mod_data.name = "lmao"
@@ -157,7 +157,7 @@ vmf.initialize_mod_state(mod)
 
 ----------------------------------------------------------------------------------
 
-new_mod("test_more_rats_weapons", {mod_script = "scripts/mods/vmf/core/mutators/mutators_test_empty_file"})
+new_mod("test_more_rats_weapons", {mod_script = "scripts/mods/vmf/modules/core/mutators/test/mutators_test_empty_file"})
 mod = get_mod("test_more_rats_weapons")
 mod_data = {}
 mod_data.name = "More Rat Weapons"
@@ -172,7 +172,7 @@ mod.on_disabled = function(init_call) mod:echo("More Rat Weapons on_disabled(" .
 vmf.initialize_mod_state(mod)
 
 --[[ -- scrollbar test
-new_mod("111", {mod_script = "scripts/mods/vmf/core/mutators/mutators_test_empty_file"})
+new_mod("111", {mod_script = "scripts/mods/vmf/modules/core/mutators/test/mutators_test_empty_file"})
 mod = get_mod("111")
 mod_data = {}
 mod_data.name = "111"
@@ -183,7 +183,7 @@ mod.on_disabled = function(init_call) mod:echo("111 on_disabled(" .. (init_call 
 vmf.initialize_mod_state(mod)
 
 
-new_mod("222", {mod_script = "scripts/mods/vmf/core/mutators/mutators_test_empty_file"})
+new_mod("222", {mod_script = "scripts/mods/vmf/modules/core/mutators/test/mutators_test_empty_file"})
 mod = get_mod("222")
 mod_data = {}
 mod_data.name = "222"
@@ -194,7 +194,7 @@ mod.on_disabled = function(init_call) mod:echo("222 on_disabled(" .. (init_call 
 vmf.initialize_mod_state(mod)
 
 
-new_mod("333", {mod_script = "scripts/mods/vmf/core/mutators/mutators_test_empty_file"})
+new_mod("333", {mod_script = "scripts/mods/vmf/modules/core/mutators/test/mutators_test_empty_file"})
 mod = get_mod("333")
 mod_data = {}
 mod_data.name = "333"
@@ -205,7 +205,7 @@ mod.on_disabled = function(init_call) mod:echo("333 on_disabled(" .. (init_call 
 vmf.initialize_mod_state(mod)
 
 
-new_mod("444", {mod_script = "scripts/mods/vmf/core/mutators/mutators_test_empty_file"})
+new_mod("444", {mod_script = "scripts/mods/vmf/modules/core/mutators/test/mutators_test_empty_file"})
 mod = get_mod("444")
 mod_data = {}
 mod_data.name = "444"
@@ -216,7 +216,7 @@ mod.on_disabled = function(init_call) mod:echo("444 on_disabled(" .. (init_call 
 vmf.initialize_mod_state(mod)
 
 
-new_mod("555", {mod_script = "scripts/mods/vmf/core/mutators/mutators_test_empty_file"})
+new_mod("555", {mod_script = "scripts/mods/vmf/modules/core/mutators/test/mutators_test_empty_file"})
 mod = get_mod("555")
 mod_data = {}
 mod_data.name = "555"
@@ -227,7 +227,7 @@ mod.on_disabled = function(init_call) mod:echo("555 on_disabled(" .. (init_call 
 vmf.initialize_mod_state(mod)
 
 
-new_mod("666", {mod_script = "scripts/mods/vmf/core/mutators/mutators_test_empty_file"})
+new_mod("666", {mod_script = "scripts/mods/vmf/modules/core/mutators/test/mutators_test_empty_file"})
 mod = get_mod("666")
 mod_data = {}
 mod_data.name = "666"
@@ -238,7 +238,7 @@ mod.on_disabled = function(init_call) mod:echo("666 on_disabled(" .. (init_call 
 vmf.initialize_mod_state(mod)
 
 
-new_mod("777", {mod_script = "scripts/mods/vmf/core/mutators/mutators_test_empty_file"})
+new_mod("777", {mod_script = "scripts/mods/vmf/modules/core/mutators/test/mutators_test_empty_file"})
 mod = get_mod("777")
 mod_data = {}
 mod_data.name = "777"
@@ -249,7 +249,7 @@ mod.on_disabled = function(init_call) mod:echo("777 on_disabled(" .. (init_call 
 vmf.initialize_mod_state(mod)
 
 
-new_mod("888", {mod_script = "scripts/mods/vmf/core/mutators/mutators_test_empty_file"})
+new_mod("888", {mod_script = "scripts/mods/vmf/modules/core/mutators/test/mutators_test_empty_file"})
 mod = get_mod("888")
 mod_data = {}
 mod_data.name = "888"
