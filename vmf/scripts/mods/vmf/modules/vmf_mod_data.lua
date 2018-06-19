@@ -1,7 +1,7 @@
 -- Defining VMFMod class.
 VMFMod = class(VMFMod)
 
--- Creating mod data table when object of vmf mod is instantiated.
+-- Creating mod data table when object of VMFMod class is created.
 function VMFMod:init(mod_name)
   self._data = {}
   setmetatable(self._data, {
@@ -21,9 +21,18 @@ end
 -- #####################################################################################################################
 
 --[[
-  Universal function for getting any internal mod data. Returned table values shouldn't be modified, because it lead to
-  unexpected VMF behaviour.
+  Universal function for retrieving any internal mod data. Returned table values shouldn't be modified, because it can
+  lead to unexpected VMF behaviour.
   * key [string]: data entry name
+
+  Possible entry names:
+    - name           (system mod name)
+    - readable_name  (readable mod name)
+    - description    (mod description)
+    - is_togglable   (if the mod can be disabled/enabled)
+    - is_enabled     (if the mod is curently enabled)
+    - is_mutator     (if the mod is mutator)
+    - mutator_config (mutator config)
 --]]
 function VMFMod:get_internal_data(key)
   return self._data[key]
@@ -31,7 +40,7 @@ end
 
 
 --[[
-  Predefined functions for getting specific internal mod data.
+  Predefined functions for retrieving specific internal mod data.
 --]]
 function VMFMod:get_name()
   return self._data.name
