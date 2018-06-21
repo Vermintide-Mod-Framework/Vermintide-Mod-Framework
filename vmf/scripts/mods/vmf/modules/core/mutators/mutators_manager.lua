@@ -48,7 +48,7 @@ end
 
 -- Called after mutator is enabled
 local function on_enabled(mutator)
-  local config = mutator:get_config()
+  local config = mutator:get_internal_data("mutator_config")
   dice_manager.addDice(config.dice)
   set_lobby_data()
   print("[MUTATORS] Enabled " .. mutator:get_name() .. " (" .. tostring(get_index(_mutators, mutator)) .. ")")
@@ -59,7 +59,7 @@ end
 
 -- Called after mutator is disabled
 local function on_disabled(mutator, initial_call)
-  local config = mutator:get_config()
+  local config = mutator:get_internal_data("mutator_config")
 
   -- All mutators run on_disabled on initial call, so there's no need to remove dice and set lobby data
   if not initial_call then
@@ -138,7 +138,7 @@ end
 local function mutator_can_be_enabled(mutator)
 
   -- If conflicting mutators are enabled
-  local mutator_compatibility_config = mutator:get_config().compatibility
+  local mutator_compatibility_config = mutator:get_internal_data("mutator_config").compatibility
   local is_mostly_compatible = mutator_compatibility_config.is_mostly_compatible
   local except = mutator_compatibility_config.except
   for _, other_mutator in ipairs(_mutators) do
@@ -189,7 +189,7 @@ end
 -- Adds mutator names from enable_these_after to the list of mutators that should be enabled after the mutator_name
 local function update_mutators_sequence(mutator)
 
-  local raw_config = mutator:get_config().raw_config
+  local raw_config = mutator:get_internal_data("mutator_config").raw_config
   local enable_before_these = raw_config.enable_before_these
   local enable_after_these = raw_config.enable_after_these
   local mutator_name = mutator:get_name()
@@ -225,8 +225,8 @@ end
 
 -- Uses raw_config to determine if mutators are compatible both ways
 local function is_compatible(mutator, other_mutator)
-  local raw_config = mutator:get_config().raw_config
-  local other_raw_config = other_mutator:get_config().raw_config
+  local raw_config = mutator:get_internal_data("mutator_config").raw_config
+  local other_raw_config = other_mutator:get_internal_data("mutator_config").raw_config
 
   local mutator_name = mutator:get_name()
   local other_mutator_name = other_mutator:get_name()
@@ -274,7 +274,7 @@ end
 local function update_compatibility(mutator)
 
   -- Create default 'compatibility' entry
-  local config = mutator:get_config()
+  local config = mutator:get_internal_data("mutator_config")
   config.compatibility = {}
   local compatibility = config.compatibility
 
@@ -287,7 +287,7 @@ local function update_compatibility(mutator)
 
   for _, other_mutator in ipairs(_mutators) do
 
-    local other_config = other_mutator:get_config()
+    local other_config = other_mutator:get_internal_data("mutator_config")
     local other_mostly_compatible = other_config.compatibility.is_mostly_compatible
     local other_except = other_config.compatibility.except
 
@@ -338,9 +338,9 @@ local function initialize_mutator_config(mutator, _raw_config)
   end
   if raw_config.short_title == "" then raw_config.short_title = nil end
 
-  mutator._data.config = {}
+  vmf.set_internal_data(mutator, "mutator_config", {})
 
-  local config = mutator._data.config
+  local config = mutator:get_internal_data("mutator_config")
 
   config.dice            = raw_config.dice
   config.short_title     = raw_config.short_title
@@ -376,7 +376,7 @@ function vmf.add_mutator_titles_to_string(mutators, separator, is_short)
   local replace = nil
 
   for _, mutator in ipairs(mutators) do
-    local config = mutator:get_config()
+    local config = mutator:get_internal_data("mutator_config")
     local added_name = (is_short and config.short_title or mutator:get_readable_name())
     if config.title_placement == "before" then
       if before then
@@ -485,7 +485,7 @@ end
 -- Removes all raw_configs which won't be used anymore
 function vmf.mutators_delete_raw_config()
   for _, mutator in ipairs(_mutators) do
-    mutator:get_config().raw_config = nil
+    mutator:get_internal_data("mutator_config").raw_config = nil
   end
 end
 

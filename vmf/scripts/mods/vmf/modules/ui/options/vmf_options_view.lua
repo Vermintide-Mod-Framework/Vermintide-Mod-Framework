@@ -4324,7 +4324,7 @@ vmf.create_options = function (mod, widgets_definition)
   new_widget_definition.readable_mod_name = mod:get_readable_name()
   new_widget_definition.tooltip           = mod:get_description()
   new_widget_definition.default           = true
-  new_widget_definition.is_mod_toggable   = mod:is_togglable() and not mod:is_mutator()
+  new_widget_definition.is_mod_toggable   = mod:get_internal_data("is_togglable") and not mod:get_internal_data("is_mutator")
 
   if mod_collapsed_widgets then
     new_widget_definition.is_widget_collapsed = mod_collapsed_widgets[mod:get_name()]
