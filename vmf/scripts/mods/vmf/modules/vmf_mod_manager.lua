@@ -79,7 +79,7 @@ function new_mod(mod_name, mod_resources)
   end
 
   -- Initialize mod state
-  if mod:is_togglable() then
+  if mod:get_internal_data("is_togglable") then
     vmf.initialize_mod_state(mod)
   end
 end

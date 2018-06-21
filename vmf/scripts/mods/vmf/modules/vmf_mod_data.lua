@@ -70,9 +70,3 @@ end
 function VMFMod:is_enabled()
   return self._data.is_enabled
 end
-function VMFMod:is_togglable()
-  return self._data.is_togglable
-end
-function VMFMod:is_mutator()
-  return self._data.is_mutator
-end

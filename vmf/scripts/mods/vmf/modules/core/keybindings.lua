@@ -141,7 +141,7 @@ vmf.check_pressed_keybinds = function()
 
             local mod = get_mod(binding_info[1])
 
-            if binding_info[2] == "toggle_mod_state" and not mod:is_mutator() then
+            if binding_info[2] == "toggle_mod_state" and not mod:get_internal_data("is_mutator") then
 
               vmf.mod_state_changed(mod:get_name(), not mod:is_enabled())
 

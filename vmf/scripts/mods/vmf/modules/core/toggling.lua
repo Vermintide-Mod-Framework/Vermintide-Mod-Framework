@@ -18,7 +18,7 @@ vmf.set_mod_state = function (mod, is_enabled, initial_call)
     vmf.mod_disabled_event(mod, initial_call)
   end
 
-  if not (initial_call or mod:is_mutator()) then
+  if not (initial_call or mod:get_internal_data("is_mutator")) then
     if is_enabled then
       _disabled_mods[mod:get_name()] = nil
     else
@@ -32,7 +32,7 @@ end
 vmf.initialize_mod_state = function (mod)
 
   local state
-  if mod:is_mutator() then
+  if mod:get_internal_data("is_mutator") then
     -- if VMF was reloaded and mutator was activated
     if vmf.is_mutator_enabled(mod:get_name()) then
       state = true
@@ -50,11 +50,11 @@ vmf.mod_state_changed = function (mod_name, is_enabled)
 
   local mod = get_mod(mod_name)
 
-  if not mod:is_togglable() or is_enabled == mod:is_enabled() then
+  if not mod:get_internal_data("is_togglable") or is_enabled == mod:is_enabled() then
     return
   end
 
-  if mod:is_mutator() then
+  if mod:get_internal_data("is_mutator") then
     vmf.set_mutator_state(mod, is_enabled, false)
   else
     vmf.set_mod_state(mod, is_enabled, false)
