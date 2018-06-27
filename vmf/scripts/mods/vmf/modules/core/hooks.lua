@@ -107,6 +107,12 @@ local function get_return_values(...)
     return num, { ... }
 end
 
+local function can_rehook(mod, hook_data, obj, hook_type)
+    if mod:get_internal_data("allow_rehooking") and hook_data.obj == obj and hook_data.hook_type == hook_type then
+        return true
+    end
+end
+
 -- ####################################################################################################################
 -- ##### Hook Creation ################################################################################################
 -- ####################################################################################################################
@@ -233,7 +239,7 @@ local function create_hook(mod, orig, obj, method, handler, func_name, hook_type
         -- If hook_data already exists and it's the same hook_type, we can safely change the hook handler.
         -- This should (in practice) only be used for debugging by modders who uses DoFile.
         -- Revisit purpose when lua files are in plain text.
-        if hook_data.obj == obj and hook_data.hook_type == hook_type then
+        if can_rehook(mod, hook_data, obj, hook_type) then
             hook_data.handler = handler
         else
             -- This should be a warning log, but currently there are no differences between warning and error.
