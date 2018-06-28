@@ -183,8 +183,24 @@ vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_in
 
     -- ctrl + v
     if Keyboard.pressed(Keyboard.button_index("v")) and Keyboard.button(Keyboard.button_index("left ctrl")) == 1 then
-      -- remove CR characters
-      local new_chat_message = self.chat_message .. tostring(Clipboard.get()):gsub(string.char(0x0D), "")
+      local new_chat_message = self.chat_message
+      
+      -- remove carriage returns
+      local clipboard_data = tostring(Clipboard.get()):gsub(string.char(0x0D), "")
+      
+      -- remove invalid characters
+      if Utf8.valid(clipboard_data) then
+        new_chat_message = new_chat_message .. clipboard_data
+      else
+        local valid_data = ""
+        clipboard_data:gsub(".", function(c)
+          if Utf8.valid(c) then
+            valid_data = valid_data .. c
+          end
+        end)
+        new_chat_message = new_chat_message .. valid_data
+      end
+      
       set_chat_message(self, new_chat_message)
     end
 
