@@ -86,9 +86,8 @@ local function draw(commands_list, selected_command_index)
 
       -- draw "/command_name" text
       local scaled_offet_x = (_OFFSET_X + _STRING_X_MARGIN) * scale
-
-      local selected_string_height = _STRING_HEIGHT * (i + selected_strings_number - 1) + _STRING_Y_OFFSET
-      local scaled_offset_y = (_OFFSET_Y - selected_string_height) * scale
+      local scaled_offset_y = (_OFFSET_Y - _STRING_HEIGHT * (i + selected_strings_number - 1) + _STRING_Y_OFFSET) *
+                                scale
 
       local string_position = Vector3(scaled_offet_x, scaled_offset_y, _OFFSET_Z + 2)
       Gui.text(_gui, command.name, font_material, font_size, font_name, string_position, Color(255, 100, 255, 100))
