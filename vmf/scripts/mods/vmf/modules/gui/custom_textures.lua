@@ -272,7 +272,7 @@ end)
 -- ####################################################################################################################
 
 vmf.load_custom_textures_settings = function()
-  _show_debug_info = vmf:get("developer_mode") and vmf:get("log__ui_renderers_info")
+  _show_debug_info = vmf:get("developer_mode") and vmf:get("log_ui_renderers_info")
 end
 
 vmf.reset_guis = function()
