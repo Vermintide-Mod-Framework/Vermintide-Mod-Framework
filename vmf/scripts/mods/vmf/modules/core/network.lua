@@ -17,6 +17,9 @@ local RPC_VMF_REQUEST_CHANNEL_ID = 3
 local RPC_VMF_RESPONCE_CHANNEL_ID = 4
 local RPC_VMF_UNKNOWN_CHANNEL_ID = 5 -- Note(Siku): No clue what 5 is supposed to mean.
 
+-- @TODO: delete it after VT2 1.2 release and replace all occurances with `VT1`
+local OLD_RPC_CHAT_MESSAGE = VT1 or (tonumber(script_data.settings.content_revision) <= 120239)
+
 -- ####################################################################################################################
 -- ##### Local functions ##############################################################################################
 -- ####################################################################################################################
@@ -131,16 +134,27 @@ end
 
 -- NETWORK
 
+local function rpc_chat_message(member, channel_id, message_sender, message, localization_param,
+                                is_system_message, pop_chat, is_dev)
+  if OLD_RPC_CHAT_MESSAGE then
+    RPC.rpc_chat_message(member, channel_id, message_sender, message, localization_param,
+                          is_system_message, pop_chat, is_dev)
+  else
+    RPC.rpc_chat_message(member, channel_id, message_sender, 0, message, localization_param,
+                          is_system_message, pop_chat, is_dev)
+  end
+end
+
 local function send_rpc_vmf_ping(peer_id)
 
   network_debug("ping", "sent", peer_id)
-  RPC.rpc_chat_message(peer_id, 3, Network.peer_id(), "", "", false, true, false)
+  rpc_chat_message(peer_id, 3, Network.peer_id(), "", "", false, true, false)
 end
 
 local function send_rpc_vmf_pong(peer_id)
 
   network_debug("pong", "sent", peer_id)
-  RPC.rpc_chat_message(peer_id, 4, Network.peer_id(), _shared_mods_map, _shared_rpcs_map, false, true, false)
+  rpc_chat_message(peer_id, 4, Network.peer_id(), _shared_mods_map, _shared_rpcs_map, false, true, false)
 end
 
 local function send_rpc_vmf_data(peer_id, mod_name, rpc_name, ...)
@@ -152,7 +166,7 @@ local function send_rpc_vmf_data(peer_id, mod_name, rpc_name, ...)
     local success, data = pcall(serialize_data, ...)
     if success then
       network_debug("data", "sent", peer_id, mod_name, rpc_name, data)
-      RPC.rpc_chat_message(peer_id, 5, Network.peer_id(), rpc_info, data, false, true, false)
+      rpc_chat_message(peer_id, 5, Network.peer_id(), rpc_info, data, false, true, false)
     end
   end
 end
@@ -228,15 +242,23 @@ end
 -- ####################################################################################################################
 
 vmf:hook("ChatManager", "rpc_chat_message",
-          function(func, self, sender, channel_id, message_sender, message, localization_param, ...)
+          function(func, self, sender, channel_id, message_sender, arg1, arg2, arg3, ...)
 
   if channel_id == VERMINTIDE_CHANNEL_ID then
-
-    func(self, sender, channel_id, message_sender, message, localization_param, ...)
+    func(self, sender, channel_id, message_sender, arg1, arg2, arg3, ...)
   else
 
     if not _network_module_is_initialized then
       return
+    end
+
+    local rpc_data1, rpc_data2
+    if OLD_RPC_CHAT_MESSAGE then
+      rpc_data1 = arg1
+      rpc_data2 = arg2
+    else
+      rpc_data1 = arg2
+      rpc_data2 = arg3
     end
 
     if channel_id == RPC_VMF_REQUEST_CHANNEL_ID then -- rpc_vmf_request
@@ -250,16 +272,16 @@ vmf:hook("ChatManager", "rpc_chat_message",
 
       network_debug("pong", "received", sender)
       if _network_debug then
-        vmf:info("[RECEIVED MODS TABLE]: " .. message)
-        vmf:info("[RECEIVED RPCS TABLE]: " .. localization_param)
+        vmf:info("[RECEIVED MODS TABLE]: " .. rpc_data1)
+        vmf:info("[RECEIVED RPCS TABLE]: " .. rpc_data2)
       end
 
       pcall(function()
 
         local user_rpcs_dictionary = {}
 
-        user_rpcs_dictionary[1] = cjson.decode(message) -- mods
-        user_rpcs_dictionary[2] = cjson.decode(localization_param) -- rpcs
+        user_rpcs_dictionary[1] = cjson.decode(rpc_data1) -- mods
+        user_rpcs_dictionary[2] = cjson.decode(rpc_data2) -- rpcs
 
         _vmf_users[sender] = user_rpcs_dictionary
 
@@ -279,20 +301,19 @@ vmf:hook("ChatManager", "rpc_chat_message",
       end)
 
     elseif channel_id == RPC_VMF_UNKNOWN_CHANNEL_ID then
-
-      local mod_number, rpc_number = unpack(cjson.decode(message))
+      local mod_number, rpc_number = unpack(cjson.decode(rpc_data1))
 
       local mod_name, rpc_name = convert_numbers_to_names(mod_number, rpc_number)
       if mod_name and get_mod(mod_name):is_enabled() then
 
-        network_debug("data", "received", sender, mod_name, rpc_name, localization_param)
+        network_debug("data", "received", sender, mod_name, rpc_name, rpc_data2)
 
         -- can be error in both callback_function() and deserialize_data()
         local error_prefix = "(network) " .. tostring(rpc_name)
         vmf.xpcall_no_return_values(
          get_mod(mod_name),
          error_prefix,
-         function() _rpc_callbacks[mod_name][rpc_name](sender, deserialize_data(localization_param)) end
+         function() _rpc_callbacks[mod_name][rpc_name](sender, deserialize_data(rpc_data2)) end
         )
       end
     end
