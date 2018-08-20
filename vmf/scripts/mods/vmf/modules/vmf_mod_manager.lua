@@ -111,9 +111,10 @@ function vmf.initialize_mod_data(mod, mod_data)
   if mod_data.name then
     vmf.set_internal_data(mod, "readable_name", mod_data.name)
   end
-  vmf.set_internal_data(mod, "description",  mod_data.description)
-  vmf.set_internal_data(mod, "is_togglable", mod_data.is_togglable or mod_data.is_mutator)
-  vmf.set_internal_data(mod, "is_mutator",   mod_data.is_mutator)
+  vmf.set_internal_data(mod, "description",       mod_data.description)
+  vmf.set_internal_data(mod, "is_togglable",      mod_data.is_togglable or mod_data.is_mutator)
+  vmf.set_internal_data(mod, "is_mutator",        mod_data.is_mutator)
+  vmf.set_internal_data(mod, "allow_rehooking",   mod_data.allow_rehooking)
 
   if mod_data.is_mutator then
     vmf.register_mod_as_mutator(mod, mod_data.mutator_settings)
