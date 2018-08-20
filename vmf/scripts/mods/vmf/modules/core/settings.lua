@@ -3,6 +3,7 @@
   * Operates settings within the mod namespace (you can define settings with the same name for different mods)
   * Settings location: "%AppData%\Roaming\Fatshark\Warhammer End Times Vermintide\user_settings.config"
   * All settings are saved to the settings-file when game state changes, when options menu is closed, and on reload
+  * Serializable settings types: number, string, boolean, table (array-like and map-like, but not mixed)
 --]]
 local vmf = get_mod("VMF")
 
@@ -16,7 +17,16 @@ local _there_are_unsaved_changes = false
 
 local function save_all_settings()
   if _there_are_unsaved_changes then
-    Application.set_user_setting("mods_settings", _mods_settings)
+
+    local success, error = pcall(Application.set_user_setting, "mods_settings", _mods_settings)
+    if not success then
+      if string.find(error, "number expected, got string") then
+        error = "one of mods tried to save a mixed table"
+      end
+      vmf:error("Vermintide Mod Framework failed to save mods settings: %s", tostring(error))
+      return
+    end
+
     Application.save_user_settings()
     _there_are_unsaved_changes = false
   end
