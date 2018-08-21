@@ -14,6 +14,12 @@ if not _console_data.original_print then _console_data.original_print = print en
 
 local function open_dev_console()
 
+  -- Forbid using dev console in official realm. Hopefully, temporarily restriction. So no localization.
+  if not VT1 and not script_data["eac-untrusted"] then
+    vmf:echo("You can't use developer console in official realm.")
+    return
+  end
+
   if not _console_data.enabled then
 
     local print_hook_function = function(func, ...)
