@@ -186,7 +186,7 @@ vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_in
       local new_chat_message = self.chat_message
       
       -- remove carriage returns
-      local clipboard_data = tostring(Clipboard.get()):gsub(string.char(0x0D), "")
+      local clipboard_data = tostring(Clipboard.get()):gsub("\r", "")
       
       -- remove invalid characters
       if Utf8.valid(clipboard_data) then
