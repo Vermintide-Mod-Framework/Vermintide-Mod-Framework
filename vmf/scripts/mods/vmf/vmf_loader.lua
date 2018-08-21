@@ -47,7 +47,6 @@ function vmf_mod_object:init()
 		vmf.mods_unload_event(true)
 		func(...)
 	end)
-	vmf:echo("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA IS THIS VT1: " .. tostring(VT1))
 end
 
 -- #####################################################################################################################
