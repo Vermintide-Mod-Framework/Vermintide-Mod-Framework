@@ -157,7 +157,7 @@ local function create_specialized_hook(mod, orig, hook_type)
     -- This would break the chain, solution is to not remove the hooks, simply make them inactive
     -- Make sure inactive hooks that rely on the chain still call the next function seamlessly.
     local previous_hook = get_hook_chain(orig)
-   
+
     if hook_type == HOOK_TYPE_NORMAL then
         func = function(...)
             if hook_data.active then
@@ -193,7 +193,7 @@ local function create_internal_hook(orig, obj, method)
         local hook_chain = get_hook_chain(orig)
         -- We need to keep return values in case another function depends on them
         local num_values, values = get_return_values( hook_chain(...) )
-        
+
         local safe_hooks = _hooks[HOOK_TYPE_SAFE][orig]
         if safe_hooks and #safe_hooks > 0 then
             for i = 1, #safe_hooks do safe_hooks[i](...) end
@@ -316,7 +316,7 @@ local function generic_hook(mod, obj, method, handler, func_name)
     end
 
     -- obj can't be a string for these now.
-    local orig = get_orig_function(mod, obj, method)
+    local orig = get_orig_function(obj, method)
     if type(orig) ~= "function" then
         mod:error("(%s): trying to hook %s (a %s), not a function.", func_name, method, type(orig))
         return
@@ -357,7 +357,7 @@ local function generic_hook_toggle(mod, obj, method, enabled_state)
         end
     end
 
-    local orig = get_orig_function(mod, obj, method)
+    local orig = get_orig_function(obj, method)
 
     if _registry[mod][orig] then
         _registry[mod][orig].active = enabled_state
@@ -404,7 +404,7 @@ end
 function VMFMod:hook_origin(obj, method, handler)
     return generic_hook(self, obj, method, handler, "hook_origin")
 end
-    
+
 -- Enable/disable functions for all hook types:
 function VMFMod:hook_enable(obj, method)
     generic_hook_toggle(self, obj, method, true)
