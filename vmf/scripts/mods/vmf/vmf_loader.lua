@@ -1,7 +1,8 @@
 local vmf
 
 -- Global variable indicating which version of the game is currently running
-VT1 = (type(script_data["eac-untrusted"]) == "nil")
+--VT1 = (type(script_data["eac-untrusted"]) == "nil")
+VT1 = not pcall(require, "PlayFab.json")
 
 -- Native mod object used by Fatshark mod manager
 local vmf_mod_object = {}
@@ -46,6 +47,7 @@ function vmf_mod_object:init()
 		vmf.mods_unload_event(true)
 		func(...)
 	end)
+	vmf:echo("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA IS THIS VT1: " .. tostring(VT1))
 end
 
 -- #####################################################################################################################
