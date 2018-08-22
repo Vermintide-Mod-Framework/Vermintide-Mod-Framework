@@ -4526,94 +4526,128 @@ local view_data = {
   }
 }
 
--- @TODO: won't it conflict with hooking system if I'll decided to hook this function via mod:hook?
-if not VT1 and not IngameView.umoes_is_hooked then
 
-  local umoes_original_function = IngameView.update_menu_options_enabled_states
-  IngameView.update_menu_options_enabled_states = function(self)
-    umoes_original_function(self)
-    if self.active_button_data then
-      for _, menu_option in ipairs(self.active_button_data) do
-        if menu_option.transition == "vmf_options_view" then
-          menu_option.widget.content.button_hotspot.disable_button = menu_option.widget.content.button_hotspot.disabled
-        end
-      end
-    end
-  end
+local _button_injection_data = vmf:persistent_table("button_injection_data")
 
-  IngameView.umoes_is_hooked = true
-end
 
--- disables/enables mods options buttons in the
-local function change_mods_options_button_state(state)
+if VT1 then
 
-  local ingame_menu_buttons_exist, ingame_menu_buttons
-  if VT1 then
-    ingame_menu_buttons_exist, ingame_menu_buttons = pcall(function () return Managers.player.network_manager.matchmaking_manager.matchmaking_ui.ingame_ui.ingame_menu.active_button_data end)
-  else
-    ingame_menu_buttons_exist, ingame_menu_buttons = pcall(function () return Managers.player.network_manager.matchmaking_manager._ingame_ui.views.ingame_menu.active_button_data end)
-  end
 
-  if ingame_menu_buttons_exist and type(ingame_menu_buttons) == "table" then
-    for _, button_info in ipairs(ingame_menu_buttons) do
+  -- Disable Mod Options button during mods reloading
+  vmf:hook_safe(IngameView, "update_menu_options", function (self)
+    for _, button_info in ipairs(self.active_button_data) do
       if button_info.transition == "vmf_options_view" then
-
-        -- it's enough to enable/disable buttons in V1, but it doesn't do anything in V2
-        -- there is special hook for V2 that updates button state every tick
-        -- and it uses this value to figure out if button is enabled
-        button_info.widget.content.disabled = (state == "disable")
-        button_info.widget.content.button_hotspot.disabled = (state == "disable")
+        button_info.widget.content.disabled = _button_injection_data.mod_options_button_disabled
+        button_info.widget.content.button_hotspot.disabled = _button_injection_data.mod_options_button_disabled
       end
     end
-  end
-end
+  end)
 
 
-vmf.initialize_vmf_options_view = function ()
-  vmf:register_new_view(view_data)
-  change_mods_options_button_state("enable")
-end
-
-vmf.disable_mods_options_button = function ()
-  change_mods_options_button_state("disable")
-end
-
--- create mods options menu button in Esc-menu
-vmf:hook(IngameView, "setup_button_layout", function (func, self, layout_data, ...)
-
-  local mods_options_button = {
-    display_name = vmf:localize("mods_options"),
-    transition = "vmf_options_view",
-    fade = false
-  }
-
-  for i = 1, #layout_data do
-    if layout_data[i].transition == "options_menu" and layout_data[i + 1].transition ~= "vmf_options_view" then
-      table.insert(layout_data, i + 1, mods_options_button)
-      break
+  -- Inject Mod Options button in current ESC-menu layout
+  -- Disable localization for button widget
+  vmf:hook(IngameView, "setup_button_layout", function (func, self, layout_data, ...)
+    local mods_options_button = {
+      display_name = vmf:localize("mods_options"),
+      transition = "vmf_options_view",
+      fade = false
+    }
+    for i = 1, #layout_data do
+      if layout_data[i].transition == "options_menu" and layout_data[i + 1].transition ~= "vmf_options_view" then
+        table.insert(layout_data, i + 1, mods_options_button)
+        break
+      end
     end
-  end
 
-  func(self, layout_data, ...)
+    func(self, layout_data, ...)
 
-  for _, button_info in ipairs(self.active_button_data) do
-    if button_info.transition == "vmf_options_view" then
-
-      if VT1 then
+    for _, button_info in ipairs(self.active_button_data) do
+      if button_info.transition == "vmf_options_view" then
         button_info.widget.style.text.localize = false
         button_info.widget.style.text_disabled.localize = false
         button_info.widget.style.text_click.localize = false
         button_info.widget.style.text_hover.localize = false
         button_info.widget.style.text_selected.localize = false
-      else
-        button_info.widget.style.title_text.localize = false
-        button_info.widget.style.title_text_disabled.localize = false
-        button_info.widget.style.title_text_shadow.localize = false
       end
+    end
+  end)
 
-      if not self.ingame_ui.views["vmf_options_view"] then
-        change_mods_options_button_state("disable")
+
+else
+
+
+  local function get_mod_options_button_index(layout_logic)
+    for button_index, button_data in ipairs(layout_logic.active_button_data) do
+      if button_data.transition == "vmf_options_view" then
+        return button_index
       end
     end
   end
-end)
+
+
+  -- Disable localization for Mod Options button widget for pc version of ESC-menu
+  -- Widget definition: ingame_view_definitions.lua -> UIWidgets.create_default_button
+  vmf:hook_safe(IngameView, "on_enter", function (self)
+    self.layout_logic._ingame_view = self
+  end)
+  vmf:hook_safe(IngameViewLayoutLogic, "setup_button_layout", function (self)
+    if self._ingame_view then
+      local mod_options_button_index = get_mod_options_button_index(self)
+      local button_widget = self._ingame_view.stored_buttons[mod_options_button_index]
+      button_widget.style.title_text.localize = false
+      button_widget.style.title_text_shadow.localize = false
+      button_widget.style.title_text_disabled.localize = false
+    end
+  end)
+
+
+  -- Disable localization for Mod Options button widget for console version of ESC-menu
+  -- Widget definition: hero_window_ingame_view_definitions.lua -> create_title_button
+  vmf:hook_safe(HeroWindowIngameView, "on_enter", function (self)
+    local widget = self._title_button_widgets[get_mod_options_button_index(self.layout_logic)]
+    widget.style.text.localize = false
+    widget.style.text_hover.localize = false
+    widget.style.text_shadow.localize = false
+    widget.style.text_disabled.localize = false
+  end)
+
+
+  -- Disable Mod Options button during mods reloading
+  vmf:hook_safe(IngameViewLayoutLogic, "_update_menu_options_enabled_states", function (self)
+    local mod_options_button_index = get_mod_options_button_index(self)
+    local mod_options_button_data = self.active_button_data[mod_options_button_index]
+    mod_options_button_data.disabled = _button_injection_data.mod_options_button_disabled
+  end)
+
+
+  -- Inject Mod Options button in all possible ESC-menu layouts (except for developer's one, because it will increase
+  -- the number of buttons to 10, when the hard limit is 9, which will crash the game)
+  vmf:hook_safe(IngameViewLayoutLogic, "init", function (self)
+    local mod_options_button = {
+      display_name = vmf:localize("mods_options"),
+      transition = "vmf_options_view",
+      fade = false
+    }
+    for _, layout in pairs(self.layout_list) do
+      for i = 1, #layout do
+        if layout[i].transition == "options_menu" and layout[i + 1].transition ~= "vmf_options_view" then
+          table.insert(layout, i + 1, mod_options_button)
+          break
+        end
+      end
+    end
+  end)
+
+
+end
+
+
+vmf.initialize_vmf_options_view = function ()
+  vmf:register_new_view(view_data)
+  _button_injection_data.mod_options_button_disabled = false
+end
+
+
+vmf.disable_mods_options_button = function ()
+  _button_injection_data.mod_options_button_disabled = true
+end
