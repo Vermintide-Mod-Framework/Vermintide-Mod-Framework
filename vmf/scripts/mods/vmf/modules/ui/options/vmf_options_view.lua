@@ -4702,11 +4702,11 @@ else
   -- Disable localization for Mod Options button widget for console version of ESC-menu
   -- Widget definition: hero_window_ingame_view_definitions.lua -> create_title_button
   vmf:hook_safe(HeroWindowIngameView, "on_enter", function (self)
-    local widget = self._title_button_widgets[get_mod_options_button_index(self.layout_logic)]
-    widget.style.text.localize = false
-    widget.style.text_hover.localize = false
-    widget.style.text_shadow.localize = false
-    widget.style.text_disabled.localize = false
+    local button_widget = self._title_button_widgets[get_mod_options_button_index(self.layout_logic)]
+    button_widget.style.text.localize = false
+    button_widget.style.text_hover.localize = false
+    button_widget.style.text_shadow.localize = false
+    button_widget.style.text_disabled.localize = false
   end)
 
 
