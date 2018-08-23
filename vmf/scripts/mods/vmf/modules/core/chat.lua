@@ -26,6 +26,15 @@ local function send_system_message(peer_id, message)
   end
 end
 
+local function add_system_message_to_chat(chat_manager, message)
+  if OLD_RPC_CHAT_MESSAGE then
+    chat_manager:_add_message_to_list(CHANNEL_ID, MESSAGE_SENDER, message, IS_SYSTEM_MESSAGE, POP_CHAT, IS_DEV)
+  else
+    chat_manager:_add_message_to_list(CHANNEL_ID, MESSAGE_SENDER, LOCAL_PLAYER_ID, message, IS_SYSTEM_MESSAGE, POP_CHAT,
+                                       IS_DEV)
+  end
+end
+
 -- #####################################################################################################################
 -- ##### VMFMod ########################################################################################################
 -- #####################################################################################################################
@@ -51,7 +60,7 @@ function VMFMod:chat_broadcast(message)
         send_system_message(host_peer_id, message)
       end
     end
-    chat:_add_message_to_list(CHANNEL_ID, MESSAGE_SENDER, message, IS_SYSTEM_MESSAGE, POP_CHAT, IS_DEV)
+    add_system_message_to_chat(chat, message)
   end
 end
 
