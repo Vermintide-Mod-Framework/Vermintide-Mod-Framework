@@ -55,3 +55,15 @@ For more information, check out **[the framework's wiki pages](https://github.co
 
 
 You can find more VMB mod-building information in the **[Vermintide Mod Builder documentation](https://github.com/Vermintide-Mod-Framework/Vermintide-Mod-Builder/blob/master/README.md)**.
+
+## Steam Workshop Links
+
+Beta builds:
+
+  - [Warhammer End Times - Vermintide](https://steamcommunity.com/sharedfiles/filedetails/?id=1500136933)
+  - [Warhammer: Vermintide 2](https://steamcommunity.com/sharedfiles/filedetails/?id=1500112422)
+
+Stable builds:
+
+  - [Warhammer End Times - Vermintide](https://steamcommunity.com/sharedfiles/filedetails/?id=1289946781)
+  - [Warhammer: Vermintide 2](https://steamcommunity.com/sharedfiles/filedetails/?id=1369573612)
