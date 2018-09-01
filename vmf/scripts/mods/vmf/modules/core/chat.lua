@@ -9,15 +9,12 @@ local IS_SYSTEM_MESSAGE = false
 local POP_CHAT = true
 local IS_DEV = true
 
--- @TODO: remove it after VT2 1.2 release
-local OLD_RPC_CHAT_MESSAGE = VT1 or (tonumber(script_data.settings.content_revision) <= 120239)
-
 -- #####################################################################################################################
 -- ##### Local functions ###############################################################################################
 -- #####################################################################################################################
 
 local function send_system_message(peer_id, message)
-  if OLD_RPC_CHAT_MESSAGE then
+  if VT1 then
     RPC.rpc_chat_message(peer_id, CHANNEL_ID, MESSAGE_SENDER, message, LOCALIZATION_PARAM, IS_SYSTEM_MESSAGE, POP_CHAT,
                           IS_DEV)
   else
@@ -27,7 +24,7 @@ local function send_system_message(peer_id, message)
 end
 
 local function add_system_message_to_chat(chat_manager, message)
-  if OLD_RPC_CHAT_MESSAGE then
+  if VT1 then
     chat_manager:_add_message_to_list(CHANNEL_ID, MESSAGE_SENDER, message, IS_SYSTEM_MESSAGE, POP_CHAT, IS_DEV)
   else
     chat_manager:_add_message_to_list(CHANNEL_ID, MESSAGE_SENDER, LOCAL_PLAYER_ID, message, IS_SYSTEM_MESSAGE, POP_CHAT,

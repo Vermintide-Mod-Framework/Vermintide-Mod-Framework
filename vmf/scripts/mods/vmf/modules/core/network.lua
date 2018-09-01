@@ -17,9 +17,6 @@ local RPC_VMF_REQUEST_CHANNEL_ID = 3
 local RPC_VMF_RESPONCE_CHANNEL_ID = 4
 local RPC_VMF_UNKNOWN_CHANNEL_ID = 5 -- Note(Siku): No clue what 5 is supposed to mean.
 
--- @TODO: delete it after VT2 1.2 release and replace all occurances with `VT1`
-local OLD_RPC_CHAT_MESSAGE = VT1 or (tonumber(script_data.settings.content_revision) <= 120239)
-
 -- ####################################################################################################################
 -- ##### Local functions ##############################################################################################
 -- ####################################################################################################################
@@ -136,7 +133,7 @@ end
 
 local function rpc_chat_message(member, channel_id, message_sender, message, localization_param,
                                 is_system_message, pop_chat, is_dev)
-  if OLD_RPC_CHAT_MESSAGE then
+  if VT1 then
     RPC.rpc_chat_message(member, channel_id, message_sender, message, localization_param,
                           is_system_message, pop_chat, is_dev)
   else
@@ -253,7 +250,7 @@ vmf:hook("ChatManager", "rpc_chat_message",
     end
 
     local rpc_data1, rpc_data2
-    if OLD_RPC_CHAT_MESSAGE then
+    if VT1 then
       rpc_data1 = arg1
       rpc_data2 = arg2
     else
