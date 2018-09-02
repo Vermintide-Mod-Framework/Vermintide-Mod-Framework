@@ -1,7 +1,6 @@
 local vmf
 
 -- Global variable indicating which version of the game is currently running
---VT1 = (type(script_data["eac-untrusted"]) == "nil")
 VT1 = not pcall(require, "PlayFab.json")
 
 -- Native mod object used by Fatshark mod manager
@@ -43,7 +42,7 @@ function vmf_mod_object:init()
 
 	vmf = get_mod("VMF")
 	vmf.delayed_chat_messages_hook()
-	vmf:hook("ModManager.destroy", function(func, ...)
+	vmf:hook(ModManager, "destroy", function(func, ...)
 		vmf.mods_unload_event(true)
 		func(...)
 	end)
