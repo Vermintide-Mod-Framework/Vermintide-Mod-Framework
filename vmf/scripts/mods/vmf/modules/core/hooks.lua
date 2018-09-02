@@ -86,20 +86,6 @@ local function get_object_reference(obj)
     return obj, false
 end
 
--- VT1 hooked everything using a "Obj.Method" string
--- Add backward compatibility for that format.
-local function split_function_string(str)
-    local find_position = string.find(str, "%.")
-    local method, obj
-    if find_position then
-        method = string.sub(str, find_position + 1)
-        obj = string.sub(str, 1, find_position - 1)
-    else
-        method = str
-    end
-    return method, obj
-end
-
 -- We need to get the number of return values for accurate unpacking
 -- This is based on Lupo/Propjoe table.pack, but without putting the number inside the table
 local function get_return_values(...)
@@ -225,7 +211,7 @@ local function create_hook(mod, orig, obj, method, handler, func_name, hook_type
         _registry[mod][orig] = create_hook_data(mod, obj, handler, hook_type)
 
         local hook_registry = _hooks[hook_type]
-        -- Add to the hook to registry. Origin hooks are unique, so we check for that too.
+        -- Add the hook to registry. Origin hooks are unique, so we check for that too.
         if hook_type == HOOK_TYPE_ORIGIN then
             if hook_registry[orig] then
                 mod:error("(%s): Attempting to hook origin of already hooked function %s", func_name, method)
@@ -266,8 +252,10 @@ end
 --     mod, string (obj), string (method), function (handler), string (func_name)
 -- Giving an object table and a method string and hook function
 --     mod, table (obj), string (method), function (handler), string (func_name)
--- Giving a method string or a Obj.Method string (VT1 Style) and a hook function
+-- Giving a method string and a hook function (hooking global functions)
 --     mod, string (method), function (handler), nil, string (func_name)
+-- Giving a nil value followed by a method stirng and hook function (alternate way for global functions)
+--     mod, nil, string (method), function (handler), string (func_name)
 
 local function generic_hook(mod, obj, method, handler, func_name)
     if vmf.check_wrong_argument_type(mod, func_name, "obj", obj, "string", "table", "nil") or
@@ -277,12 +265,11 @@ local function generic_hook(mod, obj, method, handler, func_name)
         return
     end
 
-    -- Adjust the arguments.
+    -- Shift the arguments if needed
     if type(method) == "function" then
-        handler = method
-        method, obj = split_function_string(obj)
+        obj, method, handler = nil, obj, method
         if not method then
-            mod:error("(%s): trying to create hook without giving a method name. %s", func_name)
+            mod:error("(%s): trying to create hook without giving a method name.", func_name)
             return
         end
     end
@@ -305,6 +292,7 @@ local function generic_hook(mod, obj, method, handler, func_name)
             return
         end
     end
+    -- obj is a either nil or a table reference at this point, it cannot be a string anymore.
 
     -- Quick check to make sure the target exists
     if obj and not obj[method] then
@@ -315,7 +303,6 @@ local function generic_hook(mod, obj, method, handler, func_name)
         return
     end
 
-    -- obj can't be a string for these now.
     local orig = get_orig_function(obj, method)
     if type(orig) ~= "function" then
         mod:error("(%s): trying to hook %s (a %s), not a function.", func_name, method, type(orig))
@@ -333,12 +320,12 @@ local function generic_hook_toggle(mod, obj, method, enabled_state)
         return
     end
 
-    -- Adjust the arguments.
+    -- Shift the arguments if needed
     if not method then
-        if type(obj) == "string" then
-            method, obj = split_function_string(obj)
-        else
-            mod:error("(%s): trying to toggle hook without giving a method name. %s", func_name)
+        obj, method = nil, obj
+        if not method then
+            mod:error("(%s): trying to toggle hook without giving a method name.", func_name)
+            return
         end
     end
 
