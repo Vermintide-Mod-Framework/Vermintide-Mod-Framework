@@ -227,15 +227,11 @@ local function create_hook(mod, orig, obj, method, handler, func_name, hook_type
         -- Revisit purpose when lua files are in plain text.
         if can_rehook(mod, hook_data, obj, hook_type) then
             hook_data.handler = handler
+        elseif mod:get_internal_data("allow_rehooking") then
+            -- If we can't rehook but rehooking is enabled, send a warning that something went wrong
+            mod:warning("(%s): Attempting to rehook active hook [%s] with different obj or hook_type.", func_name, method)
         else
-            -- This should be a warning log, but currently there are no differences between warning and error.
-            -- Wouldn't want to scare users that mods are broken because this used to be acceptable.
-            -- This should be changed to permanently be a warning log after new_hooks deprecation period is over.
-            if vmf:get("developer_mode") then
-                mod:warning("(%s): Attempting to rehook active hook [%s] with different hook_type.", func_name, method)
-            else
-                mod:info("(%s): Attempting to rehook active hook [%s] with different hook_type.", func_name, method)
-            end
+            mod:warning("(%s): Attempting to rehook active hook [%s].", func_name, method)
         end
     end
 
