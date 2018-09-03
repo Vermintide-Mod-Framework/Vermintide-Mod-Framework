@@ -120,8 +120,11 @@ function vmf.initialize_mod_data(mod, mod_data)
     vmf.register_mod_as_mutator(mod, mod_data.mutator_settings)
   end
 
-  if mod_data.options_widgets or (mod_data.is_togglable and not mod_data.is_mutator) then
-    vmf.create_options(mod, mod_data.options_widgets)
+  if mod_data.options then
+    vmf.initialize_options(mod, mod_data.options_widgets)
+  -- @TODO: move the 2nd block to the upper statement
+  elseif mod_data.options_widgets or (mod_data.is_togglable and not mod_data.is_mutator) then
+    vmf.initialize_options_legacy(mod, mod_data.options_widgets)
   end
 
   if type(mod_data.custom_gui_textures) == "table" then
