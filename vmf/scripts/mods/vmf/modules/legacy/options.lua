@@ -1,26 +1,7 @@
 local vmf = get_mod("VMF")
 
 
--- @TODO: Copypasted it from vmf_options_view for now. Decide what to do with this
-local function build_keybind_string(keys)
-  local keybind_string = ""
-  for i, key in ipairs(keys) do
-    if i == 1 then
-      keybind_string = keybind_string .. vmf.readable_key_names[key]
-    else
-      keybind_string = keybind_string .. " + " .. vmf.readable_key_names[key]
-    end
-  end
-  return keybind_string
-end
-
-
--- ####################################################################################################################
--- ##### VMFMod #######################################################################################################
--- ####################################################################################################################
-
-
-vmf.initialize_options_legacy = function (mod, widgets_definition)
+vmf.initialize_mod_options_legacy = function (mod, widgets_definition)
 
   local mod_settings_list_widgets_definitions = {}
 
@@ -40,18 +21,16 @@ vmf.initialize_options_legacy = function (mod, widgets_definition)
 
   new_widget_definition = {}
 
-  new_widget_definition.widget_type       = "header"
-  new_widget_definition.widget_index      = new_widget_index
-  new_widget_definition.mod_name          = mod:get_name()
-  new_widget_definition.readable_mod_name = mod:get_readable_name()
-  new_widget_definition.tooltip           = mod:get_description()
-  new_widget_definition.default           = true
-  new_widget_definition.is_mod_toggable   = mod:get_internal_data("is_togglable") and
+  new_widget_definition.widget_type         = "header"
+  new_widget_definition.widget_index        = new_widget_index
+  new_widget_definition.mod_name            = mod:get_name()
+  new_widget_definition.readable_mod_name   = mod:get_readable_name()
+  new_widget_definition.tooltip             = mod:get_description()
+  new_widget_definition.default             = true
+  new_widget_definition.is_mod_toggable     = mod:get_internal_data("is_togglable") and
                                              not mod:get_internal_data("is_mutator")
+  new_widget_definition.is_widget_collapsed = vmf:get("options_menu_collapsed_mods")[mod:get_name()]
 
-  if mod_collapsed_widgets then
-    new_widget_definition.is_widget_collapsed = mod_collapsed_widgets[mod:get_name()]
-  end
 
   if options_menu_favorite_mods then
     for _, current_mod_name in pairs(options_menu_favorite_mods) do
@@ -67,6 +46,8 @@ vmf.initialize_options_legacy = function (mod, widgets_definition)
   -- defining its subwidgets
 
   if widgets_definition then
+
+    mod:info("(options): using legacy widget definitions")
 
     local level                = 1
     local parent_number        = new_widget_index
@@ -114,7 +95,6 @@ vmf.initialize_options_legacy = function (mod, widgets_definition)
 
         if current_widget.widget_type == "keybind" then
           local keybind = mod:get(current_widget.setting_name)
-          new_widget_definition.keybind_text = build_keybind_string(keybind)
           if current_widget.action then
             mod:keybind(current_widget.setting_name, current_widget.action, keybind)
           end

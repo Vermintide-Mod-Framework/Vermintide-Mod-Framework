@@ -1723,12 +1723,14 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
 
   local show_widget_condition = create_show_widget_condition(widget_definition)
 
-  local options_texts  = {}
-  local options_values = {}
+  local options_texts         = {}
+  local options_values        = {}
+  local options_shown_widgets = {}
 
-  for _, option in ipairs(widget_definition.options) do
-    table.insert(options_texts, option.text)
-    table.insert(options_values, option.value)
+  for i, option in ipairs(widget_definition.options) do
+    options_texts[i] = option.text
+    options_values[i] = option.value
+    options_shown_widgets[i] = option.show_widgets or {}
   end
 
   local definition = {
@@ -1912,9 +1914,11 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
 
       options_texts  = options_texts,
       options_values = options_values,
+      options_shown_widgets = options_shown_widgets,
       total_options_number = #options_texts,
       current_option_number = 1,
       current_option_text = options_texts[1],
+      current_shown_widgets = nil, -- if nil, all subwidgets are shown
       default_value = widget_definition.default_value,
       parent_widget_number = widget_definition.parent_widget_number,
       show_widget_condition = show_widget_condition
@@ -3223,36 +3227,46 @@ VMFOptionsView.callback_hide_sub_widgets = function (self, widget_content)
   widget_content.is_widget_collapsed = is_widget_collapsed_new
 
 
-  setting_name = setting_name or mod_name -- header
+  if setting_name then
 
-  local all_collapsed_widgets = vmf:get("options_menu_collapsed_widgets")
+    local all_collapsed_widgets = vmf:get("options_menu_collapsed_widgets")
 
-  local mod_collapsed_widgets = all_collapsed_widgets[mod_name]
+    local mod_collapsed_widgets = all_collapsed_widgets[mod_name]
 
-  if widget_content.is_widget_collapsed then
+    if widget_content.is_widget_collapsed then
 
-    mod_collapsed_widgets = mod_collapsed_widgets or {}
-    mod_collapsed_widgets[setting_name] = true
+      mod_collapsed_widgets = mod_collapsed_widgets or {}
+      mod_collapsed_widgets[setting_name] = true
 
-    all_collapsed_widgets[mod_name] = mod_collapsed_widgets
-  else
-    if mod_collapsed_widgets then
-      mod_collapsed_widgets[setting_name] = nil
+      all_collapsed_widgets[mod_name] = mod_collapsed_widgets
+    else
+      if mod_collapsed_widgets then
+        mod_collapsed_widgets[setting_name] = nil
 
-      local is_collapsed_widgets_list_empty = true
+        local is_collapsed_widgets_list_empty = true
 
-      for _, _ in pairs(mod_collapsed_widgets) do
-        is_collapsed_widgets_list_empty = false
-      end
+        for _, _ in pairs(mod_collapsed_widgets) do
+          is_collapsed_widgets_list_empty = false
+        end
 
-      if is_collapsed_widgets_list_empty then
-        all_collapsed_widgets[mod_name] = nil
+        if is_collapsed_widgets_list_empty then
+          all_collapsed_widgets[mod_name] = nil
+        end
       end
     end
+
+    vmf:set("options_menu_collapsed_widgets", all_collapsed_widgets)
+
+  -- header
+  else
+    local collapsed_mods = vmf:get("options_menu_collapsed_mods")
+    if widget_content.is_widget_collapsed then
+      collapsed_mods[mod_name] = true
+    else
+      collapsed_mods[mod_name] = nil
+    end
+    vmf:set("options_menu_collapsed_mods", collapsed_mods)
   end
-
-  vmf:set("options_menu_collapsed_widgets", all_collapsed_widgets)
-
   self:update_settings_list_widgets_visibility(mod_name)
   self:readjust_visible_settings_list_widgets_position()
 end
@@ -3433,6 +3447,7 @@ VMFOptionsView.callback_draw_dropdown_menu = function (self, widget_content)
 
       widget_content.current_option_number = hotspot_content.num
       widget_content.current_option_text = widget_content.options_texts[widget_content.current_option_number]
+      widget_content.current_shown_widgets = widget_content.options_shown_widgets[widget_content.current_option_number]
 
       return true
     end
@@ -3811,6 +3826,7 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
           if loaded_setting_value == option_value then
             widget_content.current_option_number = i
             widget_content.current_option_text   = widget_content.options_texts[i]
+            widget_content.current_shown_widgets = widget_content.options_shown_widgets[i]
 
             setting_not_found = false
             break
@@ -3827,6 +3843,7 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
             if widget_content.default_value == option_value then
               widget_content.current_option_number = i
               widget_content.current_option_text   = widget_content.options_texts[i]
+              widget_content.current_shown_widgets = widget_content.options_shown_widgets[i]
               get_mod(widget_content.mod_name):set(widget_content.setting_name, widget_content.default_value)
             end
           end
@@ -3846,6 +3863,8 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
           -- @TODO: warning:
           widget_content.keys = widget_content.default_value
         end
+
+        widget_content.keybind_text = build_keybind_string(widget_content.keys)
 
       elseif widget_type == "numeric" then
 
@@ -3880,7 +3899,7 @@ VMFOptionsView.update_settings_list_widgets_visibility = function (self, mod_nam
 
     if not mod_name or mod_widgets[1].content.mod_name == mod_name then
 
-      for _, widget in ipairs(mod_widgets) do
+      for i, widget in ipairs(mod_widgets) do
 
         if widget.content.parent_widget_number then
           local parent_widget = mod_widgets[widget.content.parent_widget_number]
@@ -3894,9 +3913,12 @@ VMFOptionsView.update_settings_list_widgets_visibility = function (self, mod_nam
           -- if 'dropdown'
           elseif widget_type == "dropdown" then
             if widget.content.show_widget_condition then
-              widget.content.is_widget_visible = widget.content.show_widget_condition[parent_widget.content.current_option_number] and parent_widget.content.is_widget_visible and not parent_widget.content.is_widget_collapsed
+              widget.content.is_widget_visible = (widget.content.show_widget_condition[parent_widget.content.current_option_number] or parent_widget.content.current_shown_widgets[i]) and parent_widget.content.is_widget_visible and not parent_widget.content.is_widget_collapsed
+
+            -- Usually it had to throw an error by this point, but now it's another part of compatibility
             else
-              get_mod(widget.content.mod_name):error("(vmf_options_view): the dropdown widget in the options menu has sub_widgets, but some of its sub_widgets doesn't have 'show_widget_condition' (%s)" , widget.content.setting_name)
+              widget.content.is_widget_visible = parent_widget.content.current_shown_widgets[i] and parent_widget.content.is_widget_visible and not parent_widget.content.is_widget_collapsed
+              --get_mod(widget.content.mod_name):error("(vmf_options_view): the dropdown widget in the options menu has sub_widgets, but some of its sub_widgets doesn't have 'show_widget_condition' (%s)" , widget.content.setting_name)
             end
           -- if 'group'
           else
@@ -4266,14 +4288,6 @@ end
 -- ####################################################################################################################
 
 vmf.load_vmf_options_view_settings()
-
-if type(vmf:get("options_menu_favorite_mods")) ~= "table" then
-  vmf:set("options_menu_favorite_mods", {})
-end
-
-if type(vmf:get("options_menu_collapsed_widgets")) ~= "table" then
-  vmf:set("options_menu_collapsed_widgets", {})
-end
 
 
 

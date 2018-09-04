@@ -56,7 +56,7 @@ function new_mod(mod_name, mod_resources)
     local success, localization_table = vmf.xpcall_dofile(mod, "(new_mod)('mod_localization' initialization)",
                                                            mod_resources.mod_localization)
     if success then
-      vmf.load_mod_localization(mod, localization_table)
+      vmf.load_mod_localization(mod, localization_table) -- @TODO: return here if not sucessful?, rename to "initialize_"
     else
       return
     end
@@ -66,14 +66,12 @@ function new_mod(mod_name, mod_resources)
   if mod_resources.mod_data then
     local success, mod_data_table = vmf.xpcall_dofile(mod, "(new_mod)('mod_data' initialization)",
                                                        mod_resources.mod_data)
-    if success then
-      vmf.initialize_mod_data(mod, mod_data_table)
-    else
+    if success and not vmf.initialize_mod_data(mod, mod_data_table) then
       return
     end
   end
 
-  -- Load mod
+  -- Load mod @TODO: what will happen if mod_resources.mod_script == nil?
   if not vmf.xpcall_dofile(mod, "(new_mod)('mod_script' initialization)", mod_resources.mod_script) then
     return
   end
@@ -121,10 +119,12 @@ function vmf.initialize_mod_data(mod, mod_data)
   end
 
   if mod_data.options then
-    vmf.initialize_options(mod, mod_data.options_widgets)
+    if not vmf.initialize_mod_options(mod, mod_data.options) then
+      return
+    end
   -- @TODO: move the 2nd block to the upper statement
   elseif mod_data.options_widgets or (mod_data.is_togglable and not mod_data.is_mutator) then
-    vmf.initialize_options_legacy(mod, mod_data.options_widgets)
+    vmf.initialize_mod_options_legacy(mod, mod_data.options_widgets)
   end
 
   if type(mod_data.custom_gui_textures) == "table" then
@@ -150,6 +150,8 @@ function vmf.initialize_mod_data(mod, mod_data)
       end
     end
   end
+
+  return true
 end
 
 -- VARIABLES

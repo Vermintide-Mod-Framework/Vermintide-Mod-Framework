@@ -85,6 +85,17 @@ vmf.load_mod_localization = function (mod, localization_table)
   _localization_database[mod:get_name()] = localization_table
 end
 
+-- Localize without parameters and return nil instead of <text_id> if nothing found
+vmf.quick_localize = function (mod, text_id)
+  local mod_localization_table = _localization_database[mod:get_name()]
+  if mod_localization_table then
+    local text_translations = mod_localization_table[text_id]
+    if text_translations then
+      return text_translations[_language_id] or text_translations["en"]
+    end
+  end
+end
+
 -- ####################################################################################################################
 -- ##### Script #######################################################################################################
 -- ####################################################################################################################
