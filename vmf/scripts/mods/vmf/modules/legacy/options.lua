@@ -21,15 +21,15 @@ vmf.initialize_mod_options_legacy = function (mod, widgets_definition)
 
   new_widget_definition = {}
 
-  new_widget_definition.widget_type         = "header"
-  new_widget_definition.widget_index        = new_widget_index
-  new_widget_definition.mod_name            = mod:get_name()
-  new_widget_definition.readable_mod_name   = mod:get_readable_name()
-  new_widget_definition.tooltip             = mod:get_description()
-  new_widget_definition.default             = true
-  new_widget_definition.is_mod_toggable     = mod:get_internal_data("is_togglable") and
+  new_widget_definition.type              = "header"
+  new_widget_definition.index             = new_widget_index
+  new_widget_definition.mod_name          = mod:get_name()
+  new_widget_definition.readable_mod_name = mod:get_readable_name()
+  new_widget_definition.tooltip           = mod:get_description()
+  new_widget_definition.default           = true
+  new_widget_definition.is_togglable      = mod:get_internal_data("is_togglable") and
                                              not mod:get_internal_data("is_mutator")
-  new_widget_definition.is_widget_collapsed = vmf:get("options_menu_collapsed_mods")[mod:get_name()]
+  new_widget_definition.is_collapsed      = vmf:get("options_menu_collapsed_mods")[mod:get_name()]
 
 
   if options_menu_favorite_mods then
@@ -68,12 +68,12 @@ vmf.initialize_mod_options_legacy = function (mod, widgets_definition)
 
         new_widget_definition = {}
 
-        new_widget_definition.widget_type     = current_widget.widget_type     -- all
-        new_widget_definition.widget_index    = new_widget_index               -- all [gen]
-        new_widget_definition.widget_level    = level                          -- all [gen]
+        new_widget_definition.type            = current_widget.widget_type     -- all
+        new_widget_definition.index           = new_widget_index               -- all [gen]
+        new_widget_definition.depth           = level                          -- all [gen]
         new_widget_definition.mod_name        = mod:get_name()                 -- all [gen]
-        new_widget_definition.setting_name    = current_widget.setting_name    -- all
-        new_widget_definition.text            = current_widget.text            -- all
+        new_widget_definition.setting_id      = current_widget.setting_name    -- all
+        new_widget_definition.title           = current_widget.text            -- all
         new_widget_definition.tooltip         = current_widget.tooltip and (current_widget.text .. "\n" ..
                                                                              current_widget.tooltip)  -- all [optional]
         new_widget_definition.unit_text       = current_widget.unit_text       -- numeric [optional]
@@ -81,12 +81,12 @@ vmf.initialize_mod_options_legacy = function (mod, widgets_definition)
         new_widget_definition.decimals_number = current_widget.decimals_number -- numeric [optional]
         new_widget_definition.options         = current_widget.options         -- dropdown
         new_widget_definition.default_value   = current_widget.default_value   -- all
-        new_widget_definition.action          = current_widget.action          -- keybind [optional?]
+        new_widget_definition.action_name     = current_widget.action          -- keybind [optional?]
         new_widget_definition.show_widget_condition = current_widget.show_widget_condition -- all
-        new_widget_definition.parent_widget_number  = parent_number -- all [gen]
+        new_widget_definition.parent_index = parent_number -- all [gen]
 
         if mod_collapsed_widgets then
-          new_widget_definition.is_widget_collapsed = mod_collapsed_widgets[current_widget.setting_name]
+          new_widget_definition.is_collapsed = mod_collapsed_widgets[current_widget.setting_name]
         end
 
         if type(mod:get(current_widget.setting_name)) == "nil" then
@@ -151,5 +151,5 @@ vmf.initialize_mod_options_legacy = function (mod, widgets_definition)
     end
   end
 
-  table.insert(vmf.options_widgets_definition, mod_settings_list_widgets_definitions)
+  table.insert(vmf.options_widgets_data, mod_settings_list_widgets_definitions)
 end

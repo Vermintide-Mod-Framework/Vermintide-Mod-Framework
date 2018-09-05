@@ -1,9 +1,6 @@
 local vmf = get_mod("VMF")
 
--- @TODO: rename stupid original field names
--- @TODO: rename to options_widget_data and probably add mod instead of mod name. Meaning adding mod data after
---        widget initialization?
-vmf.options_widgets_definition = {}
+vmf.options_widgets_data = {}
 
 -- #####################################################################################################################
 -- ##### Local functions ###############################################################################################
@@ -32,7 +29,7 @@ local function validate_dropdown_data(mod, data)
 
   -- default value - something?
   -- options - table
-  -- options.text - string
+  -- options.title - string
   -- options.value - something + some of them is default value
   -- options.show_widgets - table
 
@@ -54,11 +51,11 @@ end
 
 local function localize_generic_widget_data(mod, data)
   if data.localize then
-    data.text = mod:localize(data.text or data.setting_name)
+    data.title = mod:localize(data.title or data.setting_id)
     if data.tooltip then
       data.tooltip = mod:localize(data.tooltip)
     else
-      data.tooltip = vmf.quick_localize(mod, data.setting_name .. "_description")
+      data.tooltip = vmf.quick_localize(mod, data.setting_id .. "_description")
     end
   end
 end
@@ -83,15 +80,15 @@ end
 
 local function initialize_header_data(mod, data)
   local new_data = {}
-  new_data.widget_index        = data.widget_index
-  new_data.mod_name            = mod:get_name()
-  new_data.readable_mod_name   = mod:get_readable_name()
-  new_data.tooltip             = mod:get_description()
-  new_data.is_mod_toggable     = mod:get_internal_data("is_togglable") and not mod:get_internal_data("is_mutator")
-  new_data.is_widget_collapsed = vmf:get("options_menu_collapsed_mods")[mod:get_name()]
-  new_data.is_favorited        = vmf:get("options_menu_favorite_mods")[mod:get_name()]
+  new_data.index             = data.index
+  new_data.mod_name          = mod:get_name()
+  new_data.readable_mod_name = mod:get_readable_name()
+  new_data.tooltip           = mod:get_description()
+  new_data.is_togglable      = mod:get_internal_data("is_togglable") and not mod:get_internal_data("is_mutator")
+  new_data.is_collapsed      = vmf:get("options_menu_collapsed_mods")[mod:get_name()]
+  new_data.is_favorited      = vmf:get("options_menu_favorite_mods")[mod:get_name()]
 
-  new_data.widget_type         = data.type
+  new_data.type              = data.type
   return new_data
 end
 
@@ -101,17 +98,17 @@ local function initialize_generic_widget_data(mod, data, localize)
   local new_data = {}
 
   -- Automatically generated values
-  new_data.widget_index         = data.widget_index
-  new_data.parent_widget_number = data.parent_widget_index
-  new_data.widget_level         = data.depth
-  new_data.mod_name             = mod:get_name()
+  new_data.index         = data.index
+  new_data.parent_index  = data.parent_index
+  new_data.depth         = data.depth
+  new_data.mod_name      = mod:get_name()
 
   -- Defined in widget
-  new_data.widget_type          = data.type
-  new_data.setting_name         = data.setting_id
-  new_data.text                 = data.title         -- optional, if (localize == true)
-  new_data.tooltip              = data.tooltip       -- optional
-  new_data.default_value        = data.default_value
+  new_data.type          = data.type
+  new_data.setting_id    = data.setting_id
+  new_data.title         = data.title         -- optional, if (localize == true)
+  new_data.tooltip       = data.tooltip       -- optional
+  new_data.default_value = data.default_value
 
   -- Overwrite global optons localization setting if widget defined it
   if data.localize == nil then
@@ -130,7 +127,7 @@ end
 local function initialize_group_data(mod, data, localize, collapsed_widgets)
   local new_data = initialize_generic_widget_data(mod, data, localize)
 
-  new_data.is_widget_collapsed = collapsed_widgets[data.setting_id]
+  new_data.is_collapsed = collapsed_widgets[data.setting_id]
 
   return new_data
 end
@@ -139,7 +136,7 @@ end
 local function initialize_checkbox_data(mod, data, localize, collapsed_widgets)
   local new_data = initialize_generic_widget_data(mod, data, localize)
 
-  new_data.is_widget_collapsed = collapsed_widgets[data.setting_id]
+  new_data.is_collapsed = collapsed_widgets[data.setting_id]
 
   validate_checkbox_data(mod, new_data)
 
@@ -150,8 +147,8 @@ end
 local function initialize_dropdown_data(mod, data, localize, collapsed_widgets)
   local new_data = initialize_generic_widget_data(mod, data, localize)
 
-  new_data.is_widget_collapsed = collapsed_widgets[data.setting_id]
-  new_data.options             = data.options
+  new_data.is_collapsed = collapsed_widgets[data.setting_id]
+  new_data.options      = data.options
 
   validate_dropdown_data(mod, new_data)
   localize_dropdown_data(mod, new_data)
@@ -165,7 +162,7 @@ local function initialize_dropdown_data(mod, data, localize, collapsed_widgets)
         local new_show_widgets = {}
         for j, sub_widget_index in ipairs(option.show_widgets) do
           if data.sub_widgets[sub_widget_index] then
-            new_show_widgets[data.sub_widgets[sub_widget_index].widget_index] = true
+            new_show_widgets[data.sub_widgets[sub_widget_index].index] = true
           else
             error(string.format("'widget \"%s\" (dropdown) -> options -> [%d] -> show_widgets -> [%d] \"%s\"' points" ..
                                  " to non-existing sub_widget", data.setting_id, i, j, sub_widget_index))
@@ -186,7 +183,7 @@ local function initialize_keybind_data(mod, data, localize)
   new_data.keybind_global  = data.keybind_global
   new_data.keybind_trigger = data.keybind_trigger
   new_data.keybind_type    = data.keybind_type
-  new_data.action          = data.action_name
+  new_data.action_name     = data.action_name
   new_data.view_name       = data.view_name
 
   validate_keybind_data(mod, new_data)
@@ -231,14 +228,14 @@ end
 -----------
 
 -- unfold nested table?
-local function unfold_table(unfolded_table, unfoldable_table, parent_widget_index, depth)
+local function unfold_table(unfolded_table, unfoldable_table, parent_index, depth)
   for i = 1, #unfoldable_table do
     local nested_table = unfoldable_table[i]
     if type(nested_table) == "table" then
       table.insert(unfolded_table, nested_table)
       nested_table.depth = depth
-      nested_table.widget_index = #unfolded_table
-      nested_table.parent_widget_index = parent_widget_index
+      nested_table.index = #unfolded_table
+      nested_table.parent_index = parent_index
       local nested_table_sub_widgets = nested_table.sub_widgets
       if nested_table_sub_widgets then
         if type(nested_table_sub_widgets) == "table" then
@@ -253,8 +250,7 @@ local function unfold_table(unfolded_table, unfoldable_table, parent_widget_inde
     else
       vmf:dump(unfolded_table, "widgets", 1)
       error(string.format("sub_widget#%d of widget [%d] is not a table, it's %s. " ..
-                           "See dumped table in game log for reference.", i, parent_widget_index,
-                                                                           type(nested_table)), 0)
+                           "See dumped table in game log for reference.", i, parent_index, type(nested_table)), 0)
     end
   end
   return unfolded_table
@@ -279,15 +275,15 @@ local function initialize_mod_options_widgets_data(mod, widgets_data, localize)
   -- Also, initialize keybinds
   for i = 2, #initialized_data do
     local data = initialized_data[i]
-    if mod:get(data.setting_name) == nil then
-      mod:set(data.setting_name, data.default_value)
+    if mod:get(data.setting_id) == nil then
+      mod:set(data.setting_id, data.default_value)
     end
-    if data.widget_type == "keybind" then
-      mod:keybind(data.setting_name, data.action, mod:get(data.setting_name))
+    if data.type == "keybind" then
+      mod:keybind(data.setting_id, data.action_name, mod:get(data.setting_id))
     end
   end
 
-  table.insert(vmf.options_widgets_definition, initialized_data)
+  table.insert(vmf.options_widgets_data, initialized_data)
 
   -- @DEBUG:
   mod:dump(unfolded_raw_widgets_data, "unfolded_raw_widgets_data", 1)

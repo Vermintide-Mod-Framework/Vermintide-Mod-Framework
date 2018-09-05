@@ -1017,7 +1017,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
       is_checkbox_checked = true,
       is_checkbox_visible = false,
       is_widget_visible   = true,
-      is_widget_collapsed = widget_definition.is_widget_collapsed,
+      is_widget_collapsed = widget_definition.is_collapsed,
       is_favorited        = widget_definition.is_favorited,
 
       rect_masked_texture = "rect_masked",
@@ -1037,7 +1037,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
       tooltip_text = widget_definition.tooltip,
 
       mod_name = widget_definition.mod_name,
-      widget_type = widget_definition.widget_type
+      widget_type = widget_definition.type
     },
     style = {
 
@@ -1322,7 +1322,7 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
     content = {
       is_checkbox_checked = false,
       is_widget_visible = true,
-      is_widget_collapsed = widget_definition.is_widget_collapsed,
+      is_widget_collapsed = widget_definition.is_collapsed,
 
       rect_masked_texture = "rect_masked",
       highlight_texture = "playerlist_hover",
@@ -1330,14 +1330,14 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
       checkbox_hotspot = {},
       highlight_hotspot = {},
 
-      text = widget_definition.text,
+      text = widget_definition.title,
       tooltip_text = widget_definition.tooltip,
 
       mod_name = widget_definition.mod_name,
-      setting_name = widget_definition.setting_name,
-      widget_type = widget_definition.widget_type,
+      setting_name = widget_definition.setting_id,
+      widget_type = widget_definition.type,
       default_value = widget_definition.default_value,
-      parent_widget_number = widget_definition.parent_widget_number,
+      parent_widget_number = widget_definition.parent_index,
       show_widget_condition = show_widget_condition
     },
     style = {
@@ -1356,7 +1356,7 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
       },
 
       text = {
-        offset = {60 + widget_definition.widget_level * 40, offset_y + 5, 3},
+        offset = {60 + widget_definition.depth * 40, offset_y + 5, 3},
         font_size = 28,
         font_type = "hell_shark_masked",
         dynamic_font = true,
@@ -1537,20 +1537,21 @@ local function create_group_widget(widget_definition, scenegraph_id)
     },
     content = {
       is_widget_visible = true,
-      is_widget_collapsed = widget_definition.is_widget_collapsed,
+      is_widget_collapsed = widget_definition.is_collapsed,
 
       highlight_texture = "playerlist_hover",
       rect_masked_texture = "rect_masked",
 
       highlight_hotspot = {},
 
-      text = widget_definition.text,
+      text = widget_definition.title,
       tooltip_text = widget_definition.tooltip,
 
+
       mod_name = widget_definition.mod_name,
-      setting_name = widget_definition.setting_name,
-      widget_type = widget_definition.widget_type,
-      parent_widget_number = widget_definition.parent_widget_number,
+      setting_name = widget_definition.setting_id,
+      widget_type = widget_definition.type,
+      parent_widget_number = widget_definition.parent_index,
       show_widget_condition = show_widget_condition
     },
     style = {
@@ -1569,7 +1570,7 @@ local function create_group_widget(widget_definition, scenegraph_id)
       },
 
       text = {
-        offset = {60 + widget_definition.widget_level * 40, offset_y + 5, 2},
+        offset = {60 + widget_definition.depth * 40, offset_y + 5, 2},
         font_size = 28,
         font_type = "hell_shark_masked",
         dynamic_font = true,
@@ -1897,7 +1898,7 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
     },
     content = {
       is_widget_visible = true,
-      is_widget_collapsed = widget_definition.is_widget_collapsed,
+      is_widget_collapsed = widget_definition.is_collapsed,
 
       highlight_texture = "playerlist_hover",
       rect_masked_texture = "rect_masked",
@@ -1906,12 +1907,12 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
       highlight_hotspot = {},
       dropdown_hotspot = {},
 
-      text = widget_definition.text,
+      text = widget_definition.title,
       tooltip_text = widget_definition.tooltip,
 
       mod_name = widget_definition.mod_name,
-      setting_name = widget_definition.setting_name,
-      widget_type = widget_definition.widget_type,
+      setting_name = widget_definition.setting_id,
+      widget_type = widget_definition.type,
 
       options_texts  = options_texts,
       options_values = options_values,
@@ -1921,7 +1922,7 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
       current_option_text = options_texts[1],
       current_shown_widgets = nil, -- if nil, all subwidgets are shown
       default_value = widget_definition.default_value,
-      parent_widget_number = widget_definition.parent_widget_number,
+      parent_widget_number = widget_definition.parent_index,
       show_widget_condition = show_widget_condition
     },
     style = {
@@ -1941,7 +1942,7 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
       },
 
       text = {
-        offset = {60 + widget_definition.widget_level * 40, offset_y + 5, 3},
+        offset = {60 + widget_definition.depth * 40, offset_y + 5, 3},
         font_size = 28,
         font_type = "hell_shark_masked",
         dynamic_font = true,
@@ -2350,7 +2351,7 @@ local function create_numeric_widget(widget_definition, scenegraph_id, scenegrap
     },
     content = {
       is_widget_visible = true,
-      is_widget_collapsed = widget_definition.is_widget_collapsed,
+      is_widget_collapsed = widget_definition.is_collapsed,
 
       highlight_texture = "playerlist_hover",
       rect_masked_texture = "rect_masked",
@@ -2358,7 +2359,7 @@ local function create_numeric_widget(widget_definition, scenegraph_id, scenegrap
       highlight_hotspot = {},
       dropdown_hotspot = {},
 
-      text = widget_definition.text,
+      text = widget_definition.title,
       tooltip_text = widget_definition.tooltip,
       unit_text = widget_definition.unit_text,
       decimals_number = widget_definition.decimals_number,
@@ -2368,12 +2369,12 @@ local function create_numeric_widget(widget_definition, scenegraph_id, scenegrap
       right_bracket = "]",
 
       mod_name = widget_definition.mod_name,
-      setting_name = widget_definition.setting_name,
-      widget_type = widget_definition.widget_type,
+      setting_name = widget_definition.setting_id,
+      widget_type = widget_definition.type,
 
       current_value_text = "whatever",
       default_value = widget_definition.default_value,
-      parent_widget_number = widget_definition.parent_widget_number,
+      parent_widget_number = widget_definition.parent_index,
       show_widget_condition = show_widget_condition
     },
     style = {
@@ -2392,7 +2393,7 @@ local function create_numeric_widget(widget_definition, scenegraph_id, scenegrap
       },
 
       text = {
-        offset = {60 + widget_definition.widget_level * 40, offset_y + 5, 3},
+        offset = {60 + widget_definition.depth * 40, offset_y + 5, 3},
         font_size = 28,
         font_type = "hell_shark_masked",
         dynamic_font = true,
@@ -2637,7 +2638,7 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
     },
     content = {
       is_widget_visible = true,
-      is_widget_collapsed = widget_definition.is_widget_collapsed,
+      is_widget_collapsed = widget_definition.is_collapsed,
 
       highlight_texture = "playerlist_hover", -- texture name
       background_texture = "common_widgets_background_lit",
@@ -2646,17 +2647,17 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
       highlight_hotspot = {},
       keybind_text_hotspot = {},
 
-      text = widget_definition.text,
+      text = widget_definition.title,
       tooltip_text = widget_definition.tooltip,
 
       mod_name = widget_definition.mod_name,
-      setting_name = widget_definition.setting_name,
-      widget_type = widget_definition.widget_type,
+      setting_name = widget_definition.setting_id,
+      widget_type = widget_definition.type,
 
-      action = widget_definition.action,
+      action = widget_definition.action_name,
       keybind_text = widget_definition.keybind_text,
       default_value = widget_definition.default_value,
-      parent_widget_number = widget_definition.parent_widget_number,
+      parent_widget_number = widget_definition.parent_index,
       show_widget_condition = show_widget_condition
     },
     style = {
@@ -2675,7 +2676,7 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
       },
 
       text = {
-        offset = {60 + widget_definition.widget_level * 40, offset_y + 5, 2},
+        offset = {60 + widget_definition.depth * 40, offset_y + 5, 2},
         font_size = 28,
         font_type = "hell_shark_masked",
         dynamic_font = true,
@@ -2788,7 +2789,7 @@ VMFOptionsView.init = function (self, ingame_ui_context)
   self.definitions.scenegraph            = scenegraph_definition
   self.definitions.scenegraph_2nd_layer  = {}
   self.definitions.menu_widgets          = menu_widgets_definition
-  self.definitions.settings_list_widgets = vmf.options_widgets_definition
+  self.definitions.settings_list_widgets = vmf.options_widgets_data
 
   -- get necessary things for the rendering
   self.ui_renderer     = ingame_ui_context.ui_renderer
@@ -2864,7 +2865,7 @@ VMFOptionsView.initialize_settings_list_widgets = function (self)
     for _, definition in ipairs(mod_settings_list_definitions) do
 
       local widget = nil
-      local widget_type = definition.widget_type
+      local widget_type = definition.type
 
       if widget_type == "checkbox" then
         widget = self:initialize_checkbox_widget(definition, scenegraph_id_start)
@@ -2950,8 +2951,8 @@ VMFOptionsView.initialize_header_widget = function (self, definition, scenegraph
 
   local widget  = create_header_widget(definition, scenegraph_id)
   local content = widget.content
-  content.is_checkbox_checked = definition.is_mod_toggable
-  content.is_checkbox_visible = definition.is_mod_toggable
+  content.is_checkbox_checked = definition.is_togglable
+  content.is_checkbox_visible = definition.is_togglable
 
   content.callback_favorite = callback(self, "callback_favorite")
   content.callback_move_favorite = callback(self, "callback_move_favorite")
