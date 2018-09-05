@@ -3,7 +3,28 @@ local vmf = get_mod("VMF")
 vmf.options_widgets_data = {}
 
 -- #####################################################################################################################
--- ##### Local functions ###############################################################################################
+-- ##### Local functions (Default Collapsed Widgets) ###################################################################
+-- #####################################################################################################################
+
+-- @BUG: you can set it for disabled checkbox and it will be displayed as collapsed @TODO: fix it for new mod options
+local function initialize_collapsed_widgets(mod, collapsed_widgets)
+
+  local new_collapsed_widgets = {}
+  for _, collapsed_widget_name in ipairs(collapsed_widgets) do
+    if type(collapsed_widget_name) == "string" then
+      new_collapsed_widgets[collapsed_widget_name] = true
+    else
+      -- @TODO: throw an error
+    end
+  end
+
+  local options_menu_collapsed_widgets = vmf:get("options_menu_collapsed_widgets")
+  options_menu_collapsed_widgets[mod:get_name()] = new_collapsed_widgets
+  vmf:set("options_menu_collapsed_widgets", options_menu_collapsed_widgets)
+end
+
+-- #####################################################################################################################
+-- ##### Local functions (Initializaing Widget Data) ###################################################################
 -- #####################################################################################################################
 
 ----------------
@@ -301,6 +322,12 @@ end
 -- #####################################################################################################################
 
 vmf.initialize_mod_options = function (mod, options)
+
+  -- If this is the first time user launches this mod, set collapsed widgets list to default
+  if options.collapsed_widgets and not Application.user_setting("mods_settings", mod:get_name()) then
+    initialize_collapsed_widgets(mod, options.collapsed_widgets)
+  end
+
   -- Global localization (for all options elements) ('true' by defualt)
   local localize_options_global = options.localize ~= false
   -- Options widgets localization (inherits from global one, unless defined in 'widgets' table)
