@@ -1548,6 +1548,7 @@ local function create_group_widget(widget_definition, scenegraph_id)
       tooltip_text = widget_definition.tooltip,
 
       mod_name = widget_definition.mod_name,
+      setting_name = widget_definition.setting_name,
       widget_type = widget_definition.widget_type,
       parent_widget_number = widget_definition.parent_widget_number,
       show_widget_condition = show_widget_condition
