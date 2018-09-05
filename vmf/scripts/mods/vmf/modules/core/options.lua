@@ -125,6 +125,8 @@ local function initialize_generic_widget_data(mod, data, localize)
   validate_generic_widget_data(mod, new_data)
   localize_generic_widget_data(mod, new_data)
 
+  new_data.tooltip = new_data.tooltip and (new_data.title .. "\n" .. new_data.tooltip)
+
   return new_data
 end
 
