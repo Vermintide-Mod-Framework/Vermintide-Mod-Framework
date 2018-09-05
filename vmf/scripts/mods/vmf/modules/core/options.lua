@@ -80,15 +80,20 @@ end
 
 local function initialize_header_data(mod, data)
   local new_data = {}
+  new_data.type              = data.type
   new_data.index             = data.index
   new_data.mod_name          = mod:get_name()
   new_data.readable_mod_name = mod:get_readable_name()
   new_data.tooltip           = mod:get_description()
   new_data.is_togglable      = mod:get_internal_data("is_togglable") and not mod:get_internal_data("is_mutator")
   new_data.is_collapsed      = vmf:get("options_menu_collapsed_mods")[mod:get_name()]
-  new_data.is_favorited      = vmf:get("options_menu_favorite_mods")[mod:get_name()]
 
-  new_data.type              = data.type
+  for _, favorited_mod_name in ipairs(vmf:get("options_menu_favorite_mods")) do
+    if favorited_mod_name == new_data.mod_name then
+      new_data.is_favorited  = true
+    end
+  end
+
   return new_data
 end
 
