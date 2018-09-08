@@ -29,7 +29,7 @@ end
 
 function new_mod(mod_name, mod_resources)
 
-  -- Checking for correct arguments
+  -- Checking if all arguments are correct
   if type(mod_name) ~= "string" then
     vmf:error("(new_mod): the mod name should be the string, not '%s'.", type(mod_name))
     return
@@ -56,7 +56,7 @@ function new_mod(mod_name, mod_resources)
     local success, localization_table = vmf.xpcall_dofile(mod, "(new_mod)('mod_localization' initialization)",
                                                            mod_resources.mod_localization)
     if success then
-      vmf.load_mod_localization(mod, localization_table) -- @TODO: return here if not sucessful?, rename to "initialize_"
+      vmf.load_mod_localization(mod, localization_table) -- @TODO: return here if not sucessful? rename to "initialize_"
     else
       return
     end
@@ -101,32 +101,38 @@ vmf = create_mod("VMF")
 
 function vmf.initialize_mod_data(mod, mod_data)
 
+  -- Checking if all arguments are correct
   if type(mod_data) ~= "table" then
     mod:error("(new_mod)(mod_data initialization): mod_data file should return a 'table' value.")
     return
   end
 
+  -- Set internal mod data
   if mod_data.name then
     vmf.set_internal_data(mod, "readable_name", mod_data.name)
   end
-  vmf.set_internal_data(mod, "description",       mod_data.description)
-  vmf.set_internal_data(mod, "is_togglable",      mod_data.is_togglable or mod_data.is_mutator)
-  vmf.set_internal_data(mod, "is_mutator",        mod_data.is_mutator)
-  vmf.set_internal_data(mod, "allow_rehooking",   mod_data.allow_rehooking)
+  vmf.set_internal_data(mod, "description",     mod_data.description)
+  vmf.set_internal_data(mod, "is_togglable",    mod_data.is_togglable or mod_data.is_mutator)
+  vmf.set_internal_data(mod, "is_mutator",      mod_data.is_mutator)
+  vmf.set_internal_data(mod, "allow_rehooking", mod_data.allow_rehooking)
 
+  -- Register mod as mutator @TODO: calling this after options initialization would be better, I guess?
   if mod_data.is_mutator then
     vmf.register_mod_as_mutator(mod, mod_data.mutator_settings)
   end
 
-  if mod_data.options then
-    if not vmf.initialize_mod_options(mod, mod_data.options) then
+  -- Mod's options initialization (with legacy widget definitions support)
+  if mod_data.options or ((mod_data.is_togglable and not mod_data.is_mutator) and not mod_data.options_widgets) then
+    local success, error_message = pcall(vmf.initialize_mod_options, mod, mod_data.options)
+    if not success then
+      mod:error("Could not initialize mod's options. %s", error_message)
       return
     end
-  -- @TODO: move the 2nd block to the upper statement
-  elseif mod_data.options_widgets or (mod_data.is_togglable and not mod_data.is_mutator) then
+  elseif mod_data.options_widgets then
     vmf.initialize_mod_options_legacy(mod, mod_data.options_widgets)
   end
 
+  -- Textures initialization @TODO: move to a separate function
   if type(mod_data.custom_gui_textures) == "table" then
     local custom_gui_textures = mod_data.custom_gui_textures
 

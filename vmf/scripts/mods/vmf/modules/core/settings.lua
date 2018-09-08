@@ -81,3 +81,9 @@ end
 function vmf.save_unsaved_settings_to_file()
   save_all_settings()
 end
+
+function vmf.mod_has_settings(mod)
+  if _mods_settings[mod:get_name()] then
+    return true
+  end
+end
