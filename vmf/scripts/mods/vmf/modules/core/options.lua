@@ -454,6 +454,7 @@ local function initialize_widget_data(mod, data, localize, collapsed_widgets)
   -- if data.type is incorrect, returns nil
 end
 
+
 local allowed_parent_widget_types = {
   header   = true,
   group    = true,
