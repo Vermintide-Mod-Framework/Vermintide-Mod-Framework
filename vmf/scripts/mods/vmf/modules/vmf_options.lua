@@ -2,196 +2,161 @@ local vmf = get_mod("VMF")
 
 local vmf_mod_data = {}
 vmf_mod_data.name = "Vermintide Mod Framework"
-vmf_mod_data.options_widgets = {
-  {
-    ["setting_name"] = "open_vmf_options",
-    ["widget_type"] = "keybind",
-    ["text"] = vmf:localize("open_vmf_options"),
-    ["tooltip"] = vmf:localize("open_vmf_options_tooltip"),
-    ["default_value"] = {"f4"},
-    ["action"] = "open_vmf_options"
-  },
-  {
-    ["setting_name"] = "vmf_options_scrolling_speed",
-    ["widget_type"] = "numeric",
-    ["text"] = vmf:localize("vmf_options_scrolling_speed"),
-    ["unit_text"] = "%",
-    ["range"] = {1, 1000},
-    ["default_value"] = 100
-  },
-  {
-    ["setting_name"] = "ui_scaling",
-    ["widget_type"] = "checkbox",
-    ["text"] = vmf:localize("ui_scaling"),
-    ["tooltip"] = vmf:localize("ui_scaling_tooltip"),
-    ["default_value"] = true
-  },
-  {
-    ["setting_name"] = "developer_mode",
-    ["widget_type"] = "checkbox",
-    ["text"] = vmf:localize("developer_mode"),
-    ["tooltip"] = vmf:localize("developer_mode_tooltip"),
-    ["default_value"] = false,
-    ["sub_widgets"] = {
-      {
-        ["setting_name"] = "show_developer_console",
-        ["widget_type"] = "checkbox",
-        ["text"] = vmf:localize("show_developer_console"),
-        ["tooltip"] = vmf:localize("show_developer_console_tooltip"),
-        ["default_value"] = false
-      },
-      {
-        ["setting_name"] = "toggle_developer_console",
-        ["widget_type"] = "keybind",
-        ["text"] = vmf:localize("toggle_developer_console"),
-        ["default_value"] = {},
-        ["action"] = "toggle_developer_console"
-      },
-      {
-        ["setting_name"] = "show_network_debug_info",
-        ["widget_type"] = "checkbox",
-        ["text"] = vmf:localize("show_network_debug_info"),
-        ["tooltip"] = vmf:localize("show_network_debug_info_tooltip"),
-        ["default_value"] = false
-      },
-      {
-        ["setting_name"] = "log_ui_renderers_info",
-        ["widget_type"] = "checkbox",
-        ["text"] = vmf:localize("log_ui_renderers_info"),
-        ["tooltip"] = vmf:localize("log_ui_renderers_info_tooltip"),
-        ["default_value"] = false
-      }
-    }
-  },
-  {
-    ["setting_name"] = "logging_mode",
-    ["widget_type"] = "dropdown",
-    ["text"] = vmf:localize("logging_mode"),
-    ["options"] = {
-      {--[[1]] text = vmf:localize("settings_default"), value = "default"},
-      {--[[2]] text = vmf:localize("settings_custom"),  value = "custom"},
+vmf_mod_data.options = {
+  widgets = {
+    {
+      setting_id      = "open_vmf_options",
+      type            = "keybind",
+      default_value   = {"f4"},
+      keybind_trigger = "pressed",
+      keybind_type    = "action_call",
+      action_name     = "open_vmf_options"
     },
-    ["default_value"] = "default",
-    ["sub_widgets"] = {
-      {
-        ["show_widget_condition"] = {2},
-
-        ["setting_name"] = "output_mode_echo",
-        ["widget_type"] = "dropdown",
-        ["text"] = vmf:localize("output_mode_echo"),
-        ["options"] = {
-          {text = vmf:localize("output_disabled"),     value = 0},
-          {text = vmf:localize("output_log"),          value = 1},
-          {text = vmf:localize("output_chat"),         value = 2},
-          {text = vmf:localize("output_log_and_chat"), value = 3},
+    {
+      setting_id    = "vmf_options_scrolling_speed",
+      type          = "numeric",
+      default_value = 100,
+      range         = {1, 1000},
+      unit_text     = "percent"
+    },
+    {
+      setting_id    = "ui_scaling",
+      type          = "checkbox",
+      default_value = true
+    },
+    {
+      setting_id    = "developer_mode",
+      type          = "checkbox",
+      default_value = false,
+      sub_widgets = {
+        {
+          setting_id    = "show_developer_console",
+          type          = "checkbox",
+          default_value = false
         },
-        ["default_value"] = 3
-      },
-      {
-        ["show_widget_condition"] = {2},
-
-        ["setting_name"] = "output_mode_error",
-        ["widget_type"] = "dropdown",
-        ["text"] = vmf:localize("output_mode_error"),
-        ["options"] = {
-          {text = vmf:localize("output_disabled"),     value = 0},
-          {text = vmf:localize("output_log"),          value = 1},
-          {text = vmf:localize("output_chat"),         value = 2},
-          {text = vmf:localize("output_log_and_chat"), value = 3},
+        {
+          setting_id      = "toggle_developer_console",
+          type            = "keybind",
+          default_value   = {},
+          keybind_trigger = "pressed",
+          keybind_type    = "action_call",
+          action_name     = "toggle_developer_console"
         },
-        ["default_value"] = 3
-      },
-      {
-        ["show_widget_condition"] = {2},
-
-        ["setting_name"] = "output_mode_warning",
-        ["widget_type"] = "dropdown",
-        ["text"] = vmf:localize("output_mode_warning"),
-        ["options"] = {
-          {text = vmf:localize("output_disabled"),     value = 0},
-          {text = vmf:localize("output_log"),          value = 1},
-          {text = vmf:localize("output_chat"),         value = 2},
-          {text = vmf:localize("output_log_and_chat"), value = 3},
+        {
+          setting_id    = "show_network_debug_info",
+          type          = "checkbox",
+          default_value = false
         },
-        ["default_value"] = 3
-      },
-      {
-        ["show_widget_condition"] = {2},
-
-        ["setting_name"] = "output_mode_info",
-        ["widget_type"] = "dropdown",
-        ["text"] = vmf:localize("output_mode_info"),
-        ["options"] = {
-          {text = vmf:localize("output_disabled"),     value = 0},
-          {text = vmf:localize("output_log"),          value = 1},
-          {text = vmf:localize("output_chat"),         value = 2},
-          {text = vmf:localize("output_log_and_chat"), value = 3},
-        },
-        ["default_value"] = 1
-      },
-      {
-        ["show_widget_condition"] = {2},
-
-        ["setting_name"] = "output_mode_debug",
-        ["widget_type"] = "dropdown",
-        ["text"] = vmf:localize("output_mode_debug"),
-        ["options"] = {
-          {text = vmf:localize("output_disabled"),     value = 0},
-          {text = vmf:localize("output_log"),          value = 1},
-          {text = vmf:localize("output_chat"),         value = 2},
-          {text = vmf:localize("output_log_and_chat"), value = 3},
-        },
-        ["default_value"] = 0
+        {
+          setting_id    = "log_ui_renderers_info",
+          type          = "checkbox",
+          default_value = false
+        }
       }
-    }
-  },
-  {
-    ["setting_name"] = "chat_history_enable",
-    ["widget_type"] = "checkbox",
-    ["text"] = vmf:localize("chat_history_enable"),
-    ["tooltip"] = vmf:localize("chat_history_enable_tooltip"),
-    ["default_value"] = true,
-    ["sub_widgets"] = {
-      {
-        ["setting_name"] = "chat_history_save",
-        ["widget_type"] = "checkbox",
-        ["text"] = vmf:localize("chat_history_save"),
-        ["tooltip"] = vmf:localize("chat_history_save_tooltip"),
-        ["default_value"] = true
+    },
+    {
+      setting_id    = "logging_mode",
+      type          = "dropdown",
+      default_value = "default",
+      options = {
+        {text = "settings_default", value = "default"},
+        {text = "settings_custom",  value = "custom", show_widgets = {1, 2, 3, 4, 5}},
       },
-      {
-        ["setting_name"] = "chat_history_buffer_size",
-        ["widget_type"] = "numeric",
-        ["text"] = vmf:localize("chat_history_buffer_size"),
-        ["tooltip"] = vmf:localize("chat_history_buffer_size_tooltip"),
-        ["range"] = {10, 200},
-        ["default_value"] = 50
-      },
-      {
-        ["setting_name"] = "chat_history_remove_dups",
-        ["widget_type"] = "checkbox",
-        ["text"] = vmf:localize("chat_history_remove_dups"),
-        ["default_value"] = false,
-        ["sub_widgets"] = {
-          {
-            ["setting_name"] = "chat_history_remove_dups_mode",
-            ["widget_type"] = "dropdown",
-            ["text"] = vmf:localize("chat_history_remove_dups_mode"),
-            ["tooltip"] = vmf:localize("chat_history_remove_dups_mode_tooltip"),
-            ["options"] = {
-              {text = vmf:localize("settings_last"), value = "last"},
-              {text = vmf:localize("settings_all"),  value = "all"},
-            },
-            ["default_value"] = "last"
+      sub_widgets = {
+        {
+          setting_id    = "output_mode_echo",
+          type          = "dropdown",
+          default_value = 3,
+          options = {
+            {text = "output_disabled",     value = 0},
+            {text = "output_log",          value = 1},
+            {text = "output_chat",         value = 2},
+            {text = "output_log_and_chat", value = 3},
+          }
+        },
+        {
+          setting_id    = "output_mode_error",
+          type          = "dropdown",
+          default_value = 3,
+          options = {
+            {text = "output_disabled",     value = 0},
+            {text = "output_log",          value = 1},
+            {text = "output_chat",         value = 2},
+            {text = "output_log_and_chat", value = 3},
+          }
+        },
+        {
+          setting_id    = "output_mode_warning",
+          type          = "dropdown",
+          default_value = 3,
+          options = {
+            {text = "output_disabled",     value = 0},
+            {text = "output_log",          value = 1},
+            {text = "output_chat",         value = 2},
+            {text = "output_log_and_chat", value = 3},
+          }
+        },
+        {
+          setting_id    = "output_mode_info",
+          type          = "dropdown",
+          default_value = 1,
+          options = {
+            {text = "output_disabled",     value = 0},
+            {text = "output_log",          value = 1},
+            {text = "output_chat",         value = 2},
+            {text = "output_log_and_chat", value = 3},
+          }
+        },
+        {
+          setting_id    = "output_mode_debug",
+          type          = "dropdown",
+          default_value = 0,
+          options = {
+            {text = "output_disabled",     value = 0},
+            {text = "output_log",          value = 1},
+            {text = "output_chat",         value = 2},
+            {text = "output_log_and_chat", value = 3},
           }
         }
-      },
-      {
-        ["setting_name"] = "chat_history_commands_only",
-        ["widget_type"] = "checkbox",
-        ["text"] = vmf:localize("chat_history_commands_only"),
-        ["tooltip"] = vmf:localize("chat_history_commands_only_tooltip"),
-        ["default_value"] = false
+      }
+    },
+    {
+      setting_id    = "chat_history_enable",
+      type          = "checkbox",
+      default_value = true,
+      sub_widgets = {
+        {
+          setting_id    = "chat_history_save",
+          type          = "checkbox",
+          default_value = true
+        },
+        {
+          setting_id    = "chat_history_buffer_size",
+          type          = "numeric",
+          default_value = 50,
+          range         = {10, 200}
+        },
+        {
+          setting_id    = "chat_history_remove_dups",
+          type          = "checkbox",
+          default_value = false,
+          sub_widgets = {
+            {
+              setting_id    = "chat_history_remove_dups_mode",
+              type          = "dropdown",
+              default_value = "last",
+              options = {
+                {text = "settings_last", value = "last"},
+                {text = "settings_all",  value = "all"},
+              }
+            }
+          }
+        },
+        {
+          setting_id = "chat_history_commands_only",
+          type = "checkbox",
+          default_value = false
+        }
       }
     }
   }
