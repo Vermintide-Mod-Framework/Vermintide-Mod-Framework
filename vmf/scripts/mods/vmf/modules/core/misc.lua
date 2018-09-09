@@ -18,3 +18,7 @@ function vmf.check_wrong_argument_type(mod, vmf_function_name, argument_name, ar
                                                                         table.concat(allowed_types, "/"), argument_type)
   return true
 end
+
+function vmf.throw_error(error_message, ...)
+  error(string.format(error_message, ...), 0)
+end
