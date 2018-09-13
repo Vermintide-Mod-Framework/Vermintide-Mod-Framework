@@ -12,12 +12,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ManuelBlanc/vmf-docs-beta.git"
+    "url": "git+https://github.com/Vermintide-Mod-Framework/vmf-docs.git"
   },
-  "author": "ManuelBlanc",
+  "author": "Vermintide-Mod-Framework",
   "license": "CC BY-SA 2.5",
   "bugs": {
-    "url": "https://github.com/ManuelBlanc/vmf-docs-beta/issues"
+    "url": "https://github.com/Vermintide-Mod-Framework/vmf-docs/issues"
   },
-  "homepage": "https://github.com/ManuelBlanc/vmf-docs-beta#readme"
+  "homepage": "https://github.com/Vermintide-Mod-Framework/vmf-docs#readme"
 }
