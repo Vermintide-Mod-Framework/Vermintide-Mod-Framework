@@ -26,10 +26,10 @@ function VMFMod:persistent_table(table_name, default_table)
   end
 
   local mod_name = self:get_name()
-  _persistent_tables[mod_name] = _persistent_tables[mod_name] or default_table or {}
+  _persistent_tables[mod_name] = _persistent_tables[mod_name] or {}
 
   local mod_tables = _persistent_tables[mod_name]
-  mod_tables[table_name] = mod_tables[table_name] or {}
+  mod_tables[table_name] = mod_tables[table_name] or default_table or {}
 
   return mod_tables[table_name]
 end
