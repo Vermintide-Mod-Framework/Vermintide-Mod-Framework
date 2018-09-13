@@ -39,11 +39,11 @@ end
 --[[
   Sets mod's setting to a given value. If setting is used in some option widget, make sure given
   value matches one of the predefined values in this widget.
-  * setting_name  [string]  : setting name (can contain any characters lua-string can)
+  * setting_id    [string]  : setting's identifier
   * setting_value [anything]: setting value (can be any SJSON serializable format)
   * notify_mod    [bool]    : if 'true', calls 'mod.on_setting_changed' event
 --]]
-function VMFMod:set(setting_name, setting_value, notify_mod)
+function VMFMod:set(setting_id, setting_value, notify_mod)
   local mod_name = self:get_name()
 
   if not _mods_settings[mod_name] then
@@ -51,12 +51,12 @@ function VMFMod:set(setting_name, setting_value, notify_mod)
   end
 
   local mod_settings = _mods_settings[mod_name]
-  mod_settings[setting_name] = type(setting_value) == "table" and table.clone(setting_value) or setting_value
+  mod_settings[setting_id] = type(setting_value) == "table" and table.clone(setting_value) or setting_value
 
   _there_are_unsaved_changes = true
 
   if notify_mod then
-    vmf.mod_setting_changed_event(self, setting_name)
+    vmf.mod_setting_changed_event(self, setting_id)
   end
 end
 
@@ -64,12 +64,12 @@ end
 --[[
   Returns a mod's setting. Don't call this method for table settings very frequently, because tables are cloned on every
   call.
-  * setting_name [string]: setting name (can contain any characters lua-string can)
+  * setting_id [string]: setting's identifier
 --]]
-function VMFMod:get(setting_name)
+function VMFMod:get(setting_id)
   local mod_name = self:get_name()
   local mod_settings = _mods_settings[mod_name]
-  local setting_value = mod_settings and mod_settings[setting_name]
+  local setting_value = mod_settings and mod_settings[setting_id]
 
   return type(setting_value) == "table" and table.clone(setting_value) or setting_value
 end

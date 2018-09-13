@@ -166,54 +166,54 @@ vmf_mod_data.options = {
 -- ##### VMF internal functions and variables #########################################################################
 -- ####################################################################################################################
 
-vmf.on_setting_changed = function (setting_name)
+vmf.on_setting_changed = function (setting_id)
 
-  if setting_name == "vmf_options_scrolling_speed" then
+  if setting_id == "vmf_options_scrolling_speed" then
 
     vmf.load_vmf_options_view_settings()
 
-  elseif setting_name == "developer_mode" then
+  elseif setting_id == "developer_mode" then
 
     vmf.load_developer_mode_settings()
     vmf.load_network_settings()
     vmf.load_custom_textures_settings()
     vmf.load_dev_console_settings()
 
-  elseif setting_name == "show_developer_console" then
+  elseif setting_id == "show_developer_console" then
 
     vmf.load_dev_console_settings()
 
-  elseif setting_name == "show_network_debug_info" then
+  elseif setting_id == "show_network_debug_info" then
 
     vmf.load_network_settings()
 
-  elseif setting_name == "log_ui_renderers_info" then
+  elseif setting_id == "log_ui_renderers_info" then
 
     vmf.load_custom_textures_settings()
 
-  elseif setting_name == "ui_scaling" then
+  elseif setting_id == "ui_scaling" then
 
     vmf.load_ui_scaling_settings()
 
-  elseif setting_name == "logging_mode"
-      or setting_name == "output_mode_echo"
-      or setting_name == "output_mode_error"
-      or setting_name == "output_mode_warning"
-      or setting_name == "output_mode_info"
-      or setting_name == "output_mode_debug" then
+  elseif setting_id == "logging_mode"
+      or setting_id == "output_mode_echo"
+      or setting_id == "output_mode_error"
+      or setting_id == "output_mode_warning"
+      or setting_id == "output_mode_info"
+      or setting_id == "output_mode_debug" then
 
     vmf.load_logging_settings()
 
-  elseif setting_name == "chat_history_enable"
-      or setting_name == "chat_history_save"
-      or setting_name == "chat_history_buffer_size"
-      or setting_name == "chat_history_remove_dups"
-      or setting_name == "chat_history_remove_dups_mode"
-      or setting_name == "chat_history_commands_only" then
+  elseif setting_id == "chat_history_enable"
+      or setting_id == "chat_history_save"
+      or setting_id == "chat_history_buffer_size"
+      or setting_id == "chat_history_remove_dups"
+      or setting_id == "chat_history_remove_dups_mode"
+      or setting_id == "chat_history_commands_only" then
 
-    vmf.load_chat_history_settings(setting_name == "chat_history_enable" or
-                                   setting_name == "chat_history_buffer_size" or
-                                   setting_name == "chat_history_commands_only")
+    vmf.load_chat_history_settings(setting_id == "chat_history_enable" or
+                                   setting_id == "chat_history_buffer_size" or
+                                   setting_id == "chat_history_commands_only")
   end
 end
 

@@ -9,7 +9,7 @@ VMFModsKeyMap = {
   xb1 = {}
 }
 
--- ["mod_name"]["setting_name"] = {
+-- ["mod_name"]["setting_id"] = {
 --   "action_name",
 --   {"primary_key", "special_key", "special_key", "special_key"}
 -- }
@@ -71,25 +71,25 @@ end
 -- ####################################################################################################################
 
 -- use it directly only for dedugging purposes, otherwise use keybind widget
--- setting_name [string] - keybind identifyer for certain mod
+-- setting_id   [string] - keybind identifyer for certain mod
 -- action_name  [string] - name of some mod.function which will be called when keybind is pressed
 -- keys         [table]  = {"primary_key", "2nd_key" [optional], "3rd_key" [optional], "4th_key" [optional]}
 --                       2, 3, 4 keys can contain words "ctrl", "alt", "shift" (lowercase)
-VMFMod.keybind = function (self, setting_name, action_name, keys)
+VMFMod.keybind = function (self, setting_id, action_name, keys)
 
   if keys[1] then
 
     local mod_keybinds = _raw_keybinds[self:get_name()] or {}
 
-    mod_keybinds[setting_name] = {action_name, keys}
+    mod_keybinds[setting_id] = {action_name, keys}
 
     _raw_keybinds[self:get_name()] = mod_keybinds
   else
 
     local mod_keybinds = _raw_keybinds[self:get_name()]
 
-    if mod_keybinds and mod_keybinds[setting_name] then
-      mod_keybinds[setting_name] = nil
+    if mod_keybinds and mod_keybinds[setting_id] then
+      mod_keybinds[setting_id] = nil
     end
   end
 

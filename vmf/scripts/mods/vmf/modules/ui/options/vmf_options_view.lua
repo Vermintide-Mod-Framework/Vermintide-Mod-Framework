@@ -1262,13 +1262,13 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
                 end
 
                 local mod_name = content.mod_name
-                local setting_name = content.setting_name
+                local setting_id = content.setting_id
                 local old_value = content.is_checkbox_checked
                 local new_value = not old_value
 
                 content.is_checkbox_checked = new_value
 
-                content.callback_setting_changed(mod_name, setting_name, old_value, new_value)
+                content.callback_setting_changed(mod_name, setting_id, old_value, new_value)
               end
             end
 
@@ -1334,7 +1334,7 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
       tooltip_text = widget_definition.tooltip,
 
       mod_name = widget_definition.mod_name,
-      setting_name = widget_definition.setting_id,
+      setting_id = widget_definition.setting_id,
       widget_type = widget_definition.type,
       default_value = widget_definition.default_value,
       parent_widget_number = widget_definition.parent_index,
@@ -1549,7 +1549,7 @@ local function create_group_widget(widget_definition, scenegraph_id)
 
 
       mod_name = widget_definition.mod_name,
-      setting_name = widget_definition.setting_id,
+      setting_id = widget_definition.setting_id,
       widget_type = widget_definition.type,
       parent_widget_number = widget_definition.parent_index,
       show_widget_condition = show_widget_condition
@@ -1841,10 +1841,10 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
                 end
 
                 local mod_name = content.mod_name
-                local setting_name = content.setting_name
+                local setting_id = content.setting_id
                 local new_value = content.options_values[content.current_option_number]
 
-                content.callback_setting_changed(mod_name, setting_name, old_value, new_value)
+                content.callback_setting_changed(mod_name, setting_id, old_value, new_value)
               end
             end
 
@@ -1911,7 +1911,7 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
       tooltip_text = widget_definition.tooltip,
 
       mod_name = widget_definition.mod_name,
-      setting_name = widget_definition.setting_id,
+      setting_id = widget_definition.setting_id,
       widget_type = widget_definition.type,
 
       options_texts  = options_texts,
@@ -2298,10 +2298,10 @@ local function create_numeric_widget(widget_definition, scenegraph_id, scenegrap
               if content.callback_draw_numeric_menu(content) then
 
                 local mod_name = content.mod_name
-                local setting_name = content.setting_name
+                local setting_id = content.setting_id
                 local new_value = content.current_value
 
-                content.callback_setting_changed(mod_name, setting_name, old_value, new_value)
+                content.callback_setting_changed(mod_name, setting_id, old_value, new_value)
               end
             end
 
@@ -2369,7 +2369,7 @@ local function create_numeric_widget(widget_definition, scenegraph_id, scenegrap
       right_bracket = "]",
 
       mod_name = widget_definition.mod_name,
-      setting_name = widget_definition.setting_id,
+      setting_id = widget_definition.setting_id,
       widget_type = widget_definition.type,
 
       current_value_text = "whatever",
@@ -2588,7 +2588,7 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
 
             if content.is_setting_keybind then
               if content.callback_setting_keybind(content) then
-                content.callback_setting_changed(content.mod_name, content.setting_name, nil, content.keys)
+                content.callback_setting_changed(content.mod_name, content.setting_id, nil, content.keys)
                 return
               end
             end
@@ -2651,7 +2651,7 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
       tooltip_text = widget_definition.tooltip,
 
       mod_name = widget_definition.mod_name,
-      setting_name = widget_definition.setting_id,
+      setting_id = widget_definition.setting_id,
       widget_type = widget_definition.type,
 
       action = widget_definition.action_name,
@@ -3044,10 +3044,10 @@ end
 -- ####################################################################################################################
 
 
-VMFOptionsView.callback_setting_changed = function (self, mod_name, setting_name, old_value, new_value)
+VMFOptionsView.callback_setting_changed = function (self, mod_name, setting_id, old_value, new_value)
 
   if self.is_setting_changes_applied_immidiately and old_value ~= new_value then
-    get_mod(mod_name):set(setting_name, new_value, true)
+    get_mod(mod_name):set(setting_id, new_value, true)
   end
 
   WwiseWorld.trigger_event(self.wwise_world, "Play_hud_select")
@@ -3189,10 +3189,10 @@ end
 VMFOptionsView.callback_hide_sub_widgets = function (self, widget_content)
 
   local mod_name            = widget_content.mod_name
-  local setting_name        = widget_content.setting_name
+  local setting_id          = widget_content.setting_id
   local is_widget_collapsed = widget_content.is_widget_collapsed
 
-  local widget_number = not setting_name and 1 -- if (setting_name == nil) -> it's header -> #1
+  local widget_number = not setting_id and 1 -- if (setting_id == nil) -> it's header -> #1
 
   local are_there_visible_sub_widgets = false
 
@@ -3209,7 +3209,7 @@ VMFOptionsView.callback_hide_sub_widgets = function (self, widget_content)
               are_there_visible_sub_widgets = are_there_visible_sub_widgets or widget.content.is_widget_visible
             end
           else
-            if widget.content.setting_name == setting_name then
+            if widget.content.setting_id == setting_id then
               widget_number = i
             end
           end
@@ -3229,7 +3229,7 @@ VMFOptionsView.callback_hide_sub_widgets = function (self, widget_content)
   widget_content.is_widget_collapsed = is_widget_collapsed_new
 
 
-  if setting_name then
+  if setting_id then
 
     local all_collapsed_widgets = vmf:get("options_menu_collapsed_widgets")
 
@@ -3238,12 +3238,12 @@ VMFOptionsView.callback_hide_sub_widgets = function (self, widget_content)
     if widget_content.is_widget_collapsed then
 
       mod_collapsed_widgets = mod_collapsed_widgets or {}
-      mod_collapsed_widgets[setting_name] = true
+      mod_collapsed_widgets[setting_id] = true
 
       all_collapsed_widgets[mod_name] = mod_collapsed_widgets
     else
       if mod_collapsed_widgets then
-        mod_collapsed_widgets[setting_name] = nil
+        mod_collapsed_widgets[setting_id] = nil
 
         local is_collapsed_widgets_list_empty = true
 
@@ -3369,7 +3369,7 @@ VMFOptionsView.callback_setting_keybind = function (self, widget_content)
       widget_content.first_pressed_button_type  = nil
 
       if widget_content.action then
-        get_mod(widget_content.mod_name):keybind(widget_content.setting_name, widget_content.action, widget_content.keys)
+        get_mod(widget_content.mod_name):keybind(widget_content.setting_id, widget_content.action, widget_content.keys)
       end
 
       self:callback_change_setting_keybind_state(widget_content)
@@ -3384,7 +3384,7 @@ VMFOptionsView.callback_setting_keybind = function (self, widget_content)
       widget_content.keybind_text = build_keybind_string(widget_content.keys)
 
       if widget_content.action then
-        get_mod(widget_content.mod_name):keybind(widget_content.setting_name, widget_content.action, widget_content.keys)
+        get_mod(widget_content.mod_name):keybind(widget_content.setting_id, widget_content.action, widget_content.keys)
       end
 
       self:callback_change_setting_keybind_state(widget_content)
@@ -3805,7 +3805,7 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
 
       if widget_type == "checkbox" then
 
-        loaded_setting_value = get_mod(widget_content.mod_name):get(widget_content.setting_name)
+        loaded_setting_value = get_mod(widget_content.mod_name):get(widget_content.setting_id)
 
         if type(loaded_setting_value) == "boolean" then
           widget_content.is_checkbox_checked = loaded_setting_value
@@ -3815,12 +3815,12 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
           --end
 
           widget_content.is_checkbox_checked = widget_content.default_value
-          get_mod(widget_content.mod_name):set(widget_content.setting_name, widget_content.default_value)
+          get_mod(widget_content.mod_name):set(widget_content.setting_id, widget_content.default_value)
         end
 
       elseif widget_type == "dropdown" then
 
-        loaded_setting_value = get_mod(widget_content.mod_name):get(widget_content.setting_name)
+        loaded_setting_value = get_mod(widget_content.mod_name):get(widget_content.setting_id)
 
         local setting_not_found = true
         for i, option_value in ipairs(widget_content.options_values) do
@@ -3846,7 +3846,7 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
               widget_content.current_option_number = i
               widget_content.current_option_text   = widget_content.options_texts[i]
               widget_content.current_shown_widgets = widget_content.options_shown_widgets[i]
-              get_mod(widget_content.mod_name):set(widget_content.setting_name, widget_content.default_value)
+              get_mod(widget_content.mod_name):set(widget_content.setting_id, widget_content.default_value)
             end
           end
         end
@@ -3857,7 +3857,7 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
 
       elseif widget_type == "keybind" then
 
-        loaded_setting_value = get_mod(widget_content.mod_name):get(widget_content.setting_name)
+        loaded_setting_value = get_mod(widget_content.mod_name):get(widget_content.setting_id)
 
         if type(loaded_setting_value) == "table" then
           widget_content.keys = loaded_setting_value
@@ -3870,7 +3870,7 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
 
       elseif widget_type == "numeric" then
 
-        loaded_setting_value = get_mod(widget_content.mod_name):get(widget_content.setting_name)
+        loaded_setting_value = get_mod(widget_content.mod_name):get(widget_content.setting_id)
 
         if type(loaded_setting_value) == "number" then
 
@@ -3920,7 +3920,7 @@ VMFOptionsView.update_settings_list_widgets_visibility = function (self, mod_nam
             -- Usually it had to throw an error by this point, but now it's another part of compatibility
             else
               widget.content.is_widget_visible = parent_widget.content.current_shown_widgets[i] and parent_widget.content.is_widget_visible and not parent_widget.content.is_widget_collapsed
-              --get_mod(widget.content.mod_name):error("(vmf_options_view): the dropdown widget in the options menu has sub_widgets, but some of its sub_widgets doesn't have 'show_widget_condition' (%s)" , widget.content.setting_name)
+              --get_mod(widget.content.mod_name):error("(vmf_options_view): the dropdown widget in the options menu has sub_widgets, but some of its sub_widgets doesn't have 'show_widget_condition' (%s)" , widget.content.setting_id)
             end
           -- if 'group'
           else

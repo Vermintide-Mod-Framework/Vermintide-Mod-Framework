@@ -70,17 +70,17 @@ end
 
 
 --[[
-  EVENT: on_setting_changed (setting_name)
+  EVENT: on_setting_changed (setting_id)
 
   Is called on `mod:set` call with the 3rd parameter set to 'true'. All the mod's settings changes done under
   the VMF's hood call this event.
-  * setting_name [string]: name of the setting that was changed
+  * setting_id [string]: name of the setting that was changed
 --]]
-function vmf.mod_setting_changed_event(mod, setting_name)
+function vmf.mod_setting_changed_event(mod, setting_id)
 
   local event_name = "on_setting_changed"
 
-  run_event(mod, event_name, setting_name)
+  run_event(mod, event_name, setting_id)
 end
 
 
