@@ -10,14 +10,14 @@ VMFModsKeyMap = {
 }
 
 -- ["mod_name"]["setting_id"] = {
---   "action_name",
+--   "function_name",
 --   {"primary_key", "special_key", "special_key", "special_key"}
 -- }
 -- Special Keys: "ctrl" / "shift" / "alt"
 local _raw_keybinds = {}
 
 -- ["primary_key"] = {
---   {"mod_name", "action_name", ctrl_used(bool), alt_used(bool), shift_used(bool)},
+--   {"mod_name", "function_name", ctrl_used(bool), alt_used(bool), shift_used(bool)},
 --   {},
 --   {},
 --   ...
@@ -36,7 +36,7 @@ local function apply_keybinds()
 
   for mod_name, mod_keybinds in pairs(_raw_keybinds) do
     for _, keybind in pairs(mod_keybinds) do
-      local action_name = keybind[1]
+      local function_name = keybind[1]
       local primary_key = keybind[2][1]
 
       local special_key1 = keybind[2][2]
@@ -57,7 +57,7 @@ local function apply_keybinds()
 
       _optimized_keybinds[primary_key] = _optimized_keybinds[primary_key] or {}
       table.insert(_optimized_keybinds[primary_key], {
-        mod_name, action_name,
+        mod_name, function_name,
         special_keys["ctrl"],
         special_keys["alt"],
         special_keys["shift"]
@@ -71,17 +71,17 @@ end
 -- ####################################################################################################################
 
 -- use it directly only for dedugging purposes, otherwise use keybind widget
--- setting_id   [string] - keybind identifyer for certain mod
--- action_name  [string] - name of some mod.function which will be called when keybind is pressed
--- keys         [table]  = {"primary_key", "2nd_key" [optional], "3rd_key" [optional], "4th_key" [optional]}
---                       2, 3, 4 keys can contain words "ctrl", "alt", "shift" (lowercase)
-VMFMod.keybind = function (self, setting_id, action_name, keys)
+-- setting_id     [string] - keybind identifyer for certain mod
+-- function_name  [string] - name of some mod.function which will be called when keybind is pressed
+-- keys           [table]  = {"primary_key", "2nd_key" [optional], "3rd_key" [optional], "4th_key" [optional]}
+--                         2, 3, 4 keys can contain words "ctrl", "alt", "shift" (lowercase)
+VMFMod.keybind = function (self, setting_id, function_name, keys)
 
   if keys[1] then
 
     local mod_keybinds = _raw_keybinds[self:get_name()] or {}
 
-    mod_keybinds[setting_id] = {action_name, keys}
+    mod_keybinds[setting_id] = {function_name, keys}
 
     _raw_keybinds[self:get_name()] = mod_keybinds
   else

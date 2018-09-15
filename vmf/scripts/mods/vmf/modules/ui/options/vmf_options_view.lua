@@ -2654,7 +2654,7 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
       setting_id = widget_definition.setting_id,
       widget_type = widget_definition.type,
 
-      action = widget_definition.action_name,
+      action = widget_definition.function_name,
       keybind_text = widget_definition.keybind_text,
       default_value = widget_definition.default_value,
       parent_widget_number = widget_definition.parent_index,

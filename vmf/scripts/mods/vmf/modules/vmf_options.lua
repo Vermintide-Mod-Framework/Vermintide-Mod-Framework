@@ -9,8 +9,8 @@ vmf_mod_data.options = {
       type            = "keybind",
       default_value   = {"f4"},
       keybind_trigger = "pressed",
-      keybind_type    = "action_call",
-      action_name     = "open_vmf_options"
+      keybind_type    = "function_call",
+      function_name   = "open_vmf_options"
     },
     {
       setting_id    = "vmf_options_scrolling_speed",
@@ -39,8 +39,8 @@ vmf_mod_data.options = {
           type            = "keybind",
           default_value   = {},
           keybind_trigger = "pressed",
-          keybind_type    = "action_call",
-          action_name     = "toggle_developer_console"
+          keybind_type    = "function_call",
+          function_name   = "toggle_developer_console"
         },
         {
           setting_id    = "show_network_debug_info",

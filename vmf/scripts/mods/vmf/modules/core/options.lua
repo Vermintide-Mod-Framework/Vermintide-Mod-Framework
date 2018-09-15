@@ -145,6 +145,10 @@ end
 local function initialize_group_data(mod, data, localize, collapsed_widgets)
   local new_data = initialize_generic_widget_data(mod, data, localize)
 
+  if not data.sub_widgets or not (#data.sub_widgets > 0) then
+    vmf.throw_error("[widget \"%s\" (group)]: must have at least 1 sub_widget", data.setting_id)
+  end
+
   new_data.is_collapsed = collapsed_widgets[data.setting_id]
 
   return new_data
@@ -191,6 +195,10 @@ local function validate_dropdown_data(data)
   if type(data.options) ~= "table" then
     vmf.throw_error("[widget \"%s\" (dropdown)]: 'options' field is required and must have 'table' type",
                      data.setting_id)
+  end
+
+  if #data.options < 2 then
+    vmf.throw_error("[widget \"%s\" (dropdown)]: 'options' table must have at least 2 elements", data.setting_id)
   end
 
   local default_value = data.default_value
@@ -289,9 +297,9 @@ local allowed_keybind_triggers = {
   held     = true
 }
 local allowed_keybind_types = {
-  action_call = true,
-  view_toggle = true,
-  mod_toggle  = true
+  function_call = true,
+  view_toggle   = true,
+  mod_toggle    = true
 }
 local allowed_special_keys = {
   ctrl  = true,
@@ -305,16 +313,16 @@ local function validate_keybind_data(data)
 
   if not allowed_keybind_triggers[data.keybind_trigger] then
     vmf.throw_error("[widget \"%s\" (keybind)]: 'keybind_trigger' field is required and must contain string " ..
-                     "\"action_call\", \"view_toggle\" or \"mod_toggle\"", data.setting_id)
+                     "\"pressed\", \"released\" or \"held\"", data.setting_id)
   end
 
   local keybind_type = data.keybind_type
   if not allowed_keybind_types[keybind_type] then
     vmf.throw_error("[widget \"%s\" (keybind)]: 'keybind_type' field is required and must contain string " ..
-                     "\"pressed\", \"released\" or \"held\"", data.setting_id)
+                     "\"function_call\", \"view_toggle\" or \"mod_toggle\"", data.setting_id)
   end
-  if keybind_type == "action_call" and type(data.action_name) ~= "string" then
-    vmf.throw_error("[widget \"%s\" (keybind)]: 'keybind_type' is set to \"action_call\" so 'action_name' " ..
+  if keybind_type == "function_call" and type(data.function_name) ~= "string" then
+    vmf.throw_error("[widget \"%s\" (keybind)]: 'keybind_type' is set to \"function_call\" so 'function_name' " ..
                      "field is required and must have 'string' type", data.setting_id)
   end
   if keybind_type == "view_toggle" and type(data.view_name) ~= "string" then
@@ -359,7 +367,7 @@ local function initialize_keybind_data(mod, data, localize)
   new_data.keybind_global  = data.keybind_global  -- optional
   new_data.keybind_trigger = data.keybind_trigger
   new_data.keybind_type    = data.keybind_type
-  new_data.action_name     = data.action_name     -- required, if (keybind_type == "action_call")
+  new_data.function_name   = data.function_name   -- required, if (keybind_type == "function_call")
   new_data.view_name       = data.view_name       -- required, if (keybind_type == "view_toggle")
 
   validate_keybind_data(new_data)
@@ -534,7 +542,7 @@ local function initialize_default_settings_and_keybinds(mod, initialized_widgets
       mod:set(data.setting_id, data.default_value)
     end
     if data.type == "keybind" then
-      mod:keybind(data.setting_id, data.action_name, mod:get(data.setting_id))
+      mod:keybind(data.setting_id, data.function_name, mod:get(data.setting_id))
     end
   end
 end

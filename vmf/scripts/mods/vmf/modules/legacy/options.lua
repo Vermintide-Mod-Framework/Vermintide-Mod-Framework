@@ -81,7 +81,7 @@ vmf.initialize_mod_options_legacy = function (mod, widgets_definition)
         new_widget_definition.decimals_number = current_widget.decimals_number -- numeric [optional]
         new_widget_definition.options         = current_widget.options         -- dropdown
         new_widget_definition.default_value   = current_widget.default_value   -- all
-        new_widget_definition.action_name     = current_widget.action          -- keybind [optional?]
+        new_widget_definition.function_name   = current_widget.action          -- keybind [optional?]
         new_widget_definition.show_widget_condition = current_widget.show_widget_condition -- all
         new_widget_definition.parent_index = parent_number -- all [gen]
 
