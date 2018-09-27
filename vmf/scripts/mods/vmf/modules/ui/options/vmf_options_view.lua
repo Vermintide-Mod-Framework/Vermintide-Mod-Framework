@@ -2488,9 +2488,9 @@ local function build_keybind_string(keys)
 
   for i, key in ipairs(keys) do
     if i == 1 then
-      keybind_string = keybind_string .. vmf.readable_key_names[key]
+      keybind_string = keybind_string .. vmf.get_readable_key_name(key)
     else
-      keybind_string = keybind_string .. " + " .. vmf.readable_key_names[key]
+      keybind_string = keybind_string .. " + " .. vmf.get_readable_key_name(key)
     end
   end
 
@@ -3307,25 +3307,25 @@ VMFOptionsView.callback_setting_keybind = function (self, widget_content)
 
   if not widget_content.first_pressed_button and (Keyboard.any_pressed() or Mouse.any_pressed()) then
 
-    local first_pressed_button_info  = nil
+    local first_pressed_button_name  = nil
     local first_pressed_button_index = nil
     local first_pressed_button_type  = nil
 
     if Keyboard.any_pressed() then
 
-      first_pressed_button_info  = vmf.keys.keyboard[Keyboard.any_pressed()]
+      first_pressed_button_name  = vmf.get_key_name("keyboard", Keyboard.any_pressed())
       first_pressed_button_index = Keyboard.any_pressed()
       first_pressed_button_type  = "keyboard"
 
     elseif Mouse.any_pressed() then
 
-      first_pressed_button_info  = vmf.keys.mouse[Mouse.any_pressed()]
+      first_pressed_button_name  = vmf.get_key_name("mouse", Mouse.any_pressed())
       first_pressed_button_index = Mouse.any_pressed()
       first_pressed_button_type  = "mouse"
     end
 
-    if first_pressed_button_info then
-      widget_content.first_pressed_button       = first_pressed_button_info[2]
+    if first_pressed_button_name then
+      widget_content.first_pressed_button       = first_pressed_button_name
       widget_content.first_pressed_button_index = first_pressed_button_index
       widget_content.first_pressed_button_type  = first_pressed_button_type
     end
@@ -3336,7 +3336,7 @@ VMFOptionsView.callback_setting_keybind = function (self, widget_content)
 
   if widget_content.first_pressed_button then
     table.insert(pressed_buttons, widget_content.first_pressed_button)
-    preview_string = vmf.readable_key_names[widget_content.first_pressed_button]
+    preview_string = vmf.get_readable_key_name(widget_content.first_pressed_button)
   end
   if Keyboard.button(Keyboard.button_index("left ctrl")) == 1 then
     preview_string = preview_string .. " + Ctrl"

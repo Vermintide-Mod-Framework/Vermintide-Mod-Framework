@@ -339,7 +339,7 @@ local function validate_keybind_data(data)
     vmf.throw_error("[widget \"%s\" (keybind)]: table stored in 'default_value' field can't exceed 4 elements",
                      data.setting_id)
   end
-  if default_value[1] and (not vmf.readable_key_names[default_value[1]] or allowed_special_keys[default_value[1]]) then
+  if default_value[1] and (not vmf.get_readable_key_name(default_value[1]) or allowed_special_keys[default_value[1]]) then
     vmf.throw_error("[widget \"%s\" (keybind)]: 'default_value[1]' must be a valid key name", data.setting_id)
   end
   if default_value[2] and not allowed_special_keys[default_value[2]] or

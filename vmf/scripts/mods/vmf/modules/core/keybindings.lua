@@ -180,7 +180,7 @@ end
 local keyboard_buton_name = Keyboard.button_name
 local mouse_buton_name    = Mouse.button_name
 
-vmf.keys = {
+local _keys = {
   keyboard = {
     [8]   = {"Backspace",           "backspace",         keyboard_buton_name(8)},
     [9]   = {"Tab",                 "tab",               keyboard_buton_name(9)},
@@ -327,32 +327,43 @@ vmf.keys = {
   }]]
 }
 
-vmf.readable_key_names = {}
+local _readable_key_names = {}
+
+
+function vmf.get_key_name(device, key_index)
+  local key_info = _keys[device][key_index]
+  return key_info and key_info[2]
+end
+
+
+function vmf.get_readable_key_name(key_name)
+  return _readable_key_names[key_name]
+end
 
 -- ####################################################################################################################
 -- ##### Script #######################################################################################################
 -- ####################################################################################################################
 
-for _, controller_keys in pairs(vmf.keys) do
+for _, controller_keys in pairs(_keys) do
   for _, key_info in pairs(controller_keys) do
-    vmf.readable_key_names[key_info[2]] = key_info[1]
+    _readable_key_names[key_info[2]] = key_info[1]
   end
 end
 
-vmf.readable_key_names["ctrl"]  = "Ctrl"
-vmf.readable_key_names["alt"]   = "Alt"
-vmf.readable_key_names["shift"] = "Shift"
+_readable_key_names["ctrl"]  = "Ctrl"
+_readable_key_names["alt"]   = "Alt"
+_readable_key_names["shift"] = "Shift"
 
-for _, key_info in pairs(vmf.keys.keyboard) do
+for _, key_info in pairs(_keys.keyboard) do
   VMFModsKeyMap.win32[key_info[2]] = {"keyboard", key_info[3], "held"}
 end
 
 for i = 0, 4 do
-  local key_info = vmf.keys.mouse[i]
+  local key_info = _keys.mouse[i]
   VMFModsKeyMap.win32[key_info[2]] = {"mouse", key_info[3], "held"}
 end
 
 for i = 10, 13 do
-  local key_info = vmf.keys.mouse[i]
+  local key_info = _keys.mouse[i]
   VMFModsKeyMap.win32[key_info[2]] = {"mouse", key_info[3], "pressed"}
 end
