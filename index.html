@@ -69,15 +69,17 @@
       plugins: [
         function(hook, vm) {
           hook.beforeEach(function (html) {
-            var url = 'https://github.com/Vermintide-Mod-Framework/vmf-docs/edit/master/' + vm.route.file;
-            var editHtml = '[:memo: Edit Document](' + url + ')\n';
-            var lastModified = 'Last modified: _{docsify-updated}_\n';
+            var editUrl = 'https://github.com/Vermintide-Mod-Framework/vmf-docs/edit/master/' + vm.route.file;
+            var issueUrl = 'https://github.com/Vermintide-Mod-Framework/vmf-docs/issues/new/';
+            var footerHtml = [
+              '<a href="' + editUrl  + '">:memo: Edit Document</a>',
+              '<a href="' + issueUrl + '">:warning: Open an issue</a>',
+              'Last modified: _{docsify-updated}_\n'
+            ];
             return (
                 html
-              + '\n----\n'
-              + editHtml
-              + ' ––– '
-              + lastModified
+              + '\n\n----\n' // hr
+              + footerHtml.join(' —\n')
             );
           });
         },
