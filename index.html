@@ -14,10 +14,10 @@
 
   <meta name="theme-color" content="#42b983" />
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
-  <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/vue.css" title="vue">
-  <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/dark.css" title="dark" disabled>
-  <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/buble.css" title="buble" disabled>
-  <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/pure.css" title="pure" disabled>
+  <link rel="stylesheet"           href="//unpkg.com/docsify/lib/themes/vue.css"   title="vue">
+  <link rel="alternate stylesheet" href="//unpkg.com/docsify/lib/themes/dark.css"  title="dark" disabled>
+  <link rel="alternate stylesheet" href="//unpkg.com/docsify/lib/themes/buble.css" title="buble" disabled>
+  <link rel="alternate stylesheet" href="//unpkg.com/docsify/lib/themes/pure.css"  title="pure" disabled>
   <link rel="stylesheet" href="//use.fontawesome.com/releases/v5.3.1/css/all.css">
   <style>
     /* Add an icon to outgoing links. */
@@ -57,8 +57,10 @@
       name: 'Vermintide Mod Framework',
       repo: 'https://github.com/Vermintide-Mod-Framework/Vermintide-Mod-Framework/',
       loadSidebar: true,
+      loadNavbar: true,
       alias: {
         '/.*/_sidebar.md': '/_sidebar.md',
+        '/.*/_navbar.md': '/_navbar.md',
       },
       subMaxLevel: 3,
       search: 'auto',
@@ -77,6 +79,22 @@
               + ' ––– '
               + lastModified
             );
+          });
+        },
+        function (hook, vm) {
+          hook.ready(function() {
+            var preview = Docsify.dom.find('#theme-selector');
+            var themes  = Docsify.dom.findAll('[rel~="stylesheet"][title]');
+
+            preview.onclick = function (e) {
+              var title = e.target.dataset.theme;
+
+              if (!title) return;
+
+              themes.forEach(function (theme) {
+                theme.disabled = (theme.title !== title)
+              });
+            };
           });
         }
       ],
