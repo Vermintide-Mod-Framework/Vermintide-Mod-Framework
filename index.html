@@ -69,8 +69,10 @@
       plugins: [
         function(hook, vm) {
           hook.beforeEach(function (html) {
-            var editUrl = 'https://github.com/Vermintide-Mod-Framework/vmf-docs/edit/master/' + vm.route.file;
-            var issueUrl = 'https://github.com/Vermintide-Mod-Framework/vmf-docs/issues/new/';
+            var file  = vm.route.file;
+            var editUrl = 'https://github.com/Vermintide-Mod-Framework/vmf-docs/edit/master/' + file;
+            var issueQuery = '?title=' + encodeURIComponent(file)
+            var issueUrl = 'https://github.com/Vermintide-Mod-Framework/vmf-docs/issues/new/' + issueQuery;
             var footerHtml = [
               '<a href="' + editUrl  + '">:memo: Edit Document</a>',
               '<a href="' + issueUrl + '">:warning: Open an issue</a>',
