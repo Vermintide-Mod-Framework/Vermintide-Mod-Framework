@@ -136,8 +136,11 @@ local function rpc_chat_message(member, channel_id, message_sender, message, loc
   if VT1 then
     RPC.rpc_chat_message(member, channel_id, message_sender, message, localization_param,
                           is_system_message, pop_chat, is_dev)
-  else
+  elseif tonumber(script_data.settings.content_revision) <= 122701 then
     RPC.rpc_chat_message(member, channel_id, message_sender, 0, message, localization_param,
+                          is_system_message, pop_chat, is_dev)
+  else
+    RPC.rpc_chat_message(member, channel_id, message_sender, 0, message, {}, false, false,
                           is_system_message, pop_chat, is_dev)
   end
 end
