@@ -12,15 +12,22 @@
   <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 
 
-  <meta name="theme-color" content="#42b983" />
+  <meta name="theme-color" content="#ca352e" />
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
-  <link rel="stylesheet"           href="//unpkg.com/docsify/lib/themes/vue.css"   title="vue">
-  <link rel="alternate stylesheet" href="//unpkg.com/docsify/lib/themes/dark.css"  title="dark" disabled>
-  <link rel="alternate stylesheet" href="//unpkg.com/docsify/lib/themes/buble.css" title="buble" disabled>
-  <link rel="alternate stylesheet" href="//unpkg.com/docsify/lib/themes/pure.css"  title="pure" disabled>
   <link rel="stylesheet" href="//use.fontawesome.com/releases/v5.3.1/css/all.css">
+  <link rel="stylesheet" href="https://unpkg.com/docsify-themeable/dist/css/theme-simple.css" title="simple">
+  <link rel="stylesheet alternate" href="https://unpkg.com/docsify-themeable/dist/css/theme-simple-dark.css" title="simple-dark" disabled>
+  <link rel="stylesheet alternate" href="https://unpkg.com/docsify-themeable/dist/css/theme-defaults.css" title="default" disabled>
+  <link rel="stylesheet alternate" href="//unpkg.com/docsify/lib/themes/vue.css" title="vue" disabled>
   <style>
-    /* Add an icon to outgoing links. */
+    /* Docsify Themeable properties */
+    :root {
+      --theme-color: #ca352e;
+      --sidebar-width: 23rem;
+      --sidebar-nav-link-before-content: "";
+      --sidebar-nav-link-padding: 0.25em 0 0.25em 0px; /* trbl */
+    }
+    /* Add an icon to links that open in a new tab. */
     a[target='_blank']::after {
       font-family: "Font Awesome 5 Free";
       font-size: 0.75em;
@@ -38,21 +45,30 @@
     .markdown-section h3 code,
     .markdown-section h4 code,
     .markdown-section h5 code {
-      background-color: transparent;
-      color: #34495e;
-      font-family: "Roboto Mono", Monaco, courier, monospace;
+      background-color: inherit !important;
+      color: inherit !important;
+      font-size: inherit !important;
+      margin: inherit !important;
+      padding: inherit !important;
     }
-    /* Slighly reduce (-0.25rem) the side of the code headers. */
-    .markdown-section h1 code { font-size: 1.75rem; }
-    .markdown-section h2 code { font-size: 1.50rem; }
-    .markdown-section h3 code { font-size: 1.25rem; }
-    .markdown-section h4 code { font-size: 1.00rem; }
-    .markdown-section h5 code { font-size: 0.75rem; }
   </style>
 </head>
 <body>
   <div id="app"></div>
   <script>
+    // Change and save the current theme.
+    var setTheme = function(title) {
+      if (!title) return;
+
+      window.localStorage.theme = title;
+
+      var themes = document.querySelectorAll('[rel~="stylesheet"][title]');
+      themes.forEach(function(theme) {
+        theme.disabled = (theme.title !== title)
+      });
+    };
+    setTheme(window.localStorage.theme); // Set the theme the first thing.
+    // Docsify configuration.
     window.$docsify = {
       name: 'Vermintide Mod Framework',
       repo: 'https://github.com/Vermintide-Mod-Framework/Vermintide-Mod-Framework/',
@@ -67,8 +83,9 @@
       auto2top: true,
       formatUpdated: '{YYYY}/{MM}/{DD} {HH}:{mm}',
       plugins: [
+        // Add a footer with actions.
         function(hook, vm) {
-          hook.beforeEach(function (html) {
+          hook.beforeEach(function(html) {
             var file  = vm.route.file;
             var editUrl = 'https://github.com/Vermintide-Mod-Framework/vmf-docs/edit/master/' + file;
             var issueQuery = '?title=' + encodeURIComponent(file)
@@ -85,22 +102,15 @@
             );
           });
         },
-        function (hook, vm) {
-          hook.ready(function() {
-            var preview = Docsify.dom.find('#theme-selector');
-            var themes  = Docsify.dom.findAll('[rel~="stylesheet"][title]');
-
-            preview.onclick = function (e) {
-              var title = e.target.dataset.theme;
-
-              if (!title) return;
-
-              themes.forEach(function (theme) {
-                theme.disabled = (theme.title !== title)
-              });
+        // Enable theme switching.
+        function(hook, vm) {
+          hook.doneEach(function() {
+            var selector = Docsify.dom.find('#theme-selector');
+            selector.onclick = function(e) {
+              setTheme(e.target.dataset.theme);
             };
           });
-        }
+        },
       ],
     }
   </script>
