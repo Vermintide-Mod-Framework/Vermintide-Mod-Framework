@@ -340,6 +340,18 @@ function vmf.get_readable_key_name(key_name)
   return _readable_key_names[key_name]
 end
 
+
+function vmf.build_keybind_string(keys)
+  local keybind_string = ""
+  for i, key_name in ipairs(keys) do
+    if i == 1 then
+      keybind_string = keybind_string .. _readable_key_names[key_name]
+    else
+      keybind_string = keybind_string .. " + " .. _readable_key_names[key_name]
+    end
+  end
+  return keybind_string
+end
 -- ####################################################################################################################
 -- ##### Script #######################################################################################################
 -- ####################################################################################################################

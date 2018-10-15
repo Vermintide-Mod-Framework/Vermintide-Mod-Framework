@@ -2482,22 +2482,6 @@ end
 -- ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═════╝ ╚═╝╚═╝  ╚═══╝╚═════╝
 
 
-local function build_keybind_string(keys)
-
-  local keybind_string = ""
-
-  for i, key in ipairs(keys) do
-    if i == 1 then
-      keybind_string = keybind_string .. vmf.get_readable_key_name(key)
-    else
-      keybind_string = keybind_string .. " + " .. vmf.get_readable_key_name(key)
-    end
-  end
-
-  return keybind_string
-end
-
-
 local function create_keybind_widget(widget_definition, scenegraph_id)
 
   local widget_size = SETTINGS_LIST_REGULAR_WIDGET_SIZE
@@ -3334,7 +3318,7 @@ VMFOptionsView.callback_setting_keybind = function (self, widget_content)
     table.insert(pressed_buttons, "shift")
   end
 
-  local preview_string = build_keybind_string(pressed_buttons)
+  local preview_string = vmf.build_keybind_string(pressed_buttons)
 
   widget_content.keybind_text = preview_string ~= "" and preview_string or "_"
   widget_content.keys         = pressed_buttons
@@ -3834,7 +3818,7 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
           widget_content.keys = widget_content.default_value
         end
 
-        widget_content.keybind_text = build_keybind_string(widget_content.keys)
+        widget_content.keybind_text = vmf.build_keybind_string(widget_content.keys)
 
       elseif widget_type == "numeric" then
 
