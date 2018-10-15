@@ -39,6 +39,47 @@
       content: '\f35d';
       opacity: 0.75;
     }
+    /* Formatting for function and property badges. */
+    .badge::before {
+      border-color: var(--badge-color, black);
+      border-radius: 0.1rem;
+      border: 1px solid;
+      color: var(--badge-color, black);
+      content: var(--badge-letter);
+      display: inline-block;
+      font-family: monospace;
+      font-size: 1rem;
+      font-weight: normal;
+      line-height: 1rem;
+      margin-right: 0.5em;
+      padding: 0 0.2em;
+      /* box-shadow: 1px 1px 2px rgba(0,0,0,0.2); /**/
+      /* text-shadow: 1px 1px 2px rgba(0,0,0,0.2); /**/
+    }
+    .badge.function {
+      --badge-color: #1f75fe;
+      --badge-letter: "F";
+    }
+    .badge.property {
+      --badge-color: #fe1f75;
+      --badge-letter: "P";
+    }
+    .badge.callback {
+      --badge-color: #fea81f;
+      --badge-letter: "C";
+    }
+    /* Formatting for Lua types. */
+    .lua-type {
+      border-radius: 0.1em;
+      border: 1px solid rgba(127, 127, 127, 0.4);
+      font-variant: small-caps;
+      margin: var(--code-inline-margin);
+      padding-top: 0;
+      padding: var(--code-inline-padding, 0.15em 0.3em);
+    }
+    .lua-type.optional {
+      font-style: oblique;
+    }
     /* Change the formatting of code in headers. */
     .markdown-section h1 code,
     .markdown-section h2 code,
@@ -91,9 +132,10 @@
             var issueQuery = '?title=' + encodeURIComponent(file)
             var issueUrl = 'https://github.com/Vermintide-Mod-Framework/vmf-docs/issues/new/' + issueQuery;
             var footerHtml = [
-              '<a href="' + editUrl  + '">:memo: Edit Document</a>',
-              '<a href="' + issueUrl + '">:warning: Open an issue</a>',
-              'Last modified: _{docsify-updated}_\n'
+              '<a href="' + editUrl  + '">:memo: Edit</a>',
+              '<a href="' + issueUrl + '">:warning: Discuss</a>',
+              'Last modified: _{docsify-updated}_\n',
+              licenseBadge,
             ];
             return (
                 html
@@ -109,6 +151,37 @@
             selector.onclick = function(e) {
               setTheme(e.target.dataset.theme);
             };
+          });
+        },
+        // Testing.
+        function(hook, vm) {
+          var isCallback = RegExp('^on_');
+          var isFunction = RegExp('^VMFMod:|^(?:get|new)_mod$');
+
+          // Add a badge to a code element, depending on it's contents.
+          var addBadge = function(element) {
+            var textContent = element.textContent;
+            element.classList.add(
+              "badge",
+              isFunction.test(textContent) ? "function" :
+              isCallback.test(textContent) ? "callback" :
+              /* else */                     "property"
+            );
+          };
+
+          // Add the type formatting.
+          hook.beforeEach(function(markdown) {
+            return markdown.replace(
+              /_\[([^\]]+)\]_/g,
+              '<span class="lua-type">$1</span>'
+            );
+          });
+
+          // Add the badges to the sidebar (must be done here).
+          hook.doneEach(function() {
+            document.querySelectorAll('li > a.section-link > code').forEach(addBadge);
+            // Uncomment the next line to add badges to headers.
+            //document.querySelectorAll('a.anchor > span > code').forEach(addBadge);
           });
         },
       ],
