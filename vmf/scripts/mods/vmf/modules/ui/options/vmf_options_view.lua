@@ -3305,92 +3305,60 @@ end
 
 VMFOptionsView.callback_setting_keybind = function (self, widget_content)
 
-  if not widget_content.first_pressed_button and (Keyboard.any_pressed() or Mouse.any_pressed()) then
-
-    local first_pressed_button_name  = nil
-    local first_pressed_button_index = nil
-    local first_pressed_button_type  = nil
-
+  if not widget_content.first_pressed_button_name then
     if Keyboard.any_pressed() then
-
-      first_pressed_button_name  = vmf.get_key_name("keyboard", Keyboard.any_pressed())
-      first_pressed_button_index = Keyboard.any_pressed()
-      first_pressed_button_type  = "keyboard"
-
+      widget_content.first_pressed_button_name  = vmf.get_key_name("keyboard", Keyboard.any_pressed())
+      widget_content.first_pressed_button_index = Keyboard.any_pressed()
+      widget_content.first_pressed_button_type  = "keyboard"
     elseif Mouse.any_pressed() then
-
-      first_pressed_button_name  = vmf.get_key_name("mouse", Mouse.any_pressed())
-      first_pressed_button_index = Mouse.any_pressed()
-      first_pressed_button_type  = "mouse"
-    end
-
-    if first_pressed_button_name then
-      widget_content.first_pressed_button       = first_pressed_button_name
-      widget_content.first_pressed_button_index = first_pressed_button_index
-      widget_content.first_pressed_button_type  = first_pressed_button_type
+      widget_content.first_pressed_button_name  = vmf.get_key_name("mouse", Mouse.any_pressed())
+      widget_content.first_pressed_button_index = Mouse.any_pressed()
+      widget_content.first_pressed_button_type  = "mouse"
     end
   end
 
   local pressed_buttons = {}
-  local preview_string = ""
 
-  if widget_content.first_pressed_button then
-    table.insert(pressed_buttons, widget_content.first_pressed_button)
-    preview_string = vmf.get_readable_key_name(widget_content.first_pressed_button)
+  if widget_content.first_pressed_button_name then
+    table.insert(pressed_buttons, widget_content.first_pressed_button_name)
+  else
+    table.insert(pressed_buttons, "no_button")
   end
   if Keyboard.button(Keyboard.button_index("left ctrl")) == 1 then
-    preview_string = preview_string .. " + Ctrl"
     table.insert(pressed_buttons, "ctrl")
   end
   if Keyboard.button(Keyboard.button_index("left alt")) == 1 then
-    preview_string = preview_string .. " + Alt"
     table.insert(pressed_buttons, "alt")
   end
   if Keyboard.button(Keyboard.button_index("left shift")) == 1 then
-    preview_string = preview_string .. " + Shift"
     table.insert(pressed_buttons, "shift")
   end
 
-  if preview_string ~= "" then
-    widget_content.keys = pressed_buttons
-    widget_content.keybind_text = preview_string
-  else
-    widget_content.keybind_text = "_"
-  end
+  local preview_string = build_keybind_string(pressed_buttons)
 
-  if widget_content.first_pressed_button then
-    if (widget_content.first_pressed_button_type == "keyboard" and Keyboard.released(widget_content.first_pressed_button_index) or
-       widget_content.first_pressed_button_type == "mouse" and Mouse.released(widget_content.first_pressed_button_index)) then
+  widget_content.keybind_text = preview_string ~= "" and preview_string or "_"
+  widget_content.keys         = pressed_buttons
 
-      widget_content.keybind_text = build_keybind_string(widget_content.keys)
-
-      widget_content.first_pressed_button       = nil
+  if widget_content.first_pressed_button_name then
+    if widget_content.first_pressed_button_type == "keyboard" and Keyboard.released(widget_content.first_pressed_button_index) or
+       widget_content.first_pressed_button_type == "mouse" and Mouse.released(widget_content.first_pressed_button_index)
+    then
+      widget_content.first_pressed_button_name  = nil
       widget_content.first_pressed_button_index = nil
       widget_content.first_pressed_button_type  = nil
 
-      if widget_content.action then
-        get_mod(widget_content.mod_name):keybind(widget_content.setting_id, widget_content.action, widget_content.keys)
-      end
+      get_mod(widget_content.mod_name):keybind(widget_content.setting_id, widget_content.action, widget_content.keys)
 
       self:callback_change_setting_keybind_state(widget_content)
-
       return true
     end
-  else
-    if Keyboard.released(Keyboard.button_index("esc")) then
+  elseif Keyboard.released(Keyboard.button_index("esc")) then
+    widget_content.keybind_text = ""
 
-      widget_content.keys = {}
+    get_mod(widget_content.mod_name):keybind(widget_content.setting_id, widget_content.action, widget_content.keys)
 
-      widget_content.keybind_text = build_keybind_string(widget_content.keys)
-
-      if widget_content.action then
-        get_mod(widget_content.mod_name):keybind(widget_content.setting_id, widget_content.action, widget_content.keys)
-      end
-
-      self:callback_change_setting_keybind_state(widget_content)
-
-      return true
-    end
+    self:callback_change_setting_keybind_state(widget_content)
+    return true
   end
 end
 

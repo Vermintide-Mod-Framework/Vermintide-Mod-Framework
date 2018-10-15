@@ -353,6 +353,7 @@ end
 _readable_key_names["ctrl"]  = "Ctrl"
 _readable_key_names["alt"]   = "Alt"
 _readable_key_names["shift"] = "Shift"
+_readable_key_names["no_button"] = "" -- hack for build_keybind_string function
 
 for _, key_info in pairs(_keys.keyboard) do
   VMFModsKeyMap.win32[key_info[2]] = {"keyboard", key_info[3], "held"}
