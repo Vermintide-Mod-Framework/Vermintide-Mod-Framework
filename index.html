@@ -113,6 +113,8 @@
     window.$docsify = {
       name: 'Vermintide Mod Framework',
       repo: 'https://github.com/Vermintide-Mod-Framework/Vermintide-Mod-Framework/',
+      logo: 'vmf_logo_black.png',
+      coverpage: true,
       loadSidebar: true,
       loadNavbar: true,
       alias: {
@@ -160,7 +162,7 @@
         },
         // Testing.
         function(hook, vm) {
-          var isCallback = RegExp('^on_');
+          var isCallback = RegExp('^on_|^update$');
           var isFunction = RegExp('^VMFMod:|^(?:get|new)_mod$');
 
           // Add a badge to a code element, depending on it's contents.
