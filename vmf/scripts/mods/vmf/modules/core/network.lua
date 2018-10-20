@@ -137,7 +137,7 @@ local function rpc_chat_message(member, channel_id, message_sender, message, loc
     RPC.rpc_chat_message(member, channel_id, message_sender, message, localization_param,
                           is_system_message, pop_chat, is_dev)
   else
-    RPC.rpc_chat_message(member, channel_id, message_sender, 0, message, {}, false, false,
+    RPC.rpc_chat_message(member, channel_id, message_sender, 0, message, {localization_param}, false, false,
                           is_system_message, pop_chat, is_dev)
   end
 end
@@ -255,7 +255,7 @@ vmf:hook("ChatManager", "rpc_chat_message",
       rpc_data2 = arg2
     else
       rpc_data1 = arg2
-      rpc_data2 = arg3
+      rpc_data2 = arg3[1]
     end
 
     if channel_id == RPC_VMF_REQUEST_CHANNEL_ID then -- rpc_vmf_request
