@@ -20,9 +20,6 @@ local function send_system_message(peer_id, message)
   if VT1 then
     RPC.rpc_chat_message(peer_id, CHANNEL_ID, MESSAGE_SENDER, message, LOCALIZATION_PARAM, IS_SYSTEM_MESSAGE, POP_CHAT,
                           IS_DEV)
-  elseif tonumber(script_data.settings.content_revision) <= 122701 then
-    RPC.rpc_chat_message(peer_id, CHANNEL_ID, MESSAGE_SENDER, LOCAL_PLAYER_ID, message, LOCALIZATION_PARAM,
-                          IS_SYSTEM_MESSAGE, POP_CHAT, IS_DEV)
   else
     RPC.rpc_chat_message(peer_id, CHANNEL_ID, MESSAGE_SENDER, LOCAL_PLAYER_ID, message, LOCALIZATION_PARAMETERS,
                           LOCALIZE, LOCALIZE_PARAMETERS, IS_SYSTEM_MESSAGE, POP_CHAT, IS_DEV)
