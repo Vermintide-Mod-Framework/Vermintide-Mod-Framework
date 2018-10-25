@@ -13,7 +13,7 @@ ignore = {
     "611", -- disable "line contains only whitespace"
 }
 
-std = "+VT1+VMF"
+std = "+VT1+VT2+VMF"
 
 stds["VMF"] = {
     globals = {
@@ -412,4 +412,10 @@ stds["VT1"] = {
         "UICalibrationView", "profiler_scopes_trace", "flow_callback_overcharge_reset_unit",
         "RandomTable_05_05", "POOL_blackboard", "PlayGoTutorialSystem",
     }
+}
+
+stds["VT2"] = {
+    globals = {
+        "IngameViewLayoutLogic", "HeroWindowIngameView",
+    },
 }
