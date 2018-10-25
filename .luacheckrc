@@ -17,15 +17,15 @@ std = "+VT1+VT2+VMF"
 
 stds["VMF"] = {
     globals = {
-        "new_mod", "get_mod", "VMFMod", "VMFModsKeyMap", "VMFOptionsView", "VT1"
-    }
+        "new_mod", "get_mod", "VMFMod", "VMFModsKeyMap", "VMFOptionsView", "VT1",
+    },
 }
 
 stds["VT1"] = {
     read_globals = {
         string = { fields = { "split" }},
         debug = { fields = {
-            "load_level", "level_loaded", "spawn_hero", "animation_log_specific_profile", "upvaluejoin", "upvalueid"
+            "load_level", "level_loaded", "spawn_hero", "animation_log_specific_profile", "upvaluejoin", "upvalueid",
         }},
         table = { fields = {
             "merge", "table_to_array", "mirror_table", "tostring", "is_empty", "array_to_table", "reverse", "shuffle",
@@ -411,7 +411,7 @@ stds["VT1"] = {
         "TelemetryEvents", "debug_bot_transitions", "FreeFlightControllerSettings","ApexClothQuality",
         "UICalibrationView", "profiler_scopes_trace", "flow_callback_overcharge_reset_unit",
         "RandomTable_05_05", "POOL_blackboard", "PlayGoTutorialSystem",
-    }
+    },
 }
 
 stds["VT2"] = {
