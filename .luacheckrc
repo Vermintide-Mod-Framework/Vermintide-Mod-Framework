@@ -22,7 +22,7 @@ stds["VMF"] = {
 }
 
 stds["VT1"] = {
-    globals = {
+    read_globals = {
         string = { fields = { "split" }},
         debug = { fields = {
             "load_level", "level_loaded", "spawn_hero", "animation_log_specific_profile", "upvaluejoin", "upvalueid"
@@ -415,7 +415,7 @@ stds["VT1"] = {
 }
 
 stds["VT2"] = {
-    globals = {
+    read_globals = {
         "IngameViewLayoutLogic", "HeroWindowIngameView",
     },
 }
