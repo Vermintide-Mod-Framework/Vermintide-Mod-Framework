@@ -122,11 +122,11 @@ vmf.check_custom_menus_close_keybinds = function()
       local close_keybind = get_mod(mod_name):get(hotkey_name)
 
       -- vmf keybinds input service
-      local input_service = Managers.input:get_service("VMFMods")
+      local input_service = Managers.input:get_service("VMF")
       local original_is_blocked = input_service:is_blocked()
 
       if original_is_blocked then
-        Managers.input:device_unblock_service("keyboard", 1, "VMFMods")
+        Managers.input:device_unblock_service("keyboard", 1, "VMF")
       end
 
       if opening_keybind_is_pressed and not input_service:get(close_keybind[1]) then
@@ -149,7 +149,7 @@ vmf.check_custom_menus_close_keybinds = function()
       end
 
       if original_is_blocked then
-        Managers.input:device_block_service("keyboard", 1, "VMFMods")
+        Managers.input:device_block_service("keyboard", 1, "VMF")
       end
 
       if close_menu then

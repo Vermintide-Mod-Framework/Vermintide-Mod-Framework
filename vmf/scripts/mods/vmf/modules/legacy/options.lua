@@ -94,9 +94,25 @@ vmf.initialize_mod_options_legacy = function (mod, widgets_definition)
         end
 
         if current_widget.widget_type == "keybind" then
+          new_widget_definition.keybind_trigger = "pressed"
+          if current_widget.action == "toggle_mod_state" then
+            new_widget_definition.keybind_type = "mod_toggle"
+            new_widget_definition.function_name = nil
+          else
+            new_widget_definition.keybind_type = "function_call"
+          end
+
           local keybind = mod:get(current_widget.setting_name)
           if current_widget.action then
-            mod:keybind(current_widget.setting_name, current_widget.action, keybind)
+            vmf.add_mod_keybind(
+              mod,
+              new_widget_definition.setting_id,
+              nil,
+              new_widget_definition.keybind_trigger,
+              new_widget_definition.keybind_type,
+              keybind,
+              new_widget_definition.function_name
+            )
           end
         end
 

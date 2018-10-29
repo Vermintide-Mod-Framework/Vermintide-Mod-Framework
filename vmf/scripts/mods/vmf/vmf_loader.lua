@@ -56,14 +56,14 @@ end
 
 function vmf_mod_object:update(dt)
 	vmf.mods_update_event(dt)
-	vmf.check_pressed_keybinds()
+	vmf.check_keybinds()
 	vmf.check_custom_menus_close_keybinds(dt)
 	vmf.execute_queued_chat_command()
 	if VT1 then vmf.check_mutators_state() end
 
 	if not vmf.all_mods_were_loaded and Managers.mod._state == "done" then
 
-		vmf.initialize_keybinds()
+		vmf.generate_keybinds()
 		vmf.initialize_vmf_options_view()
 		vmf.create_network_dictionary()
 		vmf.ping_vmf_users()
@@ -90,7 +90,6 @@ function vmf_mod_object:on_reload()
 	vmf.disable_mods_options_button()
 	vmf.close_opened_custom_menus()
 	if VT1 then vmf.reset_map_view() end
-	vmf.delete_keybinds()
 	vmf.mods_unload_event(false)
 	vmf.hooks_unload()
 	vmf.reset_guis()
@@ -104,7 +103,7 @@ function vmf_mod_object:on_game_state_changed(status, state)
 	vmf.apply_delayed_hooks(status, state)
 
 	if status == "enter" and state == "StateIngame" then
-		vmf.initialize_keybinds()
+		vmf.create_keybinds_input_service()
 	end
 end
 

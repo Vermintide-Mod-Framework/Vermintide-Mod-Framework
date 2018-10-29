@@ -1,382 +1,374 @@
 local vmf = get_mod("VMF")
 
-VMFModsKeyMap = {
-  win32 = {
-    ["ctrl"]  = {"keyboard", "left ctrl",  "held"},
-    ["alt"]   = {"keyboard", "left alt",   "held"},
-    ["shift"] = {"keyboard", "left shift", "held"}
+local PRIMARY_BINDABLE_KEYS = {
+  KEYBOARD = {
+    [8]   = {"Backspace",           "backspace"},
+    [9]   = {"Tab",                 "tab"},
+    [13]  = {"Enter",               "enter"},
+    [20]  = {"Caps Lock",           "caps lock"},
+    [32]  = {"Space",               "space"},
+    [33]  = {"Page Up",             "page up"},
+    [34]  = {"Page Down",           "page down"},
+    [35]  = {"End",                 "end"},
+    [36]  = {"Home",                "home"},
+    [37]  = {"Left",                "left"},
+    [38]  = {"Up",                  "up"},
+    [39]  = {"Right",               "right"},
+    [40]  = {"Down",                "down"},
+    [45]  = {"Insert",              "insert"},
+    [46]  = {"Delete",              "delete"},
+    [48]  = {"0",                   "0"},
+    [49]  = {"1",                   "1"},
+    [50]  = {"2",                   "2"},
+    [51]  = {"3",                   "3"},
+    [52]  = {"4",                   "4"},
+    [53]  = {"5",                   "5"},
+    [54]  = {"6",                   "6"},
+    [55]  = {"7",                   "7"},
+    [56]  = {"8",                   "8"},
+    [57]  = {"9",                   "9"},
+    [65]  = {"A",                   "a"},
+    [66]  = {"B",                   "b"},
+    [67]  = {"C",                   "c"},
+    [68]  = {"D",                   "d"},
+    [69]  = {"E",                   "e"},
+    [70]  = {"F",                   "f"},
+    [71]  = {"G",                   "g"},
+    [72]  = {"H",                   "h"},
+    [73]  = {"I",                   "i"},
+    [74]  = {"J",                   "j"},
+    [75]  = {"K",                   "k"},
+    [76]  = {"L",                   "l"},
+    [77]  = {"M",                   "m"},
+    [78]  = {"N",                   "n"},
+    [79]  = {"O",                   "o"},
+    [80]  = {"P",                   "p"},
+    [81]  = {"Q",                   "q"},
+    [82]  = {"R",                   "r"},
+    [83]  = {"S",                   "s"},
+    [84]  = {"T",                   "t"},
+    [85]  = {"U",                   "u"},
+    [86]  = {"V",                   "v"},
+    [87]  = {"W",                   "w"},
+    [88]  = {"X",                   "x"},
+    [89]  = {"Y",                   "y"},
+    [90]  = {"Z",                   "z"},
+    [91]  = {"Win",                 "win"},
+    [92]  = {"RWin",                "right win"},
+    [96]  = {"Num 0",               "numpad 0"},
+    [97]  = {"Num 1",               "numpad 1"},
+    [98]  = {"Num 2",               "numpad 2"},
+    [99]  = {"Num 3",               "numpad 3"},
+    [100] = {"Num 4",               "numpad 4"},
+    [101] = {"Num 5",               "numpad 5"},
+    [102] = {"Num 6",               "numpad 6"},
+    [103] = {"Num 7",               "numpad 7"},
+    [104] = {"Num 8",               "numpad 8"},
+    [105] = {"Num 9",               "numpad 9"},
+    [106] = {"Num *",               "numpad *"},
+    [107] = {"Num +",               "numpad +"},
+    [109] = {"Num -",               "numpad -"},
+    [110] = {"Num .",               "numpad ."},
+    [111] = {"Num /",               "numpad /"},
+    [112] = {"F1",                  "f1"},
+    [113] = {"F2",                  "f2"},
+    [114] = {"F3",                  "f3"},
+    [115] = {"F4",                  "f4"},
+    [116] = {"F5",                  "f5"},
+    [117] = {"F6",                  "f6"},
+    [118] = {"F7",                  "f7"},
+    [119] = {"F8",                  "f8"},
+    [120] = {"F9",                  "f9"},
+    [121] = {"F10",                 "f10"},
+    [122] = {"F11",                 "f11"},
+    [123] = {"F12",                 "f12"},
+    [144] = {"Num Lock",            "num lock"},
+    [145] = {"Scroll Lock",         "scroll lock"},
+    [166] = {"Browser Back",        "browser back"},
+    [167] = {"Browser Forward",     "browser forward"},
+    [168] = {"Browser Refresh",     "browser refresh"},
+    [169] = {"Browser Stop",        "browser stop"},
+    [170] = {"Browser Search",      "browser search"},
+    [171] = {"Browser Favorites",   "browser favorites"},
+    [172] = {"Browser Home",        "browser home"},
+    [173] = {"Volume Mute",         "volume mute"},
+    [174] = {"Volume Down",         "volume down"},
+    [175] = {"Volume Up",           "volume up"},
+    [176] = {"Next Track",          "next track"},
+    [177] = {"Previous Track",      "previous track"},
+    [178] = {"Stop",                "stop"},
+    [179] = {"Play/Pause",          "play pause"},
+    [180] = {"Mail",                "mail"},
+    [181] = {"Media",               "media"},
+    [182] = {"Start Application 1", "start app 1"},
+    [183] = {"Start Application 2", "start app 2"},
+    [186] = {";",                   ";"},
+    [187] = {"=",                   "="},
+    [188] = {",",                   ","},
+    [189] = {"-",                   "-"},
+    [190] = {".",                   "."},
+    [191] = {"/",                   "/"},
+    [192] = {"`",                   "`"},
+    [219] = {"[",                   "["},
+    [220] = {"\\",                  "\\"},
+    [221] = {"]",                   "]"},
+    [222] = {"'",                   "'"},
+ --?[226] = {"\",                   "oem_102 (> <)"},
+    [256] = {"Num Enter",           "numpad enter"}
   },
-  xb1 = {}
-}
-
--- ["mod_name"]["setting_id"] = {
---   "function_name",
---   {"primary_key", "special_key", "special_key", "special_key"}
--- }
--- Special Keys: "ctrl" / "shift" / "alt"
-local _raw_keybinds = {}
-
--- ["primary_key"] = {
---   {"mod_name", "function_name", ctrl_used(bool), alt_used(bool), shift_used(bool)},
---   {},
---   {},
---   ...
--- }
-local _optimized_keybinds = {}
-
-local _activated_pressed_key
-
--- ####################################################################################################################
--- ##### Local functions ##############################################################################################
--- ####################################################################################################################
-
-local function apply_keybinds()
-
-  _optimized_keybinds = {}
-
-  for mod_name, mod_keybinds in pairs(_raw_keybinds) do
-    for _, keybind in pairs(mod_keybinds) do
-      local function_name = keybind[1]
-      local primary_key = keybind[2][1]
-
-      local special_key1 = keybind[2][2]
-      local special_key2 = keybind[2][3]
-      local special_key3 = keybind[2][4]
-
-      local special_keys = {}
-
-      if special_key1 then
-        special_keys[special_key1] = true
-      end
-      if special_key2 then
-        special_keys[special_key2] = true
-      end
-      if special_key3 then
-        special_keys[special_key3] = true
-      end
-
-      _optimized_keybinds[primary_key] = _optimized_keybinds[primary_key] or {}
-      table.insert(_optimized_keybinds[primary_key], {
-        mod_name, function_name,
-        special_keys["ctrl"],
-        special_keys["alt"],
-        special_keys["shift"]
-      })
-    end
-  end
-end
-
--- ####################################################################################################################
--- ##### VMFMod #######################################################################################################
--- ####################################################################################################################
-
--- use it directly only for dedugging purposes, otherwise use keybind widget
--- setting_id     [string] - keybind identifyer for certain mod
--- function_name  [string] - name of some mod.function which will be called when keybind is pressed
--- keys           [table]  = {"primary_key", "2nd_key" [optional], "3rd_key" [optional], "4th_key" [optional]}
---                         2, 3, 4 keys can contain words "ctrl", "alt", "shift" (lowercase)
-VMFMod.keybind = function (self, setting_id, function_name, keys)
-
-  if keys[1] then
-
-    local mod_keybinds = _raw_keybinds[self:get_name()] or {}
-
-    mod_keybinds[setting_id] = {function_name, keys}
-
-    _raw_keybinds[self:get_name()] = mod_keybinds
-  else
-
-    local mod_keybinds = _raw_keybinds[self:get_name()]
-
-    if mod_keybinds and mod_keybinds[setting_id] then
-      mod_keybinds[setting_id] = nil
-    end
-  end
-
-  if vmf.keybind_input_service then
-    apply_keybinds()
-  end
-end
-
--- ####################################################################################################################
--- ##### VMF internal functions and variables #########################################################################
--- ####################################################################################################################
-
-vmf.initialize_keybinds = function()
-  Managers.input:create_input_service("VMFMods", "VMFModsKeyMap")
-  Managers.input:map_device_to_service("VMFMods", "keyboard")
-  Managers.input:map_device_to_service("VMFMods", "mouse")
-
-  vmf.keybind_input_service = Managers.input:get_service("VMFMods")
-
-  apply_keybinds()
-end
-
-vmf.check_pressed_keybinds = function()
-
-  local input_service = vmf.keybind_input_service
-  if input_service then
-
-    -- don't check for the pressed keybindings until player will release already pressed keybind
-    if _activated_pressed_key then
-      if input_service:get(_activated_pressed_key) then
-        return
-      else
-        _activated_pressed_key = nil
-      end
-    end
-
-    local key_has_active_keybind = false
-    local input_ctrl = input_service:get("ctrl")
-    local input_shift = input_service:get("shift")
-    local input_alt = input_service:get("alt")
-
-    for key, key_bindings in pairs(_optimized_keybinds) do
-      if input_service:get(key) then
-
-        for _, binding_info in ipairs(key_bindings) do
-          if (not binding_info[3] and not input_ctrl or binding_info[3] and input_ctrl) and
-            (not binding_info[4] and not input_alt or binding_info[4] and input_alt) and
-            (not binding_info[5] and not input_shift or binding_info[5] and input_shift) then
-
-            local mod = get_mod(binding_info[1])
-
-            if binding_info[2] == "toggle_mod_state" and not mod:get_internal_data("is_mutator") then
-
-              vmf.mod_state_changed(mod:get_name(), not mod:is_enabled())
-
-              key_has_active_keybind = true
-              _activated_pressed_key = key
-
-            elseif mod:is_enabled() then
-
-              local action_exists, action_function = pcall(function() return mod[binding_info[2]] end)
-              if action_exists then
-                local error_prefix = "(keybindings) " .. tostring(binding_info[2])
-                vmf.xpcall_no_return_values(mod, error_prefix, action_function)
-              else
-                mod:error("(keybindings): function '%s' wasn't found.", tostring(binding_info[2]))
-              end
-
-              key_has_active_keybind = true
-              _activated_pressed_key = key
-            end
-          end
-        end
-
-        -- return here because some other mods can have the same keybind which also need to be executed
-        if key_has_active_keybind then
-          return
-        end
-      end
-    end
-  end
-end
-
-vmf.delete_keybinds = function()
-  VMFModsKeyMap = {}
-end
-
-local keyboard_buton_name = Keyboard.button_name
-local mouse_buton_name    = Mouse.button_name
-
-local _keys = {
-  keyboard = {
-    [8]   = {"Backspace",           "backspace",         keyboard_buton_name(8)},
-    [9]   = {"Tab",                 "tab",               keyboard_buton_name(9)},
-    [13]  = {"Enter",               "enter",             keyboard_buton_name(13)},
-    [20]  = {"Caps Lock",           "caps lock",         keyboard_buton_name(20)},
-    [32]  = {"Space",               "space",             keyboard_buton_name(32)},
-    [33]  = {"Page Up",             "page up",           keyboard_buton_name(33)},
-    [34]  = {"Page Down",           "page down",         keyboard_buton_name(34)},
-    [35]  = {"End",                 "end",               keyboard_buton_name(35)},
-    [36]  = {"Home",                "home",              keyboard_buton_name(36)},
-    [37]  = {"Left",                "left",              keyboard_buton_name(37)},
-    [38]  = {"Up",                  "up",                keyboard_buton_name(38)},
-    [39]  = {"Right",               "right",             keyboard_buton_name(39)},
-    [40]  = {"Down",                "down",              keyboard_buton_name(40)},
-    [45]  = {"Insert",              "insert",            keyboard_buton_name(45)},
-    [46]  = {"Delete",              "delete",            keyboard_buton_name(46)},
-    [48]  = {"0",                   "0",                 keyboard_buton_name(48)},
-    [49]  = {"1",                   "1",                 keyboard_buton_name(49)},
-    [50]  = {"2",                   "2",                 keyboard_buton_name(50)},
-    [51]  = {"3",                   "3",                 keyboard_buton_name(51)},
-    [52]  = {"4",                   "4",                 keyboard_buton_name(52)},
-    [53]  = {"5",                   "5",                 keyboard_buton_name(53)},
-    [54]  = {"6",                   "6",                 keyboard_buton_name(54)},
-    [55]  = {"7",                   "7",                 keyboard_buton_name(55)},
-    [56]  = {"8",                   "8",                 keyboard_buton_name(56)},
-    [57]  = {"9",                   "9",                 keyboard_buton_name(57)},
-    [65]  = {"A",                   "a",                 keyboard_buton_name(65)},
-    [66]  = {"B",                   "b",                 keyboard_buton_name(66)},
-    [67]  = {"C",                   "c",                 keyboard_buton_name(67)},
-    [68]  = {"D",                   "d",                 keyboard_buton_name(68)},
-    [69]  = {"E",                   "e",                 keyboard_buton_name(69)},
-    [70]  = {"F",                   "f",                 keyboard_buton_name(70)},
-    [71]  = {"G",                   "g",                 keyboard_buton_name(71)},
-    [72]  = {"H",                   "h",                 keyboard_buton_name(72)},
-    [73]  = {"I",                   "i",                 keyboard_buton_name(73)},
-    [74]  = {"J",                   "j",                 keyboard_buton_name(74)},
-    [75]  = {"K",                   "k",                 keyboard_buton_name(75)},
-    [76]  = {"L",                   "l",                 keyboard_buton_name(76)},
-    [77]  = {"M",                   "m",                 keyboard_buton_name(77)},
-    [78]  = {"N",                   "n",                 keyboard_buton_name(78)},
-    [79]  = {"O",                   "o",                 keyboard_buton_name(79)},
-    [80]  = {"P",                   "p",                 keyboard_buton_name(80)},
-    [81]  = {"Q",                   "q",                 keyboard_buton_name(81)},
-    [82]  = {"R",                   "r",                 keyboard_buton_name(82)},
-    [83]  = {"S",                   "s",                 keyboard_buton_name(83)},
-    [84]  = {"T",                   "t",                 keyboard_buton_name(84)},
-    [85]  = {"U",                   "u",                 keyboard_buton_name(85)},
-    [86]  = {"V",                   "v",                 keyboard_buton_name(86)},
-    [87]  = {"W",                   "w",                 keyboard_buton_name(87)},
-    [88]  = {"X",                   "x",                 keyboard_buton_name(88)},
-    [89]  = {"Y",                   "y",                 keyboard_buton_name(89)},
-    [90]  = {"Z",                   "z",                 keyboard_buton_name(90)},
-    [91]  = {"Win",                 "win",               keyboard_buton_name(91)},
-    [92]  = {"RWin",                "right win",         keyboard_buton_name(92)},
-    [96]  = {"Num 0",               "numpad 0",          keyboard_buton_name(96)},
-    [97]  = {"Num 1",               "numpad 1",          keyboard_buton_name(97)},
-    [98]  = {"Num 2",               "numpad 2",          keyboard_buton_name(98)},
-    [99]  = {"Num 3",               "numpad 3",          keyboard_buton_name(99)},
-    [100] = {"Num 4",               "numpad 4",          keyboard_buton_name(100)},
-    [101] = {"Num 5",               "numpad 5",          keyboard_buton_name(101)},
-    [102] = {"Num 6",               "numpad 6",          keyboard_buton_name(102)},
-    [103] = {"Num 7",               "numpad 7",          keyboard_buton_name(103)},
-    [104] = {"Num 8",               "numpad 8",          keyboard_buton_name(104)},
-    [105] = {"Num 9",               "numpad 9",          keyboard_buton_name(105)},
-    [106] = {"Num *",               "numpad *",          keyboard_buton_name(106)},
-    [107] = {"Num +",               "numpad +",          keyboard_buton_name(107)},
-    [109] = {"Num -",               "numpad -",          keyboard_buton_name(109)},
-    [110] = {"Num .",               "numpad .",          keyboard_buton_name(110)},
-    [111] = {"Num /",               "numpad /",          keyboard_buton_name(111)},
-    [112] = {"F1",                  "f1",                keyboard_buton_name(112)},
-    [113] = {"F2",                  "f2",                keyboard_buton_name(113)},
-    [114] = {"F3",                  "f3",                keyboard_buton_name(114)},
-    [115] = {"F4",                  "f4",                keyboard_buton_name(115)},
-    [116] = {"F5",                  "f5",                keyboard_buton_name(116)},
-    [117] = {"F6",                  "f6",                keyboard_buton_name(117)},
-    [118] = {"F7",                  "f7",                keyboard_buton_name(118)},
-    [119] = {"F8",                  "f8",                keyboard_buton_name(119)},
-    [120] = {"F9",                  "f9",                keyboard_buton_name(120)},
-    [121] = {"F10",                 "f10",               keyboard_buton_name(121)},
-    [122] = {"F11",                 "f11",               keyboard_buton_name(122)},
-    [123] = {"F12",                 "f12",               keyboard_buton_name(123)},
-    [144] = {"Num Lock",            "num lock",          keyboard_buton_name(144)},
-    [145] = {"Scroll Lock",         "scroll lock",       keyboard_buton_name(145)},
-    [166] = {"Browser Back",        "browser back",      keyboard_buton_name(166)},
-    [167] = {"Browser Forward",     "browser forward",   keyboard_buton_name(167)},
-    [168] = {"Browser Refresh",     "browser refresh",   keyboard_buton_name(168)},
-    [169] = {"Browser Stop",        "browser stop",      keyboard_buton_name(169)},
-    [170] = {"Browser Search",      "browser search",    keyboard_buton_name(170)},
-    [171] = {"Browser Favorites",   "browser favorites", keyboard_buton_name(171)},
-    [172] = {"Browser Home",        "browser home",      keyboard_buton_name(172)},
-    [173] = {"Volume Mute",         "volume mute",       keyboard_buton_name(173)},
-    [174] = {"Volume Down",         "volume down",       keyboard_buton_name(174)},
-    [175] = {"Volume Up",           "volume up",         keyboard_buton_name(175)},
-    [176] = {"Next Track",          "next track",        keyboard_buton_name(176)},
-    [177] = {"Previous Track",      "previous track",    keyboard_buton_name(177)},
-    [178] = {"Stop",                "stop",              keyboard_buton_name(178)},
-    [179] = {"Play/Pause",          "play pause",        keyboard_buton_name(179)},
-    [180] = {"Mail",                "mail",              keyboard_buton_name(180)},
-    [181] = {"Media",               "media",             keyboard_buton_name(181)},
-    [182] = {"Start Application 1", "start app 1",       keyboard_buton_name(182)},
-    [183] = {"Start Application 2", "start app 2",       keyboard_buton_name(183)},
-    [186] = {";",                   ";",                 keyboard_buton_name(186)},
-    [187] = {"=",                   "=",                 keyboard_buton_name(187)},
-    [188] = {",",                   ",",                 keyboard_buton_name(188)},
-    [189] = {"-",                   "-",                 keyboard_buton_name(189)},
-    [190] = {".",                   ".",                 keyboard_buton_name(190)},
-    [191] = {"/",                   "/",                 keyboard_buton_name(191)},
-    [192] = {"`",                   "`",                 keyboard_buton_name(192)},
-    [219] = {"[",                   "[",                 keyboard_buton_name(219)},
-    [220] = {"\\",                  "\\",                keyboard_buton_name(220)},
-    [221] = {"]",                   "]",                 keyboard_buton_name(221)},
-    [222] = {"'",                   "'",                 keyboard_buton_name(222)},
-    --?[226] = {"\", "oem_102 (> <)", keyboard_buton_name(226)},
-    [256] = {"Num Enter",           "numpad enter",      keyboard_buton_name(256)}
-  },
-  mouse = {
-    [0]  = {"Mouse Left",        "mouse left",        mouse_buton_name(0)},
-    [1]  = {"Mouse Right",       "mouse right",       mouse_buton_name(1)},
-    [2]  = {"Mouse Middle",      "mouse middle",      mouse_buton_name(2)},
-    [3]  = {"Mouse Extra 1",     "mouse extra 1",     mouse_buton_name(3)},
-    [4]  = {"Mouse Extra 2",     "mouse extra 2",     mouse_buton_name(4)},
-    [10] = {"Mouse Wheel Up",    "mouse wheel up",    mouse_buton_name(10)},
-    [11] = {"Mouse Wheel Down",  "mouse wheel down",  mouse_buton_name(11)},
-    [12] = {"Mouse Wheel Left",  "mouse wheel left",  mouse_buton_name(12)},
-    [13] = {"Mouse Wheel Right", "mouse wheel right", mouse_buton_name(13)}
+  MOUSE = {
+    [0]  = {"Mouse Left",        "mouse left"},
+    [1]  = {"Mouse Right",       "mouse right"},
+    [2]  = {"Mouse Middle",      "mouse middle"},
+    [3]  = {"Mouse Extra 1",     "mouse extra 1"},
+    [4]  = {"Mouse Extra 2",     "mouse extra 2"},
+    [10] = {"Mouse Wheel Up",    "mouse wheel up"},
+    [11] = {"Mouse Wheel Down",  "mouse wheel down"},
+    [12] = {"Mouse Wheel Left",  "mouse wheel left"},
+    [13] = {"Mouse Wheel Right", "mouse wheel right"}
   },--[[ -- will work on this if it will be needed
-  gamepad = {
-    [0] = {"", "d_up", gamepad_buton_name(0)},
-    [1] = {"", "d_down", gamepad_buton_name(1)},
-    [2] = {"", "d_left", gamepad_buton_name(2)},
-    [3] = {"", "d_right", gamepad_buton_name(3)},
-    [4] = {"", "start", gamepad_buton_name(4)},
-    [5] = {"", "back", gamepad_buton_name(5)},
-    [6] = {"", "left_thumb", gamepad_buton_name(6)},
-    [7] = {"", "right_thumb", gamepad_buton_name(7)},
-    [8] = {"", "left_shoulder", gamepad_buton_name(8)},
-    [9] = {"", "right_shoulder", gamepad_buton_name(9)},
-    [10] = {"", "left_trigger", gamepad_buton_name(10)},
-    [11] = {"", "right_trigger", gamepad_buton_name(11)},
-    [12] = {"", "a", gamepad_buton_name(12)},
-    [13] = {"", "b", gamepad_buton_name(13)},
-    [14] = {"", "x", gamepad_buton_name(14)},
-    [15] = {"", "y", gamepad_buton_name(15)},
+  GAMEPAD = {
+    [0]  = {"", "d_up"},
+    [1]  = {"", "d_down"},
+    [2]  = {"", "d_left"},
+    [3]  = {"", "d_right"},
+    [4]  = {"", "start"},
+    [5]  = {"", "back"},
+    [6]  = {"", "left_thumb"},
+    [7]  = {"", "right_thumb"},
+    [8]  = {"", "left_shoulder"},
+    [9]  = {"", "right_shoulder"},
+    [10] = {"", "left_trigger"},
+    [11] = {"", "right_trigger"},
+    [12] = {"", "a"},
+    [13] = {"", "b"},
+    [14] = {"", "x"},
+    [15] = {"", "y"},
   }]]
 }
 
-local _readable_key_names = {}
+local OTHER_KEYS = {
+  -- modifier keys
+  ["shift"]     = {160, "Shift", "KEYBOARD", 161},
+  ["ctrl"]      = {162, "Ctrl",  "KEYBOARD", 163},
+  ["alt"]       = {164, "Alt",   "KEYBOARD", 165},
+  -- hack for 'vmf.build_keybind_string' function
+  ["no_button"] = {-1, ""}
+}
+
+local KEYS_INFO = {}
+-- Populate KEYS_INFO:
+for input_device_name, input_device_keys in pairs(PRIMARY_BINDABLE_KEYS) do
+  for key_index, key_info in pairs(input_device_keys) do
+    KEYS_INFO[key_info[2]] = {key_index, key_info[1], input_device_name}
+  end
+end
+for key_id, key_data in pairs(OTHER_KEYS) do
+    KEYS_INFO[key_id] = key_data
+end
+
+-- Can't use 'Device.released' because it will break keybinds if button is released when game window is not active.
+local CHECK_INPUT_FUNCTIONS = {
+  KEYBOARD = {
+    PRESSED  = function(key_id) return Keyboard.pressed(KEYS_INFO[key_id][1]) end,
+    RELEASED = function(key_id) return Keyboard.button(KEYS_INFO[key_id][1]) == 0 end
+  },
+  MOUSE = {
+    PRESSED  = function(key_id) return Mouse.pressed(KEYS_INFO[key_id][1]) end,
+    RELEASED = function(key_id) return Mouse.button(KEYS_INFO[key_id][1]) == 0 end
+  }
+}
+
+local _raw_keybinds_data = {}
+local _keybinds = {}
+local _pressed_key
+
+-- #####################################################################################################################
+-- ##### Local functions ###############################################################################################
+-- #####################################################################################################################
+
+local function is_vmf_input_service_active()
+  local input_service = Managers.input:get_service("VMF")
+  return input_service and not input_service:is_blocked()
+end
 
 
-function vmf.get_key_name(device, key_index)
-  local key_info = _keys[device][key_index]
+-- Executes function for 'function_call' keybinds.
+local function call_function(mod, function_name, keybind_is_pressed)
+  if type(mod[function_name]) == "function" then
+    local error_prefix = string.format("(keybindings) function_call 'mod.%s'", function_name)
+    vmf.xpcall_no_return_values(mod, error_prefix, mod[function_name], keybind_is_pressed)
+  else
+    mod:error("(keybindings) function_call 'mod.%s': function was not found.", tostring(function_name))
+  end
+end
+
+
+-- If check of keybind's conditions is successful, performs keybind's action and returns 'true'.
+local function perform_keybind_action(data, is_pressed)
+  local can_perform_action = is_vmf_input_service_active() or data.global or data.release_action
+
+  if data.type == "mod_toggle" and can_perform_action and not data.mod:get_internal_data("is_mutator") then
+    vmf.mod_state_changed(data.mod:get_name(), not data.mod:is_enabled())
+    return true
+  elseif data.type == "function_call" and can_perform_action and data.mod:is_enabled() then
+    call_function(data.mod, data.function_name, is_pressed)
+    return true
+  elseif data.type == "view_toggle" and data.mod:is_enabled() then
+    vmf:echo("KEYBIND [VIEW_TOGGLE] " .. (is_pressed and "PRESSED" or "RELEASED") .. ": " .. data.view_name)
+    return true
+  end
+end
+
+-- #####################################################################################################################
+-- ##### VMF internal functions and variables ##########################################################################
+-- #####################################################################################################################
+
+-- Checks for pressed and released keybinds, performs keybind actions.
+-- * Checks for both right and left key modifiers (ctrl, alt, shift).
+-- * If some keybind is pressed, won't check for other keybinds until this keybing is released.
+-- * If several mods bound the same keys, keybind action will be performed for all of them, when keybind is pressed.
+-- * Keybind is considered released, when its primary key is released.
+function vmf.check_keybinds()
+  local ctrl_pressed  = (Keyboard.button(KEYS_INFO["ctrl"][1])  + Keyboard.button(KEYS_INFO["ctrl"][4]))  > 0
+  local alt_pressed   = (Keyboard.button(KEYS_INFO["alt"][1])   + Keyboard.button(KEYS_INFO["alt"][4]))   > 0
+  local shift_pressed = (Keyboard.button(KEYS_INFO["shift"][1]) + Keyboard.button(KEYS_INFO["shift"][4])) > 0
+
+  if not _pressed_key then
+    for primary_key, keybinds_data in pairs(_keybinds) do
+      if keybinds_data.check_pressed(primary_key) then
+        for _, keybind_data in ipairs(keybinds_data) do
+          if (not keybind_data.ctrl  and not ctrl_pressed  or keybind_data.ctrl  and ctrl_pressed)  and
+             (not keybind_data.alt   and not alt_pressed   or keybind_data.alt   and alt_pressed)   and
+             (not keybind_data.shift and not shift_pressed or keybind_data.shift and shift_pressed)
+          then
+            if perform_keybind_action(keybind_data, true) then
+              if keybind_data.trigger == "held" then
+                keybind_data.release_action = true
+              end
+              _pressed_key = primary_key
+            end
+          end
+        end
+        if _pressed_key then
+          break
+        end
+      end
+    end
+  end
+
+  if _pressed_key then
+    if _keybinds[_pressed_key].check_released(_pressed_key) then
+      for _, keybind_data in ipairs(_keybinds[_pressed_key]) do
+        if keybind_data.release_action then
+          perform_keybind_action(keybind_data, false)
+          keybind_data.release_action = nil
+        end
+      end
+      _pressed_key = nil
+    end
+  end
+end
+
+
+-- Converts managable (raw) table of keybinds data to the table designed for the function checking for pressed and
+-- released keybinds. After initial call requires to be called every time some keybind is added/removed.
+function vmf.generate_keybinds()
+  _keybinds = {}
+
+  for mod, mod_keybinds in pairs(_raw_keybinds_data) do
+    for _, raw_keybind_data in pairs(mod_keybinds) do
+
+      local keys = raw_keybind_data[4]
+      local primary_key  = keys[1]
+      local modifier_keys = {}
+      for i = 2, #keys do
+        modifier_keys[keys[i]] = true
+      end
+
+      local keybind_data = {
+        mod     = mod,
+        global  = raw_keybind_data[1],
+        trigger = raw_keybind_data[2],
+        type    = raw_keybind_data[3],
+        ctrl    = modifier_keys["ctrl"],
+        alt     = modifier_keys["alt"],
+        shift   = modifier_keys["shift"],
+
+        function_name = raw_keybind_data[5],
+        view_name     = raw_keybind_data[6]
+      }
+
+      _keybinds[primary_key] = _keybinds[primary_key] or {
+        check_pressed  = CHECK_INPUT_FUNCTIONS[KEYS_INFO[primary_key][3]].PRESSED,
+        check_released = CHECK_INPUT_FUNCTIONS[KEYS_INFO[primary_key][3]].RELEASED
+      }
+      table.insert(_keybinds[primary_key], keybind_data)
+    end
+  end
+end
+
+
+-- Adds/removes keybinds.
+function vmf.add_mod_keybind(mod, setting_id, global, trigger, type, keys, function_name, view_name)
+  if #keys > 0 then
+    _raw_keybinds_data[mod] = _raw_keybinds_data[mod] or {}
+    _raw_keybinds_data[mod][setting_id] = {global, trigger, type, keys, function_name, view_name}
+  elseif _raw_keybinds_data[mod] and _raw_keybinds_data[mod][setting_id] then
+    _raw_keybinds_data[mod][setting_id] = nil
+  end
+
+  -- Keybind is changed from Mod Options.
+  if vmf.all_mods_were_loaded then
+    vmf.generate_keybinds()
+  end
+end
+
+
+-- Creates VMF input service. It is required to know when non-global keybinds can be triggered.
+-- (Called every time a level is loaded, or on mods reload)
+function vmf.create_keybinds_input_service()
+  -- VMF input has to be created only during the actual game
+  if Managers.state.game_mode and not Managers.input:get_service("VMF") then
+    rawset(_G, "EmptyKeyMap", {win32 = {}, xb1 = {}})
+    Managers.input:create_input_service("VMF", "EmptyKeyMap")
+    rawset(_G, "EmptyKeyMap", nil)
+
+    -- Synchronize state of VMF input service with Player input service
+    local is_blocked = Managers.input:get_service("Player"):is_blocked()
+    Managers.input:get_service("VMF"):set_blocked(is_blocked)
+  end
+end
+
+
+-- Converts key_index to readable key_id, which is used by VMF to idenify keys.
+-- (Used for capturing keybinds)
+function vmf.get_key_id(device, key_index)
+  local key_info = PRIMARY_BINDABLE_KEYS[device][key_index]
   return key_info and key_info[2]
 end
 
 
-function vmf.get_readable_key_name(key_name)
-  return _readable_key_names[key_name]
+-- Simply tells if key with key_id can be binded as primary key.
+-- (Used for verifying keybind widgets)
+function vmf.can_bind_as_primary_key(key_id)
+  return KEYS_INFO[key_id] and not OTHER_KEYS[key_id]
 end
 
 
+-- Builds string with readable keys' names to look like "Primary Key + Ctrl + Alt + Shift".
+-- (Used in keybind widget)
 function vmf.build_keybind_string(keys)
-  local keybind_string = ""
-  for i, key_name in ipairs(keys) do
-    if i == 1 then
-      keybind_string = keybind_string .. _readable_key_names[key_name]
-    else
-      keybind_string = keybind_string .. " + " .. _readable_key_names[key_name]
-    end
+  local readable_key_names = {}
+  for _, key_id in ipairs(keys) do
+    table.insert(readable_key_names, KEYS_INFO[key_id][2])
   end
-  return keybind_string
-end
--- ####################################################################################################################
--- ##### Script #######################################################################################################
--- ####################################################################################################################
-
-for _, controller_keys in pairs(_keys) do
-  for _, key_info in pairs(controller_keys) do
-    _readable_key_names[key_info[2]] = key_info[1]
-  end
+  return table.concat(readable_key_names, " + ")
 end
 
-_readable_key_names["ctrl"]  = "Ctrl"
-_readable_key_names["alt"]   = "Alt"
-_readable_key_names["shift"] = "Shift"
-_readable_key_names["no_button"] = "" -- hack for build_keybind_string function
+-- #####################################################################################################################
+-- ##### Script ########################################################################################################
+-- #####################################################################################################################
 
-for _, key_info in pairs(_keys.keyboard) do
-  VMFModsKeyMap.win32[key_info[2]] = {"keyboard", key_info[3], "held"}
-end
-
-for i = 0, 4 do
-  local key_info = _keys.mouse[i]
-  VMFModsKeyMap.win32[key_info[2]] = {"mouse", key_info[3], "held"}
-end
-
-for i = 10, 13 do
-  local key_info = _keys.mouse[i]
-  VMFModsKeyMap.win32[key_info[2]] = {"mouse", key_info[3], "pressed"}
-end
+-- In case mods reloading was performed right at the moment of entering 'StateInGame'.
+vmf.create_keybinds_input_service()

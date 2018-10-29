@@ -2638,7 +2638,12 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
       setting_id = widget_definition.setting_id,
       widget_type = widget_definition.type,
 
-      action = widget_definition.function_name,
+      keybind_global = widget_definition.keybind_global,
+      keybind_trigger = widget_definition.keybind_trigger,
+      keybind_type = widget_definition.keybind_type,
+      function_name = widget_definition.function_name,
+      view_name = widget_definition.view_name,
+
       keybind_text = widget_definition.keybind_text,
       default_value = widget_definition.default_value,
       parent_widget_number = widget_definition.parent_index,
@@ -3286,35 +3291,45 @@ VMFOptionsView.callback_change_setting_keybind_state = function (self, widget_co
   end
 end
 
+local function set_new_keybind(keybind_widget_content)
+  vmf.add_mod_keybind(
+    get_mod(keybind_widget_content.mod_name),
+    keybind_widget_content.setting_id,
+    keybind_widget_content.keybind_global,
+    keybind_widget_content.keybind_trigger,
+    keybind_widget_content.keybind_type,
+    keybind_widget_content.keys,
+    keybind_widget_content.function_name,
+    keybind_widget_content.view_name
+  )
+end
 
 VMFOptionsView.callback_setting_keybind = function (self, widget_content)
-
-  if not widget_content.first_pressed_button_name then
+  if not widget_content.first_pressed_button_id then
     if Keyboard.any_pressed() then
-      widget_content.first_pressed_button_name  = vmf.get_key_name("keyboard", Keyboard.any_pressed())
+      widget_content.first_pressed_button_id    = vmf.get_key_id("KEYBOARD", Keyboard.any_pressed())
       widget_content.first_pressed_button_index = Keyboard.any_pressed()
       widget_content.first_pressed_button_type  = "keyboard"
     elseif Mouse.any_pressed() then
-      widget_content.first_pressed_button_name  = vmf.get_key_name("mouse", Mouse.any_pressed())
+      widget_content.first_pressed_button_id    = vmf.get_key_id("MOUSE", Mouse.any_pressed())
       widget_content.first_pressed_button_index = Mouse.any_pressed()
       widget_content.first_pressed_button_type  = "mouse"
     end
   end
 
   local pressed_buttons = {}
-
-  if widget_content.first_pressed_button_name then
-    table.insert(pressed_buttons, widget_content.first_pressed_button_name)
+  if widget_content.first_pressed_button_id then
+    table.insert(pressed_buttons, widget_content.first_pressed_button_id)
   else
     table.insert(pressed_buttons, "no_button")
   end
-  if Keyboard.button(Keyboard.button_index("left ctrl")) == 1 then
+  if Keyboard.button(Keyboard.button_index("left ctrl")) + Keyboard.button(Keyboard.button_index("right ctrl")) > 0 then
     table.insert(pressed_buttons, "ctrl")
   end
-  if Keyboard.button(Keyboard.button_index("left alt")) == 1 then
+  if Keyboard.button(Keyboard.button_index("left alt")) + Keyboard.button(Keyboard.button_index("right alt")) > 0 then
     table.insert(pressed_buttons, "alt")
   end
-  if Keyboard.button(Keyboard.button_index("left shift")) == 1 then
+  if Keyboard.button(Keyboard.button_index("left shift")) + Keyboard.button(Keyboard.button_index("right shift")) > 0 then
     table.insert(pressed_buttons, "shift")
   end
 
@@ -3323,23 +3338,24 @@ VMFOptionsView.callback_setting_keybind = function (self, widget_content)
   widget_content.keybind_text = preview_string ~= "" and preview_string or "_"
   widget_content.keys         = pressed_buttons
 
-  if widget_content.first_pressed_button_name then
+  if widget_content.first_pressed_button_id then
     if widget_content.first_pressed_button_type == "keyboard" and Keyboard.released(widget_content.first_pressed_button_index) or
        widget_content.first_pressed_button_type == "mouse" and Mouse.released(widget_content.first_pressed_button_index)
     then
-      widget_content.first_pressed_button_name  = nil
+      widget_content.first_pressed_button_id    = nil
       widget_content.first_pressed_button_index = nil
       widget_content.first_pressed_button_type  = nil
 
-      get_mod(widget_content.mod_name):keybind(widget_content.setting_id, widget_content.action, widget_content.keys)
+      set_new_keybind(widget_content)
 
       self:callback_change_setting_keybind_state(widget_content)
       return true
     end
   elseif Keyboard.released(Keyboard.button_index("esc")) then
     widget_content.keybind_text = ""
+    widget_content.keys         = {}
 
-    get_mod(widget_content.mod_name):keybind(widget_content.setting_id, widget_content.action, widget_content.keys)
+    set_new_keybind(widget_content)
 
     self:callback_change_setting_keybind_state(widget_content)
     return true
