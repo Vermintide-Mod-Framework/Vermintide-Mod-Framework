@@ -31,7 +31,7 @@ function vmf_mod_object:init()
 	dofile("scripts/mods/vmf/modules/core/network")
 	dofile("scripts/mods/vmf/modules/core/commands")
 	dofile("scripts/mods/vmf/modules/gui/custom_textures")
-	dofile("scripts/mods/vmf/modules/gui/custom_menus")
+	dofile("scripts/mods/vmf/modules/gui/custom_views")
 	dofile("scripts/mods/vmf/modules/gui/ui_scaling")
 	dofile("scripts/mods/vmf/modules/ui/chat/chat_actions")
 	dofile("scripts/mods/vmf/modules/ui/options/vmf_options_view")
@@ -57,7 +57,6 @@ end
 function vmf_mod_object:update(dt)
 	vmf.mods_update_event(dt)
 	vmf.check_keybinds()
-	vmf.check_custom_menus_close_keybinds(dt)
 	vmf.execute_queued_chat_command()
 	if VT1 then vmf.check_mutators_state() end
 
@@ -88,9 +87,9 @@ end
 function vmf_mod_object:on_reload()
 	print("VMF:ON_RELOAD()")
 	vmf.disable_mods_options_button()
-	vmf.close_opened_custom_menus()
 	if VT1 then vmf.reset_map_view() end
 	vmf.mods_unload_event(false)
+	vmf.remove_custom_views()
 	vmf.hooks_unload()
 	vmf.reset_guis()
 end

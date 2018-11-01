@@ -4288,32 +4288,16 @@ local view_data = {
     },
     blocked_transitions = {
       inn = {},
-      ingame = {
-        --vmf_options_view = true,
-        --vmf_options_view_force = true
-      }
+      ingame = {}
     },
-    hotkey_name = "open_vmf_options",
-    hotkey_action_name = "open_vmf_options",
-    hotkey_transition_name = "vmf_options_view",
-    transition_fade = false
+    keybind_transitions = {
+			open_view_transition = "vmf_options_view",
+			close_view_transition = "exit_menu",
+		}
   },
   view_transitions = {
-
     vmf_options_view = function (self)
       self.current_view = "vmf_options_view"
-
-      return
-    end,
-
-    vmf_options_view_force = function (self)
-
-      ShowCursorStack.push()
-
-      self.current_view = "vmf_options_view"
-
-      self.views[self.current_view].exit_to_game = true -- why?
-      return
     end
   }
 }
@@ -4435,7 +4419,7 @@ end
 
 
 vmf.initialize_vmf_options_view = function ()
-  vmf:register_new_view(view_data)
+  vmf:register_view(view_data)
   _button_injection_data.mod_options_button_disabled = false
 end
 
