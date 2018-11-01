@@ -19,6 +19,16 @@ function vmf.check_wrong_argument_type(mod, vmf_function_name, argument_name, ar
   return true
 end
 
+
 function vmf.throw_error(error_message, ...)
   error(string.format(error_message, ...), 0)
+end
+
+
+function vmf.catch_errors(mod, error_format, exec_function, ...)
+  local success, error_message = pcall(exec_function, ...)
+  if not success then
+    mod:error(string.format(error_format, error_message))
+    return true
+  end
 end
