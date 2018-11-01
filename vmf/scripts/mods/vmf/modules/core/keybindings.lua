@@ -215,7 +215,7 @@ local function perform_keybind_action(data, is_pressed)
     call_function(data.mod, data.function_name, is_pressed)
     return true
   elseif data.type == "view_toggle" and data.mod:is_enabled() then
-    vmf.keybind_toggle_view(data.view_name, can_perform_action)
+    vmf.keybind_toggle_view(data.view_name, can_perform_action, is_pressed)
     return true
   end
 end
