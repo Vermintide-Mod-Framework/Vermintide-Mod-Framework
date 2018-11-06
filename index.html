@@ -98,19 +98,22 @@
   <div id="app"></div>
   <script>
     // Change and save the current theme.
-    var setTheme = function(title) {
+    var setTheme = function (title) {
       if (!title) return;
 
       window.localStorage.theme = title;
 
       var themes = document.querySelectorAll('[rel~="stylesheet"][title]');
-      themes.forEach(function(theme) {
+      themes.forEach(function (theme) {
         theme.disabled = (theme.title !== title)
       });
     };
-    setTheme(window.localStorage.theme); // Set the theme the first thing.
+    // Must set the theme BEFORE $docsify to avoid reflows/re-renders
+    setTheme(window.localStorage.theme);
     // Docsify configuration.
+    var USER_REPO  = "Vermintide-Mod-Framework/vmf-docs";
     window.$docsify = {
+      //basePath: "https://raw.githubusercontent.com/wiki/" + USER_REPO + "/",
       name: 'Vermintide Mod Framework',
       repo: 'https://github.com/Vermintide-Mod-Framework/Vermintide-Mod-Framework/',
       logo: 'assets/vmf_logo_black.png',
@@ -128,7 +131,7 @@
       plugins: [
         // Add a footer with actions.
         function(hook, vm) {
-          hook.beforeEach(function(markdown) {
+          hook.beforeEach(function (markdown) {
             var file  = vm.route.file;
             var editUrl = 'https://github.com/Vermintide-Mod-Framework/vmf-docs/edit/master/' + file;
             var issueQuery = '?title=' + encodeURIComponent(file)
@@ -151,22 +154,22 @@
             );
           });
         },
-        // Enable theme switching.
-        function(hook, vm) {
-          hook.doneEach(function() {
+        // Power the theme switcher
+        function (hook, vm) {
+          hook.doneEach(function () {
             var selector = Docsify.dom.find('#theme-selector');
             selector.onclick = function(e) {
               setTheme(e.target.dataset.theme);
             };
           });
         },
-        // Testing.
-        function(hook, vm) {
+        // Badges and types.
+        function (hook, vm) {
           var isCallback = RegExp('^on_|^update$');
           var isFunction = RegExp('^VMFMod:|^(?:get|new)_mod$');
 
-          // Add a badge to a code element, depending on it's contents.
-          var addBadge = function(element) {
+          // Add a badge to a code element, depending on its contents.
+          var addBadge = function (element) {
             var textContent = element.textContent;
             element.classList.add(
               "badge",
@@ -177,7 +180,7 @@
           };
 
           // Add the type formatting.
-          hook.beforeEach(function(markdown) {
+          hook.beforeEach(function (markdown) {
             return markdown.replace(
               /_\[([^\]]+)\]_/g,
               '<span class="lua-type">$1</span>'
@@ -185,7 +188,7 @@
           });
 
           // Add the badges to the sidebar (must be done here).
-          hook.doneEach(function() {
+          hook.doneEach(function () {
             document.querySelectorAll('li > a.section-link > code').forEach(addBadge);
             // Uncomment the next line to add badges to headers.
             //document.querySelectorAll('a.anchor > span > code').forEach(addBadge);
