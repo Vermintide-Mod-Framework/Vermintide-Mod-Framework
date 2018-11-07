@@ -331,19 +331,21 @@ function vmf.keybind_toggle_view(mod, view_name, can_be_opened, is_keybind_press
       return
     end
 
-    local keybind_transitions = _views_data[view_name].view_settings.keybind_transitions
-    if _ingame_ui.current_view == view_name then
-      if keybind_transitions.close_view_transition then
-        mod:handle_transition(keybind_transitions.close_view_transition,
-                               keybind_transitions.close_view_transition_params,
-                                keybind_transitions.transition_fade, true)
-      end
-    -- Can open views only when keybind is pressed.
-    elseif can_be_opened and is_keybind_pressed then
-      if keybind_transitions.open_view_transition then
-        mod:handle_transition(keybind_transitions.open_view_transition,
-                               keybind_transitions.close_view_transition_params,
-                                keybind_transitions.transition_fade, true)
+    if is_view_active_for_current_level(view_name) then
+      local keybind_transitions = _views_data[view_name].view_settings.keybind_transitions
+      if _ingame_ui.current_view == view_name then
+        if keybind_transitions.close_view_transition then
+          mod:handle_transition(keybind_transitions.close_view_transition,
+                                keybind_transitions.close_view_transition_params,
+                                  keybind_transitions.transition_fade, true)
+        end
+      -- Can open views only when keybind is pressed.
+      elseif can_be_opened and is_keybind_pressed then
+        if keybind_transitions.open_view_transition then
+          mod:handle_transition(keybind_transitions.open_view_transition,
+                                keybind_transitions.close_view_transition_params,
+                                  keybind_transitions.transition_fade, true)
+        end
       end
     end
   end
