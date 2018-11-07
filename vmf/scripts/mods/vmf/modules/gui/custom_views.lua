@@ -53,8 +53,19 @@ local ERRORS = {
 -- ##### Local functions ###############################################################################################
 -- #####################################################################################################################
 
+local function is_view_active_for_current_level(view_name)
+  local active = _views_data[view_name].view_settings.active
+  if _ingame_ui.is_in_inn and active.inn or not _ingame_ui.is_in_inn and active.ingame then
+    return true
+  end
+end
+
 -- @THROWS_ERRORS
 local function inject_view(view_name)
+  if not is_view_active_for_current_level(view_name) then
+    return
+  end
+
   local view_settings = _views_data[view_name].view_settings
 
   local mod                 = _views_data[view_name].mod
@@ -177,7 +188,7 @@ local function validate_view_data(view_data)
   if type(active) ~= "table" then
     vmf.throw_error(ERRORS.THROWABLE["active_wrong_type"], type(active))
   end
-  if not active.inn or not active.ingame then
+  if active.inn == nil or active.ingame == nil then
     vmf.throw_error(ERRORS.THROWABLE["active_missing_element"])
   end
   for level_name, value in pairs(active) do
