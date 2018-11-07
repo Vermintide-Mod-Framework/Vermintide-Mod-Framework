@@ -4298,6 +4298,7 @@ local view_data = {
   view_transitions = {
     vmf_options_view = function (self)
       self.current_view = "vmf_options_view"
+      self.menu_active = true
     end
   }
 }

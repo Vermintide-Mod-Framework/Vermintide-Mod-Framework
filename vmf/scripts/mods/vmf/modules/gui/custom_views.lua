@@ -5,20 +5,56 @@ local _ingame_ui = nil
 local _ingame_ui_transitions = require("scripts/ui/views/ingame_ui_settings").transitions
 local _views_data = {}
 
+local ERRORS = {
+  THROWABLE = {
+    -- inject_view:
+    view_already_exists = "view with name '%s' already persists in original game.",
+    transition_already_exists = "transition with name '%s' already persists in original game.",
+    view_initializing_failed = "was not able to initialize '%s' view: execution of 'init_view_function' failed.",
+    -- validate_view_data:
+    view_data_wrong_type = "view data must be a table, not %s.",
+    view_name_wrong_type = "'view_name' must be a string, not %s.",
+    view_transitions_wrong_type = "'view_transitions' must be a table, not %s.",
+    view_settings_wrong_type = "'view_settings' must be a table, not %s.",
+    transition_wrong_type = "all transitions inside 'view_transitions' must be functions, but '%s' transition is %s.",
+    transition_name_taken = "transition name '%s' is already used by '%s' mod for '%s' view.",
+    init_view_function_wrong_type = "'view_settings.init_view_function' must be a function, not %s.",
+    active_wrong_type = "'view_settings.active' must be a table, not %s.",
+    active_missing_element = "'view_settings.active' must contain 2 elements: 'inn' and 'ingame'.",
+    active_element_wrong_name = "the only allowed names for 'view_settings.active' elements are 'inn' and 'ingame'; " ..
+                                 "you can't name your element '%s'.",
+    active_element_wrong_type = "'view_settings.active.%s' must be boolean, not %s.",
+    blocked_transitions_wrong_type = "'view_settings.blocked_transitions' (optional) must be a table, not %s.",
+    blocked_transitions_missing_element = "'view_settings.blocked_transitions' must contain 2 table elements: " ..
+                                           "'inn' and 'ingame'.",
+    blocked_transitions_element_wrong_name = "the only allowed names for 'view_settings.active' elements are " ..
+                                              "'inn' and 'ingame'; you can't name your element '%s'.",
+    blocked_transitions_element_wrong_type = "'view_settings.blocked_transitions.%s' must be a table, not %s.",
+    blocked_transition_invalid = "you can't put transition '%s' into 'view_settings.blocked_transitions.%s', " ..
+                                  "because it's not listed in 'view_transitions'.",
+    blocked_transition_wrong_value = "invalid value for 'view_settings.blocked_transitions.%s.%s'; must be 'true'.",
+    keybind_transitions_wrong_type = "'view_settings.keybind_transitions' (optional) must be a table, not %s.",
+    open_view_transition_wrong_type = "'view_settings.keybind_transitions.open_view_transition' (optional) must be " ..
+                                       "a string, not %s.",
+    transition_fade_wrong_type = "'view_settings.keybind_transitions.transition_fade' (optional) must be a boolean, " ..
+                                  "not %s.",
+  },
+  REGULAR = {
+    view_not_registered = "[Custom Views] Opening view with keybind: view '%s' wasn't registered for this mod."
+  },
+  PREFIX = {
+    register_view_validating = "[Custom Views] (register_view) View data validating '%s'",
+    register_view_injection = "[Custom Views] (register_view) View injection '%s'",
+    ingameui_hook_injection = "[Custom Views] View injection '%s'"
+  }
+}
+
 -- #####################################################################################################################
 -- ##### Local functions ###############################################################################################
 -- #####################################################################################################################
 
-local function find_view_owner(view_name)
-end
-
-
-local function find_transition_owner(transition_name)
-end
-
-
--- Throws error.
-local function inject_elements(view_name)
+-- @THROWS_ERRORS
+local function inject_view(view_name)
   local view_settings = _views_data[view_name].view_settings
 
   local mod                 = _views_data[view_name].mod
@@ -28,11 +64,11 @@ local function inject_elements(view_name)
 
   -- Check for collisions.
   if _ingame_ui.views[view_name] then
-    -- @TODO: throw error
+    vmf.throw_error(ERRORS.THROWABLE["view_already_exists"], view_name)
   end
   for transition_name, _ in pairs(transitions) do
     if _ingame_ui_transitions[transition_name] then
-      -- @TODO: throw error
+      vmf.throw_error(ERRORS.THROWABLE["transition_already_exists"], transition_name)
     end
   end
 
@@ -41,7 +77,7 @@ local function inject_elements(view_name)
   if success then
     _ingame_ui.views[view_name] = view
   else
-    -- @TODO: throw error
+    vmf.throw_error(ERRORS.THROWABLE["view_initializing_failed"], view_name)
   end
 
   -- Inject view transitions.
@@ -56,7 +92,7 @@ local function inject_elements(view_name)
 end
 
 
-local function remove_injected_elements(on_reload)
+local function remove_injected_views(on_reload)
   -- These elements should be removed only on_reload, because, otherwise, they will be deleted automatically.
   if on_reload and _ingame_ui then
     -- If some custom view is active, close it.
@@ -73,28 +109,125 @@ local function remove_injected_elements(on_reload)
         end
         _ingame_ui.views[view_name] = nil
       end
-
-      -- Remove blocked transitions
-      local blocked_transitions = view_data.view_settings.blocked_transitions[_ingame_ui.is_in_inn and "inn" or
-                                                                                                        "ingame"]
-      for blocked_transition_name, _ in pairs(blocked_transitions) do
-        _ingame_ui.blocked_transitions[blocked_transition_name] = nil
-      end
     end
   end
 
-  -- Remove injected transitions.
   for _, view_data in pairs(_views_data) do
+    -- Remove injected transitions.
     for transition_name, _ in pairs(view_data.view_transitions) do
       _ingame_ui_transitions[transition_name] = nil
+    end
+
+    -- Remove blocked transitions
+    local blocked_transitions = view_data.view_settings.blocked_transitions[_ingame_ui.is_in_inn and "inn" or "ingame"]
+    for blocked_transition_name, _ in pairs(blocked_transitions) do
+      _ingame_ui.blocked_transitions[blocked_transition_name] = nil
     end
   end
 end
 
 
--- Throws error.
--- Make, so blocked transitions can be only the one from this view, so they won't need further checks
+-- @THROWS_ERRORS
 local function validate_view_data(view_data)
+  -- Basic checks.
+  if type(view_data) ~= "table" then
+    vmf.throw_error(ERRORS.THROWABLE["view_data_wrong_type"], type(view_data))
+  end
+  if type(view_data.view_name) ~= "string" then
+    vmf.throw_error(ERRORS.THROWABLE["view_name_wrong_type"], type(view_data.view_name))
+  end
+  if type(view_data.view_transitions) ~= "table" then
+    vmf.throw_error(ERRORS.THROWABLE["view_transitions_wrong_type"], type(view_data.view_transitions))
+  end
+  if type(view_data.view_settings) ~= "table" then
+    vmf.throw_error(ERRORS.THROWABLE["view_settings_wrong_type"], type(view_data.view_settings))
+  end
+
+  -- VIEW TRANSITIONS
+
+  local view_transitions = view_data.view_transitions
+  for transition_name, transition_function in pairs(view_transitions) do
+    if type(transition_function) ~= "function" then
+      vmf.throw_error(ERRORS.THROWABLE["transition_wrong_type"], transition_name, type(transition_function))
+    end
+    for another_view_name, another_view_data in pairs(_views_data) do
+      for another_transition_name, _ in pairs(another_view_data.view_transitions) do
+        if transition_name == another_transition_name then
+          vmf.throw_error(ERRORS.THROWABLE["transition_name_taken"], transition_name, another_view_data.mod:get_name(),
+                                                                      another_view_name)
+        end
+      end
+    end
+  end
+
+  -- VIEW SETTINGS
+
+  local view_settings = view_data.view_settings
+
+  -- Use default values for optional fields if they are not defined.
+  view_settings.blocked_transitions = view_settings.blocked_transitions or {inn = {}, ingame = {}}
+  view_settings.keybind_transitions = view_settings.keybind_transitions or {}
+
+  -- Verify everything.
+  if type(view_settings.init_view_function) ~= "function" then
+    vmf.throw_error(ERRORS.THROWABLE["init_view_function_wrong_type"], type(view_settings.init_view_function))
+  end
+
+  local active = view_settings.active
+  if type(active) ~= "table" then
+    vmf.throw_error(ERRORS.THROWABLE["active_wrong_type"], type(active))
+  end
+  if not active.inn or not active.ingame then
+    vmf.throw_error(ERRORS.THROWABLE["active_missing_element"])
+  end
+  for level_name, value in pairs(active) do
+    if level_name ~= "inn" and level_name ~= "ingame" then
+      vmf.throw_error(ERRORS.THROWABLE["active_element_wrong_name"], level_name)
+    end
+    if type(value) ~= "boolean" then
+      vmf.throw_error(ERRORS.THROWABLE["active_element_wrong_type"], level_name, type(value))
+    end
+  end
+
+  local blocked_transitions = view_settings.blocked_transitions
+  if type(blocked_transitions) ~= "table" then
+    vmf.throw_error(ERRORS.THROWABLE["blocked_transitions_wrong_type"], type(blocked_transitions))
+  end
+  if not blocked_transitions.inn or not blocked_transitions.ingame then
+    vmf.throw_error(ERRORS.THROWABLE["blocked_transitions_missing_element"])
+  end
+  for level_name, level_blocked_transitions in pairs(blocked_transitions) do
+    if level_name ~= "inn" and level_name ~= "ingame" then
+      vmf.throw_error(ERRORS.THROWABLE["blocked_transitions_element_wrong_name"], level_name)
+    end
+    if type(level_blocked_transitions) ~= "table" then
+      vmf.throw_error(ERRORS.THROWABLE["blocked_transitions_element_wrong_type"], level_name,
+                                                                                   type(level_blocked_transitions))
+    end
+    for transition_name, value in pairs(level_blocked_transitions) do
+      if not view_transitions[transition_name] then
+        vmf.throw_error(ERRORS.THROWABLE["blocked_transition_invalid"], transition_name, level_name)
+      end
+      if value ~= true then
+        vmf.throw_error(ERRORS.THROWABLE["blocked_transition_wrong_value"], level_name, transition_name)
+      end
+    end
+  end
+
+  local keybind_transitions = view_settings.keybind_transitions
+  if type(keybind_transitions) ~= "table" then
+    vmf.throw_error(ERRORS.THROWABLE["keybind_transitions_wrong_type"], type(keybind_transitions))
+  end
+  if keybind_transitions.open_view_transition and type(keybind_transitions.open_view_transition) ~= "string" then
+    vmf.throw_error(ERRORS.THROWABLE["open_view_transition_wrong_type"], type(keybind_transitions.open_view_transition))
+  end
+  if keybind_transitions.close_view_transition and type(keybind_transitions.close_view_transition) ~= "string" then
+    vmf.throw_error(ERRORS.THROWABLE["close_view_transition_wrong_type"],
+                     type(keybind_transitions.close_view_transition))
+  end
+  if keybind_transitions.transition_fade and type(keybind_transitions.transition_fade) ~= "boolean" then
+    vmf.throw_error(ERRORS.THROWABLE["transition_fade_wrong_type"], type(keybind_transitions.transition_fade))
+  end
 end
 
 -- #####################################################################################################################
@@ -130,22 +263,23 @@ end
 
 
 function VMFMod:register_view(view_data)
-  if vmf.check_wrong_argument_type(self, "register_view", "view_data", view_data, "table") then
+  -- @TODO: load table from file, check if it's table
+  view_data = table.clone(view_data)
+
+  local view_name = view_data.view_name
+
+  if vmf.catch_errors(self, ERRORS.PREFIX["register_view_validating"], view_name, validate_view_data, view_data) then
     return
   end
 
-  if vmf.catch_errors(self, "(register_view) view data validating: %s", validate_view_data, view_data) then
-    return
-  end
-
-  _views_data[view_data.view_name] = {
+  _views_data[view_name] = {
     mod              = self,
-    view_settings    = table.clone(view_data.view_settings),
-    view_transitions = table.clone(view_data.view_transitions)
+    view_settings    = view_data.view_settings,
+    view_transitions = view_data.view_transitions
   }
 
   if _ingame_ui then
-    if vmf.catch_errors(self, "(custom views) view injection: %s", inject_elements, view_data.view_name) then
+    if vmf.catch_errors(self, ERRORS.PREFIX["register_view_injection"], view_name, inject_view, view_name) then
       _views_data[view_data.view_name] = nil
     end
   end
@@ -158,7 +292,7 @@ end
 vmf:hook_safe(IngameUI, "init", function(self)
   _ingame_ui = self
   for view_name, _ in pairs(_views_data) do
-    if vmf.catch_errors(self, "(custom views) view injection: %s", inject_elements, view_name) then
+    if vmf.catch_errors(self, ERRORS.PREFIX["ingameui_hook_injection"], view_name, inject_view, view_name) then
       _views_data[view_name] = nil
     end
   end
@@ -166,8 +300,8 @@ end)
 
 
 vmf:hook_safe(IngameUI, "destroy", function()
+  remove_injected_views(false)
   _ingame_ui = nil
-  remove_injected_elements(false)
 end)
 
 -- #####################################################################################################################
@@ -175,15 +309,17 @@ end)
 -- #####################################################################################################################
 
 function vmf.remove_custom_views()
-  remove_injected_elements(true)
+  remove_injected_views(true)
 end
 
 
-function vmf.keybind_toggle_view(view_name, can_be_opened, is_keybind_pressed)
-  --@TODO: check if there's the custom view at all. If not, show error.
-
+function vmf.keybind_toggle_view(mod, view_name, can_be_opened, is_keybind_pressed)
   if _ingame_ui then
-    local mod                 = _views_data[view_name].mod
+    if not _views_data[view_name] or (_views_data[view_name].mod ~= mod) then
+      mod:error(ERRORS.REGULAR["view_not_registered"], view_name)
+      return
+    end
+
     local keybind_transitions = _views_data[view_name].view_settings.keybind_transitions
     if _ingame_ui.current_view == view_name then
       if keybind_transitions.close_view_transition then

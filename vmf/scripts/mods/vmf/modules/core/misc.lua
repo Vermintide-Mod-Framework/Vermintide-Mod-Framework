@@ -25,10 +25,11 @@ function vmf.throw_error(error_message, ...)
 end
 
 
-function vmf.catch_errors(mod, error_format, exec_function, ...)
+function vmf.catch_errors(mod, error_prefix, additional_error_prefix_info, exec_function, ...)
   local success, error_message = pcall(exec_function, ...)
   if not success then
-    mod:error(string.format(error_format, error_message))
+    error_prefix = string.format(error_prefix, additional_error_prefix_info)
+    mod:error(string.format("%s: %s", error_prefix, error_message))
     return true
   end
 end
