@@ -17,17 +17,29 @@ local function print_error_callstack(error_message)
 	return error_message
 end
 
+
+local function show_error(mod, error_prefix_data, error_message)
+  local error_prefix
+  if type(error_prefix_data) == "table" then
+    error_prefix = string.format(error_prefix_data[1], error_prefix_data[2], error_prefix_data[3], error_prefix_data[4])
+  else
+    error_prefix = error_prefix_data
+  end
+
+  mod:error("%s: %s", error_prefix, error_message)
+end
+
 -- #####################################################################################################################
 -- ##### VMFMod ########################################################################################################
 -- #####################################################################################################################
 
 function VMFMod:pcall(...)
-  return vmf.xpcall(self, "(pcall)", ...)
+  return vmf.safe_call(self, "(pcall)", ...)
 end
 
 
 function VMFMod:dofile(file_path)
-  local _, return_values = pack_pcall(vmf.xpcall_dofile(self, "(dofile)", file_path))
+  local _, return_values = pack_pcall(vmf.safe_call_dofile(self, "(dofile)", file_path))
 	return unpack(return_values, 1, return_values.n)
 end
 
@@ -35,29 +47,48 @@ end
 -- ##### VMF internal functions and variables ##########################################################################
 -- #####################################################################################################################
 
-function vmf.xpcall(mod, error_prefix, func, ...)
+-- Safe Call
+function vmf.safe_call(mod, error_prefix_data, func, ...)
   local success, return_values = pack_pcall(xpcall(func, print_error_callstack, ...))
   if not success then
-		mod:error("%s: %s", error_prefix, return_values[1])
+    show_error(mod, error_prefix_data, return_values[1])
 		return success
   end
   return success, unpack(return_values, 1, return_values.n)
 end
 
 
-function vmf.xpcall_no_return_values(mod, error_prefix, func, ...)
+-- Safe Call [No return values]
+function vmf.safe_call_nr(mod, error_prefix_data, func, ...)
   local success, error_message = xpcall(func, print_error_callstack, ...)
   if not success then
-    mod:error("%s: %s", error_prefix, error_message)
+    show_error(mod, error_prefix_data, error_message)
   end
   return success
 end
 
 
-function vmf.xpcall_dofile(mod, error_prefix, file_path)
+-- Safe Call [No return values and error callstack]
+function vmf.safe_call_nrc(mod, error_prefix_data, func, ...)
+  local success, error_message = pcall(func, ...)
+  if not success then
+    show_error(mod, error_prefix_data, error_message)
+  end
+  return success
+end
+
+
+-- Safe Call [dofile]
+function vmf.safe_call_dofile(mod, error_prefix_data, file_path)
 	if type(file_path) ~= "string" then
-		mod:error("%s: file path should be a string.", error_prefix)
+    show_error(mod, error_prefix_data, "file path should be a string.")
 		return false
 	end
-  return vmf.xpcall(mod, error_prefix, dofile, file_path)
+  return vmf.safe_call(mod, error_prefix_data, dofile, file_path)
+end
+
+
+-- Format error message and throw error.
+function vmf.throw_error(error_message, ...)
+  error(string.format(error_message, ...), 0)
 end

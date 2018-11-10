@@ -197,7 +197,7 @@ end
 local function call_function(mod, function_name, keybind_is_pressed)
   if type(mod[function_name]) == "function" then
     local error_prefix = string.format("(keybindings) function_call 'mod.%s'", function_name)
-    vmf.xpcall_no_return_values(mod, error_prefix, mod[function_name], keybind_is_pressed)
+    vmf.safe_call_nr(mod, error_prefix, mod[function_name], keybind_is_pressed)
   else
     mod:error("(keybindings) function_call 'mod.%s': function was not found.", tostring(function_name))
   end

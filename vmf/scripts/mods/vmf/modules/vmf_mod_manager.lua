@@ -53,8 +53,8 @@ function new_mod(mod_name, mod_resources)
 
   -- Load localization data file
   if mod_resources.mod_localization then
-    local success, localization_table = vmf.xpcall_dofile(mod, "(new_mod)('mod_localization' initialization)",
-                                                           mod_resources.mod_localization)
+    local success, localization_table = vmf.safe_call_dofile(mod, "(new_mod)('mod_localization' initialization)",
+                                                              mod_resources.mod_localization)
     if success then
       vmf.load_mod_localization(mod, localization_table) -- @TODO: return here if not sucessful? rename to "initialize_"
     else
@@ -64,15 +64,15 @@ function new_mod(mod_name, mod_resources)
 
   -- Load mod data file
   if mod_resources.mod_data then
-    local success, mod_data_table = vmf.xpcall_dofile(mod, "(new_mod)('mod_data' initialization)",
-                                                       mod_resources.mod_data)
+    local success, mod_data_table = vmf.safe_call_dofile(mod, "(new_mod)('mod_data' initialization)",
+                                                          mod_resources.mod_data)
     if success and not vmf.initialize_mod_data(mod, mod_data_table) then
       return
     end
   end
 
   -- Load mod @TODO: what will happen if mod_resources.mod_script == nil?
-  if not vmf.xpcall_dofile(mod, "(new_mod)('mod_script' initialization)", mod_resources.mod_script) then
+  if not vmf.safe_call_dofile(mod, "(new_mod)('mod_script' initialization)", mod_resources.mod_script) then
     return
   end
 

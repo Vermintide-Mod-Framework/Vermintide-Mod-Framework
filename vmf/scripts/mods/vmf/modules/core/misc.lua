@@ -18,18 +18,3 @@ function vmf.check_wrong_argument_type(mod, vmf_function_name, argument_name, ar
                                                                         table.concat(allowed_types, "/"), argument_type)
   return true
 end
-
-
-function vmf.throw_error(error_message, ...)
-  error(string.format(error_message, ...), 0)
-end
-
-
-function vmf.catch_errors(mod, error_prefix, additional_error_prefix_info, exec_function, ...)
-  local success, error_message = pcall(exec_function, ...)
-  if not success then
-    error_prefix = string.format(error_prefix, additional_error_prefix_info)
-    mod:error(string.format("%s: %s", error_prefix, error_message))
-    return true
-  end
-end

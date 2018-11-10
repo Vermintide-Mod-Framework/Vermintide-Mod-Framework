@@ -84,7 +84,8 @@ local function inject_view(view_name)
   end
 
   -- Initialize and inject view.
-  local success, view = vmf.xpcall(mod, "calling init_view_function", init_view_function, _ingame_ui.ingame_ui_context)
+  local success, view = vmf.safe_call(mod, "calling init_view_function", init_view_function,
+                                                                          _ingame_ui.ingame_ui_context)
   if success then
     _ingame_ui.views[view_name] = view
   else
@@ -116,7 +117,7 @@ local function remove_injected_views(on_reload)
       local view = _ingame_ui.views[view_name]
       if view then
         if type(view.destroy) == "function" then
-          vmf.xpcall_no_return_values(view_data.mod, "(custom menus) destroy view", view.destroy)
+          vmf.safe_call_nr(view_data.mod, "(custom menus) destroy view", view.destroy)
         end
         _ingame_ui.views[view_name] = nil
       end
@@ -279,7 +280,8 @@ function VMFMod:register_view(view_data)
 
   local view_name = view_data.view_name
 
-  if vmf.catch_errors(self, ERRORS.PREFIX["register_view_validating"], view_name, validate_view_data, view_data) then
+  if not vmf.safe_call_nrc(self, {ERRORS.PREFIX["register_view_validating"], view_name}, validate_view_data,
+                                                                                                         view_data) then
     return
   end
 
@@ -290,7 +292,7 @@ function VMFMod:register_view(view_data)
   }
 
   if _ingame_ui then
-    if vmf.catch_errors(self, ERRORS.PREFIX["register_view_injection"], view_name, inject_view, view_name) then
+    if not vmf.safe_call_nrc(self, {ERRORS.PREFIX["register_view_injection"], view_name}, inject_view, view_name) then
       _views_data[view_data.view_name] = nil
     end
   end
@@ -303,7 +305,7 @@ end
 vmf:hook_safe(IngameUI, "init", function(self)
   _ingame_ui = self
   for view_name, _ in pairs(_views_data) do
-    if vmf.catch_errors(self, ERRORS.PREFIX["ingameui_hook_injection"], view_name, inject_view, view_name) then
+    if not vmf.safe_call_nrc(self, {ERRORS.PREFIX["ingameui_hook_injection"], view_name}, inject_view, view_name) then
       _views_data[view_name] = nil
     end
   end
