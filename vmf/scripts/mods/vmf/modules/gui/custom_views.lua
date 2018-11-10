@@ -45,7 +45,11 @@ local ERRORS = {
   PREFIX = {
     register_view_validating = "[Custom Views] (register_view) View data validating '%s'",
     register_view_injection = "[Custom Views] (register_view) View injection '%s'",
-    ingameui_hook_injection = "[Custom Views] View injection '%s'"
+    ingameui_hook_injection = "[Custom Views] View injection '%s'",
+    handle_transition_fade = "[Custom Views] (handle_transition) executing 'ingame_ui.transition_with_fade' for " ..
+                              "transition '%s'",
+    handle_transition_no_fade = "[Custom Views] (handle_transition) executing 'ingame_ui.handle_transition' for " ..
+                                 "transition '%s'"
   }
 }
 
@@ -265,9 +269,11 @@ function VMFMod:handle_transition(transition_name, transition_params, fade, igno
      )
   then
     if fade then
-      _ingame_ui:transition_with_fade(transition_name, transition_params)
+      vmf.safe_call_nr(self, ERRORS.THROWABLE["handle_transition_fade"], _ingame_ui.transition_with_fade, _ingame_ui,
+                                                                          transition_name, transition_params)
     else
-      _ingame_ui:handle_transition(transition_name, transition_params)
+      vmf.safe_call_nr(self, ERRORS.THROWABLE["handle_transition_no_fade"], _ingame_ui.handle_transition, _ingame_ui,
+                                                                             transition_name, transition_params)
     end
     return true
   end
@@ -338,14 +344,14 @@ function vmf.keybind_toggle_view(mod, view_name, can_be_opened, is_keybind_press
       if _ingame_ui.current_view == view_name then
         if keybind_transitions.close_view_transition then
           mod:handle_transition(keybind_transitions.close_view_transition,
-                                keybind_transitions.close_view_transition_params,
+                                 keybind_transitions.close_view_transition_params,
                                   keybind_transitions.transition_fade, true)
         end
       -- Can open views only when keybind is pressed.
       elseif can_be_opened and is_keybind_pressed then
         if keybind_transitions.open_view_transition then
           mod:handle_transition(keybind_transitions.open_view_transition,
-                                keybind_transitions.close_view_transition_params,
+                                 keybind_transitions.close_view_transition_params,
                                   keybind_transitions.transition_fade, true)
         end
       end
