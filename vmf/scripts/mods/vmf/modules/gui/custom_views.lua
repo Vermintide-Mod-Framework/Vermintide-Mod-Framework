@@ -10,7 +10,7 @@ local ERRORS = {
     -- inject_view:
     view_already_exists = "view with name '%s' already persists in original game.",
     transition_already_exists = "transition with name '%s' already persists in original game.",
-    view_initializing_failed = "was not able to initialize '%s' view: execution of 'init_view_function' failed.",
+    view_initializing_failed = "view initialization failed due to error during 'init_view_function' execution.",
     -- validate_view_data:
     view_data_wrong_type = "view data must be a table, not %s.",
     view_name_wrong_type = "'view_name' must be a string, not %s.",
@@ -43,6 +43,8 @@ local ERRORS = {
     view_not_registered = "[Custom Views] Opening view with keybind: view '%s' wasn't registered for this mod."
   },
   PREFIX = {
+    view_initializing = "[Custom Views] Calling 'init_view_function'",
+    view_destroying = "[Custom Views] Destroying view '%s'",
     register_view_validating = "[Custom Views] (register_view) View data validating '%s'",
     register_view_injection = "[Custom Views] (register_view) View injection '%s'",
     ingameui_hook_injection = "[Custom Views] View injection '%s'",
@@ -88,8 +90,8 @@ local function inject_view(view_name)
   end
 
   -- Initialize and inject view.
-  local success, view = vmf.safe_call(mod, "calling init_view_function", init_view_function,
-                                                                          _ingame_ui.ingame_ui_context)
+  local success, view = vmf.safe_call(mod, ERRORS.PREFIX["view_initializing"], init_view_function,
+                                                                                _ingame_ui.ingame_ui_context)
   if success then
     _ingame_ui.views[view_name] = view
   else
@@ -121,7 +123,7 @@ local function remove_injected_views(on_reload)
       local view = _ingame_ui.views[view_name]
       if view then
         if type(view.destroy) == "function" then
-          vmf.safe_call_nr(view_data.mod, "(custom menus) destroy view", view.destroy)
+          vmf.safe_call_nr(view_data.mod, {ERRORS.PREFIX["view_destroying"], view_name}, view.destroy)
         end
         _ingame_ui.views[view_name] = nil
       end
