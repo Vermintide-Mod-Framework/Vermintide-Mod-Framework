@@ -34,7 +34,7 @@ function vmf_mod_object:init()
 	dofile("scripts/mods/vmf/modules/gui/custom_views")
 	dofile("scripts/mods/vmf/modules/gui/ui_scaling")
 	dofile("scripts/mods/vmf/modules/ui/chat/chat_actions")
-	dofile("scripts/mods/vmf/modules/ui/options/vmf_options_view")
+	dofile("scripts/mods/vmf/modules/ui/options/mod_options")
 	dofile("scripts/mods/vmf/modules/vmf_options")
 
 	if VT1 then
