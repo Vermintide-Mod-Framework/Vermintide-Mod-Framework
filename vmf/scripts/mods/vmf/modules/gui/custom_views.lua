@@ -12,7 +12,6 @@ local ERRORS = {
     transition_already_exists = "transition with name '%s' already persists in original game.",
     view_initializing_failed = "view initialization failed due to error during 'init_view_function' execution.",
     -- validate_view_data:
-    view_data_wrong_type = "view data must be a table, not %s.",
     view_name_wrong_type = "'view_name' must be a string, not %s.",
     view_transitions_wrong_type = "'view_transitions' must be a table, not %s.",
     view_settings_wrong_type = "'view_settings' must be a table, not %s.",
@@ -40,11 +39,14 @@ local ERRORS = {
                                   "not %s.",
   },
   REGULAR = {
+    view_data_wrong_type = "[Custom Views] (register_view) Loading view data file '%s': returned view data must be " ..
+                            "a table, not %s.",
     view_not_registered = "[Custom Views] Opening view with keybind: view '%s' wasn't registered for this mod."
   },
   PREFIX = {
     view_initializing = "[Custom Views] Calling 'init_view_function'",
     view_destroying = "[Custom Views] Destroying view '%s'",
+    register_view_open_file = "[Custom Views] (register_view) Opening view data file '%s'",
     register_view_validating = "[Custom Views] (register_view) View data validating '%s'",
     register_view_injection = "[Custom Views] (register_view) View injection '%s'",
     ingameui_hook_injection = "[Custom Views] View injection '%s'",
@@ -148,9 +150,6 @@ end
 -- @THROWS_ERRORS
 local function validate_view_data(view_data)
   -- Basic checks.
-  if type(view_data) ~= "table" then
-    vmf.throw_error(ERRORS.THROWABLE["view_data_wrong_type"], type(view_data))
-  end
   if type(view_data.view_name) ~= "string" then
     vmf.throw_error(ERRORS.THROWABLE["view_name_wrong_type"], type(view_data.view_name))
   end
@@ -282,9 +281,18 @@ function VMFMod:handle_transition(transition_name, transition_params, fade, igno
 end
 
 
-function VMFMod:register_view(view_data)
-  -- @TODO: load table from file, check if it's table
-  view_data = table.clone(view_data)
+function VMFMod:register_view(view_data_file_path)
+  local success, view_data = vmf.safe_call_dofile(self, {ERRORS.PREFIX["register_view_open_file"], view_data_file_path},
+                                                         view_data_file_path)
+  if success then
+    if type(view_data) ~= "table" then
+      self:error(ERRORS.REGULAR["view_data_wrong_type"], view_data_file_path, type(view_data))
+      return
+    end
+    view_data = table.clone(view_data)
+  else
+    return
+  end
 
   local view_name = view_data.view_name
 
@@ -304,6 +312,8 @@ function VMFMod:register_view(view_data)
       _views_data[view_data.view_name] = nil
     end
   end
+
+  return true
 end
 
 -- #####################################################################################################################
