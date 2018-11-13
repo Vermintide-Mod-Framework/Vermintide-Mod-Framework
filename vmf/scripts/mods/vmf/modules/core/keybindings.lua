@@ -183,6 +183,15 @@ local _raw_keybinds_data = {}
 local _keybinds = {}
 local _pressed_key
 
+local ERRORS = {
+  PREFIX = {
+    function_call = "[Keybindings] function_call 'mod.%s'"
+  },
+  REGULAR = {
+    function_not_found = "[Keybindings] function_call 'mod.%s': function was not found."
+  }
+}
+
 -- #####################################################################################################################
 -- ##### Local functions ###############################################################################################
 -- #####################################################################################################################
@@ -196,10 +205,9 @@ end
 -- Executes function for 'function_call' keybinds.
 local function call_function(mod, function_name, keybind_is_pressed)
   if type(mod[function_name]) == "function" then
-    local error_prefix = string.format("(keybindings) function_call 'mod.%s'", function_name)
-    vmf.safe_call_nr(mod, error_prefix, mod[function_name], keybind_is_pressed)
+    vmf.safe_call_nr(mod, {ERRORS.PREFIX["function_call"], function_name}, mod[function_name], keybind_is_pressed)
   else
-    mod:error("(keybindings) function_call 'mod.%s': function was not found.", tostring(function_name))
+    mod:error(ERRORS.PREFIX["function_not_found"], function_name)
   end
 end
 
