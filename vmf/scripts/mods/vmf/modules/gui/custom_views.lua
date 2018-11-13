@@ -270,11 +270,11 @@ function VMFMod:handle_transition(transition_name, transition_params, fade, igno
      )
   then
     if fade then
-      vmf.safe_call_nr(self, ERRORS.THROWABLE["handle_transition_fade"], _ingame_ui.transition_with_fade, _ingame_ui,
-                                                                          transition_name, transition_params)
+      vmf.safe_call_nr(self, ERRORS.PREFIX["handle_transition_fade"], _ingame_ui.transition_with_fade, _ingame_ui,
+                                                                       transition_name, transition_params)
     else
-      vmf.safe_call_nr(self, ERRORS.THROWABLE["handle_transition_no_fade"], _ingame_ui.handle_transition, _ingame_ui,
-                                                                             transition_name, transition_params)
+      vmf.safe_call_nr(self, ERRORS.PREFIX["handle_transition_no_fade"], _ingame_ui.handle_transition, _ingame_ui,
+                                                                          transition_name, transition_params)
     end
     return true
   end
