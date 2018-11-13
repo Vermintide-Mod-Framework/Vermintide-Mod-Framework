@@ -251,6 +251,14 @@ end
 -- ##### VMFMod ########################################################################################################
 -- #####################################################################################################################
 
+--[[
+  Wraps ingame_ui transition handling calls in a lot of safety checks. Returns 'true', if call is successful.
+  * transition_name    [string]  : name of a transition that should be perfomed
+  * transition_params  [anything]: parameter, which will be passed to callable transition function, 'on_exit' method of
+                                   the old view and 'on_enter' method of the new view
+  * fade               [boolean] : if transition should be performed with fade
+  * ignore_active_menu [boolean] : if 'ingame_ui.menu_active' should be ignored
+--]]
 function VMFMod:handle_transition(transition_name, transition_params, fade, ignore_active_menu)
   if vmf.check_wrong_argument_type(self, "handle_transition", "transition_name", transition_name, "string") then
     return
@@ -285,6 +293,10 @@ function VMFMod:handle_transition(transition_name, transition_params, fade, igno
 end
 
 
+--[[
+  Opens a file with a view data and validates it. Registers the view and returns 'true' if everything is correct.
+  * view_data_file_path [string]: path to a file returning view_data table
+--]]
 function VMFMod:register_view(view_data_file_path)
   local success, view_data = vmf.safe_call_dofile(self, {ERRORS.PREFIX["register_view_open_file"], view_data_file_path},
                                                          view_data_file_path)
@@ -348,6 +360,8 @@ function vmf.remove_custom_views()
 end
 
 
+-- Opens/closes a view if all conditions are met. Since keybinds module can't do UI-related checks, all the cheks are
+-- done in this function. This function is called every time some view-toggling keybind is pressed.
 function vmf.keybind_toggle_view(mod, view_name, can_be_opened, is_keybind_pressed)
   if _ingame_ui then
     if not _views_data[view_name] or (_views_data[view_name].mod ~= mod) then
