@@ -252,6 +252,10 @@ end
 -- #####################################################################################################################
 
 function VMFMod:handle_transition(transition_name, transition_params, fade, ignore_active_menu)
+  if vmf.check_wrong_argument_type(self, "handle_transition", "transition_name", transition_name, "string") then
+    return
+  end
+
   if _ingame_ui
      and not _ingame_ui:pending_transition()
      and not _ingame_ui:end_screen_active()
