@@ -2482,22 +2482,6 @@ end
 -- ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═════╝ ╚═╝╚═╝  ╚═══╝╚═════╝
 
 
-local function build_keybind_string(keys)
-
-  local keybind_string = ""
-
-  for i, key in ipairs(keys) do
-    if i == 1 then
-      keybind_string = keybind_string .. vmf.readable_key_names[key]
-    else
-      keybind_string = keybind_string .. " + " .. vmf.readable_key_names[key]
-    end
-  end
-
-  return keybind_string
-end
-
-
 local function create_keybind_widget(widget_definition, scenegraph_id)
 
   local widget_size = SETTINGS_LIST_REGULAR_WIDGET_SIZE
@@ -2654,7 +2638,12 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
       setting_id = widget_definition.setting_id,
       widget_type = widget_definition.type,
 
-      action = widget_definition.function_name,
+      keybind_global = widget_definition.keybind_global,
+      keybind_trigger = widget_definition.keybind_trigger,
+      keybind_type = widget_definition.keybind_type,
+      function_name = widget_definition.function_name,
+      view_name = widget_definition.view_name,
+
       keybind_text = widget_definition.keybind_text,
       default_value = widget_definition.default_value,
       parent_widget_number = widget_definition.parent_index,
@@ -3302,95 +3291,74 @@ VMFOptionsView.callback_change_setting_keybind_state = function (self, widget_co
   end
 end
 
+local function set_new_keybind(keybind_widget_content)
+  vmf.add_mod_keybind(
+    get_mod(keybind_widget_content.mod_name),
+    keybind_widget_content.setting_id,
+    keybind_widget_content.keybind_global,
+    keybind_widget_content.keybind_trigger,
+    keybind_widget_content.keybind_type,
+    keybind_widget_content.keys,
+    keybind_widget_content.function_name,
+    keybind_widget_content.view_name
+  )
+end
 
 VMFOptionsView.callback_setting_keybind = function (self, widget_content)
-
-  if not widget_content.first_pressed_button and (Keyboard.any_pressed() or Mouse.any_pressed()) then
-
-    local first_pressed_button_info  = nil
-    local first_pressed_button_index = nil
-    local first_pressed_button_type  = nil
-
+  if not widget_content.first_pressed_button_id then
     if Keyboard.any_pressed() then
-
-      first_pressed_button_info  = vmf.keys.keyboard[Keyboard.any_pressed()]
-      first_pressed_button_index = Keyboard.any_pressed()
-      first_pressed_button_type  = "keyboard"
-
+      widget_content.first_pressed_button_id    = vmf.get_key_id("KEYBOARD", Keyboard.any_pressed())
+      widget_content.first_pressed_button_index = Keyboard.any_pressed()
+      widget_content.first_pressed_button_type  = "keyboard"
     elseif Mouse.any_pressed() then
-
-      first_pressed_button_info  = vmf.keys.mouse[Mouse.any_pressed()]
-      first_pressed_button_index = Mouse.any_pressed()
-      first_pressed_button_type  = "mouse"
-    end
-
-    if first_pressed_button_info then
-      widget_content.first_pressed_button       = first_pressed_button_info[2]
-      widget_content.first_pressed_button_index = first_pressed_button_index
-      widget_content.first_pressed_button_type  = first_pressed_button_type
+      widget_content.first_pressed_button_id    = vmf.get_key_id("MOUSE", Mouse.any_pressed())
+      widget_content.first_pressed_button_index = Mouse.any_pressed()
+      widget_content.first_pressed_button_type  = "mouse"
     end
   end
 
   local pressed_buttons = {}
-  local preview_string = ""
-
-  if widget_content.first_pressed_button then
-    table.insert(pressed_buttons, widget_content.first_pressed_button)
-    preview_string = vmf.readable_key_names[widget_content.first_pressed_button]
+  if widget_content.first_pressed_button_id then
+    table.insert(pressed_buttons, widget_content.first_pressed_button_id)
+  else
+    table.insert(pressed_buttons, "no_button")
   end
-  if Keyboard.button(Keyboard.button_index("left ctrl")) == 1 then
-    preview_string = preview_string .. " + Ctrl"
+  if Keyboard.button(Keyboard.button_index("left ctrl")) + Keyboard.button(Keyboard.button_index("right ctrl")) > 0 then
     table.insert(pressed_buttons, "ctrl")
   end
-  if Keyboard.button(Keyboard.button_index("left alt")) == 1 then
-    preview_string = preview_string .. " + Alt"
+  if Keyboard.button(Keyboard.button_index("left alt")) + Keyboard.button(Keyboard.button_index("right alt")) > 0 then
     table.insert(pressed_buttons, "alt")
   end
-  if Keyboard.button(Keyboard.button_index("left shift")) == 1 then
-    preview_string = preview_string .. " + Shift"
+  if Keyboard.button(Keyboard.button_index("left shift")) + Keyboard.button(Keyboard.button_index("right shift")) > 0 then
     table.insert(pressed_buttons, "shift")
   end
 
-  if preview_string ~= "" then
-    widget_content.keys = pressed_buttons
-    widget_content.keybind_text = preview_string
-  else
-    widget_content.keybind_text = "_"
-  end
+  local preview_string = vmf.build_keybind_string(pressed_buttons)
 
-  if widget_content.first_pressed_button then
-    if (widget_content.first_pressed_button_type == "keyboard" and Keyboard.released(widget_content.first_pressed_button_index) or
-       widget_content.first_pressed_button_type == "mouse" and Mouse.released(widget_content.first_pressed_button_index)) then
+  widget_content.keybind_text = preview_string ~= "" and preview_string or "_"
+  widget_content.keys         = pressed_buttons
 
-      widget_content.keybind_text = build_keybind_string(widget_content.keys)
-
-      widget_content.first_pressed_button       = nil
+  if widget_content.first_pressed_button_id then
+    if widget_content.first_pressed_button_type == "keyboard" and Keyboard.released(widget_content.first_pressed_button_index) or
+       widget_content.first_pressed_button_type == "mouse" and Mouse.released(widget_content.first_pressed_button_index)
+    then
+      widget_content.first_pressed_button_id    = nil
       widget_content.first_pressed_button_index = nil
       widget_content.first_pressed_button_type  = nil
 
-      if widget_content.action then
-        get_mod(widget_content.mod_name):keybind(widget_content.setting_id, widget_content.action, widget_content.keys)
-      end
+      set_new_keybind(widget_content)
 
       self:callback_change_setting_keybind_state(widget_content)
-
       return true
     end
-  else
-    if Keyboard.released(Keyboard.button_index("esc")) then
+  elseif Keyboard.released(Keyboard.button_index("esc")) then
+    widget_content.keybind_text = ""
+    widget_content.keys         = {}
 
-      widget_content.keys = {}
+    set_new_keybind(widget_content)
 
-      widget_content.keybind_text = build_keybind_string(widget_content.keys)
-
-      if widget_content.action then
-        get_mod(widget_content.mod_name):keybind(widget_content.setting_id, widget_content.action, widget_content.keys)
-      end
-
-      self:callback_change_setting_keybind_state(widget_content)
-
-      return true
-    end
+    self:callback_change_setting_keybind_state(widget_content)
+    return true
   end
 end
 
@@ -3867,7 +3835,7 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
           widget_content.keys = widget_content.default_value
         end
 
-        widget_content.keybind_text = build_keybind_string(widget_content.keys)
+        widget_content.keybind_text = vmf.build_keybind_string(widget_content.keys)
 
       elseif widget_type == "numeric" then
 
@@ -4309,7 +4277,7 @@ vmf.load_vmf_options_view_settings()
 
 
 
-local view_data = {
+return {
   view_name = "vmf_options_view",
   view_settings = {
     init_view_function = function (ingame_ui_context)
@@ -4319,160 +4287,15 @@ local view_data = {
       inn = true,
       ingame = true
     },
-    blocked_transitions = {
-      inn = {},
-      ingame = {
-        --vmf_options_view = true,
-        --vmf_options_view_force = true
-      }
-    },
-    hotkey_name = "open_vmf_options",
-    hotkey_action_name = "open_vmf_options",
-    hotkey_transition_name = "vmf_options_view",
-    transition_fade = false
+    keybind_transitions = {
+			open_view_transition = "vmf_options_view",
+			close_view_transition = "exit_menu",
+		}
   },
   view_transitions = {
-
     vmf_options_view = function (self)
       self.current_view = "vmf_options_view"
-
-      return
-    end,
-
-    vmf_options_view_force = function (self)
-
-      ShowCursorStack.push()
-
-      self.current_view = "vmf_options_view"
-
-      self.views[self.current_view].exit_to_game = true -- why?
-      return
+      self.menu_active = true
     end
   }
 }
-
-
-local _button_injection_data = vmf:persistent_table("button_injection_data")
-
-
-if VT1 then
-
-
-  -- Disable Mod Options button during mods reloading
-  vmf:hook_safe(IngameView, "update_menu_options", function (self)
-    for _, button_info in ipairs(self.active_button_data) do
-      if button_info.transition == "vmf_options_view" then
-        button_info.widget.content.disabled = _button_injection_data.mod_options_button_disabled
-        button_info.widget.content.button_hotspot.disabled = _button_injection_data.mod_options_button_disabled
-      end
-    end
-  end)
-
-
-  -- Inject Mod Options button in current ESC-menu layout
-  -- Disable localization for button widget
-  vmf:hook(IngameView, "setup_button_layout", function (func, self, layout_data, ...)
-    local mods_options_button = {
-      display_name = vmf:localize("mods_options"),
-      transition = "vmf_options_view",
-      fade = false
-    }
-    for i = 1, #layout_data do
-      if layout_data[i].transition == "options_menu" and layout_data[i + 1].transition ~= "vmf_options_view" then
-        table.insert(layout_data, i + 1, mods_options_button)
-        break
-      end
-    end
-
-    func(self, layout_data, ...)
-
-    for _, button_info in ipairs(self.active_button_data) do
-      if button_info.transition == "vmf_options_view" then
-        button_info.widget.style.text.localize = false
-        button_info.widget.style.text_disabled.localize = false
-        button_info.widget.style.text_click.localize = false
-        button_info.widget.style.text_hover.localize = false
-        button_info.widget.style.text_selected.localize = false
-      end
-    end
-  end)
-
-
-else
-
-
-  local function get_mod_options_button_index(layout_logic)
-    for button_index, button_data in ipairs(layout_logic.active_button_data) do
-      if button_data.transition == "vmf_options_view" then
-        return button_index
-      end
-    end
-  end
-
-
-  -- Disable localization for Mod Options button widget for pc version of ESC-menu
-  -- Widget definition: ingame_view_definitions.lua -> UIWidgets.create_default_button
-  vmf:hook_safe(IngameView, "on_enter", function (self)
-    self.layout_logic._ingame_view = self
-  end)
-  vmf:hook_safe(IngameViewLayoutLogic, "setup_button_layout", function (self)
-    if self._ingame_view then
-      local mod_options_button_index = get_mod_options_button_index(self)
-      local button_widget = self._ingame_view.stored_buttons[mod_options_button_index]
-      button_widget.style.title_text.localize = false
-      button_widget.style.title_text_shadow.localize = false
-      button_widget.style.title_text_disabled.localize = false
-    end
-  end)
-
-
-  -- Disable localization for Mod Options button widget for console version of ESC-menu
-  -- Widget definition: hero_window_ingame_view_definitions.lua -> create_title_button
-  vmf:hook_safe(HeroWindowIngameView, "on_enter", function (self)
-    local button_widget = self._title_button_widgets[get_mod_options_button_index(self.layout_logic)]
-    button_widget.style.text.localize = false
-    button_widget.style.text_hover.localize = false
-    button_widget.style.text_shadow.localize = false
-    button_widget.style.text_disabled.localize = false
-  end)
-
-
-  -- Disable Mod Options button during mods reloading
-  vmf:hook_safe(IngameViewLayoutLogic, "_update_menu_options_enabled_states", function (self)
-    local mod_options_button_index = get_mod_options_button_index(self)
-    local mod_options_button_data = self.active_button_data[mod_options_button_index]
-    mod_options_button_data.disabled = _button_injection_data.mod_options_button_disabled
-  end)
-
-
-  -- Inject Mod Options button in all possible ESC-menu layouts (except for developer's one, because it will increase
-  -- the number of buttons to 10, when the hard limit is 9, which will crash the game)
-  vmf:hook_safe(IngameViewLayoutLogic, "init", function (self)
-    local mod_options_button = {
-      display_name = vmf:localize("mods_options"),
-      transition = "vmf_options_view",
-      fade = false
-    }
-    for _, layout in pairs(self.layout_list) do
-      for i = 1, #layout do
-        if layout[i].transition == "options_menu" and layout[i + 1].transition ~= "vmf_options_view" then
-          table.insert(layout, i + 1, mod_options_button)
-          break
-        end
-      end
-    end
-  end)
-
-
-end
-
-
-vmf.initialize_vmf_options_view = function ()
-  vmf:register_new_view(view_data)
-  _button_injection_data.mod_options_button_disabled = false
-end
-
-
-vmf.disable_mods_options_button = function ()
-  _button_injection_data.mod_options_button_disabled = true
-end

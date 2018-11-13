@@ -9,8 +9,8 @@ vmf_mod_data.options = {
       type            = "keybind",
       default_value   = {"f4"},
       keybind_trigger = "pressed",
-      keybind_type    = "function_call",
-      function_name   = "open_vmf_options"
+      keybind_type    = "view_toggle",
+      view_name       = "vmf_options_view"
     },
     {
       setting_id    = "vmf_options_scrolling_speed",
@@ -38,6 +38,7 @@ vmf_mod_data.options = {
           setting_id      = "toggle_developer_console",
           type            = "keybind",
           default_value   = {},
+          keybind_global  = true,
           keybind_trigger = "pressed",
           keybind_type    = "function_call",
           function_name   = "toggle_developer_console"
@@ -239,7 +240,7 @@ if not vmf:get("vmf_initialized") then
   vmf.load_dev_console_settings()
   vmf.load_chat_history_settings()
   vmf.load_ui_scaling_settings()
-  vmf.load_vmf_options_view_settings()
+  --vmf.load_vmf_options_view_settings()
 
   vmf:set("vmf_initialized", true)
 end

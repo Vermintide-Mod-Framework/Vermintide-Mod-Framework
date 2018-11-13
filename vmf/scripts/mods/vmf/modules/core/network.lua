@@ -176,7 +176,7 @@ local function send_rpc_vmf_data_local(mod_name, rpc_name, ...)
     network_debug("data", "local", nil, mod_name, rpc_name, {...})
 
     local error_prefix = "(local rpc) " .. tostring(rpc_name)
-    vmf.xpcall_no_return_values(mod, error_prefix, _rpc_callbacks[mod_name][rpc_name], Network.peer_id(), ...)
+    vmf.safe_call_nr(mod, error_prefix, _rpc_callbacks[mod_name][rpc_name], Network.peer_id(), ...)
   end
 end
 
@@ -307,7 +307,7 @@ vmf:hook("ChatManager", "rpc_chat_message",
 
         -- can be error in both callback_function() and deserialize_data()
         local error_prefix = "(network) " .. tostring(rpc_name)
-        vmf.xpcall_no_return_values(
+        vmf.safe_call_nr(
          get_mod(mod_name),
          error_prefix,
          function() _rpc_callbacks[mod_name][rpc_name](sender, deserialize_data(rpc_data2)) end

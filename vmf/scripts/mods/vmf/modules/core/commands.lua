@@ -154,7 +154,7 @@ function vmf.run_command(command_name, ...)
   local command_data = _commands[command_name]
   if command_data then
     local error_prefix = "(commands) " .. tostring(command_name)
-    vmf.xpcall_no_return_values(command_data.mod, error_prefix, command_data.exec_function, ...)
+    vmf.safe_call_nr(command_data.mod, error_prefix, command_data.exec_function, ...)
   else
     vmf:error("(commands): command '%s' wasn't found.", command_name) -- Should never see this
   end

@@ -301,7 +301,7 @@ local allowed_keybind_types = {
   view_toggle   = true,
   mod_toggle    = true
 }
-local allowed_special_keys = {
+local allowed_modifier_keys = {
   ctrl  = true,
   alt   = true,
   shift = true
@@ -339,12 +339,12 @@ local function validate_keybind_data(data)
     vmf.throw_error("[widget \"%s\" (keybind)]: table stored in 'default_value' field can't exceed 4 elements",
                      data.setting_id)
   end
-  if default_value[1] and (not vmf.readable_key_names[default_value[1]] or allowed_special_keys[default_value[1]]) then
+  if default_value[1] and not vmf.can_bind_as_primary_key(default_value[1]) then
     vmf.throw_error("[widget \"%s\" (keybind)]: 'default_value[1]' must be a valid key name", data.setting_id)
   end
-  if default_value[2] and not allowed_special_keys[default_value[2]] or
-     default_value[3] and not allowed_special_keys[default_value[3]] or
-     default_value[4] and not allowed_special_keys[default_value[4]]
+  if default_value[2] and not allowed_modifier_keys[default_value[2]] or
+     default_value[3] and not allowed_modifier_keys[default_value[3]] or
+     default_value[4] and not allowed_modifier_keys[default_value[4]]
   then
     vmf.throw_error("[widget \"%s\" (keybind)]: 'default_value [2], [3] and [4]' can be only strings: \"ctrl\", " ..
                      "\"alt\" and \"shift\" (in no particular order)", data.setting_id)
@@ -542,7 +542,8 @@ local function initialize_default_settings_and_keybinds(mod, initialized_widgets
       mod:set(data.setting_id, data.default_value)
     end
     if data.type == "keybind" then
-      mod:keybind(data.setting_id, data.function_name, mod:get(data.setting_id))
+      vmf.add_mod_keybind(mod, data.setting_id, data.keybind_global, data.keybind_trigger, data.keybind_type,
+                           mod:get(data.setting_id), data.function_name, data.view_name)
     end
   end
 end

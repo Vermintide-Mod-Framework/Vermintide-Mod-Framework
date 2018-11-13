@@ -27,7 +27,3 @@ function vmf.check_old_vmf()
            "Either remove old mods or disable workshop mods.")
   end
 end
-
-function vmf.throw_error(error_message, ...)
-  error(string.format(error_message, ...), 0)
-end

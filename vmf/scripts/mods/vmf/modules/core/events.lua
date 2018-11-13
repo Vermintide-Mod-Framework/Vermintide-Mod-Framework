@@ -10,7 +10,7 @@ local _mods_unloading_order = vmf.mods_unloading_order
 local function run_event(mod, event_name, ...)
   local event = mod[event_name]
   if event then
-    vmf.xpcall_no_return_values(mod, "(event) " .. event_name, event, ...)
+    vmf.safe_call_nr(mod, "(event) " .. event_name, event, ...)
   end
 end
 

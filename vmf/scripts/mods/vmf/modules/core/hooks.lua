@@ -164,7 +164,7 @@ local function create_specialized_hook(mod, orig, hook_type)
     elseif hook_type == HOOK_TYPE_SAFE then
         func = function(...)
             if hook_data.active then
-                vmf.xpcall_no_return_values(mod, "(safe_hook)", hook_data.handler, ...)
+                vmf.safe_call_nr(mod, "(safe_hook)", hook_data.handler, ...)
             end
         end
     end
