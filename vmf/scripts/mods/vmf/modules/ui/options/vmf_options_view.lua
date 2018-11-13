@@ -3821,7 +3821,8 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
 
       elseif widget_type == "header" then
 
-        widget_content.is_checkbox_checked = get_mod(widget_content.mod_name):is_enabled()
+        widget_content.is_checkbox_checked = get_mod(widget_content.mod_name):is_enabled() or
+                                              get_mod(widget_content.mod_name):get_internal_data("is_mutator")
 
       elseif widget_type == "keybind" then
 

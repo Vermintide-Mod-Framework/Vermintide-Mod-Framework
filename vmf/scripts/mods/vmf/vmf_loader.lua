@@ -97,6 +97,7 @@ end
 
 function vmf_mod_object:on_game_state_changed(status, state)
 	print("VMF:ON_GAME_STATE_CHANGED(), status: " .. tostring(status) .. ", state: " .. tostring(state))
+	if VT1 then vmf.check_old_vmf() end
 	vmf.mods_game_state_changed_event(status, state)
 	vmf.save_unsaved_settings_to_file()
 	vmf.apply_delayed_hooks(status, state)

@@ -41,8 +41,9 @@ end
 
 VMFMod.dump = function (self, dumped_object, dumped_object_name, max_depth)
 
-  if not dumped_object or not max_depth then
-    self:error("(dump): not all arguments are specified.")
+  if vmf.check_wrong_argument_type(self, "dump", "dumped_object_name", dumped_object_name, "string", "nil") or
+     vmf.check_wrong_argument_type(self, "dump", "max_depth", max_depth, "number")
+  then
     return
   end
 
@@ -187,7 +188,7 @@ local function table_dump_to_file(dumped_table, dumped_table_name, max_depth)
 
             table_entry[key] = "[" .. value_type .. "]"
           else
-            
+
             value = tostring(value):gsub('\\','\\\\'):gsub('\"','\\\"'):gsub('\t','\\t'):gsub('\n','\\n')
             table_entry[key] = value .. " (" .. value_type .. ")"
           end
@@ -327,8 +328,9 @@ end
 
 VMFMod.dump_to_file = function (self, dumped_object, object_name, max_depth)
 
-  if not dumped_object or not object_name or not max_depth then
-    self:error("(dump_to_file): not all arguments are specified.")
+  if vmf.check_wrong_argument_type(self, "dump_to_file", "object_name", object_name, "string") or
+     vmf.check_wrong_argument_type(self, "dump_to_file", "max_depth", max_depth, "number")
+  then
     return
   end
 

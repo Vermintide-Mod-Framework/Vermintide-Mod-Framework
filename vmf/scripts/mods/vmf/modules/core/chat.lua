@@ -3,8 +3,11 @@ local vmf = get_mod("VMF")
 -- Constants used as parameters in some 'chat_manager's functions
 local CHANNEL_ID = 1
 local MESSAGE_SENDER = ""
-local LOCAL_PLAYER_ID = 0 -- VT2 only
-local LOCALIZATION_PARAM = ""
+local LOCAL_PLAYER_ID = 0          -- VT2 only
+local LOCALIZATION_PARAMETERS = {} -- VT2 only
+local LOCALIZE = false             -- VT2 only
+local LOCALIZE_PARAMETERS = false  -- VT2 only
+local LOCALIZATION_PARAM = ""      -- VT1 only
 local IS_SYSTEM_MESSAGE = false
 local POP_CHAT = true
 local IS_DEV = true
@@ -18,8 +21,8 @@ local function send_system_message(peer_id, message)
     RPC.rpc_chat_message(peer_id, CHANNEL_ID, MESSAGE_SENDER, message, LOCALIZATION_PARAM, IS_SYSTEM_MESSAGE, POP_CHAT,
                           IS_DEV)
   else
-    RPC.rpc_chat_message(peer_id, CHANNEL_ID, MESSAGE_SENDER, LOCAL_PLAYER_ID, message, LOCALIZATION_PARAM,
-                          IS_SYSTEM_MESSAGE, POP_CHAT, IS_DEV)
+    RPC.rpc_chat_message(peer_id, CHANNEL_ID, MESSAGE_SENDER, LOCAL_PLAYER_ID, message, LOCALIZATION_PARAMETERS,
+                          LOCALIZE, LOCALIZE_PARAMETERS, IS_SYSTEM_MESSAGE, POP_CHAT, IS_DEV)
   end
 end
 
