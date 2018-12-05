@@ -115,6 +115,7 @@ function vmf.initialize_mod_data(mod, mod_data)
   vmf.set_internal_data(mod, "is_togglable",    mod_data.is_togglable or mod_data.is_mutator)
   vmf.set_internal_data(mod, "is_mutator",      mod_data.is_mutator)
   vmf.set_internal_data(mod, "allow_rehooking", mod_data.allow_rehooking)
+  vmf.set_internal_data(mod, "workshop_id",     mod_data.workshop_id)
 
   -- Register mod as mutator @TODO: calling this after options initialization would be better, I guess?
   if mod_data.is_mutator then

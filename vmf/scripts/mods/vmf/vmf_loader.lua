@@ -29,6 +29,7 @@ function vmf_mod_object:init()
 	dofile("scripts/mods/vmf/modules/core/options")
 	dofile("scripts/mods/vmf/modules/legacy/options")
 	dofile("scripts/mods/vmf/modules/core/network")
+	dofile("scripts/mods/vmf/modules/core/packages")
 	dofile("scripts/mods/vmf/modules/core/commands")
 	dofile("scripts/mods/vmf/modules/gui/custom_textures")
 	dofile("scripts/mods/vmf/modules/gui/custom_views")
@@ -55,6 +56,7 @@ end
 -- #####################################################################################################################
 
 function vmf_mod_object:update(dt)
+	vmf.update_package_manager()
 	vmf.mods_update_event(dt)
 	vmf.check_keybinds()
 	vmf.execute_queued_chat_command()
@@ -63,6 +65,7 @@ function vmf_mod_object:update(dt)
 	if not vmf.all_mods_were_loaded and Managers.mod._state == "done" then
 
 		vmf.generate_keybinds()
+		vmf.initialize_package_manager()
 		vmf.initialize_vmf_options_view()
 		vmf.create_network_dictionary()
 		vmf.ping_vmf_users()
