@@ -35,8 +35,6 @@ function VMFMod:load_package(package_name, callback)
     resource_package:flush()
 
     _loaded_packages[self][package_name] = resource_package
-
-    self:debug("Loaded package '%s' synchronously", package_name)
   else
     if is_loading then
       self:error("Package '%s' is currently loading", package_name)
@@ -49,7 +47,6 @@ function VMFMod:load_package(package_name, callback)
       resource_package = resource_package,
       callback = callback,
     })
-    self:debug("Queued package '%s'", package_name)
   end
 end
 
@@ -69,8 +66,6 @@ function VMFMod:unload_package(package_name)
   resource_package:unload()
   Mod.release_resource_package(resource_package)
   _loaded_packages[self][package_name] = nil
-
-  self:debug("Unloaded package '%s'", package_name)
 end
 
 function VMFMod:is_package_loading(package_name)
@@ -107,8 +102,6 @@ function VMFMod:is_package_manager_initialized()
 end
 
 function vmf.initialize_package_manager()
-  vmf:debug("Initializing package manager")
-
   for _, mod_data in ipairs(Managers.mod._mods) do
     _mod_handles[mod_data.id] = mod_data.handle
   end
@@ -121,19 +114,14 @@ function vmf.update_package_manager()
 
   if loading_package then
     if loading_package.resource_package:has_loaded() then
-      vmf:debug("Finished loading package '%s/%s' asynchronously", loading_package.mod:get_name(), loading_package.package_name)
       _loaded_packages[loading_package.mod][loading_package.package_name] = loading_package.resource_package
       _loading_package = nil
 
       -- The callback has to be called last, so that any calls to `has_package_loaded` or `is_package_loading` return the correct value
       loading_package.callback()
-    else
-      vmf:debug("Package '%s/%s' is still loading asynchronously", loading_package.mod:get_name(), loading_package.package_name)
     end
 
     return
-  -- else
-  --   vmf:debug("No package to load asynchronously")
   end
 
   local queued_package = _queued_packages[1]
@@ -143,18 +131,5 @@ function vmf.update_package_manager()
     table.remove(_queued_packages, 1)
 
     _loading_package.resource_package:load()
-    vmf:debug("Started loading package '%s/%s' asynchronously", _loading_package.mod:get_name(), _loading_package.package_name)
   end
-end
-
-function VMFMod:dump_package_manager()
-  self:debug("initialized = %s", _initialized)
-  self:dump(_mod_handles, "_mod_handles", 2)
-  self:dump(_queued_packages, "_queued_packages", 2)
-  if _loading_package then
-    self:dump(_loading_package, "_loading_package", 2)
-  else
-    self:debug("_loading_package = nil")
-  end
-  self:dump(_loaded_packages, "_loaded_packages", 2)
 end
