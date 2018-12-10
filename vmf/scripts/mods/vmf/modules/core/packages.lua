@@ -5,6 +5,12 @@ local _loading_package = nil
 local _loaded_packages = {}
 
 function VMFMod:load_package(package_name, callback)
+  if vmf.check_wrong_argument_type(self, "load_package", "package_name", package_name, "string") or
+     vmf.check_wrong_argument_type(self, "load_package", "callback", callback, "function", "nil")
+  then
+    return
+  end
+
   if self:has_package_loaded(package_name) then
     self:error("Package '%s' has already been loaded", package_name)
     return
@@ -54,6 +60,10 @@ function VMFMod:load_package(package_name, callback)
 end
 
 function VMFMod:unload_package(package_name)
+  if vmf.check_wrong_argument_type(self, "unload_package", "package_name", package_name, "string") then
+    return
+  end
+
   if not self:has_package_loaded(package_name) then
     self:error("Package '%s' has not been loaded", package_name)
     return
@@ -67,6 +77,10 @@ function VMFMod:unload_package(package_name)
 end
 
 function VMFMod:is_package_loading(package_name)
+  if vmf.check_wrong_argument_type(self, "is_package_loading", "package_name", package_name, "string") then
+    return
+  end
+
   if _loading_package and _loading_package.mod == self and _loading_package.package_name == package_name then
     return true
   end
@@ -81,6 +95,10 @@ function VMFMod:is_package_loading(package_name)
 end
 
 function VMFMod:has_package_loaded(package_name)
+  if vmf.check_wrong_argument_type(self, "has_package_loaded", "package_name", package_name, "string") then
+    return
+  end
+
   local loaded_packages = _loaded_packages[self]
   return loaded_packages and loaded_packages[package_name] ~= nil
 end
