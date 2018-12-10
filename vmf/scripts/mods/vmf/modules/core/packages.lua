@@ -103,10 +103,6 @@ function VMFMod:has_package_loaded(package_name)
   return loaded_packages and loaded_packages[package_name] ~= nil
 end
 
-function VMFMod:is_package_manager_initialized()
-  return self:get_data("mod_handle") ~= nil
-end
-
 function vmf.update_package_manager()
   local loading_package = _loading_package
 
