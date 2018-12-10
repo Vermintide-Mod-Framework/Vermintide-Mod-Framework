@@ -21,9 +21,7 @@ function VMFMod:load_package(package_name, callback)
     _loaded_packages[self] = {}
   end
 
-  local package_handle = string.format("resource_packages/%s/%s", self:get_name(), package_name)
-
-  local resource_package = Mod.resource_package(mod_handle, package_handle)
+  local resource_package = Mod.resource_package(mod_handle, package_name)
 
   local is_loading = self:is_package_loading(package_name)
 
