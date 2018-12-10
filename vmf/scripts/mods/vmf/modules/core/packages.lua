@@ -23,6 +23,11 @@ function VMFMod:load_package(package_name, callback)
 
   local resource_package = Mod.resource_package(mod_handle, package_name)
 
+  if not resource_package then
+    self:error("Could not find package '%s'.", package_name)
+    return
+  end
+
   local is_loading = self:is_package_loading(package_name)
 
   if not callback then
