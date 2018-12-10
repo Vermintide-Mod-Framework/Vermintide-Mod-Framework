@@ -1,18 +1,19 @@
 local vmf = get_mod("VMF")
 
-local _initialized = false
-
-local _mod_handles = {}
 local _queued_packages = {}
 local _loading_package = nil
 local _loaded_packages = {}
 
 function VMFMod:load_package(package_name, callback)
-  if not _initialized then
-    self:error("Package manager has not been initialized yet. It can only be used after the `all_mods_loaded` event has been processed.")
-    return
-  elseif self:has_package_loaded(package_name) then
+  if self:has_package_loaded(package_name) then
     self:error("Package '%s' has already been loaded", package_name)
+    return
+  end
+
+  local mod_handle = self:get_internal_data("mod_handle")
+
+  if not mod_handle then
+    self:error("Failed to get mod handle. Package management is not available.")
     return
   end
 
@@ -21,9 +22,8 @@ function VMFMod:load_package(package_name, callback)
   end
 
   local package_handle = string.format("resource_packages/%s/%s", self:get_name(), package_name)
-  local workshop_id = self:get_internal_data("workshop_id")
 
-  local resource_package = Mod.resource_package(_mod_handles[workshop_id], package_handle)
+  local resource_package = Mod.resource_package(mod_handle, package_handle)
 
   local is_loading = self:is_package_loading(package_name)
 
@@ -51,11 +51,6 @@ function VMFMod:load_package(package_name, callback)
 end
 
 function VMFMod:unload_package(package_name)
-  if not _initialized then
-    self:error("Package manager has not been initialized yet. It can only be used after the `all_mods_loaded` event has been processed.")
-    return
-  end
-
   if not self:has_package_loaded(package_name) then
     self:error("Package '%s' has not been loaded", package_name)
     return
@@ -69,11 +64,6 @@ function VMFMod:unload_package(package_name)
 end
 
 function VMFMod:is_package_loading(package_name)
-  if not _initialized then
-    self:error("Package manager has not been initialized yet. It can only be used after the `all_mods_loaded` event has been processed.")
-    return
-  end
-
   if _loading_package and _loading_package.mod == self and _loading_package.package_name == package_name then
     return true
   end
@@ -88,25 +78,12 @@ function VMFMod:is_package_loading(package_name)
 end
 
 function VMFMod:has_package_loaded(package_name)
-  if not _initialized then
-    self:error("Package manager has not been initialized yet. It can only be used after the `all_mods_loaded` event has been processed.")
-    return
-  end
-
   local loaded_packages = _loaded_packages[self]
   return loaded_packages and loaded_packages[package_name] ~= nil
 end
 
 function VMFMod:is_package_manager_initialized()
-  return _initialized
-end
-
-function vmf.initialize_package_manager()
-  for _, mod_data in ipairs(Managers.mod._mods) do
-    _mod_handles[mod_data.id] = mod_data.handle
-  end
-
-  _initialized = true
+  return self:get_data("mod_handle") ~= nil
 end
 
 function vmf.update_package_manager()

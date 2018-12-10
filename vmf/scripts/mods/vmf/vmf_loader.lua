@@ -65,7 +65,6 @@ function vmf_mod_object:update(dt)
 	if not vmf.all_mods_were_loaded and Managers.mod._state == "done" then
 
 		vmf.generate_keybinds()
-		vmf.initialize_package_manager()
 		vmf.initialize_vmf_options_view()
 		vmf.create_network_dictionary()
 		vmf.ping_vmf_users()
