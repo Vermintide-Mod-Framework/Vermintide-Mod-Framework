@@ -134,26 +134,21 @@ end
 -- Loads queued packages one at a time
 function vmf.update_package_manager()
   local loading_package = _loading_package
+  if loading_package and loading_package.resource_package:has_loaded() then
+    _loaded_packages[loading_package.mod][loading_package.package_name] = loading_package.resource_package
+    _loading_package = nil
 
-  if loading_package then
-    if loading_package.resource_package:has_loaded() then
-      _loaded_packages[loading_package.mod][loading_package.package_name] = loading_package.resource_package
-      _loading_package = nil
+    -- The callback has to be called last, so that any calls to `has_package_loaded` or `is_package_loading`
+    -- return the correct value
+    vmf.safe_call_nr(loading_package.mod, {"'%s' package loaded callback", loading_package.package_name},
+                      loading_package.callback, loading_package.package_name)
+  else
+    local queued_package = _queued_packages[1]
+    if queued_package then
+      _loading_package = queued_package
+      table.remove(_queued_packages, 1)
 
-      -- The callback has to be called last, so that any calls to `has_package_loaded` or `is_package_loading` return the correct value
-      vmf.safe_call_nr(loading_package.mod, {"'%s' package loaded callback", loading_package.package_name},
-                        loading_package.callback, loading_package.package_name)
+      _loading_package.resource_package:load()
     end
-
-    return
-  end
-
-  local queued_package = _queued_packages[1]
-
-  if queued_package then
-    _loading_package = queued_package
-    table.remove(_queued_packages, 1)
-
-    _loading_package.resource_package:load()
   end
 end
