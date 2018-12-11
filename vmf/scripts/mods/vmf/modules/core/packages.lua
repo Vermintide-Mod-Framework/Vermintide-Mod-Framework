@@ -156,3 +156,29 @@ function vmf.update_package_manager()
     end
   end
 end
+
+-- Forcefully unloads all mods and cleans the queue.
+function vmf.unload_all_resource_packages()
+  for mod, packages in pairs(_loaded_packages) do
+    for package_name in pairs(packages) do
+      mod:warning(
+        "Force-unloading package '%s'. Please make sure to properly release packages when the mod is unloaded",
+        package_name
+      )
+      mod:unload_package(package_name)
+    end
+  end
+
+  _queued_packages = {}
+
+  if _loading_package then
+    _loading_package.mod:warning(
+      "Still loading package '%s'. Memory leaks may occur when unloading while a package is loading.",
+      _loading_package.package_name
+    )
+
+    _loading_package.callback = function(package_name)
+      _loading_package.mod:unload_package(package_name)
+    end
+  end
+end
