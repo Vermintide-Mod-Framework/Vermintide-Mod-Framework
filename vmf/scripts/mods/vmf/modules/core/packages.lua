@@ -4,6 +4,15 @@ local _queued_packages = {}
 local _loading_package = nil
 local _loaded_packages = {}
 
+-- #####################################################################################################################
+-- ##### VMFMod ########################################################################################################
+-- #####################################################################################################################
+
+--[[
+  Loads a mod package.
+  * package_name [string]  : package name. needs to be the full path to the `.package` file without the extension
+  * callback     [function]: (optional) callback for asynchronous loading
+--]]
 function VMFMod:load_package(package_name, callback)
   if vmf.check_wrong_argument_type(self, "load_package", "package_name", package_name, "string") or
      vmf.check_wrong_argument_type(self, "load_package", "callback", callback, "function", "nil")
@@ -59,6 +68,11 @@ function VMFMod:load_package(package_name, callback)
   end
 end
 
+
+--[[
+  Unlaods a loaded mod package.
+  * package_name [string]: package name. needs to be the full path to the `.package` file without the extension
+--]]
 function VMFMod:unload_package(package_name)
   if vmf.check_wrong_argument_type(self, "unload_package", "package_name", package_name, "string") then
     return
@@ -76,6 +90,11 @@ function VMFMod:unload_package(package_name)
   _loaded_packages[self][package_name] = nil
 end
 
+
+--[[
+  Returns whether the mod package is currently being loaded.
+  * package_name [string]: package name. needs to be the full path to the `.package` file without the extension
+--]]
 function VMFMod:is_package_loading(package_name)
   if vmf.check_wrong_argument_type(self, "is_package_loading", "package_name", package_name, "string") then
     return
@@ -94,6 +113,11 @@ function VMFMod:is_package_loading(package_name)
   return false
 end
 
+
+--[[
+  Returns whether the mod package has been fully loaded.
+  * package_name [string]: package name. needs to be the full path to the `.package` file without the extension
+--]]
 function VMFMod:has_package_loaded(package_name)
   if vmf.check_wrong_argument_type(self, "has_package_loaded", "package_name", package_name, "string") then
     return
@@ -103,6 +127,11 @@ function VMFMod:has_package_loaded(package_name)
   return loaded_packages and loaded_packages[package_name] ~= nil
 end
 
+-- #####################################################################################################################
+-- ##### VMF internal functions and variables ##########################################################################
+-- #####################################################################################################################
+
+-- Loads queued packages one at a time
 function vmf.update_package_manager()
   local loading_package = _loading_package
 
