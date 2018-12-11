@@ -135,6 +135,8 @@ end
 function vmf.update_package_manager()
   local loading_package = _loading_package
   if loading_package and loading_package.resource_package:has_loaded() then
+    loading_package.resource_package:flush()
+
     _loaded_packages[loading_package.mod][loading_package.package_name] = loading_package.resource_package
     _loading_package = nil
 
