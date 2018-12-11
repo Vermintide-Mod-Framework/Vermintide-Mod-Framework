@@ -112,7 +112,8 @@ function vmf.update_package_manager()
       _loading_package = nil
 
       -- The callback has to be called last, so that any calls to `has_package_loaded` or `is_package_loading` return the correct value
-      loading_package.callback()
+      vmf.safe_call_nr(loading_package.mod, {"'%s' package loaded callback", loading_package.package_name},
+                        loading_package.callback, loading_package.package_name)
     end
 
     return
