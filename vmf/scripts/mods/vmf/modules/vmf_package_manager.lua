@@ -146,16 +146,17 @@ function vmf.update_package_manager()
     -- return the correct value
     vmf.safe_call_nr(loading_package.mod, {"'%s' package loaded callback", loading_package.package_name},
                       loading_package.callback, loading_package.package_name)
-  else
-    local queued_package = _queued_packages[1]
-    if queued_package then
-      _loading_package = queued_package
-      table.remove(_queued_packages, 1)
+  end
 
-      _loading_package.resource_package:load()
-    end
+  local queued_package = _queued_packages[1]
+  if queued_package and not _loading_package then
+    _loading_package = queued_package
+    table.remove(_queued_packages, 1)
+
+    _loading_package.resource_package:load()
   end
 end
+
 
 -- Forcefully unloads all mods and cleans the queue.
 function vmf.unload_all_resource_packages()
