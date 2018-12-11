@@ -13,6 +13,7 @@ local vmf_mod_object = {}
 function vmf_mod_object:init()
 	dofile("scripts/mods/vmf/modules/vmf_mod_data")
 	dofile("scripts/mods/vmf/modules/vmf_mod_manager")
+	dofile("scripts/mods/vmf/modules/vmf_package_manager")
 	dofile("scripts/mods/vmf/modules/core/safe_calls")
 	dofile("scripts/mods/vmf/modules/core/events")
 	dofile("scripts/mods/vmf/modules/core/settings")
@@ -55,6 +56,7 @@ end
 -- #####################################################################################################################
 
 function vmf_mod_object:update(dt)
+	vmf.update_package_manager()
 	vmf.mods_update_event(dt)
 	vmf.check_keybinds()
 	vmf.execute_queued_chat_command()
@@ -90,6 +92,7 @@ function vmf_mod_object:on_reload()
 	if VT1 then vmf.reset_map_view() end
 	vmf.mods_unload_event(false)
 	vmf.remove_custom_views()
+	vmf.unload_all_resource_packages()
 	vmf.hooks_unload()
 	vmf.reset_guis()
 end

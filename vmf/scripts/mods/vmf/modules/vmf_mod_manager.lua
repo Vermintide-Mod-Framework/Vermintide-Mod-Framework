@@ -116,6 +116,14 @@ function vmf.initialize_mod_data(mod, mod_data)
   vmf.set_internal_data(mod, "is_mutator",      mod_data.is_mutator)
   vmf.set_internal_data(mod, "allow_rehooking", mod_data.allow_rehooking)
 
+  local mod_manager = Managers.mod
+  local current_mod_load_index = mod_manager._mod_load_index
+  if current_mod_load_index then
+    vmf.set_internal_data(mod, "mod_handle", mod_manager._mods[current_mod_load_index].handle)
+  else
+    mod:warning("Could not determine current mod load index. Package management won't be available for this mod.")
+  end
+
   -- Register mod as mutator @TODO: calling this after options initialization would be better, I guess?
   if mod_data.is_mutator then
     vmf.register_mod_as_mutator(mod, mod_data.mutator_settings)
