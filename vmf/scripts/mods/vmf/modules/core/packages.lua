@@ -1,5 +1,7 @@
 local vmf = get_mod("VMF")
 
+local NOOP = function() end
+
 local _queued_packages = {}
 local _loading_package = nil
 local _loaded_packages = {}
@@ -12,10 +14,12 @@ local _loaded_packages = {}
   Loads a mod package.
   * package_name [string]  : package name. needs to be the full path to the `.package` file without the extension
   * callback     [function]: (optional) callback for asynchronous loading
+  * sync         [boolean] : (optional) load the packages synchronously, freezing the game until it is loaded
 --]]
-function VMFMod:load_package(package_name, callback)
+function VMFMod:load_package(package_name, callback, sync)
   if vmf.check_wrong_argument_type(self, "load_package", "package_name", package_name, "string") or
-     vmf.check_wrong_argument_type(self, "load_package", "callback", callback, "function", "nil")
+     vmf.check_wrong_argument_type(self, "load_package", "callback", callback, "function", "nil") or
+     vmf.check_wrong_argument_type(self, "load_package", "sync", sync, "boolean", "nil")
   then
     return
   end
@@ -26,7 +30,6 @@ function VMFMod:load_package(package_name, callback)
   end
 
   local mod_handle = self:get_internal_data("mod_handle")
-
   if not mod_handle then
     self:error("Failed to get mod handle. Package management is not available.")
     return
@@ -37,7 +40,6 @@ function VMFMod:load_package(package_name, callback)
   end
 
   local resource_package = Mod.resource_package(mod_handle, package_name)
-
   if not resource_package then
     self:error("Could not find package '%s'.", package_name)
     return
@@ -45,7 +47,7 @@ function VMFMod:load_package(package_name, callback)
 
   local is_loading = self:is_package_loading(package_name)
 
-  if not callback then
+  if sync then
     if not is_loading then
       resource_package:load()
     end
@@ -63,7 +65,7 @@ function VMFMod:load_package(package_name, callback)
       mod = self,
       package_name = package_name,
       resource_package = resource_package,
-      callback = callback,
+      callback = callback or NOOP,
     })
   end
 end
