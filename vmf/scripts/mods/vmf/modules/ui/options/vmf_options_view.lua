@@ -4261,23 +4261,7 @@ end
 vmf.load_vmf_options_view_settings()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-return {
+vmf:register_view({
   view_name = "vmf_options_view",
   view_settings = {
     init_view_function = function (ingame_ui_context)
@@ -4298,4 +4282,4 @@ return {
       self.menu_active = true
     end
   }
-}
+})

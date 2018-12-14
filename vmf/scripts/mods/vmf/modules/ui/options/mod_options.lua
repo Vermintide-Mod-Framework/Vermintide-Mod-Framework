@@ -116,7 +116,7 @@ end
 
 
 vmf.initialize_vmf_options_view = function ()
-  vmf:register_view("scripts/mods/vmf/modules/ui/options/vmf_options_view")
+  vmf:dofile("scripts/mods/vmf/modules/ui/options/vmf_options_view")
   _button_injection_data.mod_options_button_disabled = false
 end
 
