@@ -32,7 +32,7 @@ local function safe_format(mod, str, ...)
   if success then
     return message
   else
-    mod:error("(logging) string.format: " .. tostring(message))
+    mod:error("(logging) string.format: %s", message)
   end
 end
 
