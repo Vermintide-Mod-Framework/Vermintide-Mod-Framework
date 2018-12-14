@@ -426,8 +426,8 @@ end
 
 vmf.apply_delayed_hooks = function(status, state)
     if status == "enter" and state == "StateIngame" then
-		_delaying_enabled = false
-	end
+        _delaying_enabled = false
+    end
     if #_delayed > 0 then
         vmf:info("Attempt to hook %s delayed hooks", #_delayed)
         -- Go through the table in reverse so we don't get any issues removing entries inside the loop

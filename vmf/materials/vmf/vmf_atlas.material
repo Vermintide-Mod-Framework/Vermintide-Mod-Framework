@@ -1,26 +1,26 @@
 vmf_atlas = {
-	material_contexts = {
-		surface_material = ""
-	}
+  material_contexts = {
+    surface_material = ""
+  }
 
-	shader = "gui:DIFFUSE_MAP"
+  shader = "gui:DIFFUSE_MAP"
 
-	textures = {
-		diffuse_map = "gui/vmf/vmf_atlas"
-	}
+  textures = {
+    diffuse_map = "gui/vmf/vmf_atlas"
+  }
 
-	variables = {
-	}
+  variables = {
+  }
 }
 
 vmf_atlas_masked = {
-	material_contexts = {
-		surface_material = ""
-	}
-	shader = "gui_gradient:DIFFUSE_MAP:MASKED"
-	textures = {
-		diffuse_map = "gui/vmf/vmf_atlas"
-	}
-	variables = {
-	}
+  material_contexts = {
+    surface_material = ""
+  }
+  shader = "gui_gradient:DIFFUSE_MAP:MASKED"
+  textures = {
+    diffuse_map = "gui/vmf/vmf_atlas"
+  }
+  variables = {
+  }
 }

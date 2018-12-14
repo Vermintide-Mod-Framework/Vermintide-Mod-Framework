@@ -12,10 +12,10 @@ mod_data.name = "Legendary"
 mod_data.description = "Legendary description"
 mod_data.is_mutator = true
 mod_data.mutator_settings = {
-	incompatible_with_all = true,
-	compatible_with = {
-		"test_something"
-	}
+  incompatible_with_all = true,
+  compatible_with = {
+    "test_something"
+  }
 }
 vmf.initialize_mod_data(mod, mod_data)
 mod.on_enabled = function(init_call) mod:echo("Legendary on_enabled(" .. (init_call and "init)" or ")")) end
@@ -30,10 +30,10 @@ mod_data = {}
 mod_data.name = "Something"
 mod_data.is_mutator = true
 mod_data.mutator_settings = {
-	incompatible_with = {
-		"test_true_solo",
-		"test_slayer"
-	}
+  incompatible_with = {
+    "test_true_solo",
+    "test_slayer"
+  }
 }
 vmf.initialize_mod_data(mod, mod_data)
 mod.on_enabled = function(init_call) mod:echo("Something on_enabled(" .. (init_call and "init)" or ")")) end
@@ -48,11 +48,11 @@ mod_data = {}
 mod_data.name = "?Deathwish"
 mod_data.is_mutator = true
 mod_data.mutator_settings = {
-	difficulty_levels = {
-		"hardest",
-		"survival_hardest"
-	},
-	title_placement = "after"
+  difficulty_levels = {
+    "hardest",
+    "survival_hardest"
+  },
+  title_placement = "after"
 }
 vmf.initialize_mod_data(mod, mod_data)
 mod.on_enabled = function(init_call) mod:echo("?Deathwish on_enabled(" .. (init_call and "init)" or ")")) end
@@ -67,11 +67,11 @@ mod_data = {}
 mod_data.name = "Slayer's Oath"
 mod_data.is_mutator = true
 mod_data.mutator_settings = {
-	difficulty_levels = {
-		"survival_hard",
-		"survival_harder",
-		"survival_hardest"
-	}
+  difficulty_levels = {
+    "survival_hard",
+    "survival_harder",
+    "survival_hardest"
+  }
 }
 vmf.initialize_mod_data(mod, mod_data)
 mod.on_enabled = function(init_call) mod:echo("Slayer's Oath on_enabled(" .. (init_call and "init)" or ")")) end
@@ -86,8 +86,8 @@ mod_data = {}
 mod_data.name = "True Solo"
 mod_data.is_mutator = true
 mod_data.mutator_settings = {
-	compatible_with_all = true,
-	title_placement = "before"
+  compatible_with_all = true,
+  title_placement = "before"
 }
 vmf.initialize_mod_data(mod, mod_data)
 mod.on_enabled = function(init_call) mod:echo("True Solo on_enabled(" .. (init_call and "init)" or ")")) end
@@ -113,12 +113,12 @@ mod = get_mod("test_one_hit_one_kill")
 mod_data = {}
 mod_data.name = "One Hit One Kill"
 mod_data.description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tincidunt placerat" ..
-											 " nulla eget pharetra. Vivamus consequat tristique vestibulum. Nullam vitae feugiat arcu," ..
-											 " non porta ante. Phasellus consequat facilisis quam quis dignissim"
+                       " nulla eget pharetra. Vivamus consequat tristique vestibulum. Nullam vitae feugiat arcu," ..
+                       " non porta ante. Phasellus consequat facilisis quam quis dignissim"
 mod_data.is_mutator = true
 mod_data.mutator_settings = {
-	difficulty_levels = {"hardest"},
-	enable_after_these = {"test_more_rats_weapons"}
+  difficulty_levels = {"hardest"},
+  enable_after_these = {"test_more_rats_weapons"}
 }
 vmf.initialize_mod_data(mod, mod_data)
 mod.on_enabled = function(init_call) mod:echo("One Hit One Kill on_enabled(" .. (init_call and "init)" or ")")) end
@@ -144,11 +144,11 @@ mod_data = {}
 mod_data.name = "lmao"
 mod_data.is_mutator = true
 mod_data.mutator_settings = {
-	difficulty_levels = {"hardest"},
-	enable_after_these = {"ayyyy"},
-	dice = {
-		bonus = 2
-	}
+  difficulty_levels = {"hardest"},
+  enable_after_these = {"ayyyy"},
+  dice = {
+    bonus = 2
+  }
 }
 vmf.initialize_mod_data(mod, mod_data)
 mod.on_enabled = function(init_call) mod:echo("lmao on_enabled(" .. (init_call and "init)" or ")")) end
@@ -163,8 +163,8 @@ mod_data = {}
 mod_data.name = "More Rat Weapons"
 mod_data.is_mutator = true
 mod_data.mutator_settings = {
-	compatible_with_all = true,
-	difficulty_levels = {"hardest"}
+  compatible_with_all = true,
+  difficulty_levels = {"hardest"}
 }
 vmf.initialize_mod_data(mod, mod_data)
 mod.on_enabled = function(init_call) mod:echo("More Rat Weapons on_enabled(" .. (init_call and "init)" or ")")) end

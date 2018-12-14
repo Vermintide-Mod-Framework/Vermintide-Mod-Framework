@@ -37,16 +37,16 @@ local _WIDTH = 550
 -- ####################################################################################################################
 
 local function get_text_width(text, font_material, font_size)
-	local text_extent_min, text_extent_max = Gui.text_extents(_gui, text, font_material, font_size)
-	local text_height = text_extent_max[1] - text_extent_min[1]
-	return text_height
+  local text_extent_min, text_extent_max = Gui.text_extents(_gui, text, font_material, font_size)
+  local text_height = text_extent_max[1] - text_extent_min[1]
+  return text_height
 end
 
 local function word_wrap(text, font_material, font_size, max_width)
-	local whitespace = " "
-	local soft_dividers = "-+&/*"
-	local return_dividers = "\n"
-	local reuse_global_table = true
+  local whitespace = " "
+  local soft_dividers = "-+&/*"
+  local return_dividers = "\n"
+  local reuse_global_table = true
   local scale = RESOLUTION_LOOKUP.scale
 
   return Gui.word_wrap(_gui, text, font_material, font_size, max_width * scale, whitespace,

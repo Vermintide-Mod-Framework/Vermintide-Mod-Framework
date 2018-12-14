@@ -10,13 +10,13 @@ local _logging_settings
 local function add_chat_message(message)
   local chat_manager = Managers.chat
   local new_message = {
-		channel_id = 1,
-		message_sender = "System",
-		message = message,
+    channel_id = 1,
+    message_sender = "System",
+    message = message,
     is_system_message = VT1 and true,
     type = not VT1 and Irc.SYSTEM_MSG, -- luacheck: ignore Irc
-		pop_chat = true,
-		is_dev = false
+    pop_chat = true,
+    is_dev = false
   }
 
   table.insert(chat_manager.chat_messages, new_message)

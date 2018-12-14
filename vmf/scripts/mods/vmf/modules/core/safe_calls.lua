@@ -10,11 +10,11 @@ end
 
 
 local function print_error_callstack(error_message)
-	if type(error_message) == "table" and error_message.error then
-		error_message = error_message.error
-	end
-	print("Error: " .. tostring(error_message) .. "\n" .. Script.callstack())
-	return error_message
+  if type(error_message) == "table" and error_message.error then
+    error_message = error_message.error
+  end
+  print("Error: " .. tostring(error_message) .. "\n" .. Script.callstack())
+  return error_message
 end
 
 
@@ -40,7 +40,7 @@ end
 
 function VMFMod:dofile(file_path)
   local _, return_values = pack_pcall(vmf.safe_call_dofile(self, "(dofile)", file_path))
-	return unpack(return_values, 1, return_values.n)
+  return unpack(return_values, 1, return_values.n)
 end
 
 -- #####################################################################################################################
@@ -52,7 +52,7 @@ function vmf.safe_call(mod, error_prefix_data, func, ...)
   local success, return_values = pack_pcall(xpcall(func, print_error_callstack, ...))
   if not success then
     show_error(mod, error_prefix_data, return_values[1])
-		return success
+    return success
   end
   return success, unpack(return_values, 1, return_values.n)
 end
@@ -80,10 +80,10 @@ end
 
 -- Safe Call [dofile]
 function vmf.safe_call_dofile(mod, error_prefix_data, file_path)
-	if type(file_path) ~= "string" then
+  if type(file_path) ~= "string" then
     show_error(mod, error_prefix_data, "file path should be a string.")
-		return false
-	end
+    return false
+  end
   return vmf.safe_call(mod, error_prefix_data, dofile, file_path)
 end
 

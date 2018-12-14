@@ -314,7 +314,7 @@ vmf:hook("ChatManager", "rpc_chat_message",
         )
       end
     end
-	end
+  end
 end)
 
 vmf:hook(PlayerManager, "add_remote_player", function (func, self, peer_id, player_controlled, ...)

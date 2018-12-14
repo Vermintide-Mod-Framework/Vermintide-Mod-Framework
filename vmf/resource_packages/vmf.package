@@ -1,13 +1,13 @@
 mod =  [
-	"vmf"
+  "vmf"
 ]
 
 package = [
-	"resource_packages/vmf"
+  "resource_packages/vmf"
 ]
 
 material = [
-	"materials/vmf/*"
+  "materials/vmf/*"
 ]
 
 lua = [
