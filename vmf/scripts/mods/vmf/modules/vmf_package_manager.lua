@@ -87,7 +87,6 @@ function VMFMod:unload_package(package_name)
 
   local resource_package = _loaded_packages[self][package_name]
 
-  resource_package:unload()
   Mod.release_resource_package(resource_package)
   _loaded_packages[self][package_name] = nil
 end
