@@ -229,7 +229,8 @@ local function create_hook(mod, orig, obj, method, handler, func_name, hook_type
             hook_data.handler = handler
         elseif mod:get_internal_data("allow_rehooking") then
             -- If we can't rehook but rehooking is enabled, send a warning that something went wrong
-            mod:warning("(%s): Attempting to rehook active hook [%s] with different obj or hook_type.", func_name, method)
+            mod:warning("(%s): Attempting to rehook active hook [%s] with different obj or hook_type.", func_name,
+                                                                                                         method)
         else
             mod:warning("(%s): Attempting to rehook active hook [%s].", func_name, method)
         end
