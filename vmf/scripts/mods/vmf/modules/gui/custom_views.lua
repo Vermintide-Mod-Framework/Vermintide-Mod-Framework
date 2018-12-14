@@ -297,18 +297,12 @@ end
   Opens a file with a view data and validates it. Registers the view and returns 'true' if everything is correct.
   * view_data_file_path [string]: path to a file returning view_data table
 --]]
-function VMFMod:register_view(view_data_file_path)
-  local success, view_data = vmf.safe_call_dofile(self, {ERRORS.PREFIX["register_view_open_file"], view_data_file_path},
-                                                         view_data_file_path)
-  if success then
-    if type(view_data) ~= "table" then
-      self:error(ERRORS.REGULAR["view_data_wrong_type"], view_data_file_path, type(view_data))
-      return
-    end
-    view_data = table.clone(view_data)
-  else
+function VMFMod:register_view(view_data)
+  if vmf.check_wrong_argument_type(self, "register_view", "view_data", view_data, "table") then
     return
   end
+
+  view_data = table.clone(view_data)
 
   local view_name = view_data.view_name
 
