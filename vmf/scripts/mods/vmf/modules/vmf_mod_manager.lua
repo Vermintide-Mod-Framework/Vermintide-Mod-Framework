@@ -8,7 +8,6 @@ local _mods_unloading_order = {}
 -- #####################################################################################################################
 
 local function create_mod(mod_name)
-
   if _mods[mod_name] then
     vmf:error("(new_mod): you can't use name \"%s\" for your mod, because " ..
                "the mod with the same name already exists.", mod_name)
@@ -28,24 +27,20 @@ end
 -- #####################################################################################################################
 
 function new_mod(mod_name, mod_resources)
-
-  -- Checking if all arguments are correct
   if type(mod_name) ~= "string" then
     vmf:error("(new_mod): the mod name should be the string, not '%s'.", type(mod_name))
     return
   end
-
   if type(mod_resources) ~= "table" then
     vmf:error("(new_mod): 'mod_resources' argument should have the 'table' type, not '%s'", type(mod_resources))
     return
   end
-
   if not mod_resources.mod_script then
     vmf:error("(new_mod): 'mod_resources' table should have 'mod_script' field.", type(mod_name))
     return
   end
 
-  -- Creating a mod object
+  -- Create a mod object
   local mod = create_mod(mod_name)
   if not mod then
     return
@@ -71,7 +66,7 @@ function new_mod(mod_name, mod_resources)
     end
   end
 
-  -- Load mod @TODO: what will happen if mod_resources.mod_script == nil?
+  -- Load mod
   if not vmf.safe_call_dofile(mod, "(new_mod)('mod_script' initialization)", mod_resources.mod_script) then
     return
   end
@@ -100,8 +95,6 @@ vmf = create_mod("VMF")
 -- MOD DATA INITIALIZATION
 
 function vmf.initialize_mod_data(mod, mod_data)
-
-  -- Checking if all arguments are correct
   if type(mod_data) ~= "table" then
     mod:error("(new_mod)(mod_data initialization): mod_data file should return a 'table' value.")
     return
