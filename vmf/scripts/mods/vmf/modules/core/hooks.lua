@@ -44,9 +44,11 @@ local _origs = {}
 -- This will tell us if we already have the given function in our registry.
 local function is_orig_hooked(obj, method)
     local orig_registry = _origs
-    if obj and orig_registry[obj] and orig_registry[obj][method] then
-        return true
-    elseif orig_registry[method] then
+    if obj then
+        if orig_registry[obj] and orig_registry[obj][method] then
+            return true
+        end
+    elseif not obj and orig_registry[method] then
         return true
     end
     return false
