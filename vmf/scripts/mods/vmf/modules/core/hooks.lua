@@ -350,7 +350,9 @@ end
 
 local function toggle_all_hooks_for_mod(mod, enabled_state)
     local toggle_status = (enabled_state and "Enabling") or "Disabling"
-    mod:info("(hooks): %s all hooks for mod: %s", toggle_status, mod:get_name())
+    if next(_registry[mod]) then
+        mod:info("(hooks): %s all hooks for mod: %s", toggle_status, mod:get_name())
+    end
     for _, hook_data in pairs(_registry[mod]) do
         hook_data.active = enabled_state
     end
