@@ -3,14 +3,39 @@ local vmf = nil
 local _mods = {}
 local _mods_unloading_order = {}
 
+local ERRORS = {
+  REGULAR = {
+    -- create_mod:
+    duplicate_mod_name = "[VMF Mod Manager] (new_mod) Creating mod object: you can't use name '%s' for your mod " ..
+                          "because mod with the same name already exists.",
+    -- new_mod:
+    mod_name_wrong_type = "[VMF Mod Manager] (new_mod): first argument ('mod_name') should be a string, not %s.",
+    mod_resources_wrong_type = "[VMF Mod Manager] (new_mod) '%s': second argument ('mod_resources') should be a " ..
+                                "table, not %s.",
+    mod_localization_path_wrong_type = "[VMF Mod Manager] (new_mod) '%s': 'mod_localization' (optional) should be a " ..
+                                        "string, not %s.",
+    mod_data_path_wrong_type = "[VMF Mod Manager] (new_mod) '%s': 'mod_data' (optional) should be a string, not %s.",
+    mod_script_path_wrong_type = "[VMF Mod Manager] (new_mod) '%s': 'mod_script' should be a string, not %s.",
+    -- vmf.initialize_mod_data:
+    mod_data_wrong_type = "[VMF Mod Manager] (new_mod) 'mod_data' initialization: mod_data file should return " ..
+                           "table, not %s.",
+    mod_options_initializing_failed = "[VMF Mod Manager] (new_mod) mod options initialization: could not initialize " ..
+                                       "mod's options. %s",
+  },
+  PREFIX = {
+    mod_localization_initialization = "[VMF Mod Manager] (new_mod) 'mod_localization' initialization",
+    mod_data_initialization = "[VMF Mod Manager] (new_mod) 'mod_data' initialization",
+    mod_script_initialization = "[VMF Mod Manager] (new_mod) 'mod_script' initialization",
+  },
+}
+
 -- #####################################################################################################################
 -- ##### Local functions ###############################################################################################
 -- #####################################################################################################################
 
 local function create_mod(mod_name)
   if _mods[mod_name] then
-    vmf:error("(new_mod): you can't use name \"%s\" for your mod, because " ..
-               "the mod with the same name already exists.", mod_name)
+    vmf:error(ERRORS.REGULAR.duplicate_mod_name, mod_name)
     return
   end
 
@@ -28,15 +53,23 @@ end
 
 function new_mod(mod_name, mod_resources)
   if type(mod_name) ~= "string" then
-    vmf:error("(new_mod): the mod name should be the string, not '%s'.", type(mod_name))
+    vmf:error(ERRORS.REGULAR.mod_name_wrong_type, type(mod_name))
     return
   end
   if type(mod_resources) ~= "table" then
-    vmf:error("(new_mod): 'mod_resources' argument should have the 'table' type, not '%s'", type(mod_resources))
+    vmf:error(ERRORS.REGULAR.mod_resources_wrong_type, mod_name, type(mod_resources))
     return
   end
-  if not mod_resources.mod_script then
-    vmf:error("(new_mod): 'mod_resources' table should have 'mod_script' field.", type(mod_name))
+  if type(mod_resources.mod_localization) ~= "string" and type(mod_resources.mod_localization) ~= "nil" then
+    vmf:error(ERRORS.REGULAR.mod_localization_path_wrong_type, mod_name, type(mod_resources.mod_localization))
+    return
+  end
+  if type(mod_resources.mod_data) ~= "string" and type(mod_resources.mod_data) ~= "nil" then
+    vmf:error(ERRORS.REGULAR.mod_data_path_wrong_type, mod_name, type(mod_resources.mod_localization))
+    return
+  end
+  if type(mod_resources.mod_script) ~= "string" then
+    vmf:error(ERRORS.REGULAR.mod_script_path_wrong_type, mod_name, type(mod_resources.mod_localization))
     return
   end
 
@@ -48,7 +81,7 @@ function new_mod(mod_name, mod_resources)
 
   -- Load localization data file
   if mod_resources.mod_localization then
-    local success, localization_table = vmf.safe_call_dofile(mod, "(new_mod)('mod_localization' initialization)",
+    local success, localization_table = vmf.safe_call_dofile(mod, ERRORS.PREFIX.mod_localization_initialization,
                                                               mod_resources.mod_localization)
     if success then
       vmf.load_mod_localization(mod, localization_table) -- @TODO: return here if not sucessful? rename to "initialize_"
@@ -59,7 +92,7 @@ function new_mod(mod_name, mod_resources)
 
   -- Load mod data file
   if mod_resources.mod_data then
-    local success, mod_data_table = vmf.safe_call_dofile(mod, "(new_mod)('mod_data' initialization)",
+    local success, mod_data_table = vmf.safe_call_dofile(mod, ERRORS.PREFIX.mod_data_initialization,
                                                           mod_resources.mod_data)
     if success and not vmf.initialize_mod_data(mod, mod_data_table) then
       return
@@ -67,7 +100,7 @@ function new_mod(mod_name, mod_resources)
   end
 
   -- Load mod
-  if not vmf.safe_call_dofile(mod, "(new_mod)('mod_script' initialization)", mod_resources.mod_script) then
+  if not vmf.safe_call_dofile(mod, ERRORS.PREFIX.mod_script_initialization, mod_resources.mod_script) then
     return
   end
 
@@ -96,7 +129,7 @@ vmf = create_mod("VMF")
 
 function vmf.initialize_mod_data(mod, mod_data)
   if type(mod_data) ~= "table" then
-    mod:error("(new_mod)(mod_data initialization): mod_data file should return a 'table' value.")
+    mod:error(ERRORS.REGULAR.mod_data_wrong_type, type(mod_data))
     return
   end
 
@@ -126,7 +159,7 @@ function vmf.initialize_mod_data(mod, mod_data)
   if mod_data.options or ((mod_data.is_togglable and not mod_data.is_mutator) and not mod_data.options_widgets) then
     local success, error_message = pcall(vmf.initialize_mod_options, mod, mod_data.options)
     if not success then
-      mod:error("Could not initialize mod's options. %s", error_message)
+      mod:error(ERRORS.REGULAR.mod_options_initializing_failed, error_message)
       return
     end
   elseif mod_data.options_widgets then
