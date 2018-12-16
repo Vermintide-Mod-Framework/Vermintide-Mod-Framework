@@ -16,12 +16,6 @@ local HOOK_TYPE_NORMAL = 1
 local HOOK_TYPE_SAFE   = 2
 local HOOK_TYPE_ORIGIN = 3
 
---[[ Planned internal structure
-  _registry[mod][orig] = hook_data table
-  _hooks[hook_type][orig] = array of hook functions. (Single hook function for hook_origin)
-  _origs table holds all the original functions
-]]
-
 -- dont need to attach this to registry.
 local _delayed = {}
 local _delaying_enabled = true
@@ -30,13 +24,15 @@ local _delaying_enabled = true
 -- This lets us easily do _registry[mod] without having to worry about nil-checking it.
 local auto_table_meta = {__index = function(t, k) t[k] = {} return t[k] end }
 
+-- This table will hold all mod-specific data.
 local _registry = setmetatable({}, auto_table_meta)
+
 -- This table will hold all of the hooks, in the format of _hooks[hook_type]
+-- Do the same thing with these tables to allow _hooks[hook_type][orig] without a ton of nil-checks.
+-- Since there can only be one origin per function, it doesnt need to generate a table.
 local _hooks = {
-    -- Do the same thing with these tables to allow .hooks[hook_type][orig] without a ton of nil-checks.
     setmetatable({}, auto_table_meta), -- normal
     setmetatable({}, auto_table_meta), -- safe
-    -- Since there can only be one origin per function, it doesnt need to generate a table.
     {}, -- origin
 }
 local _origs = {}
@@ -45,6 +41,7 @@ local _origs = {}
 -- ##### Util functions ###############################################################################################
 -- ####################################################################################################################
 
+-- This will tell us if we already have the given function in our registry.
 local function is_orig_hooked(obj, method)
     local orig_registry = _origs
     if obj and orig_registry[obj] and orig_registry[obj][method] then
@@ -123,7 +120,6 @@ local function get_hook_chain(orig)
 end
 
 -- Returns a table containing hook data inside of it.
--- { active = mod:is_enabled() }
 local function create_hook_data(mod, obj, handler, hook_type)
     return {
         active = mod:is_enabled(),
@@ -134,14 +130,14 @@ local function create_hook_data(mod, obj, handler, hook_type)
 end
 
 -- Returns a function closure with all the information needed for a given hook to be handled correctly.
+-- Note: If a previous hook is removed from the table, these functions wouldn't be updated
+--       This would break the chain, solution is to not remove the hooks, simply make them inactive
+--       Make sure inactive hooks that rely on the chain still call the next function seamlessly.
 local function create_specialized_hook(mod, orig, hook_type)
     local func
     local hook_data = _registry[mod][orig]
 
     -- Determine the previous function in the hook stack
-    -- Note: If a previous hook is removed from the table, these functions wouldn't be updated
-    -- This would break the chain, solution is to not remove the hooks, simply make them inactive
-    -- Make sure inactive hooks that rely on the chain still call the next function seamlessly.
     local previous_hook = get_hook_chain(orig)
 
     if hook_type == HOOK_TYPE_NORMAL then
@@ -172,12 +168,12 @@ local function create_specialized_hook(mod, orig, hook_type)
 end
 
 -- The hook system makes internal functions that replace the original function and handles all the hooks.
+-- Once all hooks that are part of the chain have been executed, we can go over the safe hooks.
+-- Note: We need to keep the return values in mind in case another function depends on them.
+-- At this point in the execution, Obj has already been type-checked and cannot be a string anymore.
 local function create_internal_hook(orig, obj, method)
     local fn = function(...)
-        -- Execute the hook chain. Note that we need to keep the return values
-        -- in case another function depends on them.
         local hook_chain = get_hook_chain(orig)
-        -- We need to keep return values in case another function depends on them
         local num_values, values = get_return_values( hook_chain(...) )
 
         local safe_hooks = _hooks[HOOK_TYPE_SAFE][orig]
@@ -188,7 +184,6 @@ local function create_internal_hook(orig, obj, method)
     end
 
     if obj then
-        -- object cannot be a string at this point, so we don't need to check for that.
         if not _origs[obj] then _origs[obj] = {} end
         _origs[obj][method] = orig
         obj[method] = fn
@@ -198,6 +193,8 @@ local function create_internal_hook(orig, obj, method)
     end
 end
 
+-- This function handles the handling the hook data and adding them to the registry.
+-- Origin Hooks have to be unique by nature so we have to make sure we don't allow multiple mods to do it.
 local function create_hook(mod, orig, obj, method, handler, func_name, hook_type)
     mod:info("(%s): Hooking '%s' from [%s] (Origin: %s)", func_name, method, obj or "_G", orig)
 
@@ -211,7 +208,6 @@ local function create_hook(mod, orig, obj, method, handler, func_name, hook_type
         _registry[mod][orig] = create_hook_data(mod, obj, handler, hook_type)
 
         local hook_registry = _hooks[hook_type]
-        -- Add the hook to registry. Origin hooks are unique, so we check for that too.
         if hook_type == HOOK_TYPE_ORIGIN then
             if hook_registry[orig] then
                 mod:error("(%s): Attempting to hook origin of already hooked function %s", func_name, method)
@@ -242,6 +238,7 @@ end
 -- ##### GENERIC API ##################################################################################################
 -- ####################################################################################################################
 -- Singular functions that works on a generic basis so the VMFMod API can be tailored for user simplicity.
+-- These functions are mostly used for type-checking before sending the data to the appropriate internal functions.
 
 -- Valid styles:
 
