@@ -250,11 +250,9 @@ end
 --     mod, table (obj), string (method), function (handler), string (func_name)
 -- Giving a method string and a hook function (hooking global functions)
 --     mod, string (method), function (handler), nil, string (func_name)
--- Giving a nil value followed by a method stirng and hook function (alternate way for global functions)
---     mod, nil, string (method), function (handler), string (func_name)
 
 local function generic_hook(mod, obj, method, handler, func_name)
-    if vmf.check_wrong_argument_type(mod, func_name, "obj", obj, "string", "table", "nil") or
+    if vmf.check_wrong_argument_type(mod, func_name, "obj", obj, "string", "table") or
        vmf.check_wrong_argument_type(mod, func_name, "method", method, "string", "function") or
        vmf.check_wrong_argument_type(mod, func_name, "handler", handler, "function", "nil")
     then
@@ -262,7 +260,7 @@ local function generic_hook(mod, obj, method, handler, func_name)
     end
 
     -- Shift the arguments if needed
-    if type(method) == "function" then
+    if not handler then
         obj, method, handler = nil, obj, method
         if not method then
             mod:error("(%s): trying to create hook without giving a method name.", func_name)
