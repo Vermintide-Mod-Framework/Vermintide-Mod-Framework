@@ -6,7 +6,7 @@ return {
   },
   open_vmf_options = {
     en = "Open Options Menu",
-    en = "Abrir el menu de configuración",
+    es = "Abrir el menu de configuración",
     ru = "Открыть меню настроек",
   },
   open_vmf_options_description = {
@@ -29,12 +29,12 @@ return {
   },
   ui_scaling_description = {
     en = "Automatically scale UI when resolution exceeds 1080p.",
-    en = "Redimensionar automáticamente la interfaz cuando la resolución exceda 1080p.",
+    es = "Redimensionar automáticamente la interfaz cuando la resolución exceda 1080p.",
     ru = "Нормализует масштаб элементов интерфейса, если разрешений экрана превышает 1080p.",
   },
   developer_mode = {
     en = "Developer Mode",
-    en = "Modo de desarrollo",
+    es = "Modo de desarrollo",
     ru = "Режим разработчика",
   },
   developer_mode_description = {
@@ -59,7 +59,7 @@ return {
   },
   show_network_debug_info = {
     en = "Log Network Calls",
-    en = "Depurar las llamadas de red",
+    es = "Depurar las llamadas de red",
     ru = "Логирование сетевых вызовов",
   },
   show_network_debug_info_description = {
@@ -100,7 +100,7 @@ return {
   },
   output_mode_echo = {
     en = "'Echo' Output",
-    en = "Mensajes de 'Echo'",
+    es = "Mensajes de 'Echo'",
     ru = "Вывод 'Echo'",
   },
   output_mode_error = {
@@ -294,7 +294,7 @@ return {
   },
   whisper_enabled_mutators = {
     en = "[Automated message] This lobby has the following mutators active",
-    en = "[Mensaje automático] Esta partida tiene las siguientes mutaciones",
+    es = "[Mensaje automático] Esta partida tiene las siguientes mutaciones",
   },
 
   disabled_reason_not_server = {
