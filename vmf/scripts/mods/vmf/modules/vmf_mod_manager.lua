@@ -16,6 +16,8 @@ local ERRORS = {
                                         "string, not %s.",
     mod_data_path_wrong_type = "[VMF Mod Manager] (new_mod) '%s': 'mod_data' (optional) should be a string, not %s.",
     mod_script_path_wrong_type = "[VMF Mod Manager] (new_mod) '%s': 'mod_script' should be a string, not %s.",
+    too_late_for_mod_creation = "[VMF Mod Manager] (new_mod) '%s': you can't create mods after vanilla mod manager " ..
+                                 "finishes loading mod bundles.",
     -- vmf.initialize_mod_data:
     mod_data_wrong_type = "[VMF Mod Manager] (new_mod) 'mod_data' initialization: mod_data file should return " ..
                            "table, not %s.",
@@ -70,6 +72,11 @@ function new_mod(mod_name, mod_resources)
   end
   if type(mod_resources.mod_script) ~= "string" then
     vmf:error(ERRORS.REGULAR.mod_script_path_wrong_type, mod_name, type(mod_resources.mod_localization))
+    return
+  end
+
+  if vmf.all_mods_were_loaded then
+    vmf:error(ERRORS.REGULAR.too_late_for_mod_creation, mod_name, type(mod_resources.mod_localization))
     return
   end
 
