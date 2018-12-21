@@ -37,6 +37,7 @@ function vmf_mod_object:init()
   dofile("scripts/mods/vmf/modules/ui/chat/chat_actions")
   dofile("scripts/mods/vmf/modules/ui/options/mod_options")
   dofile("scripts/mods/vmf/modules/vmf_options")
+  dofile("scripts/mods/vmf/modules/core/upvalues")
 
   if VT1 then
     dofile("scripts/mods/vmf/modules/core/mutators/mutators_manager")

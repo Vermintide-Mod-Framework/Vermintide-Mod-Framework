@@ -42,7 +42,7 @@ local _origs = {}
 -- ####################################################################################################################
 
 -- This will tell us if we already have the given function in our registry.
-local function is_orig_hooked(obj, method)
+local function vmf.is_orig_hooked(obj, method)
     local orig_registry = _origs
     if obj then
         if orig_registry[obj] and orig_registry[obj][method] then
@@ -56,15 +56,15 @@ end
 
 -- Since we replace the original function, we need to keep its reference around.
 -- This will grab the cached reference if we hooked it before, otherwise return the function.
-local function get_orig_function(obj, method)
+function vmf.get_orig_function(obj, method)
     if obj then
-        if is_orig_hooked(obj, method) then
+        if vmf.is_orig_hooked(obj, method) then
             return _origs[obj][method]
         else
             return obj[method]
         end
     else
-        if is_orig_hooked(obj, method) then
+        if vmf.is_orig_hooked(obj, method) then
             return _origs[method]
         else
             return rawget(_G, method)
@@ -200,7 +200,7 @@ end
 local function create_hook(mod, orig, obj, method, handler, func_name, hook_type)
     mod:info("(%s): Hooking '%s' from [%s] (Origin: %s)", func_name, method, obj or "_G", orig)
 
-    if not is_orig_hooked(obj, method) then
+    if not vmf.is_orig_hooked(obj, method) then
         create_internal_hook(orig, obj, method)
     end
 
@@ -297,7 +297,7 @@ local function generic_hook(mod, obj, method, handler, func_name)
         return
     end
 
-    local orig = get_orig_function(obj, method)
+    local orig = vmf.get_orig_function(obj, method)
     if type(orig) ~= "function" then
         mod:error("(%s): trying to hook %s (a %s), not a function.", func_name, method, type(orig))
         return
@@ -338,7 +338,7 @@ local function generic_hook_toggle(mod, obj, method, enabled_state)
         end
     end
 
-    local orig = get_orig_function(obj, method)
+    local orig = vmf.get_orig_function(obj, method)
 
     if _registry[mod][orig] then
         _registry[mod][orig].active = enabled_state
