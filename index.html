@@ -117,7 +117,7 @@
       name: 'Vermintide Mod Framework',
       repo: 'https://github.com/Vermintide-Mod-Framework/Vermintide-Mod-Framework/',
       logo: 'assets/vmf_logo_black.png',
-      coverpage: true,
+      coverpage: !window.localStorage.hideCoverpage,
       loadSidebar: true,
       loadNavbar: true,
       alias: {
@@ -160,6 +160,16 @@
             var selector = Docsify.dom.find('#theme-selector');
             selector.onclick = function(e) {
               setTheme(e.target.dataset.theme);
+            };
+          });
+        },
+        // Power the splash hider.
+        function (hook, vm) {
+          hook.doneEach(function () {
+            var checkbox = Docsify.dom.find('#hide-coverpage');
+            if (!checkbox) return;
+            checkbox.onclick = function (e) {
+              window.localStorage.hideCoverpage = checkbox.checked;
             };
           });
         },
