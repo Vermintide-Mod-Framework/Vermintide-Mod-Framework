@@ -111,13 +111,13 @@
     // Must set the theme BEFORE $docsify to avoid reflows/re-renders
     setTheme(window.localStorage.theme);
     // Docsify configuration.
-    var USER_REPO  = "Vermintide-Mod-Framework/vmf-docs";
+    var USER_REPO  = 'Vermintide-Mod-Framework/Vermintide-Mod-Framework';
     window.$docsify = {
-      //basePath: "https://raw.githubusercontent.com/wiki/" + USER_REPO + "/",
+      basePath: 'https://raw.githubusercontent.com/wiki/' + USER_REPO + '/',
       name: 'Vermintide Mod Framework',
-      repo: 'https://github.com/Vermintide-Mod-Framework/Vermintide-Mod-Framework/',
-      logo: 'assets/vmf_logo_black.png',
-      coverpage: !window.localStorage.hideCoverpage,
+      repo: 'https://github.com/' + USER_REPO,
+      logo: 'vmf_logo_black.png',
+      coverpage: window.localStorage.hideCoverpage !== 'true',
       loadSidebar: true,
       loadNavbar: true,
       alias: {
@@ -132,8 +132,9 @@
         // Add a footer with actions.
         function(hook, vm) {
           hook.beforeEach(function (markdown) {
-            var file  = vm.route.file;
-            var editUrl = 'https://github.com/Vermintide-Mod-Framework/vmf-docs/edit/master/' + file;
+            var file  = vm.route.file.replace(/\.md$/, '');
+            var editUrl = 'https://github.com/Vermintide-Mod-Framework/Vermintide-Mod-Framework/wiki/' + file + '/_edit';
+            https://github.com/Vermintide-Mod-Framework/Vermintide-Mod-Framework/wiki/safe-calls/_edit
             var issueQuery = '?title=' + encodeURIComponent(file) + '+Discussion'
             var issueUrl = 'https://github.com/Vermintide-Mod-Framework/vmf-docs/issues/new/' + issueQuery;
             var licenseBadge
@@ -170,6 +171,7 @@
             if (!checkbox) return;
             checkbox.onclick = function (e) {
               window.localStorage.hideCoverpage = checkbox.checked;
+              location.reload(); // Kludge to hide the cover page.
             };
           });
         },
