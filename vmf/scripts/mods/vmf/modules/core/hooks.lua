@@ -42,7 +42,7 @@ local _origs = {}
 -- ####################################################################################################################
 
 -- This will tell us if we already have the given function in our registry.
-local function vmf.is_orig_hooked(obj, method)
+local function is_orig_hooked(obj, method)
     local orig_registry = _origs
     if obj then
         if orig_registry[obj] and orig_registry[obj][method] then
@@ -58,13 +58,13 @@ end
 -- This will grab the cached reference if we hooked it before, otherwise return the function.
 function vmf.get_orig_function(obj, method)
     if obj then
-        if vmf.is_orig_hooked(obj, method) then
+        if is_orig_hooked(obj, method) then
             return _origs[obj][method]
         else
             return obj[method]
         end
     else
-        if vmf.is_orig_hooked(obj, method) then
+        if is_orig_hooked(obj, method) then
             return _origs[method]
         else
             return rawget(_G, method)
@@ -200,7 +200,7 @@ end
 local function create_hook(mod, orig, obj, method, handler, func_name, hook_type)
     mod:info("(%s): Hooking '%s' from [%s] (Origin: %s)", func_name, method, obj or "_G", orig)
 
-    if not vmf.is_orig_hooked(obj, method) then
+    if not is_orig_hooked(obj, method) then
         create_internal_hook(orig, obj, method)
     end
 

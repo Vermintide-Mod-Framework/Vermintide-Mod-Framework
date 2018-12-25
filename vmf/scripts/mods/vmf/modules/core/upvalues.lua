@@ -54,11 +54,13 @@ end
 -- @param i Upvalue index
 -- @returns The index, key and value of the next upvalue.
 function VMFMod:upvalue_next(obj, method, i)
-  local func, i = resolve_function(self, "upvalue_next", obj, method, i)
+  local func
+  func, i = resolve_function(self, "upvalue_next", obj, method, i)
 
   if not func
   or vmf.check_wrong_argument_type(self, "upvalue_next", "i", i, "nil", "number")
   then return end
+
 
   return upvalue_next(func, i)
 end
@@ -68,10 +70,10 @@ end
 -- For use in Lua's `for in` loop structure.
 -- @param name The name of the upvalue.
 -- @returns The `upvalue_next` function, func and nil.
-  function VMFMod:upvalue_iterate(obj, method)
-    local func = resolve_function(self, "upvalue_iterate", obj, method)
+function VMFMod:upvalue_iterate(obj, method)
+  local func = resolve_function(self, "upvalue_iterate", obj, method)
 
-    return upvalue_next, func, nil
+  return upvalue_next, func, nil
 end
 
 
@@ -82,6 +84,7 @@ function VMFMod:upvalue_table(obj, method)
 
   if not func
   then return end
+
 
   local t = {}
   for _, k, v in upvalue_iterate(func) do
@@ -95,11 +98,13 @@ end
 -- @param name The name of the upvalue.
 -- @returns The current value of the upvalue.
 function VMFMod:upvalue_get(obj, method, upvalue_name)
-  local func, upvalue_name = resolve_function(self, "upvalue_get", obj, method, upvalue_name)
+  local func
+  func, upvalue_name = resolve_function(self, "upvalue_get", obj, method, upvalue_name)
 
   if not func
   or vmf.check_wrong_argument_type(self, "upvalue_get", "upvalue_name", upvalue_name, "string")
   then return end
+
 
   for _, k, v in upvalue_iterate(func) do
     if upvalue_name == k then
@@ -115,15 +120,16 @@ end
 -- @param value The new value.
 -- @returns The name of the upvalue if it was changed and nil otherwise.
 function VMFMod:upvalue_set(obj, method, upvalue_name, new_value)
-  local func, upvalue_name, new_value = resolve_function(self, "upvalue_set", obj, method, upvalue_name, new_value)
-
+  local func
+  func, upvalue_name, new_value = resolve_function(self, "upvalue_set", obj, method, upvalue_name, new_value)
 
   if not func
   or vmf.check_wrong_argument_type(self, "upvalue_set", "func", func, "function")
   or vmf.check_wrong_argument_type(self, "upvalue_set", "upvalue_name", upvalue_name, "string")
   then return end
 
-  for i, k, v in upvalue_iterate(func) do
+
+  for i, k, _ in upvalue_iterate(func) do
     if upvalue_name == k then
       return debug.setupvalue(func, i, new_value)
     end
