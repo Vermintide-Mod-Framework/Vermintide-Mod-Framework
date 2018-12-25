@@ -95,6 +95,7 @@ function vmf_mod_object:on_reload()
   vmf.remove_custom_views()
   vmf.unload_all_resource_packages()
   vmf.hooks_unload()
+  vmf.upvalues_unload()
   vmf.reset_guis()
 end
 
