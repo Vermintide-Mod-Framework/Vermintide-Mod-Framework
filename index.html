@@ -116,7 +116,7 @@
       basePath: 'https://raw.githubusercontent.com/wiki/' + USER_REPO + '/',
       name: 'Vermintide Mod Framework',
       repo: 'https://github.com/' + USER_REPO,
-      logo: 'vmf_logo_black.png',
+      logo: 'vmf_logo_black.png', // Must be hosted on the wiki, because that's where Docsify looks.
       coverpage: window.localStorage.hideCoverpage !== 'true',
       loadSidebar: true,
       loadNavbar: true,
@@ -136,7 +136,7 @@
             var editUrl = 'https://github.com/Vermintide-Mod-Framework/Vermintide-Mod-Framework/wiki/' + file + '/_edit';
             https://github.com/Vermintide-Mod-Framework/Vermintide-Mod-Framework/wiki/safe-calls/_edit
             var issueQuery = '?title=' + encodeURIComponent(file) + '+Discussion'
-            var issueUrl = 'https://github.com/Vermintide-Mod-Framework/vmf-docs/issues/new/' + issueQuery;
+            var issueUrl = 'https://github.com/Vermintide-Mod-Framework/Vermintide-Mod-Framework/issues/new/' + issueQuery;
             var licenseBadge
             = '<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">'
             +   '<img style="vertical-align:middle" alt="Creative Commons License" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" />'
@@ -145,7 +145,7 @@
             var footerHtml = [
               '<a href="' + editUrl  + '">:memo: Edit</a>',
               '<a href="' + issueUrl + '">:speech\\_balloon: Discuss</a>',
-              'Last modified: _{docsify-updated}_\n',
+              // 'Last modified: _{docsify-updated}_\n', // Doesn't work with the wiki as the basePath
               licenseBadge,
             ];
             return (
