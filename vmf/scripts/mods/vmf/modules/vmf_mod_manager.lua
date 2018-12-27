@@ -52,7 +52,7 @@ local function resolve_resource(mod, error_prefix_data, resource, resource_value
   if type_value == "string" then
     return vmf.safe_call_dofile(mod, error_prefix_data, resource_value)
   elseif type_value == "function" then
-    return vmf.safe_call(mod, error_prefix_data, resource_value)
+    return vmf.safe_call(mod, error_prefix_data, resource_value, mod)
   elseif type_value == "table" then
     return true, type_value
   end
