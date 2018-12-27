@@ -1,11 +1,11 @@
 local vmf = get_mod("VMF")
 
-local function create_test_mutator(name, mod_data)
+local function create_test_mutator(mod_name, mod_data)
   return new_mod(mod_name, {
     mod_data = mod_data,
     mod_script = function()
-      local mod = get_mod(name)
-      local readable_name = mod_data.name or name
+      local mod = get_mod(mod_name)
+      local readable_name = mod_data.name or mod_name
       function mod.on_enabled(init_call)
         mod:echo("%s on_enabled(%s)", readable_name, init_call and "init" or "")
       end
