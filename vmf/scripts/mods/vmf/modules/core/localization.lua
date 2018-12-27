@@ -71,11 +71,11 @@ end
 -- ##### VMF internal functions and variables #########################################################################
 -- ####################################################################################################################
 
-vmf.load_mod_localization = function (mod, localization_table)
+vmf.initialize_mod_localization = function (mod, localization_table)
 
   if type(localization_table) ~= "table" then
     mod:error("(localization): localization file should return table")
-    return
+    return false
   end
 
   if _localization_database[mod:get_name()] then
@@ -83,6 +83,8 @@ vmf.load_mod_localization = function (mod, localization_table)
   end
 
   _localization_database[mod:get_name()] = localization_table
+
+  return true
 end
 
 -- Localize without parameters and return nil instead of <text_id> if nothing found
@@ -101,4 +103,4 @@ end
 -- ####################################################################################################################
 
 local localization_table = vmf:dofile("localization/vmf")
-vmf.load_mod_localization(vmf, localization_table)
+vmf.initialize_mod_localization(vmf, localization_table)
