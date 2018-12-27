@@ -29,17 +29,11 @@ function VMFMod:load_package(package_name, callback, sync)
     return
   end
 
-  local mod_handle = self:get_internal_data("mod_handle")
-  if not mod_handle then
-    self:error("Failed to get mod handle. Package management is not available.")
-    return
-  end
-
   if not _loaded_packages[self] then
     _loaded_packages[self] = {}
   end
 
-  local resource_package = Mod.resource_package(mod_handle, package_name)
+  local resource_package = Mod.resource_package(self:get_internal_data("mod_handle"), package_name)
   if not resource_package then
     self:error("Could not find package '%s'.", package_name)
     return
