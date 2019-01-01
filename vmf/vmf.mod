@@ -1,4 +1,4 @@
-local ret = {
+return {
   run = function()
     return dofile("scripts/mods/vmf/vmf_loader")
   end,
@@ -6,4 +6,3 @@ local ret = {
     "resource_packages/vmf"
   }
 }
-return ret
