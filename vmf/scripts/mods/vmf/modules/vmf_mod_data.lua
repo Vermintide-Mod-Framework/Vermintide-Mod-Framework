@@ -35,6 +35,9 @@ function VMFMod:init(mod_name)
   set_internal_data(self, "workshop_id",   vanilla_mod_data.id)
   set_internal_data(self, "workshop_name", vanilla_mod_data.name)
   set_internal_data(self, "mod_handle",    vanilla_mod_data.handle)
+
+  print(string.format("Init VMF mod '%s' [workshop_name: '%s', workshop_id: %s]", mod_name, vanilla_mod_data.name,
+                                                                                   vanilla_mod_data.id))
 end
 
 -- #####################################################################################################################
