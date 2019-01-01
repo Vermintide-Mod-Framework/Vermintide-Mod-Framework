@@ -163,11 +163,6 @@ function vmf.initialize_mod_data(mod, mod_data)
   vmf.set_internal_data(mod, "is_mutator",      mod_data.is_mutator)
   vmf.set_internal_data(mod, "allow_rehooking", mod_data.allow_rehooking)
 
-  local vanilla_mod_data = Managers.mod._mods[Managers.mod._mod_load_index]
-  vmf.set_internal_data(mod, "workshop_id",   vanilla_mod_data.id)
-  vmf.set_internal_data(mod, "workshop_name", vanilla_mod_data.name)
-  vmf.set_internal_data(mod, "mod_handle",    vanilla_mod_data.handle)
-
   -- Register mod as mutator @TODO: calling this after options initialization would be better, I guess?
   if mod_data.is_mutator then
     vmf.register_mod_as_mutator(mod, mod_data.mutator_settings)
