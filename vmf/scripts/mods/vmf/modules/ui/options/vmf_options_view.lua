@@ -3594,7 +3594,8 @@ VMFOptionsView.callback_draw_numeric_menu = function (self, widget_content)
 
       -- Lua, pls! Sometimes "tostring" returns something like "1337.5999999999999" instead of "1337.6",
       -- so I have to convert number to string this way
-      new_value = new_value_number .. ""
+      -- UPD(bi) 01.01.19 I commented out following string. Rething this whole block later. Seems like it can be just removed.
+      -- new_value = new_value_number .. ""
     end
   else
     -- if entered string is not convertable, change its color to red
