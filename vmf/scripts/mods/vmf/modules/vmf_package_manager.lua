@@ -1,10 +1,58 @@
 local vmf = get_mod("VMF")
 
-local NOOP = function() end
-
+local _packages = {}
 local _queued_packages = {}
-local _loading_package = nil
-local _loaded_packages = {}
+
+local ERRORS = {
+  REGULAR = {
+    -- check_vt1:
+    cant_use_vmf_package_manager_in_vt1 = "[VMF Package Manager] (%s): you can't use VMF package manager in VT1 " ..
+                                           "because VT1 mods don't support more than 1 resource package.",
+    -- VMFMod:load_package:
+    package_already_loaded = "[VMF Package Manager] (load_package): package '%s' has already been loaded.",
+    package_not_found = "[VMF Package Manager] (load_package): could not find package '%s'.",
+    package_already_queued = "[VMF Package Manager] (load_package): package '%s' is already queued for loading.",
+    -- VMFMod:unload_package:
+    package_not_loaded = "[VMF Package Manager] (unload_package): package '%s' has not been loaded.",
+    cant_unload_loading_package = "[VMF Package Manager] (unload_package): package '%s' can't be unloaded because " ..
+                                   "it's currently loading."
+
+  },
+  PREFIX = {
+    package_loaded_callback = "[VMF Package Manager] '%s' package loaded callback execution"
+  }
+}
+
+local WARNINGS = {
+  force_unloading_package = "[VMF Package Manager] Force-unloading package '%s'. Please make sure to properly " ..
+                             "release packages when the mod is unloaded",
+  still_loading_package = "[VMF Package Manager] Still loading package '%s'. Memory leaks may occur when unloading " ..
+                           "while a package is loading."
+}
+
+-- #####################################################################################################################
+-- ##### Local functions ###############################################################################################
+-- #####################################################################################################################
+
+local function check_vt1(mod, function_name)
+  if VT1 then
+    mod:error(ERRORS.REGULAR.cant_use_vmf_package_manager_in_vt1, function_name)
+    return true
+  end
+end
+
+
+-- Brings the resources in the loaded package in game and executes callback.
+local function flush_package(package_name)
+  local package_data = _packages[package_name]
+  package_data.resource_package:flush()
+  package_data.status = "loaded"
+
+  local callback = package_data.callback
+  if callback then
+    vmf.safe_call_nr(package_data.mod, {ERRORS.PREFIX.package_loaded_callback, package_name}, callback, package_name)
+  end
+end
 
 -- #####################################################################################################################
 -- ##### VMFMod ########################################################################################################
@@ -17,50 +65,49 @@ local _loaded_packages = {}
   * sync         [boolean] : (optional) load the packages synchronously, freezing the game until it is loaded
 --]]
 function VMFMod:load_package(package_name, callback, sync)
-  if vmf.check_wrong_argument_type(self, "load_package", "package_name", package_name, "string") or
+  if check_vt1(self, "load_package") or
+     vmf.check_wrong_argument_type(self, "load_package", "package_name", package_name, "string") or
      vmf.check_wrong_argument_type(self, "load_package", "callback", callback, "function", "nil") or
      vmf.check_wrong_argument_type(self, "load_package", "sync", sync, "boolean", "nil")
   then
     return
   end
 
-  if self:has_package_loaded(package_name) then
-    self:error("Package '%s' has already been loaded", package_name)
+  if self:package_status(package_name) == "loaded" then
+    self:error(ERRORS.REGULAR.package_already_loaded, package_name)
     return
-  end
-
-  if not _loaded_packages[self] then
-    _loaded_packages[self] = {}
   end
 
   local resource_package = Mod.resource_package(self:get_internal_data("mod_handle"), package_name)
   if not resource_package then
-    self:error("Could not find package '%s'.", package_name)
+    self:error(ERRORS.REGULAR.package_not_found, package_name)
     return
   end
 
-  local is_loading = self:is_package_loading(package_name)
+  -- If package is_already_queued it means it was already loaded asynchroniously before, but not fully loaded yet.
+  -- It can have "queued" or "loading" status. Don't redefine data for this package.
+  local is_already_queued = _packages[package_name] ~= nil
+  if not is_already_queued then
+    _packages[package_name] = {
+      status           = "queued",
+      resource_package = resource_package,
+      callback         = callback,
+      mod              = self
+    }
+  end
 
   if sync then
-    if not is_loading then
+    -- If package wasn't loaded asynchroniously before and is not already loading.
+    if _packages[package_name].status == "queued" then
       resource_package:load()
     end
-
-    resource_package:flush()
-
-    _loaded_packages[self][package_name] = resource_package
+    flush_package(package_name)
   else
-    if is_loading then
-      self:error("Package '%s' is currently loading", package_name)
-      return
+    if is_already_queued then
+      self:error(ERRORS.REGULAR.package_already_queued, package_name)
+    else
+      table.insert(_queued_packages, package_name)
     end
-
-    table.insert(_queued_packages, {
-      mod = self,
-      package_name = package_name,
-      resource_package = resource_package,
-      callback = callback or NOOP,
-    })
   end
 end
 
@@ -70,56 +117,49 @@ end
   * package_name [string]: package name. needs to be the full path to the `.package` file without the extension
 --]]
 function VMFMod:unload_package(package_name)
-  if vmf.check_wrong_argument_type(self, "unload_package", "package_name", package_name, "string") then
+  if check_vt1(self, "unload_package") or
+     vmf.check_wrong_argument_type(self, "unload_package", "package_name", package_name, "string")
+  then
     return
   end
 
-  if not self:has_package_loaded(package_name) then
-    self:error("Package '%s' has not been loaded", package_name)
+  local package_status = self:package_status(package_name)
+  if not package_status then
+    self:error(ERRORS.REGULAR.package_not_loaded, package_name)
     return
   end
 
-  local resource_package = _loaded_packages[self][package_name]
-
-  Mod.release_resource_package(resource_package)
-  _loaded_packages[self][package_name] = nil
-end
-
-
---[[
-  Returns whether the mod package is currently being loaded.
-  * package_name [string]: package name. needs to be the full path to the `.package` file without the extension
---]]
-function VMFMod:is_package_loading(package_name)
-  if vmf.check_wrong_argument_type(self, "is_package_loading", "package_name", package_name, "string") then
-    return
-  end
-
-  if _loading_package and _loading_package.mod == self and _loading_package.package_name == package_name then
-    return true
-  end
-
-  for _, queued_package in ipairs(_queued_packages) do
-    if queued_package.mod == self and queued_package.package_name == package_name then
-      return true
+  if package_status == "queued" then
+    for i, queued_package_name in ipairs(_queued_packages) do
+      if package_name == queued_package_name then
+        table.remove(_queued_packages, i)
+        break
+      end
     end
+  elseif package_status == "loading" then
+    self:error(ERRORS.REGULAR.cant_unload_loading_package, package_name)
+    return
+  elseif package_status == "loaded" then
+    Mod.release_resource_package(_packages[package_name].resource_package)
   end
 
-  return false
+  _packages[package_name] = nil
 end
 
 
 --[[
-  Returns whether the mod package has been fully loaded.
+  Returns package status string.
   * package_name [string]: package name. needs to be the full path to the `.package` file without the extension
 --]]
-function VMFMod:has_package_loaded(package_name)
-  if vmf.check_wrong_argument_type(self, "has_package_loaded", "package_name", package_name, "string") then
+function VMFMod:package_status(package_name)
+  if check_vt1(self, "package_status") or
+     vmf.check_wrong_argument_type(self, "package_status", "package_name", package_name, "string")
+  then
     return
   end
 
-  local loaded_packages = _loaded_packages[self]
-  return loaded_packages and loaded_packages[package_name] ~= nil
+  local package_data = _packages[package_name]
+  return package_data and package_data.status
 end
 
 -- #####################################################################################################################
@@ -128,51 +168,34 @@ end
 
 -- Loads queued packages one at a time
 function vmf.update_package_manager()
-  local loading_package = _loading_package
-  if loading_package and loading_package.resource_package:has_loaded() then
-    loading_package.resource_package:flush()
+  local queued_package_name = _queued_packages[1]
+  if queued_package_name then
+    local package_data = _packages[queued_package_name]
+    if package_data.status == "loading" and package_data.resource_package:has_loaded() then
+      flush_package(queued_package_name)
+      table.remove(_queued_packages, 1)
+    end
 
-    _loaded_packages[loading_package.mod][loading_package.package_name] = loading_package.resource_package
-    _loading_package = nil
-
-    -- The callback has to be called last, so that any calls to `has_package_loaded` or `is_package_loading`
-    -- return the correct value
-    vmf.safe_call_nr(loading_package.mod, {"'%s' package loaded callback", loading_package.package_name},
-                      loading_package.callback, loading_package.package_name)
-  end
-
-  local queued_package = _queued_packages[1]
-  if queued_package and not _loading_package then
-    _loading_package = queued_package
-    table.remove(_queued_packages, 1)
-
-    _loading_package.resource_package:load()
+    if package_data.status == "queued" then
+      package_data.resource_package:load()
+      package_data.status = "loading"
+    end
   end
 end
 
 
--- Forcefully unloads all mods and cleans the queue.
+-- Forcefully unloads all not unloaded pacakges.
 function vmf.unload_all_resource_packages()
-  for mod, packages in pairs(_loaded_packages) do
-    for package_name in pairs(packages) do
-      mod:warning(
-        "Force-unloading package '%s'. Please make sure to properly release packages when the mod is unloaded",
-        package_name
-      )
-      mod:unload_package(package_name)
+  for package_name, package_data in pairs(_packages) do
+    local package_status = package_data.status
+
+    if package_status == "loaded" then
+      package_data.mod:warning(WARNINGS.force_unloading_package, package_name)
+      package_data.mod:unload_package(package_name)
     end
-  end
 
-  _queued_packages = {}
-
-  if _loading_package then
-    _loading_package.mod:warning(
-      "Still loading package '%s'. Memory leaks may occur when unloading while a package is loading.",
-      _loading_package.package_name
-    )
-
-    _loading_package.callback = function(package_name)
-      _loading_package.mod:unload_package(package_name)
+    if package_status == "loading" then
+      package_data.mod:warning(WARNINGS.still_loading_package, package_name)
     end
   end
 end
