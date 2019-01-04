@@ -94,7 +94,7 @@ function VMFMod:load_package(package_name, callback, sync)
     return
   end
 
-  -- If package is_already_queued it means it was already loaded asynchroniously before, but not fully loaded yet.
+  -- If package is_already_queued it means it was already loaded asynchronously before, but not fully loaded yet.
   -- It can have "queued" or "loading" status. Don't redefine data for this package.
   local is_already_queued = _packages[package_name] ~= nil
   if not is_already_queued then
