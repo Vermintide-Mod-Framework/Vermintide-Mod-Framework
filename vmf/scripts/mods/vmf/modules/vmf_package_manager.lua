@@ -54,6 +54,16 @@ local function flush_package(package_name)
   end
 end
 
+
+local function remove_package_from_queue(package_name)
+  for i, queued_package_name in ipairs(_queued_packages) do
+    if package_name == queued_package_name then
+      table.remove(_queued_packages, i)
+      return
+    end
+  end
+end
+
 -- #####################################################################################################################
 -- ##### VMFMod ########################################################################################################
 -- #####################################################################################################################
@@ -101,6 +111,9 @@ function VMFMod:load_package(package_name, callback, sync)
     if _packages[package_name].status == "queued" then
       resource_package:load()
     end
+    if is_already_queued then
+      remove_package_from_queue(package_name)
+    end
     flush_package(package_name)
   else
     if is_already_queued then
@@ -130,12 +143,7 @@ function VMFMod:unload_package(package_name)
   end
 
   if package_status == "queued" then
-    for i, queued_package_name in ipairs(_queued_packages) do
-      if package_name == queued_package_name then
-        table.remove(_queued_packages, i)
-        break
-      end
-    end
+    remove_package_from_queue(package_name)
   elseif package_status == "loading" then
     self:error(ERRORS.REGULAR.cant_unload_loading_package, package_name)
     return
