@@ -68,6 +68,7 @@ local function is_view_active_for_current_level(view_name)
   end
 end
 
+
 -- @THROWS_ERRORS
 local function inject_view(view_name)
   if not is_view_active_for_current_level(view_name) then
