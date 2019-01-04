@@ -42,7 +42,7 @@ local function check_vt1(mod, function_name)
 end
 
 
--- Brings the resources in the loaded package in game and executes callback.
+-- Brings resources of the loaded package in game and executes callback.
 local function flush_package(package_name)
   local package_data = _packages[package_name]
   package_data.resource_package:flush()
@@ -71,7 +71,7 @@ end
 --[[
   Loads a mod package.
   * package_name [string]  : package name. needs to be the full path to the `.package` file without the extension
-  * callback     [function]: (optional) callback for asynchronous loading
+  * callback     [function]: (optional) callback for when loading is done
   * sync         [boolean] : (optional) load the packages synchronously, freezing the game until it is loaded
 --]]
 function VMFMod:load_package(package_name, callback, sync)
@@ -107,7 +107,7 @@ function VMFMod:load_package(package_name, callback, sync)
   end
 
   if sync then
-    -- If package wasn't loaded asynchroniously before and is not already loading.
+    -- Load resource package if it's not already loading.
     if _packages[package_name].status == "queued" then
       resource_package:load()
     end
@@ -126,7 +126,7 @@ end
 
 
 --[[
-  Unlaods a loaded mod package.
+  Unloads a loaded mod package.
   * package_name [string]: package name. needs to be the full path to the `.package` file without the extension
 --]]
 function VMFMod:unload_package(package_name)
@@ -174,7 +174,7 @@ end
 -- ##### VMF internal functions and variables ##########################################################################
 -- #####################################################################################################################
 
--- Loads queued packages one at a time
+-- Loads queued packages one at a time.
 function vmf.update_package_manager()
   local queued_package_name = _queued_packages[1]
   if queued_package_name then
@@ -192,7 +192,7 @@ function vmf.update_package_manager()
 end
 
 
--- Forcefully unloads all not unloaded pacakges.
+-- Forcefully unloads all not unloaded packages.
 function vmf.unload_all_resource_packages()
   for package_name, package_data in pairs(_packages) do
     local package_status = package_data.status
