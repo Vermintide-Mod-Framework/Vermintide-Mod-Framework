@@ -25,12 +25,12 @@ end
   * callback [function]: (optional) function to execute when the operation finished
 --]]
 function VMFMod:save_file(filename, data, cloud, callback)
-  if vmf.check_wrong_argument_type(self, "load_package", "filename", filename, "string") or
+  if vmf.check_wrong_argument_type(self, "save_file", "filename", filename, "string") or
      vmf.check_wrong_argument_type(
-       self, "load_package", "data", data, "number", "boolean", "string", "table", "userdata"
+       self, "save_file", "data", data, "number", "boolean", "string", "table", "userdata"
      ) or
-     vmf.check_wrong_argument_type(self, "load_package", "cloud", cloud, "boolean", "nil") or
-     vmf.check_wrong_argument_type(self, "load_package", "callback", callback, "function", "nil")
+     vmf.check_wrong_argument_type(self, "save_file", "cloud", cloud, "boolean", "nil") or
+     vmf.check_wrong_argument_type(self, "save_file", "callback", callback, "function", "nil")
   then
     return
   end
@@ -54,9 +54,9 @@ end
   * callback [function]: (optional) function to execute when the operation finished
 --]]
 function VMFMod:load_file(filename, cloud, callback)
-  if vmf.check_wrong_argument_type(self, "load_package", "filename", filename, "string") or
-     vmf.check_wrong_argument_type(self, "load_package", "cloud", cloud, "boolean", "nil") or
-     vmf.check_wrong_argument_type(self, "load_package", "callback", callback, "function")
+  if vmf.check_wrong_argument_type(self, "load_file", "filename", filename, "string") or
+     vmf.check_wrong_argument_type(self, "load_file", "cloud", cloud, "boolean", "nil") or
+     vmf.check_wrong_argument_type(self, "load_file", "callback", callback, "function")
   then
     return
   end
@@ -81,8 +81,8 @@ end
   * callback [function]: (optional) function to execute when the operation finished
 --]]
 function VMFMod:delete_file(filename, callback)
-  if vmf.check_wrong_argument_type(self, "load_package", "filename", filename, "string") or
-     vmf.check_wrong_argument_type(self, "load_package", "callback", callback, "function", "nil")
+  if vmf.check_wrong_argument_type(self, "delete_file", "filename", filename, "string") or
+     vmf.check_wrong_argument_type(self, "delete_file", "callback", callback, "function", "nil")
   then
     return
   end
@@ -109,8 +109,8 @@ end
   * callback [function]: (optional) function to execute when the operation finished
 --]]
 function VMFMod:forget_file(filename, callback)
-  if vmf.check_wrong_argument_type(self, "load_package", "filename", filename, "string") or
-     vmf.check_wrong_argument_type(self, "load_package", "callback", callback, "function", "nil")
+  if vmf.check_wrong_argument_type(self, "forget_file", "filename", filename, "string") or
+     vmf.check_wrong_argument_type(self, "forget_file", "callback", callback, "function", "nil")
   then
     return
   end
