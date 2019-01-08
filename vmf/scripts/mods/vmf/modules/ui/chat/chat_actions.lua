@@ -64,7 +64,7 @@ vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_in
   local command_executed = false
 
   -- if ENTER was pressed
-  if Keyboard.pressed(Keyboard.button_index("enter")) then
+  if Keyboard.pressed(Keyboard.button_index("enter")) or Keyboard.pressed(Keyboard.button_index("numpad enter")) then
 
     -- chat history
     if _chat_history_enabled

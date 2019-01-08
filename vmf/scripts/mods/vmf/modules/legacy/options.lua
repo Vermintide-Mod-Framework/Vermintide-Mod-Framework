@@ -59,7 +59,7 @@ vmf.initialize_mod_options_legacy = function (mod, widgets_definition)
     local parent_widget_stack        = {}
     local current_widget_index_stack = {}
 
-    while new_widget_index <= 256 do
+    while new_widget_index <= 1024 do
 
       -- if 'nil', we reached the end of the current level widgets list and need to go up
       if current_widget then
@@ -162,7 +162,7 @@ vmf.initialize_mod_options_legacy = function (mod, widgets_definition)
       end
     end
 
-    if new_widget_index == 257 then
+    if new_widget_index == 1025 then
       mod:error("(vmf_options_view) The limit of 256 options widgets was reached. You can't add any more widgets.")
     end
   end

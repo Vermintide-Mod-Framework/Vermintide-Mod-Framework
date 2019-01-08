@@ -12,10 +12,6 @@ local ERRORS = {
     mod_name_wrong_type = "[VMF Mod Manager] (new_mod): first argument ('mod_name') should be a string, not %s.",
     mod_resources_wrong_type = "[VMF Mod Manager] (new_mod) '%s': second argument ('mod_resources') should be a " ..
                                 "table, not %s.",
-    mod_localization_path_wrong_type = "[VMF Mod Manager] (new_mod) '%s': 'mod_localization' (optional) should be a " ..
-                                        "string, not %s.",
-    mod_data_path_wrong_type = "[VMF Mod Manager] (new_mod) '%s': 'mod_data' (optional) should be a string, not %s.",
-    mod_script_path_wrong_type = "[VMF Mod Manager] (new_mod) '%s': 'mod_script' should be a string, not %s.",
     too_late_for_mod_creation = "[VMF Mod Manager] (new_mod) '%s': you can't create mods after vanilla mod manager " ..
                                  "finishes loading mod bundles.",
     -- vmf.initialize_mod_data:
@@ -49,6 +45,49 @@ local function create_mod(mod_name)
   return mod
 end
 
+-- Resolves a value. If it's a function, executes it. If it's a string, loads the file at that path.
+local function resolve_resource(mod, error_prefix_data, resource, resource_value)
+  local type_value = type(resource_value)
+
+  if type_value == "string" then
+    return vmf.safe_call_dofile(mod, error_prefix_data, resource_value)
+  elseif type_value == "function" then
+    return vmf.safe_call(mod, error_prefix_data, resource_value, mod)
+  elseif type_value == "table" then
+    return true, type_value
+  end
+
+  mod:warning("%s: 'mod_%s' (optional) should be a string, function or table; not %s",
+              error_prefix_data, resource, type_value)
+  return false
+end
+
+local function load_mod_resource(mod, mod_resources, resource)
+  local error_prefix_data = ERRORS.PREFIX["mod_" .. resource .. "_initialization"]
+  local resource_value = mod_resources["mod_" .. resource]
+
+  -- All resources can be optionally be nil.
+  if resource_value == nil then
+    return true
+  end
+
+  -- Resolve the value and obtain the result
+  local success, return_value = resolve_resource(mod, error_prefix_data, resource, resource_value)
+
+  -- Could not resolve the file. An error will already have been printed.
+  if not success then
+    return false
+  end
+
+  -- Check if there's a VMF initializator for this resource, and execute it if it exists.
+  local vmf_initializator = vmf["initialize_mod_" .. resource]
+  if not vmf_initializator then
+    return true
+  end
+
+  return vmf_initializator(mod, return_value)
+end
+
 -- #####################################################################################################################
 -- ##### Public functions ##############################################################################################
 -- #####################################################################################################################
@@ -62,21 +101,9 @@ function new_mod(mod_name, mod_resources)
     vmf:error(ERRORS.REGULAR.mod_resources_wrong_type, mod_name, type(mod_resources))
     return
   end
-  if type(mod_resources.mod_localization) ~= "string" and type(mod_resources.mod_localization) ~= "nil" then
-    vmf:error(ERRORS.REGULAR.mod_localization_path_wrong_type, mod_name, type(mod_resources.mod_localization))
-    return
-  end
-  if type(mod_resources.mod_data) ~= "string" and type(mod_resources.mod_data) ~= "nil" then
-    vmf:error(ERRORS.REGULAR.mod_data_path_wrong_type, mod_name, type(mod_resources.mod_localization))
-    return
-  end
-  if type(mod_resources.mod_script) ~= "string" then
-    vmf:error(ERRORS.REGULAR.mod_script_path_wrong_type, mod_name, type(mod_resources.mod_localization))
-    return
-  end
 
   if vmf.all_mods_were_loaded then
-    vmf:error(ERRORS.REGULAR.too_late_for_mod_creation, mod_name, type(mod_resources.mod_localization))
+    vmf:error(ERRORS.REGULAR.too_late_for_mod_creation, mod_name)
     return
   end
 
@@ -86,28 +113,13 @@ function new_mod(mod_name, mod_resources)
     return
   end
 
-  -- Load localization data file
-  if mod_resources.mod_localization then
-    local success, localization_table = vmf.safe_call_dofile(mod, ERRORS.PREFIX.mod_localization_initialization,
-                                                              mod_resources.mod_localization)
-    if success then
-      vmf.load_mod_localization(mod, localization_table) -- @TODO: return here if not sucessful? rename to "initialize_"
-    else
-      return
-    end
-  end
-
-  -- Load mod data file
-  if mod_resources.mod_data then
-    local success, mod_data_table = vmf.safe_call_dofile(mod, ERRORS.PREFIX.mod_data_initialization,
-                                                          mod_resources.mod_data)
-    if success and not vmf.initialize_mod_data(mod, mod_data_table) then
-      return
-    end
-  end
-
-  -- Load mod
-  if not vmf.safe_call_dofile(mod, ERRORS.PREFIX.mod_script_initialization, mod_resources.mod_script) then
+  -- Load mod components: localization, data and script. NOTE: Order here is important.
+  if not (
+    load_mod_resource(mod, mod_resources, "localization") and
+    load_mod_resource(mod, mod_resources, "data") and
+    load_mod_resource(mod, mod_resources, "script") -- @TODO: Check that this isn't a table.
+  )
+  then
     return
   end
 
@@ -115,6 +127,8 @@ function new_mod(mod_name, mod_resources)
   if mod:get_internal_data("is_togglable") then
     vmf.initialize_mod_state(mod)
   end
+
+  return mod
 end
 
 
@@ -148,14 +162,6 @@ function vmf.initialize_mod_data(mod, mod_data)
   vmf.set_internal_data(mod, "is_togglable",    mod_data.is_togglable or mod_data.is_mutator)
   vmf.set_internal_data(mod, "is_mutator",      mod_data.is_mutator)
   vmf.set_internal_data(mod, "allow_rehooking", mod_data.allow_rehooking)
-
-  local mod_manager = Managers.mod
-  local current_mod_load_index = mod_manager._mod_load_index
-  if current_mod_load_index then
-    vmf.set_internal_data(mod, "mod_handle", mod_manager._mods[current_mod_load_index].handle)
-  else
-    mod:warning("Could not determine current mod load index. Package management won't be available for this mod.")
-  end
 
   -- Register mod as mutator @TODO: calling this after options initialization would be better, I guess?
   if mod_data.is_mutator then

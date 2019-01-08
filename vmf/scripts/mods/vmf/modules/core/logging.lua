@@ -78,9 +78,9 @@ function VMFMod:echo(message, ...)
     log_message(self, "echo", message, ...)
   end
 end
-function VMFMod:echo_localized(message, ...)
+function VMFMod:echo_localized(localization_id, ...)
   if _logging_settings.echo.enabled then
-    log_message(self, "echo", self:localize(message, ...))
+    log_message(self, "echo", self:localize(localization_id, ...))
   end
 end
 

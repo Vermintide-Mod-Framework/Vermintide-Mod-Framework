@@ -68,6 +68,7 @@ local function is_view_active_for_current_level(view_name)
   end
 end
 
+
 -- @THROWS_ERRORS
 local function inject_view(view_name)
   if not is_view_active_for_current_level(view_name) then
@@ -114,7 +115,7 @@ end
 
 local function remove_injected_views(on_reload)
   -- These elements should be removed only on_reload, because, otherwise, they will be deleted automatically.
-  if on_reload and _ingame_ui then
+  if on_reload then
     -- If some custom view is active, close it.
     if _views_data[_ingame_ui.current_view] then
       _ingame_ui:handle_transition("exit_menu")
@@ -350,7 +351,9 @@ end)
 -- #####################################################################################################################
 
 function vmf.remove_custom_views()
-  remove_injected_views(true)
+  if _ingame_ui then
+    remove_injected_views(true)
+  end
 end
 
 
