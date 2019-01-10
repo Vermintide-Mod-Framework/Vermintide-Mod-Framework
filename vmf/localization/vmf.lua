@@ -38,9 +38,9 @@ return {
     ru = "Режим разработчика",
   },
   developer_mode_description = {
-    en = "Allows you to reload VMF and mods, gives you access to some debug features.",
-    es = "Permite recargar los mods y configurar herramientas de depuración.",
-    ru = "Позволяет перезагружать VMF и моды, даёт доступ к инструментам отладки.",
+    en = "Allows you to reload VMF and mods (CTRL+SHIFT+R), gives you access to some debug features.",
+    es = "Permite recargar los mods (CTRL+SHIFT+R) y configurar herramientas de depuración.",
+    ru = "Позволяет перезагружать VMF и моды (CTRL+SHIFT+R), даёт доступ к инструментам отладки.",
   },
   show_developer_console = {
     en = "Show Developer Console",
