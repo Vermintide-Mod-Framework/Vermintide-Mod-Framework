@@ -43,12 +43,7 @@ local _origs = {}
 
 -- This will tell us if we already have the given function in our registry.
 local function is_orig_hooked(obj, method)
-    local orig_registry = _origs
-    if obj then
-        if orig_registry[obj] and orig_registry[obj][method] then
-            return true
-        end
-    elseif not obj and orig_registry[method] then
+    if _origs[obj] and _origs[obj][method] then
         return true
     end
     return false
@@ -57,18 +52,10 @@ end
 -- Since we replace the original function, we need to keep its reference around.
 -- This will grab the cached reference if we hooked it before, otherwise return the function.
 local function get_orig_function(obj, method)
-    if obj then
-        if is_orig_hooked(obj, method) then
-            return _origs[obj][method]
-        else
-            return obj[method]
-        end
+    if is_orig_hooked(obj, method) then
+        return _origs[obj][method]
     else
-        if is_orig_hooked(obj, method) then
-            return _origs[method]
-        else
-            return rawget(_G, method)
-        end
+        return obj[method]
     end
 end
 
@@ -184,21 +171,16 @@ local function create_internal_hook(orig, obj, method)
         end
         return unpack(values, 1, num_values)
     end
-
-    if obj then
-        if not _origs[obj] then _origs[obj] = {} end
-        _origs[obj][method] = orig
-        obj[method] = fn
-    else
-        _origs[method] = orig
-        _G[method] = fn
-    end
+    
+    if not _origs[obj] then _origs[obj] = {} end
+    _origs[obj][method] = orig
+    obj[method] = fn
 end
 
 -- This function handles the handling the hook data and adding them to the registry.
 -- Origin Hooks have to be unique by nature so we have to make sure we don't allow multiple mods to do it.
 local function create_hook(mod, orig, obj, method, handler, func_name, hook_type)
-    mod:info("(%s): Hooking '%s' from [%s] (Origin: %s)", func_name, method, obj or "_G", orig)
+    mod:info("(%s): Hooking '%s' from [%s] (Origin: %s)", func_name, method, obj, orig)
 
     if not is_orig_hooked(obj, method) then
         create_internal_hook(orig, obj, method)
@@ -259,9 +241,9 @@ local function generic_hook(mod, obj, method, handler, func_name)
         return
     end
 
-    -- Shift the arguments if needed
+    -- Shift the arguments if no obj is provided. obj becomes the global table.
     if not handler then
-        obj, method, handler = nil, obj, method
+        obj, method, handler = _G, obj, method
         if not method then
             mod:error("(%s): trying to create hook without giving a method name.", func_name)
             return
@@ -286,14 +268,11 @@ local function generic_hook(mod, obj, method, handler, func_name)
             return
         end
     end
-    -- obj is a either nil or a table reference at this point, it cannot be a string anymore.
+    -- obj should always be a table reference at this point --
 
     -- Quick check to make sure the target exists
-    if obj and not obj[method] then
-        mod:error("(%s): trying to hook method that doesn't exist: [%s.%s]", func_name, obj, method)
-        return
-    elseif not obj and not rawget(_G, method) then
-        mod:error("(%s): trying to hook function that doesn't exist: [%s]", func_name, method)
+    if not obj[method] then
+        mod:error("(%s): trying to hook function or method that doesn't exist: [%s.%s]", func_name, obj, method)
         return
     end
 
@@ -316,7 +295,7 @@ local function generic_hook_toggle(mod, obj, method, enabled_state)
 
     -- Shift the arguments if needed
     if not method then
-        obj, method = nil, obj
+        obj, method = _G, obj
         if not method then
             mod:error("(%s): trying to toggle hook without giving a method name.", func_name)
             return
@@ -437,3 +416,4 @@ vmf.apply_delayed_hooks = function(status, state)
         end
     end
 end
+
