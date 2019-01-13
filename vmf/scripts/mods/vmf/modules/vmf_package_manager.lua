@@ -42,15 +42,21 @@ local function check_vt1(mod, function_name)
 end
 
 
--- Brings resources of the loaded package in game and executes callback.
+-- Brings resources of the loaded package in game and executes callback. Or unloads package's resources, if loading was
+-- cancelled.
 local function flush_package(package_name)
   local package_data = _packages[package_name]
-  package_data.resource_package:flush()
-  package_data.status = "loaded"
 
-  local callback = package_data.callback
-  if callback then
-    vmf.safe_call_nr(package_data.mod, {ERRORS.PREFIX.package_loaded_callback, package_name}, callback, package_name)
+  if package_data.status == "loading_cancelled" then
+    Mod.release_resource_package(package_data.resource_package)
+    _packages[package_name] = nil
+  else
+    package_data.resource_package:flush()
+    package_data.status = "loaded"
+    local callback = package_data.callback
+    if callback then
+      vmf.safe_call_nr(package_data.mod, {ERRORS.PREFIX.package_loaded_callback, package_name}, callback, package_name)
+    end
   end
 end
 
@@ -83,7 +89,7 @@ function VMFMod:load_package(package_name, callback, sync)
     return
   end
 
-  if self:package_status(package_name) == "loaded" then
+  if _packages[package_name] and _packages[package_name].status == "loaded" then
     self:error(ERRORS.REGULAR.package_already_loaded, package_name)
     return
   end
@@ -94,15 +100,19 @@ function VMFMod:load_package(package_name, callback, sync)
     return
   end
 
-  -- If package is_already_queued it means it was already loaded asynchronously before, but not fully loaded yet.
-  -- It can have "queued" or "loading" status. Don't redefine data for this package.
-  local is_already_queued = _packages[package_name] ~= nil
-  if not is_already_queued then
+  -- (is_package_already_queued == true) => Package was already loaded asynchronously before, but not fully loaded yet.
+  -- (is_package_loading_cancelled == true) => Package is in the process of loading, but once it's loaded it's going
+  --                                           to be unloaded.
+  -- If package is not already queued create new entry for it. If it's already queued, but has "loading_cancelled"
+  -- status, update its callback.
+  local is_package_already_queued = (_packages[package_name] ~= nil)
+  local is_package_loading_cancelled = _packages[package_name] and _packages[package_name].status == "loading_cancelled"
+  if not is_package_already_queued or is_package_loading_cancelled then
     _packages[package_name] = {
-      status           = "queued",
-      resource_package = resource_package,
-      callback         = callback,
-      mod              = self
+      status            = is_package_loading_cancelled and "loading" or "queued",
+      resource_package  = is_package_loading_cancelled and _packages[package_name].resource_package or resource_package,
+      callback          = callback,
+      mod               = self
     }
   end
 
@@ -111,15 +121,18 @@ function VMFMod:load_package(package_name, callback, sync)
     if _packages[package_name].status == "queued" then
       resource_package:load()
     end
-    if is_already_queued then
+    if is_package_already_queued then
       remove_package_from_queue(package_name)
     end
     flush_package(package_name)
   else
-    if is_already_queued then
-      self:error(ERRORS.REGULAR.package_already_queued, package_name)
-    else
-      table.insert(_queued_packages, package_name)
+    -- If package loading was cancelled before, don't add it to loading queue, because it's still in loading queue.
+    if not is_package_loading_cancelled then
+      if is_package_already_queued then
+        self:error(ERRORS.REGULAR.package_already_queued, package_name)
+      else
+        table.insert(_queued_packages, package_name)
+      end
     end
   end
 end
@@ -136,7 +149,7 @@ function VMFMod:unload_package(package_name)
     return
   end
 
-  local package_status = self:package_status(package_name)
+  local package_status = _packages[package_name] and _packages[package_name].status
   if not package_status then
     self:error(ERRORS.REGULAR.package_not_loaded, package_name)
     return
@@ -144,14 +157,13 @@ function VMFMod:unload_package(package_name)
 
   if package_status == "queued" then
     remove_package_from_queue(package_name)
+    _packages[package_name] = nil
   elseif package_status == "loading" then
-    self:error(ERRORS.REGULAR.cant_unload_loading_package, package_name)
-    return
+    _packages[package_name].status = "loading_cancelled"
   elseif package_status == "loaded" then
     Mod.release_resource_package(_packages[package_name].resource_package)
+    _packages[package_name] = nil
   end
-
-  _packages[package_name] = nil
 end
 
 
@@ -179,7 +191,9 @@ function vmf.update_package_manager()
   local queued_package_name = _queued_packages[1]
   if queued_package_name then
     local package_data = _packages[queued_package_name]
-    if package_data.status == "loading" and package_data.resource_package:has_loaded() then
+    if (package_data.status == "loading" or package_data.status == "loading_cancelled") and
+        package_data.resource_package:has_loaded()
+    then
       flush_package(queued_package_name)
       table.remove(_queued_packages, 1)
     end
@@ -202,7 +216,7 @@ function vmf.unload_all_resource_packages()
       package_data.mod:unload_package(package_name)
     end
 
-    if package_status == "loading" then
+    if package_status == "loading" or package_status == "loading_cancelled" then
       package_data.mod:warning(WARNINGS.still_loading_package, package_name)
     end
   end
