@@ -3,6 +3,13 @@ local vmf = get_mod("VMF")
 local _packages = {}
 local _queued_packages = {}
 
+local PUBLIC_STATUSES = {
+  queued            = "loading", -- Package is in the loading queue waiting to be loaded.
+  loading           = "loading", -- Package is loading.
+  loaded            = "loaded",  -- Package is loaded
+  loading_cancelled = nil        -- Package is loading, but will be unloaded once done loading.
+}
+
 local ERRORS = {
   REGULAR = {
     -- check_vt1:
@@ -179,7 +186,9 @@ function VMFMod:package_status(package_name)
   end
 
   local package_data = _packages[package_name]
-  return package_data and package_data.status
+  if package_data then
+    return PUBLIC_STATUSES[package_data.status]
+  end
 end
 
 -- #####################################################################################################################
