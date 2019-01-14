@@ -3,6 +3,7 @@ Contribute to VMF -- add your name here!
 
 + [Aussiemon](https://github.com/Aussiemon)
 + [Azumgi](https://github.com/Azumgi)
++ [E1Camino](https://github.com/E1Camino)
 + [FireSiku](https://github.com/FireSiku)
 + [grasmann](https://github.com/grasmann)
 + [griffin02](https://github.com/griffin02)
