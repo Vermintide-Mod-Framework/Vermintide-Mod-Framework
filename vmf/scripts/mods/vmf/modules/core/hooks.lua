@@ -26,6 +26,7 @@ local auto_table_meta = {__index = function(t, k) t[k] = {} return t[k] end }
 
 -- This table will hold all mod-specific data.
 local _registry = setmetatable({}, auto_table_meta)
+_registry.uids = {}
 
 -- This table will hold all of the hooks, in the format of _hooks[hook_type]
 -- Do the same thing with these tables to allow _hooks[hook_type][orig] without a ton of nil-checks.
@@ -185,12 +186,13 @@ end
 -- This function handles the handling the hook data and adding them to the registry.
 -- Origin Hooks have to be unique by nature so we have to make sure we don't allow multiple mods to do it.
 local function create_hook(mod, orig, obj, method, handler, func_name, hook_type)
-    mod:info("(%s): Hooking '%s' from [%s] (Origin: %s)", func_name, method, obj, orig)
     local unique_id
 
     if not is_orig_hooked(obj, method) then
         unique_id = create_internal_hook(orig, obj, method)
+        _registry.uids[unique_id] = orig
     end
+    mod:info("(%s): Hooking '%s' from [%s] (Origin: %s) (UniqueID: %s)", func_name, method, obj, orig, unique_id)
 
     -- Check to make sure it wasn't hooked before
     local hook_data = _registry[mod][unique_id]
@@ -286,6 +288,9 @@ local function generic_hook(mod, obj, method, handler, func_name)
     if type(orig) ~= "function" then
         mod:error("(%s): trying to hook %s (a %s), not a function.", func_name, method, type(orig))
         return
+    end
+    if _registry.uids[orig] then
+        orig = _registry.uids[orig]
     end
 
     return create_hook(mod, orig, obj, method, handler, func_name, hook_type)
