@@ -289,6 +289,8 @@ local function generic_hook(mod, obj, method, handler, func_name)
         mod:error("(%s): trying to hook %s (a %s), not a function.", func_name, method, type(orig))
         return
     end
+    
+    -- Edge Case: If someone hooks a copy of a function after its been hooked, point it back in the right direction
     if _registry.uids[orig] then
         orig = _registry.uids[orig]
     end
@@ -327,8 +329,6 @@ local function generic_hook_toggle(mod, obj, method, enabled_state)
             return
         end
     end
-
-    local orig = get_orig_function(obj, method)
 
     if _registry[mod][obj[method]] then
         _registry[mod][obj[method]].active = enabled_state
