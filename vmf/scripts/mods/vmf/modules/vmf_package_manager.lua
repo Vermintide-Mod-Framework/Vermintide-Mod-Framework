@@ -180,7 +180,7 @@ end
 --]]
 function VMFMod:package_status(package_name)
   if check_vt1(self, "package_status") or
-     vmf.check_wrong_argument_type(self, "package_status", "package_name", package_name, "string")
+    vmf.check_wrong_argument_type(self, "package_status", "package_name", package_name, "string")
   then
     return
   end
