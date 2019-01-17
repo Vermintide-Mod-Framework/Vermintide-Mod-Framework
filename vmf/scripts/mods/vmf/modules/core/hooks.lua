@@ -162,10 +162,9 @@ end
 -- The hook system makes internal functions that replace the original function and handles all the hooks.
 -- Once all hooks that are part of the chain have been executed, we can go over the safe hooks.
 -- Note: We need to keep the return values in mind in case another function depends on them.
--- At this point in the execution, Obj has already been type-checked and cannot be a string anymore.
--- We then use this internal hook as a unique identifier, which can we can also call by using obj[method]
+-- We then use this internal hook as a unique identifier for the registry.
 local function create_internal_hook(orig, obj, method)
-    local fn
+    local fn -- Needs to be over two line to be usable within the closure.
     fn = function(...)
         local hook_chain = get_hook_chain(orig, fn)
         local num_values, values = get_return_values( hook_chain(...) )
@@ -191,10 +190,12 @@ local function create_hook(mod, orig, obj, method, handler, func_name, hook_type
     if not is_orig_hooked(obj, method) then
         unique_id = create_internal_hook(orig, obj, method)
         _registry.uids[unique_id] = orig
+    else
+        unique_id = obj[method]
     end
     mod:info("(%s): Hooking '%s' from [%s] (Origin: %s) (UniqueID: %s)", func_name, method, obj, orig, unique_id)
 
-    -- Check to make sure it wasn't hooked before
+    -- Check to make sure this mod hasn't hooked it before
     local hook_data = _registry[mod][unique_id]
     if not hook_data then
         _registry[mod][unique_id] = create_hook_data(mod, obj, orig, handler, hook_type)
@@ -427,4 +428,3 @@ vmf.apply_delayed_hooks = function(status, state)
         end
     end
 end
-
