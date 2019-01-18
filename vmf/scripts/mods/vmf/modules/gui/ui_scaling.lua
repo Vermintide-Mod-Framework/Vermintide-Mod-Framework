@@ -1,46 +1,19 @@
--- If enabled, scale UI for resolutions greater than 1080p when necessary.
--- Reports to a global when active, so that existing scaling can be disabled.
 local vmf = get_mod("VMF")
 
 local _ui_scaling_enabled
 
 -- ####################################################################################################################
--- ##### Hooks ########################################################################################################
--- ####################################################################################################################
-
-vmf:hook("UIResolutionScale", function (func, ...)
-
-  local width, height = UIResolution()
-
-  if (width > UIResolutionWidthFragments() and height > UIResolutionHeightFragments() and _ui_scaling_enabled) then
-
-    local max_scaling_factor = 4
-
-    -- Changed to allow scaling up to quadruple the original max scale (1 -> 4)
-    local width_scale = math.min(width / UIResolutionWidthFragments(), max_scaling_factor)
-    local height_scale = math.min(height / UIResolutionHeightFragments(), max_scaling_factor)
-
-    return math.min(width_scale, height_scale)
-  else
-    return func(...)
-  end
-end)
-
--- ####################################################################################################################
 -- ##### VMF internal functions and variables #########################################################################
 -- ####################################################################################################################
 
-vmf.load_ui_scaling_settings = function ()
-  _ui_scaling_enabled = vmf:get("ui_scaling")
+vmf.check_if_ui_scaling_was_used_before = function()
+  _ui_scaling_enabled = _ui_scaling_enabled or vmf:get("ui_scaling")
   if _ui_scaling_enabled then
-    RESOLUTION_LOOKUP.ui_scaling = true
-  else
-    RESOLUTION_LOOKUP.ui_scaling = false
+    vmf:set("ui_scaling", nil)
+    if UIResolutionScale() > 1 then
+      vmf:warning("UI SCALING WAS STRIPPED FROM THE VMF AND HAS BEEN RELEASED AS A SEPARATE MOD. " ..
+                   "YOU CAN FIND THE DOWNLOAD LINK IN THE VMF WORKSHOP DESCRIPTION. " ..
+                   "This message will be shown to you only during this game session.")
+    end
   end
 end
-
--- ####################################################################################################################
--- ##### Script #######################################################################################################
--- ####################################################################################################################
-
-vmf.load_ui_scaling_settings()

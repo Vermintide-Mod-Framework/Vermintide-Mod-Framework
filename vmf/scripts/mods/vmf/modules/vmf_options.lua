@@ -20,11 +20,6 @@ vmf_mod_data.options = {
       unit_text     = "percent"
     },
     {
-      setting_id    = "ui_scaling",
-      type          = "checkbox",
-      default_value = true
-    },
-    {
       setting_id    = "developer_mode",
       type          = "checkbox",
       default_value = false,
@@ -192,10 +187,6 @@ vmf.on_setting_changed = function (setting_id)
 
     vmf.load_custom_textures_settings()
 
-  elseif setting_id == "ui_scaling" then
-
-    vmf.load_ui_scaling_settings()
-
   elseif setting_id == "logging_mode"
       or setting_id == "output_mode_echo"
       or setting_id == "output_mode_error"
@@ -239,7 +230,6 @@ if not vmf:get("vmf_initialized") then
   vmf.load_custom_textures_settings()
   vmf.load_dev_console_settings()
   vmf.load_chat_history_settings()
-  vmf.load_ui_scaling_settings()
   --vmf.load_vmf_options_view_settings()
 
   vmf:set("vmf_initialized", true)
