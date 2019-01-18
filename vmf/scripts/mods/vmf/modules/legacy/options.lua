@@ -4,7 +4,6 @@ local vmf = get_mod("VMF")
 -- Warning for these mods is not shown and their authors were notified about the update.
 -- However, new mods should not use legacy definitions.
 local LEGACY_MODS_VT2 = {
-  ["FBA"] = true, -- Full Body Awareness (by 🔰SkacikPL🗾)
   ["crosshairs"] = true, -- Crosshairs Fix (by Skwuruhl)
   ["BuffInfo"] = true, -- Buff Info (by 🔰SkacikPL🗾)
   ["Spooktober"] = true, -- Spooktober (by 🔰SkacikPL🗾)
@@ -62,7 +61,6 @@ local LEGACY_MODS_VT2 = {
   ["perfectdark"] = true, -- Perfect Dark (by 🔰SkacikPL🗾)
   ["Extra-Sensory Deprivation"] = true, -- Extra-Sensory Deprivation (by Dwarf3d)
   ["NoUltCooldown"] = true, -- No Ult Cooldown (by ThePageMan)
-  ["DiscordRichVermintide"] = true, -- Discord Rich Presence (by ScrappyCocco97)
   ["BoltStaffTweaks"] = true, -- Bolt Staff Tweaks (by dragonman68)
   ["preparations"] = true, -- Adaptation (Access inventory in match) (by 🔰SkacikPL🗾)
   ["Less Annoying Friendly Fire"] = true, -- Less Annoying Friendly Fire (by pixaal)
