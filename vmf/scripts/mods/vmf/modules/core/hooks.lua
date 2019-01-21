@@ -86,6 +86,16 @@ local function can_rehook(mod, hook_data, obj, hook_type)
     end
 end
 
+-- Search global table for an object that matches to get a readable string.
+local function print_obj(obj)
+    for k, v in pairs(_G) do
+        if v == obj then
+            return k
+        end
+    end
+    return obj
+end
+
 -- ####################################################################################################################
 -- ##### Hook Creation ################################################################################################
 -- ####################################################################################################################
@@ -193,7 +203,7 @@ local function create_hook(mod, orig, obj, method, handler, func_name, hook_type
     else
         unique_id = obj[method]
     end
-    mod:info("(%s): Hooking '%s' from [%s] (Origin: %s)", func_name, method, obj, orig)
+    mod:info("(%s): Hooking '%s' from [%s] (Origin: %s)", func_name, method, print_obj(obj), orig)
 
     -- Check to make sure this mod hasn't hooked it before
     local hook_data = _registry[mod][unique_id]
@@ -281,7 +291,7 @@ local function generic_hook(mod, obj, method, handler, func_name)
 
     -- Quick check to make sure the target exists
     if not obj[method] then
-        mod:error("(%s): trying to hook function or method that doesn't exist: [%s.%s]", func_name, obj, method)
+        mod:error("(%s): trying to hook function or method that doesn't exist: [%s.%s]", func_name, print_obj(obj), method)
         return
     end
 
