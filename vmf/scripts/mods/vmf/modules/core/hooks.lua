@@ -193,7 +193,7 @@ local function create_hook(mod, orig, obj, method, handler, func_name, hook_type
     else
         unique_id = obj[method]
     end
-    mod:info("(%s): Hooking '%s' from [%s] (Origin: %s) (UniqueID: %s)", func_name, method, obj, orig, unique_id)
+    mod:info("(%s): Hooking '%s' from [%s] (Origin: %s)", func_name, method, obj, orig)
 
     -- Check to make sure this mod hasn't hooked it before
     local hook_data = _registry[mod][unique_id]
