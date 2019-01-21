@@ -228,8 +228,8 @@ local function create_hook(mod, orig, obj, method, handler, func_name, hook_type
             hook_data.handler = handler
         elseif mod:get_internal_data("allow_rehooking") then
             -- If we can't rehook but rehooking is enabled, send a warning that something went wrong
-            mod:warning("(%s): Attempting to rehook active hook [%s] with different obj or hook_type.", func_name,
-                                                                                                         method)
+            mod:warning("(%s): Attempting to rehook active hook [%s] with different obj or hook_type.",
+                                                                                        func_name, method)
         else
             mod:warning("(%s): Attempting to rehook active hook [%s].", func_name, method)
         end
@@ -291,7 +291,8 @@ local function generic_hook(mod, obj, method, handler, func_name)
 
     -- Quick check to make sure the target exists
     if not obj[method] then
-        mod:error("(%s): trying to hook function or method that doesn't exist: [%s.%s]", func_name, print_obj(obj), method)
+        mod:error("(%s): trying to hook function or method that doesn't exist: [%s.%s]",
+                                                            func_name, print_obj(obj), method)
         return
     end
 
