@@ -255,12 +255,12 @@ end
 --[[
   Wraps ingame_ui transition handling calls in a lot of safety checks. Returns 'true', if call is successful.
   * transition_name    [string]  : name of a transition that should be perfomed
+  * ignore_active_menu [boolean] : if 'ingame_ui.menu_active' should be ignored
+  * fade               [boolean] : if transition should be performed with fade
   * transition_params  [anything]: parameter, which will be passed to callable transition function, 'on_exit' method of
                                    the old view and 'on_enter' method of the new view
-  * fade               [boolean] : if transition should be performed with fade
-  * ignore_active_menu [boolean] : if 'ingame_ui.menu_active' should be ignored
 --]]
-function VMFMod:handle_transition(transition_name, transition_params, fade, ignore_active_menu)
+function VMFMod:handle_transition(transition_name, ignore_active_menu, fade, transition_params)
   if vmf.check_wrong_argument_type(self, "handle_transition", "transition_name", transition_name, "string") then
     return
   end
@@ -370,16 +370,16 @@ function vmf.keybind_toggle_view(mod, view_name, can_be_opened, is_keybind_press
       local keybind_transitions = _views_data[view_name].view_settings.keybind_transitions
       if _ingame_ui.current_view == view_name then
         if keybind_transitions.close_view_transition then
-          mod:handle_transition(keybind_transitions.close_view_transition,
-                                 keybind_transitions.close_view_transition_params,
-                                  keybind_transitions.transition_fade, true)
+          mod:handle_transition(keybind_transitions.close_view_transition, true,
+                                 keybind_transitions.transition_fade,
+                                  keybind_transitions.close_view_transition_params)
         end
       -- Can open views only when keybind is pressed.
       elseif can_be_opened and is_keybind_pressed then
         if keybind_transitions.open_view_transition then
-          mod:handle_transition(keybind_transitions.open_view_transition,
-                                 keybind_transitions.close_view_transition_params,
-                                  keybind_transitions.transition_fade, true)
+          mod:handle_transition(keybind_transitions.open_view_transition, true,
+                                 keybind_transitions.transition_fade,
+                                  keybind_transitions.open_view_transition_params)
         end
       end
     end
