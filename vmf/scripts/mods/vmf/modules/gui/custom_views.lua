@@ -113,9 +113,13 @@ end
 local function remove_injected_views(on_reload)
   -- These elements should be removed only on_reload, because, otherwise, they will be deleted automatically.
   if on_reload then
-    -- If some custom view is active, close it.
+    -- If some custom view is active, safely close it.
     if _views_data[_ingame_ui.current_view] then
+      -- Hack to ensure cursor stack safety.
+      ShowCursorStack.stack_depth = ShowCursorStack.stack_depth + 1
       _ingame_ui:handle_transition("exit_menu")
+      ShowCursorStack.stack_depth = 1
+      ShowCursorStack.pop()
     end
 
     for view_name, view_data in pairs(_views_data) do
