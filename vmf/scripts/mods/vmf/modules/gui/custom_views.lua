@@ -382,16 +382,13 @@ end
 -- #####################################################################################################################
 
 -- If VMF is reloaded mid-game, get ingame_ui.
-local ingame_ui_exists, ingame_ui_return
+local ingame_ui_exists, ingame_ui_return = pcall(function()
 if VT1 then
-  ingame_ui_exists, ingame_ui_return = pcall(function()
     return Managers.player.network_manager.matchmaking_manager.matchmaking_ui.ingame_ui
-  end)
 else
-  ingame_ui_exists, ingame_ui_return = pcall(function()
     return Managers.player.network_manager.matchmaking_manager._ingame_ui
+  end
   end)
-end
 if ingame_ui_exists then
   _ingame_ui = ingame_ui_return
 end
