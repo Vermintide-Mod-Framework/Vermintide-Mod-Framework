@@ -3306,12 +3306,14 @@ local function set_new_keybind(keybind_widget_content)
   vmf.add_mod_keybind(
     get_mod(keybind_widget_content.mod_name),
     keybind_widget_content.setting_id,
-    keybind_widget_content.keybind_global,
-    keybind_widget_content.keybind_trigger,
-    keybind_widget_content.keybind_type,
-    keybind_widget_content.keys,
-    keybind_widget_content.function_name,
-    keybind_widget_content.view_name
+    {
+      global        = keybind_widget_content.keybind_global,
+      trigger       = keybind_widget_content.keybind_trigger,
+      type          = keybind_widget_content.keybind_type,
+      keys          = keybind_widget_content.keys,
+      function_name = keybind_widget_content.function_name,
+      view_name     = keybind_widget_content.view_name
+    }
   )
 end
 

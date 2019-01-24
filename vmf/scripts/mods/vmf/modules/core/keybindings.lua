@@ -287,7 +287,7 @@ function vmf.generate_keybinds()
   for mod, mod_keybinds in pairs(_raw_keybinds_data) do
     for _, raw_keybind_data in pairs(mod_keybinds) do
 
-      local keys = raw_keybind_data[4]
+      local keys = raw_keybind_data.keys
       local primary_key  = keys[1]
       local modifier_keys = {}
       for i = 2, #keys do
@@ -296,15 +296,15 @@ function vmf.generate_keybinds()
 
       local keybind_data = {
         mod     = mod,
-        global  = raw_keybind_data[1],
-        trigger = raw_keybind_data[2],
-        type    = raw_keybind_data[3],
+        global  = raw_keybind_data.global,
+        trigger = raw_keybind_data.trigger,
+        type    = raw_keybind_data.type,
         ctrl    = modifier_keys["ctrl"],
         alt     = modifier_keys["alt"],
         shift   = modifier_keys["shift"],
 
-        function_name = raw_keybind_data[5],
-        view_name     = raw_keybind_data[6]
+        function_name = raw_keybind_data.function_name,
+        view_name     = raw_keybind_data.view_name
       }
 
       _keybinds[primary_key] = _keybinds[primary_key] or {
@@ -318,10 +318,10 @@ end
 
 
 -- Adds/removes keybinds.
-function vmf.add_mod_keybind(mod, setting_id, global, trigger, type, keys, function_name, view_name)
-  if #keys > 0 then
+function vmf.add_mod_keybind(mod, setting_id, raw_keybind_data)
+  if #raw_keybind_data.keys > 0 then
     _raw_keybinds_data[mod] = _raw_keybinds_data[mod] or {}
-    _raw_keybinds_data[mod][setting_id] = {global, trigger, type, keys, function_name, view_name}
+    _raw_keybinds_data[mod][setting_id] = raw_keybind_data
   elseif _raw_keybinds_data[mod] and _raw_keybinds_data[mod][setting_id] then
     _raw_keybinds_data[mod][setting_id] = nil
   end

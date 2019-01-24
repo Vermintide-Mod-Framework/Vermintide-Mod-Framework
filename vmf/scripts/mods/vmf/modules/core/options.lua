@@ -542,8 +542,18 @@ local function initialize_default_settings_and_keybinds(mod, initialized_widgets
       mod:set(data.setting_id, data.default_value)
     end
     if data.type == "keybind" then
-      vmf.add_mod_keybind(mod, data.setting_id, data.keybind_global, data.keybind_trigger, data.keybind_type,
-                           mod:get(data.setting_id), data.function_name, data.view_name)
+      vmf.add_mod_keybind(
+        mod,
+        data.setting_id,
+        {
+          global        = data.keybind_global,
+          trigger       = data.keybind_trigger,
+          type          = data.keybind_type,
+          keys          = mod:get(data.setting_id),
+          function_name = data.function_name,
+          view_name     = data.view_name
+        }
+      )
     end
   end
 end

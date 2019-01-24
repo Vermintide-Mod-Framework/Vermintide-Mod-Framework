@@ -208,11 +208,12 @@ vmf.initialize_mod_options_legacy = function (mod, widgets_definition)
             vmf.add_mod_keybind(
               mod,
               new_widget_definition.setting_id,
-              nil,
-              new_widget_definition.keybind_trigger,
-              new_widget_definition.keybind_type,
-              keybind,
-              new_widget_definition.function_name
+              {
+                trigger       = new_widget_definition.keybind_trigger,
+                type          = new_widget_definition.keybind_type,
+                keys          = keybind,
+                function_name = new_widget_definition.function_name
+              }
             )
           end
         end
