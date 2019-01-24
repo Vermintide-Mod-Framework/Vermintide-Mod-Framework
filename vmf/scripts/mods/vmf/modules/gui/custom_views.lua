@@ -127,7 +127,7 @@ local function remove_injected_views(on_reload)
       local view = _ingame_ui.views[view_name]
       if view then
         if type(view.destroy) == "function" then
-          vmf.safe_call_nr(view_data.mod, {ERRORS.PREFIX["view_destroying"], view_name}, view.destroy)
+          vmf.safe_call_nr(view_data.mod, {ERRORS.PREFIX["view_destroying"], view_name}, view.destroy, view)
         end
         _ingame_ui.views[view_name] = nil
       end
