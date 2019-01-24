@@ -293,7 +293,6 @@ end
 
 local allowed_keybind_triggers = {
   pressed  = true,
-  released = true,
   held     = true
 }
 local allowed_keybind_types = {
@@ -313,7 +312,7 @@ local function validate_keybind_data(data)
 
   if not allowed_keybind_triggers[data.keybind_trigger] then
     vmf.throw_error("[widget \"%s\" (keybind)]: 'keybind_trigger' field is required and must contain string " ..
-                     "\"pressed\", \"released\" or \"held\"", data.setting_id)
+                     "\"pressed\" or \"held\"", data.setting_id)
   end
 
   local keybind_type = data.keybind_type
