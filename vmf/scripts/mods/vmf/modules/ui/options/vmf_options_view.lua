@@ -45,61 +45,72 @@ local scenegraph_definition = {
     is_root = true
   },
 
-    sg_background_border = {
-      size = {1206, 1056},
-      position = {357, 12, 0},
+    sg_aligner = {
+      size = {1920, 1080},
+      position = {0, 0, 0},
 
-      parent = "sg_root"
+      parent = "sg_root",
+
+      scale = "fit",
+      horizontal_alignment = "center",
+      vertical_alignment = "center"
     },
 
-    sg_background_settings_list = {
-      size = {1200, 1000},
-      position = {360, 65, 1},
+      sg_background_border = {
+        size = {1206, 1056},
+        position = {357, 12, 0},
 
-      parent = "sg_root"
-    },
+        parent = "sg_aligner"
+      },
 
-      sg_mousewheel_scroll_area = {
+      sg_background_settings_list = {
         size = {1200, 1000},
-        position = {0, 0, 0},
+        position = {360, 65, 1},
 
-        parent = "sg_background_settings_list"
+        parent = "sg_aligner"
       },
 
-      sg_settings_list_mask = {
-        size = {1200, 1000},
-        position = {0, 0, 2},
+        sg_mousewheel_scroll_area = {
+          size = {1200, 1000},
+          position = {0, 0, 0},
 
-        parent = "sg_background_settings_list"
+          parent = "sg_background_settings_list"
+        },
+
+        sg_settings_list_mask = {
+          size = {1200, 1000},
+          position = {0, 0, 2},
+
+          parent = "sg_background_settings_list"
+        },
+
+        sg_settings_list_mask_edge_fade_top = {
+          size = {1200, 15},
+          position = {0, 985, 3},
+
+          parent = "sg_background_settings_list"
+        },
+
+        sg_settings_list_mask_edge_fade_bottom = {
+          size = {1200, 15},
+          position = {0, 0, 3},
+
+          parent = "sg_background_settings_list"
+        },
+
+      sg_search_bar = {
+        size = {1200, 47},
+        position = {360, 15, 1},
+
+        parent = "sg_aligner"
       },
 
-      sg_settings_list_mask_edge_fade_top = {
-        size = {1200, 15},
-        position = {0, 985, 3},
+      sg_scrollbar = {
+        size = {360, 1050},
+        position = {1562, 40, 0},
 
-        parent = "sg_background_settings_list"
+        parent = "sg_aligner"
       },
-
-      sg_settings_list_mask_edge_fade_bottom = {
-        size = {1200, 15},
-        position = {0, 0, 3},
-
-        parent = "sg_background_settings_list"
-      },
-
-    sg_search_bar = {
-      size = {1200, 47},
-      position = {360, 15, 1},
-
-      parent = "sg_root"
-    },
-
-    sg_scrollbar = {
-      size = {360, 1050},
-      position = {1562, 40, 0},
-
-      parent = "sg_root"
-    },
 
   sg_dead_space_filler = {
     size = {1920, 1080},
