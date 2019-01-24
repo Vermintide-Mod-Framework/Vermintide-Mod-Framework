@@ -324,9 +324,29 @@ local function validate_keybind_data(data)
     vmf.throw_error("[widget \"%s\" (keybind)]: 'keybind_type' is set to \"function_call\" so 'function_name' " ..
                      "field is required and must have 'string' type", data.setting_id)
   end
-  if keybind_type == "view_toggle" and type(data.view_name) ~= "string" then
-    vmf.throw_error("[widget \"%s\" (keybind)]: 'keybind_type' is set to \"view_toggle\" so 'view_name' " ..
-                     "field is required and must have 'string' type", data.setting_id)
+  if keybind_type == "view_toggle" then
+    if type(data.view_name) ~= "string" then
+      vmf.throw_error("[widget \"%s\" (keybind)]: 'keybind_type' is set to \"view_toggle\" so 'view_name' " ..
+                      "field is required and must have 'string' type", data.setting_id)
+    end
+
+    local transition_data = data.transition_data
+    if type(transition_data) ~= "table" then
+      vmf.throw_error("[widget \"%s\" (keybind)]: 'keybind_type' is set to \"view_toggle\" so 'transition_data' " ..
+                      "field is required and must have 'table' type", data.setting_id)
+    end
+    if transition_data.open_view_transition_name and type(transition_data.open_view_transition_name) ~= "string" then
+      vmf.throw_error("[widget \"%s\" (keybind)]: 'transition_data.open_view_transition_name' must have "..
+                       "'string' type", data.setting_id)
+    end
+    if transition_data.close_view_transition_name and type(transition_data.close_view_transition_name) ~= "string" then
+      vmf.throw_error("[widget \"%s\" (keybind)]: 'transition_data.close_view_transition_name' must have "..
+                       "'string' type", data.setting_id)
+    end
+    if transition_data.transition_fade and type(transition_data.transition_fade) ~= "boolean" then
+      vmf.throw_error("[widget \"%s\" (keybind)]: 'transition_data.transition_fade' must have "..
+                       "'boolean' type", data.setting_id)
+    end
   end
 
   local default_value = data.default_value
@@ -368,6 +388,7 @@ local function initialize_keybind_data(mod, data, localize)
   new_data.keybind_type    = data.keybind_type
   new_data.function_name   = data.function_name   -- required, if (keybind_type == "function_call")
   new_data.view_name       = data.view_name       -- required, if (keybind_type == "view_toggle")
+  new_data.transition_data = data.transition_data -- required, if (keybind_type == "view_toggle")
 
   validate_keybind_data(new_data)
 
@@ -545,12 +566,13 @@ local function initialize_default_settings_and_keybinds(mod, initialized_widgets
         mod,
         data.setting_id,
         {
-          global        = data.keybind_global,
-          trigger       = data.keybind_trigger,
-          type          = data.keybind_type,
-          keys          = mod:get(data.setting_id),
-          function_name = data.function_name,
-          view_name     = data.view_name
+          global          = data.keybind_global,
+          trigger         = data.keybind_trigger,
+          type            = data.keybind_type,
+          keys            = mod:get(data.setting_id),
+          function_name   = data.function_name,
+          view_name       = data.view_name,
+          transition_data = data.transition_data
         }
       )
     end

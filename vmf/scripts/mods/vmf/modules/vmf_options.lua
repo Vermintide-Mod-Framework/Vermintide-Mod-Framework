@@ -10,7 +10,11 @@ vmf_mod_data.options = {
       default_value   = {"f4"},
       keybind_trigger = "pressed",
       keybind_type    = "view_toggle",
-      view_name       = "vmf_options_view"
+      view_name       = "vmf_options_view",
+      transition_data = {
+        open_view_transition_name  = "vmf_options_view_open",
+        close_view_transition_name = "vmf_options_view_close"
+      }
     },
     {
       setting_id    = "vmf_options_scrolling_speed",

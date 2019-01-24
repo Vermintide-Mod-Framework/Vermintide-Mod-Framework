@@ -2654,6 +2654,7 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
       keybind_type = widget_definition.keybind_type,
       function_name = widget_definition.function_name,
       view_name = widget_definition.view_name,
+      transition_data = widget_definition.transition_data,
 
       keybind_text = widget_definition.keybind_text,
       default_value = widget_definition.default_value,
@@ -3307,12 +3308,13 @@ local function set_new_keybind(keybind_widget_content)
     get_mod(keybind_widget_content.mod_name),
     keybind_widget_content.setting_id,
     {
-      global        = keybind_widget_content.keybind_global,
-      trigger       = keybind_widget_content.keybind_trigger,
-      type          = keybind_widget_content.keybind_type,
-      keys          = keybind_widget_content.keys,
-      function_name = keybind_widget_content.function_name,
-      view_name     = keybind_widget_content.view_name
+      global          = keybind_widget_content.keybind_global,
+      trigger         = keybind_widget_content.keybind_trigger,
+      type            = keybind_widget_content.keybind_type,
+      keys            = keybind_widget_content.keys,
+      function_name   = keybind_widget_content.function_name,
+      view_name       = keybind_widget_content.view_name,
+      transition_data = keybind_widget_content.transition_data
     }
   )
 end
@@ -4284,16 +4286,15 @@ vmf:register_view({
     active = {
       inn = true,
       ingame = true
-    },
-    keybind_transitions = {
-      open_view_transition = "vmf_options_view",
-      close_view_transition = "exit_menu",
     }
   },
   view_transitions = {
-    vmf_options_view = function (self)
+    vmf_options_view_open = function (self)
       self.current_view = "vmf_options_view"
       self.menu_active = true
+    end,
+    vmf_options_view_close = function (self)
+      require("scripts/ui/views/ingame_ui_settings").transitions.exit_menu(self)
     end
   }
 })

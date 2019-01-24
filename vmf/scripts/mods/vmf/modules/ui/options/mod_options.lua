@@ -9,7 +9,7 @@ if VT1 then
   -- Disable Mod Options button during mods reloading
   vmf:hook_safe(IngameView, "update_menu_options", function (self)
     for _, button_info in ipairs(self.active_button_data) do
-      if button_info.transition == "vmf_options_view" then
+      if button_info.transition == "vmf_options_view_open" then
         button_info.widget.content.disabled = _button_injection_data.mod_options_button_disabled
         button_info.widget.content.button_hotspot.disabled = _button_injection_data.mod_options_button_disabled
       end
@@ -22,11 +22,11 @@ if VT1 then
   vmf:hook(IngameView, "setup_button_layout", function (func, self, layout_data, ...)
     local mods_options_button = {
       display_name = vmf:localize("mods_options"),
-      transition = "vmf_options_view",
+      transition = "vmf_options_view_open",
       fade = false
     }
     for i = 1, #layout_data do
-      if layout_data[i].transition == "options_menu" and layout_data[i + 1].transition ~= "vmf_options_view" then
+      if layout_data[i].transition == "options_menu" and layout_data[i + 1].transition ~= "vmf_options_view_open" then
         table.insert(layout_data, i + 1, mods_options_button)
         break
       end
@@ -35,7 +35,7 @@ if VT1 then
     func(self, layout_data, ...)
 
     for _, button_info in ipairs(self.active_button_data) do
-      if button_info.transition == "vmf_options_view" then
+      if button_info.transition == "vmf_options_view_open" then
         button_info.widget.style.text.localize = false
         button_info.widget.style.text_disabled.localize = false
         button_info.widget.style.text_click.localize = false
@@ -51,7 +51,7 @@ else
 
   local function get_mod_options_button_index(layout_logic)
     for button_index, button_data in ipairs(layout_logic.active_button_data) do
-      if button_data.transition == "vmf_options_view" then
+      if button_data.transition == "vmf_options_view_open" then
         return button_index
       end
     end
@@ -98,12 +98,12 @@ else
   vmf:hook_safe(IngameViewLayoutLogic, "init", function (self)
     local mod_options_button = {
       display_name = vmf:localize("mods_options"),
-      transition = "vmf_options_view",
+      transition = "vmf_options_view_open",
       fade = false
     }
     for _, layout in pairs(self.layout_list) do
       for i = 1, #layout do
-        if layout[i].transition == "options_menu" and layout[i + 1].transition ~= "vmf_options_view" then
+        if layout[i].transition == "options_menu" and layout[i + 1].transition ~= "vmf_options_view_open" then
           table.insert(layout, i + 1, mod_options_button)
           break
         end

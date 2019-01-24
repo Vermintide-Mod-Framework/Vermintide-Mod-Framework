@@ -223,7 +223,7 @@ local function perform_keybind_action(data, is_pressed)
     call_function(data.mod, data.function_name, is_pressed)
     return true
   elseif data.type == "view_toggle" and data.mod:is_enabled() then
-    vmf.keybind_toggle_view(data.mod, data.view_name, can_perform_action, is_pressed)
+    vmf.keybind_toggle_view(data.mod, data.view_name, data.transition_data, can_perform_action, is_pressed)
     return true
   end
 end
@@ -303,8 +303,9 @@ function vmf.generate_keybinds()
         alt     = modifier_keys["alt"],
         shift   = modifier_keys["shift"],
 
-        function_name = raw_keybind_data.function_name,
-        view_name     = raw_keybind_data.view_name
+        function_name   = raw_keybind_data.function_name,
+        view_name       = raw_keybind_data.view_name,
+        transition_data = raw_keybind_data.transition_data
       }
 
       _keybinds[primary_key] = _keybinds[primary_key] or {

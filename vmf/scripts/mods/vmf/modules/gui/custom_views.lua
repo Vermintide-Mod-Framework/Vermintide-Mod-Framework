@@ -31,17 +31,14 @@ local ERRORS = {
     blocked_transitions_element_wrong_type = "'view_settings.blocked_transitions.%s' must be a table, not %s.",
     blocked_transition_invalid = "you can't put transition '%s' into 'view_settings.blocked_transitions.%s', " ..
                                   "because it's not listed in 'view_transitions'.",
-    blocked_transition_wrong_value = "invalid value for 'view_settings.blocked_transitions.%s.%s'; must be 'true'.",
-    keybind_transitions_wrong_type = "'view_settings.keybind_transitions' (optional) must be a table, not %s.",
-    open_view_transition_wrong_type = "'view_settings.keybind_transitions.open_view_transition' (optional) must be " ..
-                                       "a string, not %s.",
-    transition_fade_wrong_type = "'view_settings.keybind_transitions.transition_fade' (optional) must be a boolean, " ..
-                                  "not %s.",
+    blocked_transition_wrong_value = "invalid value for 'view_settings.blocked_transitions.%s.%s'; must be 'true'."
   },
   REGULAR = {
     view_data_wrong_type = "[Custom Views] (register_view) Loading view data file '%s': returned view data must be " ..
                             "a table, not %s.",
-    view_not_registered = "[Custom Views] Opening view with keybind: view '%s' wasn't registered for this mod."
+    view_not_registered = "[Custom Views] Toggling view with keybind: view '%s' wasn't registered for this mod.",
+    transition_not_registered = "[Custom Views] Toggling view with keybind: transition '%s' wasn't registered for " ..
+                                 "'%s' view."
   },
   PREFIX = {
     view_initializing = "[Custom Views] Calling 'init_view_function'",
@@ -184,7 +181,6 @@ local function validate_view_data(view_data)
 
   -- Use default values for optional fields if they are not defined.
   view_settings.blocked_transitions = view_settings.blocked_transitions or {inn = {}, ingame = {}}
-  view_settings.keybind_transitions = view_settings.keybind_transitions or {}
 
   -- Verify everything.
   if type(view_settings.init_view_function) ~= "function" then
@@ -230,21 +226,6 @@ local function validate_view_data(view_data)
         vmf.throw_error(ERRORS.THROWABLE["blocked_transition_wrong_value"], level_name, transition_name)
       end
     end
-  end
-
-  local keybind_transitions = view_settings.keybind_transitions
-  if type(keybind_transitions) ~= "table" then
-    vmf.throw_error(ERRORS.THROWABLE["keybind_transitions_wrong_type"], type(keybind_transitions))
-  end
-  if keybind_transitions.open_view_transition and type(keybind_transitions.open_view_transition) ~= "string" then
-    vmf.throw_error(ERRORS.THROWABLE["open_view_transition_wrong_type"], type(keybind_transitions.open_view_transition))
-  end
-  if keybind_transitions.close_view_transition and type(keybind_transitions.close_view_transition) ~= "string" then
-    vmf.throw_error(ERRORS.THROWABLE["close_view_transition_wrong_type"],
-                     type(keybind_transitions.close_view_transition))
-  end
-  if keybind_transitions.transition_fade and type(keybind_transitions.transition_fade) ~= "boolean" then
-    vmf.throw_error(ERRORS.THROWABLE["transition_fade_wrong_type"], type(keybind_transitions.transition_fade))
   end
 end
 
@@ -359,27 +340,37 @@ end
 
 -- Opens/closes a view if all conditions are met. Since keybinds module can't do UI-related checks, all the cheks are
 -- done in this function. This function is called every time some view-toggling keybind is pressed.
-function vmf.keybind_toggle_view(mod, view_name, can_be_opened, is_keybind_pressed)
+function vmf.keybind_toggle_view(mod, view_name, keybind_transition_data, can_be_opened, is_keybind_pressed)
   if _ingame_ui then
-    if not _views_data[view_name] or (_views_data[view_name].mod ~= mod) then
+    local view_data = _views_data[view_name]
+    if not view_data or (view_data.mod ~= mod) then
       mod:error(ERRORS.REGULAR["view_not_registered"], view_name)
       return
     end
 
     if is_view_active_for_current_level(view_name) then
-      local keybind_transitions = _views_data[view_name].view_settings.keybind_transitions
       if _ingame_ui.current_view == view_name then
-        if keybind_transitions.close_view_transition then
-          mod:handle_transition(keybind_transitions.close_view_transition, true,
-                                 keybind_transitions.transition_fade,
-                                  keybind_transitions.close_view_transition_params)
+        if keybind_transition_data.close_view_transition_name then
+          if view_data.view_transitions[keybind_transition_data.close_view_transition_name] then
+            mod:handle_transition(keybind_transition_data.close_view_transition_name, true,
+                                  keybind_transition_data.transition_fade,
+                                    keybind_transition_data.close_view_transition_params)
+          else
+            mod:error(ERRORS.REGULAR["transition_not_registered"], keybind_transition_data.close_view_transition_name,
+                                                                    view_name)
+          end
         end
       -- Can open views only when keybind is pressed.
       elseif can_be_opened and is_keybind_pressed then
-        if keybind_transitions.open_view_transition then
-          mod:handle_transition(keybind_transitions.open_view_transition, true,
-                                 keybind_transitions.transition_fade,
-                                  keybind_transitions.open_view_transition_params)
+        if keybind_transition_data.open_view_transition_name then
+          if view_data.view_transitions[keybind_transition_data.open_view_transition_name] then
+            mod:handle_transition(keybind_transition_data.open_view_transition_name, true,
+                                   keybind_transition_data.transition_fade,
+                                    keybind_transition_data.open_view_transition_params)
+          else
+            mod:error(ERRORS.REGULAR["transition_not_registered"], keybind_transition_data.open_view_transition_name,
+                                                                    view_name)
+          end
         end
       end
     end
