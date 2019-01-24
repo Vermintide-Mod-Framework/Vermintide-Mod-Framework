@@ -350,7 +350,7 @@ function vmf.keybind_toggle_view(mod, view_name, keybind_transition_data, can_be
 
     if is_view_active_for_current_level(view_name) then
       if _ingame_ui.current_view == view_name then
-        if keybind_transition_data.close_view_transition_name then
+        if keybind_transition_data.close_view_transition_name and not Managers.chat:chat_is_focused() then
           if view_data.view_transitions[keybind_transition_data.close_view_transition_name] then
             mod:handle_transition(keybind_transition_data.close_view_transition_name, true,
                                   keybind_transition_data.transition_fade,
