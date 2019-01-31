@@ -100,7 +100,7 @@ local function localize_generic_widget_data(mod, data)
     if data.tooltip then
       data.tooltip = mod:localize(data.tooltip)
     else
-      data.tooltip = vmf.quick_localize(mod, data.setting_id .. "_description")
+      data.tooltip = mod:localize_raw(data.setting_id .. "_description")
     end
   end
 end

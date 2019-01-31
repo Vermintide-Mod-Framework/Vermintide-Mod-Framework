@@ -1,106 +1,102 @@
 local vmf = get_mod("VMF")
 
---[[
-English (en)
-French (fr)
-German (de)
-Spanish (es)
-Russian (ru)
-Portuguese-Brazil (br-pt)
-Italian (it)
-Polish (pl)
-]]
-
 local _language_id = Application.user_setting("language_id")
 local _localization_database = {}
 
--- ####################################################################################################################
--- ##### Local functions ##############################################################################################
--- ####################################################################################################################
+local ERRORS = {
+  REGULAR = {
+    duplicate_localization = "[Localization] (initialize_mod_localization) The fully qualified text id '%s' was " ..
+                              "already defined by another mod. Set 'force_override' to true to override it.",
+  },
+}
 
-local function safe_string_format(mod, str, ...)
+local WARNINGS = {
+  quick_localize_deprecated = "(quick_localize) this method is deprecated, please update the mod. "..
+                               "You're seeing this message because you have developer_mode enabled",
+}
 
-  -- the game still crash with unknown error if there is non-standard character after '%'
-  local success, message = pcall(string.format, str, ...)
-
-  if success then
-    return message
-  else
-    mod:error("(localize) \"%s\": %s", tostring(str), tostring(message))
-  end
-end
 
 -- ####################################################################################################################
--- ##### VMFMod #######################################################################################################
+-- ##### VMFMod ###################################################################################################{{{1
 -- ####################################################################################################################
 
-VMFMod.localize = function (self, text_id, ...)
-
-  local mod_localization_table = _localization_database[self:get_name()]
-  if mod_localization_table then
-
-    local text_translations = mod_localization_table[text_id]
-    if text_translations then
-
-      local message
-
-      if text_translations[_language_id] then
-
-        message = safe_string_format(self, text_translations[_language_id], ...)
-        if message then
-          return message
-        end
-      end
-
-      if text_translations["en"] then
-
-        message = safe_string_format(self, text_translations["en"], ...)
-        if message then
-          return message
-        end
-      end
+--- Returns a localized version of a string, with optional formatting.
+function VMFMod:localize(text_id, ...)
+  local fully_qualified_text_id = self:qualify_text_id(text_id)
+  local message_format = self:localize_raw(fully_qualified_text_id)
+  if message_format then
+    local _, message = vmf.safe_call(self, "(localize)", string.format, message_format, ...)
+    if message then
+      return message
     end
-  else
-    self:error("(localize): localization file was not loaded for this mod")
   end
 
-  return "<" .. tostring(text_id) .. ">"
+  -- At this point either the localization was not found or there was an error when formatting.
+  return ("<" .. tostring(text_id) .. ">") -- Return a placeholder string.
 end
 
--- ####################################################################################################################
--- ##### VMF internal functions and variables #########################################################################
--- ####################################################################################################################
 
-vmf.initialize_mod_localization = function (mod, localization_table)
+--- Does not format the message; returns nil if the localization is not found.
+function VMFMod:localize_raw(text_id)
+  return _localization_database[text_id]
+end
 
-  if type(localization_table) ~= "table" then
-    mod:error("(localization): localization file should return table")
-    return false
+
+-- Returns a fully qualified text_id that can be used in GUIs.
+function VMFMod:qualify_text_id(text_id)
+  if vmf.check_wrong_argument_type(self, "qualify_text_id", "text_id", text_id, "string") then
+    return
   end
 
-  if _localization_database[mod:get_name()] then
-    mod:warning("(localization): overwritting already loaded localization file")
-  end
+  return self:get_name() .. "." .. text_id
+end
 
-  _localization_database[mod:get_name()] = localization_table
+
+-- ####################################################################################################################
+-- ##### VMF internal functions ###################################################################################{{{1
+-- ####################################################################################################################
+
+function vmf.initialize_mod_localization(mod, localization_table)
+  -- Add all localizations to the unified database.
+  for text_id, text_settings in pairs(localization_table) do
+    local fully_qualified_text_id = text_id
+
+    if not text_settings.no_prefix then
+      fully_qualified_text_id = mod:qualify_text_id(text_id)
+    end
+
+    if _localization_database[fully_qualified_text_id] and not text_settings.force_override then
+      mod:error(ERRORS.REGULAR.duplicate_localization, fully_qualified_text_id)
+    else
+      _localization_database[fully_qualified_text_id] = text_settings[_language_id] or text_settings.en
+    end
+  end
 
   return true
 end
 
--- Localize without parameters and return nil instead of <text_id> if nothing found
-vmf.quick_localize = function (mod, text_id)
-  local mod_localization_table = _localization_database[mod:get_name()]
-  if mod_localization_table then
-    local text_translations = mod_localization_table[text_id]
-    if text_translations then
-      return text_translations[_language_id] or text_translations["en"]
-    end
+
+-- Kept here for compatibility purposes. Hopefully can be deleted soon.
+function vmf.quick_localize(mod, text_id)
+  if vmf:get("developer_mode") then
+    mod:warning(WARNINGS.quick_localize_deprecated)
   end
+  return VMFMod.localize_raw(mod, text_id)
 end
 
+
 -- ####################################################################################################################
--- ##### Script #######################################################################################################
+-- ##### Script ###################################################################################################{{{1
 -- ####################################################################################################################
 
 local localization_table = vmf:dofile("localization/vmf")
 vmf.initialize_mod_localization(vmf, localization_table)
+
+
+-- ####################################################################################################################
+-- ##### Hooks ####################################################################################################{{{1
+-- ####################################################################################################################
+
+vmf:hook(LocalizationManager, "_base_lookup", function(func, self, text_id)
+  return _localization_database[text_id] or func(self, text_id)
+end)

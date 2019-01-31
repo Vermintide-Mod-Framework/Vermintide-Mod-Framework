@@ -48,15 +48,6 @@ end
   Universal function for retrieving any internal mod data. Returned table values shouldn't be modified, because it can
   lead to unexpected VMF behaviour.
   * key [string]: data entry name
-
-  Possible entry names:
-    - name           (system mod name)
-    - readable_name  (readable mod name)
-    - description    (mod description)
-    - is_togglable   (if the mod can be disabled/enabled)
-    - is_enabled     (if the mod is curently enabled)
-    - is_mutator     (if the mod is mutator)
-    - mutator_config (mutator config)
 --]]
 function VMFMod:get_internal_data(key)
   return self._data[key]
