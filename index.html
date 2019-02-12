@@ -28,7 +28,7 @@
       --sidebar-nav-link-padding: 0.25em 0 0.25em 0px; /* trbl */
     }
     /* Add an icon to links that open in a new tab. */
-    a[target='_blank']::after {
+    a[target='_blank']:not(.no-out-arrow)::after {
       font-family: "Font Awesome 5 Free";
       font-size: 0.75em;
       font-weight: 900;
@@ -143,8 +143,8 @@
             + '</a>';
 
             var footerHtml = [
-              '<a href="' + editUrl  + '">📝 Edit</a>',
-              '<a href="' + issueUrl + '">💬 Discuss</a>',
+              '<a href="' + editUrl  + ' target="_blank" class="no-out-arrow">📝 Edit</a>',
+              '<a href="' + issueUrl + ' target="_blank" class="no-out-arrow">💬 Discuss</a>',
               // 'Last modified: _{docsify-updated}_\n', // Doesn't work with the wiki as the basePath
               licenseBadge,
             ];
