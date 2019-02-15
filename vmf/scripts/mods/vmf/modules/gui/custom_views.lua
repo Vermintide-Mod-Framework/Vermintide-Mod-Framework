@@ -34,8 +34,6 @@ local ERRORS = {
     blocked_transition_wrong_value = "invalid value for 'view_settings.blocked_transitions.%s.%s'; must be 'true'."
   },
   REGULAR = {
-    view_data_wrong_type = "[Custom Views] (register_view) Loading view data file '%s': returned view data must be " ..
-                            "a table, not %s.",
     view_not_registered = "[Custom Views] Toggling view with keybind: view '%s' wasn't registered for this mod.",
     transition_not_registered = "[Custom Views] Toggling view with keybind: transition '%s' wasn't registered for " ..
                                  "'%s' view."
@@ -43,8 +41,7 @@ local ERRORS = {
   PREFIX = {
     view_initializing = "[Custom Views] Calling 'init_view_function'",
     view_destroying = "[Custom Views] Destroying view '%s'",
-    register_view_open_file = "[Custom Views] (register_view) Opening view data file '%s'",
-    register_view_validating = "[Custom Views] (register_view) View data validating '%s'",
+    register_view_validation = "[Custom Views] (register_view) View data validating '%s'",
     register_view_injection = "[Custom Views] (register_view) View injection '%s'",
     ingameui_hook_injection = "[Custom Views] View injection '%s'",
     handle_transition_fade = "[Custom Views] (handle_transition) executing 'ingame_ui.transition_with_fade' for " ..
@@ -81,21 +78,21 @@ local function inject_view(view_name)
 
   -- Check for collisions.
   if _ingame_ui.views[view_name] then
-    vmf.throw_error(ERRORS.THROWABLE["view_already_exists"], view_name)
+    vmf.throw_error(ERRORS.THROWABLE.view_already_exists, view_name)
   end
   for transition_name, _ in pairs(transitions) do
     if _ingame_ui_transitions[transition_name] then
-      vmf.throw_error(ERRORS.THROWABLE["transition_already_exists"], transition_name)
+      vmf.throw_error(ERRORS.THROWABLE.transition_already_exists, transition_name)
     end
   end
 
   -- Initialize and inject view.
-  local success, view = vmf.safe_call(mod, ERRORS.PREFIX["view_initializing"], init_view_function,
-                                                                                _ingame_ui.ingame_ui_context)
+  local success, view = vmf.safe_call(mod, ERRORS.PREFIX.view_initializing, init_view_function,
+                                                                             _ingame_ui.ingame_ui_context)
   if success then
     _ingame_ui.views[view_name] = view
   else
-    vmf.throw_error(ERRORS.THROWABLE["view_initializing_failed"], view_name)
+    vmf.throw_error(ERRORS.THROWABLE.view_initializing_failed)
   end
 
   -- Inject view transitions.
@@ -127,7 +124,7 @@ local function remove_injected_views(on_reload)
       local view = _ingame_ui.views[view_name]
       if view then
         if type(view.destroy) == "function" then
-          vmf.safe_call_nr(view_data.mod, {ERRORS.PREFIX["view_destroying"], view_name}, view.destroy, view)
+          vmf.safe_call_nr(view_data.mod, {ERRORS.PREFIX.view_destroying, view_name}, view.destroy, view)
         end
         _ingame_ui.views[view_name] = nil
       end
@@ -153,13 +150,13 @@ end
 local function validate_view_data(view_data)
   -- Basic checks.
   if type(view_data.view_name) ~= "string" then
-    vmf.throw_error(ERRORS.THROWABLE["view_name_wrong_type"], type(view_data.view_name))
+    vmf.throw_error(ERRORS.THROWABLE.view_name_wrong_type, type(view_data.view_name))
   end
   if type(view_data.view_transitions) ~= "table" then
-    vmf.throw_error(ERRORS.THROWABLE["view_transitions_wrong_type"], type(view_data.view_transitions))
+    vmf.throw_error(ERRORS.THROWABLE.view_transitions_wrong_type, type(view_data.view_transitions))
   end
   if type(view_data.view_settings) ~= "table" then
-    vmf.throw_error(ERRORS.THROWABLE["view_settings_wrong_type"], type(view_data.view_settings))
+    vmf.throw_error(ERRORS.THROWABLE.view_settings_wrong_type, type(view_data.view_settings))
   end
 
   -- VIEW TRANSITIONS
@@ -167,13 +164,13 @@ local function validate_view_data(view_data)
   local view_transitions = view_data.view_transitions
   for transition_name, transition_function in pairs(view_transitions) do
     if type(transition_function) ~= "function" then
-      vmf.throw_error(ERRORS.THROWABLE["transition_wrong_type"], transition_name, type(transition_function))
+      vmf.throw_error(ERRORS.THROWABLE.transition_wrong_type, transition_name, type(transition_function))
     end
     for another_view_name, another_view_data in pairs(_views_data) do
       for another_transition_name, _ in pairs(another_view_data.view_transitions) do
         if transition_name == another_transition_name then
-          vmf.throw_error(ERRORS.THROWABLE["transition_name_taken"], transition_name, another_view_data.mod:get_name(),
-                                                                      another_view_name)
+          vmf.throw_error(ERRORS.THROWABLE.transition_name_taken, transition_name, another_view_data.mod:get_name(),
+                                                                   another_view_name)
         end
       end
     end
@@ -188,46 +185,46 @@ local function validate_view_data(view_data)
 
   -- Verify everything.
   if type(view_settings.init_view_function) ~= "function" then
-    vmf.throw_error(ERRORS.THROWABLE["init_view_function_wrong_type"], type(view_settings.init_view_function))
+    vmf.throw_error(ERRORS.THROWABLE.init_view_function_wrong_type, type(view_settings.init_view_function))
   end
 
   local active = view_settings.active
   if type(active) ~= "table" then
-    vmf.throw_error(ERRORS.THROWABLE["active_wrong_type"], type(active))
+    vmf.throw_error(ERRORS.THROWABLE.active_wrong_type, type(active))
   end
   if active.inn == nil or active.ingame == nil then
-    vmf.throw_error(ERRORS.THROWABLE["active_missing_element"])
+    vmf.throw_error(ERRORS.THROWABLE.active_missing_element)
   end
   for level_name, value in pairs(active) do
     if level_name ~= "inn" and level_name ~= "ingame" then
-      vmf.throw_error(ERRORS.THROWABLE["active_element_wrong_name"], level_name)
+      vmf.throw_error(ERRORS.THROWABLE.active_element_wrong_name, level_name)
     end
     if type(value) ~= "boolean" then
-      vmf.throw_error(ERRORS.THROWABLE["active_element_wrong_type"], level_name, type(value))
+      vmf.throw_error(ERRORS.THROWABLE.active_element_wrong_type, level_name, type(value))
     end
   end
 
   local blocked_transitions = view_settings.blocked_transitions
   if type(blocked_transitions) ~= "table" then
-    vmf.throw_error(ERRORS.THROWABLE["blocked_transitions_wrong_type"], type(blocked_transitions))
+    vmf.throw_error(ERRORS.THROWABLE.blocked_transitions_wrong_type, type(blocked_transitions))
   end
   if not blocked_transitions.inn or not blocked_transitions.ingame then
-    vmf.throw_error(ERRORS.THROWABLE["blocked_transitions_missing_element"])
+    vmf.throw_error(ERRORS.THROWABLE.blocked_transitions_missing_element)
   end
   for level_name, level_blocked_transitions in pairs(blocked_transitions) do
     if level_name ~= "inn" and level_name ~= "ingame" then
-      vmf.throw_error(ERRORS.THROWABLE["blocked_transitions_element_wrong_name"], level_name)
+      vmf.throw_error(ERRORS.THROWABLE.blocked_transitions_element_wrong_name, level_name)
     end
     if type(level_blocked_transitions) ~= "table" then
-      vmf.throw_error(ERRORS.THROWABLE["blocked_transitions_element_wrong_type"], level_name,
-                                                                                   type(level_blocked_transitions))
+      vmf.throw_error(ERRORS.THROWABLE.blocked_transitions_element_wrong_type, level_name,
+                                                                                type(level_blocked_transitions))
     end
     for transition_name, value in pairs(level_blocked_transitions) do
       if not view_transitions[transition_name] then
-        vmf.throw_error(ERRORS.THROWABLE["blocked_transition_invalid"], transition_name, level_name)
+        vmf.throw_error(ERRORS.THROWABLE.blocked_transition_invalid, transition_name, level_name)
       end
       if value ~= true then
-        vmf.throw_error(ERRORS.THROWABLE["blocked_transition_wrong_value"], level_name, transition_name)
+        vmf.throw_error(ERRORS.THROWABLE.blocked_transition_wrong_value, level_name, transition_name)
       end
     end
   end
@@ -268,11 +265,13 @@ function VMFMod:handle_transition(transition_name, ignore_active_menu, fade, tra
      )
   then
     if fade then
-      vmf.safe_call_nr(self, ERRORS.PREFIX["handle_transition_fade"], _ingame_ui.transition_with_fade, _ingame_ui,
-                                                                       transition_name, transition_params)
+      vmf.safe_call_nr(self, {ERRORS.PREFIX.handle_transition_fade, transition_name}, _ingame_ui.transition_with_fade,
+                                                                                       _ingame_ui, transition_name,
+                                                                                        transition_params)
     else
-      vmf.safe_call_nr(self, ERRORS.PREFIX["handle_transition_no_fade"], _ingame_ui.handle_transition, _ingame_ui,
-                                                                          transition_name, transition_params)
+      vmf.safe_call_nr(self, {ERRORS.PREFIX.handle_transition_no_fade, transition_name}, _ingame_ui.handle_transition,
+                                                                                          _ingame_ui, transition_name,
+                                                                                           transition_params)
     end
     return true
   end
@@ -292,7 +291,7 @@ function VMFMod:register_view(view_data)
 
   local view_name = view_data.view_name
 
-  if not vmf.safe_call_nrc(self, {ERRORS.PREFIX["register_view_validating"], view_name}, validate_view_data,
+  if not vmf.safe_call_nrc(self, {ERRORS.PREFIX.register_view_validation, view_name}, validate_view_data,
                                                                                                          view_data) then
     return
   end
@@ -304,7 +303,7 @@ function VMFMod:register_view(view_data)
   }
 
   if _ingame_ui then
-    if not vmf.safe_call_nrc(self, {ERRORS.PREFIX["register_view_injection"], view_name}, inject_view, view_name) then
+    if not vmf.safe_call_nrc(self, {ERRORS.PREFIX.register_view_injection, view_name}, inject_view, view_name) then
       _views_data[view_data.view_name] = nil
     end
   end
@@ -319,7 +318,7 @@ end
 vmf:hook_safe(IngameUI, "init", function(self)
   _ingame_ui = self
   for view_name, _ in pairs(_views_data) do
-    if not vmf.safe_call_nrc(self, {ERRORS.PREFIX["ingameui_hook_injection"], view_name}, inject_view, view_name) then
+    if not vmf.safe_call_nrc(self, {ERRORS.PREFIX.ingameui_hook_injection, view_name}, inject_view, view_name) then
       _views_data[view_name] = nil
     end
   end
@@ -348,7 +347,7 @@ function vmf.keybind_toggle_view(mod, view_name, keybind_transition_data, can_be
   if _ingame_ui then
     local view_data = _views_data[view_name]
     if not view_data or (view_data.mod ~= mod) then
-      mod:error(ERRORS.REGULAR["view_not_registered"], view_name)
+      mod:error(ERRORS.REGULAR.view_not_registered, view_name)
       return
     end
 
@@ -360,8 +359,8 @@ function vmf.keybind_toggle_view(mod, view_name, keybind_transition_data, can_be
                                   keybind_transition_data.transition_fade,
                                     keybind_transition_data.close_view_transition_params)
           else
-            mod:error(ERRORS.REGULAR["transition_not_registered"], keybind_transition_data.close_view_transition_name,
-                                                                    view_name)
+            mod:error(ERRORS.REGULAR.transition_not_registered, keybind_transition_data.close_view_transition_name,
+                                                                 view_name)
           end
         end
       -- Can open views only when keybind is pressed.
@@ -372,8 +371,8 @@ function vmf.keybind_toggle_view(mod, view_name, keybind_transition_data, can_be
                                    keybind_transition_data.transition_fade,
                                     keybind_transition_data.open_view_transition_params)
           else
-            mod:error(ERRORS.REGULAR["transition_not_registered"], keybind_transition_data.open_view_transition_name,
-                                                                    view_name)
+            mod:error(ERRORS.REGULAR.transition_not_registered, keybind_transition_data.open_view_transition_name,
+                                                                 view_name)
           end
         end
       end
