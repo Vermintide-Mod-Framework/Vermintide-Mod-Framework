@@ -3085,7 +3085,8 @@ VMFOptionsView.callback_is_cursor_inside_settings_list = function (self)
   end
 end
 
-
+--                        [VT1]                [VT2]
+local UIResolutionScale = UIResolutionScale or UIResolutionScale_pow2
 VMFOptionsView.callback_fit_tooltip_to_the_screen = function (self, widget_content, widget_style, ui_renderer)
 
   local cursor_offset_bottom = widget_style.cursor_offset_bottom
