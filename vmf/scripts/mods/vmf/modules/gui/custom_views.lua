@@ -1,6 +1,7 @@
 local vmf = get_mod("VMF")
 
-local _ingame_ui = nil
+local _ingame_ui
+local _ingame_ui_disabled
 -- There's no direct access to local variable 'transitions' in ingame_ui.
 local _ingame_ui_transitions = require("scripts/ui/views/ingame_ui_settings").transitions
 local _views_data = {}
@@ -247,21 +248,28 @@ function VMFMod:handle_transition(transition_name, ignore_active_menu, fade, tra
     return
   end
 
+  local vt2_player_list_active
+  if not VT1 then
+		local ingame_player_list_ui = _ingame_ui.ingame_hud:component("IngamePlayerListUI")
+		vt2_player_list_active = ingame_player_list_ui and ingame_player_list_ui:is_active()
+  end
+
   if _ingame_ui
+     and not _ingame_ui_disabled
      and not _ingame_ui:pending_transition()
      and not _ingame_ui:end_screen_active()
      and (not _ingame_ui.menu_active or ignore_active_menu)
      and not _ingame_ui.leave_game
-     and not _ingame_ui.menu_suspended
      and not _ingame_ui.return_to_title_screen
      and (
        VT1
+          and not _ingame_ui.menu_suspended
           and not _ingame_ui.popup_join_lobby_handler.visible
        or not VT1
-          and not _ingame_ui.ingame_hud.ingame_player_list_ui:is_active()
           and not Managers.transition:in_fade_active()
           and not _ingame_ui:cutscene_active()
           and not _ingame_ui:unavailable_hero_popup_active()
+          and (not vt2_player_list_active or ignore_active_menu)
      )
   then
     if fade then
@@ -328,6 +336,11 @@ end)
 vmf:hook_safe(IngameUI, "destroy", function()
   remove_injected_views(false)
   _ingame_ui = nil
+end)
+
+
+vmf:hook_safe(IngameUI, "update", function(self, dt_, t_, disable_ingame_ui)
+  _ingame_ui_disabled = disable_ingame_ui
 end)
 
 -- #####################################################################################################################
