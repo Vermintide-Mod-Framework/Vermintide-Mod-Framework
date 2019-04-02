@@ -5,6 +5,8 @@ local vmf = get_mod("VMF")
 -- v [table]: (required, but can be empty) List of mutators that are dependant
 --            on 'k' mutator and, if enabled, should be disabled in order to
 --            toggle 'k' mutator, and then be enabled again
+-- Used:
+-- * In toggling module to toggle mutators in right order.
 vmf.mutators = {
   --[[
   this_mutator = {
