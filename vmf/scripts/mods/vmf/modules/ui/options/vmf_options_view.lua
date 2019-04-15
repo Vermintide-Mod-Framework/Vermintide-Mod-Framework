@@ -3362,6 +3362,11 @@ VMFOptionsView.callback_setting_keybind = function (self, widget_content)
       widget_content.first_pressed_button_index = nil
       widget_content.first_pressed_button_type  = nil
 
+      -- Fix accidental LMB binding for Mod Options view toggling.
+      if widget_content.setting_id == "open_vmf_options" and #widget_content.keys == 1 and widget_content.keys[1] == "mouse left" then
+        widget_content.keys = {}
+      end
+
       set_new_keybind(widget_content)
 
       self:callback_change_setting_keybind_state(widget_content)
