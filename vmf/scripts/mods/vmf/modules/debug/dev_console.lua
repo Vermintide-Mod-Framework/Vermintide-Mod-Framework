@@ -24,16 +24,7 @@ local function open_dev_console()
 
     local print_hook_function = function(func, ...)
       if _console_data.enabled then
-        if VT1 then
-          CommandWindow.print(...)
-        else
-          local console_message = {...}
-          for i, element in ipairs(console_message) do
-            console_message[i] = tostring(element)
-          end
-          table.insert(console_message, '\n')
-          CommandWindow.print(table.concat(console_message, " "))
-        end
+        CommandWindow.print(...)
         func(...)
       else
         func(...)
