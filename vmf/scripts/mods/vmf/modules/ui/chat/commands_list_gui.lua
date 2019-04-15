@@ -163,6 +163,26 @@ local function draw(commands_list, selected_command_index)
 end
 
 -- #####################################################################################################################
+-- ##### VMF internal functions ########################################################################################
+-- #####################################################################################################################
+
+-- A way for modders to change definitions. No safety checks. No guarantees definitions won't change. At least until
+-- global refactoring.
+function vmf.update_commands_list_gui_definitions(new_definitions)
+  MULTISTRING_INDICATOR_TEXT = new_definitions.MULTISTRING_INDICATOR_TEXT or MULTISTRING_INDICATOR_TEXT
+  FONT_TYPE                  = new_definitions.FONT_TYPE                  or FONT_TYPE
+  FONT_SIZE                  = new_definitions.FONT_SIZE                  or FONT_SIZE
+  MAX_COMMANDS_VISIBLE       = new_definitions.MAX_COMMANDS_VISIBLE       or MAX_COMMANDS_VISIBLE
+  STRING_HEIGHT              = new_definitions.STRING_HEIGHT              or STRING_HEIGHT
+  STRING_Y_OFFSET            = new_definitions.STRING_Y_OFFSET            or STRING_Y_OFFSET
+  STRING_X_MARGIN            = new_definitions.STRING_X_MARGIN            or STRING_X_MARGIN
+  OFFSET_X                   = new_definitions.OFFSET_X                   or OFFSET_X
+  OFFSET_Y                   = new_definitions.OFFSET_Y                   or OFFSET_Y
+  OFFSET_Z                   = new_definitions.OFFSET_Z                   or OFFSET_Z
+  WIDTH                      = new_definitions.WIDTH                      or WIDTH
+end
+
+-- #####################################################################################################################
 -- ##### Return ########################################################################################################
 -- #####################################################################################################################
 
