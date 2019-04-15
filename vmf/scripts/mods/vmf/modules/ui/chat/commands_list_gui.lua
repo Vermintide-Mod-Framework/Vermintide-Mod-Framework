@@ -44,7 +44,7 @@ end
 
 local function draw(commands_list, selected_command_index)
   -- VT2 requires applying additional HUD scaling
-  if not VT1 then
+  if not VT1 and UISettings.use_custom_hud_scale then
     UPDATE_RESOLUTION_LOOKUP(true, UISettings.hud_scale * 0.01)
   end
 
@@ -157,7 +157,7 @@ local function draw(commands_list, selected_command_index)
                     total_number_indicator_position, Color(255, 100, 100, 100))
   end
 
-  if not VT1 then
+  if not VT1 and UISettings.use_custom_hud_scale then
     UPDATE_RESOLUTION_LOOKUP(true)
   end
 end
