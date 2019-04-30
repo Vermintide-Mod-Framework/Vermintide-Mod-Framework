@@ -106,7 +106,7 @@ function vmf_mod_object:on_game_state_changed(status, state)
 
   if status == "enter" and state == "StateIngame" then
     vmf.create_keybinds_input_service()
-    vmf.check_if_ui_scaling_was_used_before() -- @TODO: strip it in a few months
+    -- vmf.check_if_ui_scaling_was_used_before() -- @TODO: strip it in a few months
   end
 end
 
