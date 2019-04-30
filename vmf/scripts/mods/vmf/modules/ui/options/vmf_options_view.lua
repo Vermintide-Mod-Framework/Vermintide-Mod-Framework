@@ -65,8 +65,8 @@ local scenegraph_definition = {
 
       sg_background_settings_frame = {
         size = {1200, 1000},
-        position = {360, 65, 1},
-        parent = "sg_aligner"
+        position = {0, 0, 10},
+          parent = "sg_background_settings_list"
 
       },
 
@@ -828,7 +828,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           pass_type = "texture",
 
           style_id   = "background",
-          texture_id = "rect_masked_texture"
+          texture_id = "header_bg"
         },
         {
           pass_type = "texture",
@@ -969,7 +969,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           offset_function = function (ui_scenegraph_, style, content, ui_renderer)
 
             local is_interactable = content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
-
+            local is_mod_enabled = not content.is_checkbox_checked
             if is_interactable then
 
               if content.tooltip_text then
@@ -1000,11 +1000,9 @@ local function create_header_widget(widget_definition, scenegraph_id)
                   content.callback_hide_sub_widgets(content)
                 end
 
-                local mod_name       = content.mod_name
-                local is_mod_enabled = not content.is_checkbox_checked
+                local mod_name = content.mod_name
 
                 content.is_checkbox_checked = is_mod_enabled
-
                 content.callback_mod_state_changed(mod_name, is_mod_enabled)
               end
             end
@@ -1014,7 +1012,12 @@ local function create_header_widget(widget_definition, scenegraph_id)
             style.fav_arrow_up.color[1] = is_interactable and content.fav_arrow_up_hotspot.is_hover and 255 or 90
             style.fav_arrow_down.color[1] = is_interactable and content.fav_arrow_down_hotspot.is_hover and 255 or 90
 
-            style.background.color = content.is_widget_collapsed and {255, 110, 78, 39} or {255, 57, 39, 21}
+            if (not content.is_widget_collapsed and not is_mod_enabled) then
+                style.background.color = { 255, 200, 200, 200 }
+            else
+                style.background.color = {255, 100, 100, 100 }
+            end
+
             if content.is_checkbox_checked then
               style.checkbox_fill.color = is_interactable and content.checkbox_hotspot.is_hover and {255, 255, 255, 255} or {255, 255, 168, 0}
             else
@@ -1066,11 +1069,11 @@ local function create_header_widget(widget_definition, scenegraph_id)
       is_widget_collapsed = widget_definition.is_collapsed,
       is_favorited        = widget_definition.is_favorited,
 
-      rect_masked_texture = "menu_frame_bg_01",
+      rect_masked_texture = "rect_masked",
+      header_bg = "menu_frame_bg_01",
       fav_icon_texture    = "header_fav_icon",
       --checkbox_texture    = "checkbox_unchecked",
       highlight_texture   = "playerlist_hover",
-      background_texture  = "menu_frame_bg_01",
       fav_arrow_texture   = "header_fav_arrow",
 
       fav_icon_hotspot        = {},
