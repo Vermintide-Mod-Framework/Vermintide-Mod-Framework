@@ -617,7 +617,7 @@ local menu_widgets_definition = {
         offset = {
             0,
             0,
-            -5
+            5
         }
       },
 
@@ -1142,19 +1142,22 @@ local function create_header_widget(widget_definition, scenegraph_id)
       checkbox_border = {
         offset = {widget_size[1] - 184, offset_y + 21, 1},
         size = {38, 38},
-        color = {255, 89, 61, 32}
+        color = {255, 89, 61, 32},
+        masked = true
       },
 
       checkbox_background = {
         offset = {widget_size[1] - 176, offset_y + 29, 3},
         size = {22, 22},
-        color = {255, 0, 0, 0}
+        color = {255, 0, 0, 0},
+        masked = true
       },
 
       checkbox_fill = {
         offset = {widget_size[1] - 174, offset_y + 31, 4},
         size = {18, 18},
-        color = {255, 255, 168, 0}
+        color = {255, 255, 168, 0},
+        masked = true
       },
       -- HOTSPOTS
 
