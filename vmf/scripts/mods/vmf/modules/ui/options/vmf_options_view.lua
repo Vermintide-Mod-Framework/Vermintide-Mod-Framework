@@ -521,16 +521,15 @@ local function create_scrollbar(height, scenegraph_id)
 --╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝ ╚═════╝      ╚══╝╚══╝ ╚═╝╚═════╝  ╚═════╝ ╚══════╝   ╚═╝   ╚══════╝
 
 
-local frame_settings = UIFrameSettings.menu_frame_02;
 local menu_widgets_definition = {
   static_menu_elements = {
     scenegraph_id = "sg_root",
     element = {
       passes = {
           {
-              pass_type = "texture",
+              pass_type = "rect",
               style_id = "background",
-              texture_id = "background"
+              texture_id = "rect_masked_texture"
           },
           {
               pass_type = "texture_frame",
@@ -575,8 +574,7 @@ local menu_widgets_definition = {
         uvs = {{0, 1}, {1, 0}}
       },
 
-      frame = frame_settings.texture,
-      background = "menu_frame_bg_01"
+      frame = "menu_frame_02",
     },
     style = {
 
@@ -619,7 +617,7 @@ local menu_widgets_definition = {
         offset = {
             0,
             0,
-            5
+            -5
         }
       },
 
@@ -830,7 +828,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           pass_type = "texture",
 
           style_id   = "background",
-          texture_id = "background_texture"
+          texture_id = "rect_masked_texture"
         },
         {
           pass_type = "texture",
@@ -1068,7 +1066,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
       is_widget_collapsed = widget_definition.is_collapsed,
       is_favorited        = widget_definition.is_favorited,
 
-      rect_masked_texture = "rect_masked",
+      rect_masked_texture = "menu_frame_bg_01",
       fav_icon_texture    = "header_fav_icon",
       --checkbox_texture    = "checkbox_unchecked",
       highlight_texture   = "playerlist_hover",
@@ -1094,7 +1092,8 @@ local function create_header_widget(widget_definition, scenegraph_id)
       background = {
         size = {widget_size[1], widget_size[2] - 3},
         offset = {0, offset_y + 1, 0},
-        color = { 150, 0, 0, 0 }
+        color = { 100, 0, 0, 0 },
+        masked = true
       },
 
       highlight_texture = {
