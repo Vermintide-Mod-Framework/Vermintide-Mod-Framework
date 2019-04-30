@@ -56,18 +56,18 @@ local scenegraph_definition = {
       vertical_alignment = "center"
     },
 
-      sg_background_border = {
-        size = {1206, 1056},
-        position = {357, 12, 0},
-
-        parent = "sg_aligner"
-      },
-
       sg_background_settings_list = {
         size = {1200, 1000},
         position = {360, 65, 1},
 
         parent = "sg_aligner"
+      },
+
+      sg_background_settings_frame = {
+        size = {1200, 1000},
+        position = {360, 65, 1},
+        parent = "sg_aligner"
+
       },
 
         sg_mousewheel_scroll_area = {
@@ -521,20 +521,21 @@ local function create_scrollbar(height, scenegraph_id)
 --╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝ ╚═════╝      ╚══╝╚══╝ ╚═╝╚═════╝  ╚═════╝ ╚══════╝   ╚═╝   ╚══════╝
 
 
+local frame_settings = UIFrameSettings.menu_frame_02;
 local menu_widgets_definition = {
   static_menu_elements = {
     scenegraph_id = "sg_root",
     element = {
       passes = {
           {
-            pass_type = "rect",
-
-            style_id  = "background_border"
+              pass_type = "texture",
+              style_id = "background",
+              texture_id = "background"
           },
           {
-            pass_type = "rect",
-
-            style_id  = "background_settings_list"
+              pass_type = "texture_frame",
+              style_id = "frame",
+              texture_id = "frame"
           },
           {
             pass_type = "texture",
@@ -559,7 +560,7 @@ local menu_widgets_definition = {
 
             style_id  = "dead_space_filler"
           }
-      }
+        }
     },
     content = {
       settings_list_mask_texture_id = "mask_rect",
@@ -572,18 +573,54 @@ local menu_widgets_definition = {
       settings_list_mask_edge_fade_bottom = {
         texture_id = "mask_rect_edge_fade",
         uvs = {{0, 1}, {1, 0}}
-      }
+      },
+
+      frame = frame_settings.texture,
+      background = "menu_frame_bg_01"
     },
     style = {
 
-      background_border = {
-        scenegraph_id = "sg_background_border",
-        color = {255, 140, 100, 50}
+      background = {
+        scenegraph_id = "sg_background_settings_list",
+        color = { 150, 0, 0, 0 },
+          offset = {
+              0,
+              0,
+              0
+          }
       },
 
-      background_settings_list = {
-        scenegraph_id = "sg_background_settings_list",
-        color = {255, 0, 0, 0}
+      frame = {
+        scenegraph_id = "sg_background_settings_frame",
+		texture_size = {
+			100,
+			100
+		},
+		texture_sizes = {
+			corner = {
+				60,
+				60
+			},
+			vertical = {
+				10,
+				31
+			},
+			horizontal = {
+				31,
+				10
+			}
+		},
+        color = {
+            255,
+            255,
+            255,
+            255
+        },
+        offset = {
+            0,
+            0,
+            5
+        }
       },
 
       settings_list_mask = {
@@ -793,7 +830,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           pass_type = "texture",
 
           style_id   = "background",
-          texture_id = "rect_masked_texture"
+          texture_id = "background_texture"
         },
         {
           pass_type = "texture",
@@ -1035,7 +1072,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
       fav_icon_texture    = "header_fav_icon",
       --checkbox_texture    = "checkbox_unchecked",
       highlight_texture   = "playerlist_hover",
-      background_texture  = "header_background",
+      background_texture  = "menu_frame_bg_01",
       fav_arrow_texture   = "header_fav_arrow",
 
       fav_icon_hotspot        = {},
@@ -1057,7 +1094,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
       background = {
         size = {widget_size[1], widget_size[2] - 3},
         offset = {0, offset_y + 1, 0},
-        color = {255, 57, 39, 21}
+        color = { 150, 0, 0, 0 }
       },
 
       highlight_texture = {

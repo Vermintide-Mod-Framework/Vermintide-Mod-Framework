@@ -1,7 +1,7 @@
 local vmf = get_mod("VMF")
 
 local vmf_mod_data = {}
-vmf_mod_data.name = "Vermintide Mod Framework"
+vmf_mod_data.name = "Vermintide Mod Framework 2"
 vmf_mod_data.options = {
   widgets = {
     {
