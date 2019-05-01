@@ -49,7 +49,6 @@ local function initialize_header_data(mod, data)
   new_data.tooltip           = mod:get_description()
   new_data.is_togglable      = mod:get_internal_data("is_togglable") and not mod:get_internal_data("is_mutator")
   new_data.is_collapsed      = vmf:get("options_menu_collapsed_mods")[mod:get_name()]
-  new_data.has_options      = mod:get_internal_data("has_options")
 
   for _, favorited_mod_name in ipairs(vmf:get("options_menu_favorite_mods")) do
     if favorited_mod_name == new_data.mod_name then

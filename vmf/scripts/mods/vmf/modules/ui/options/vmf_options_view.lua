@@ -904,7 +904,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           style_id  = "dropdown_triangle_right_1",
 
           content_check_function = function (content)
-            return content.show_dropdown_arrow and content.is_checkbox_visible and content.is_widget_collapsed
+            return content.show_dropdown_arrow and content.is_widget_collapsed
           end
         },
         {
@@ -912,7 +912,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           style_id  = "dropdown_triangle_right_2",
 
           content_check_function = function (content)
-            return content.show_dropdown_arrow and content.is_checkbox_visible and content.is_widget_collapsed
+            return content.show_dropdown_arrow and content.is_widget_collapsed
           end
         },
         {
@@ -920,7 +920,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           style_id  = "dropdown_triangle_down_1",
 
           content_check_function = function (content)
-            return content.show_dropdown_arrow and content.is_checkbox_visible and not content.is_widget_collapsed
+            return content.show_dropdown_arrow and not content.is_widget_collapsed and (not content.is_checkbox_visible or content.is_checkbox_checked)
           end
         },
         {
@@ -928,7 +928,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           style_id  = "dropdown_triangle_down_2",
 
           content_check_function = function (content)
-            return content.show_dropdown_arrow and content.is_checkbox_visible and not content.is_widget_collapsed
+            return content.show_dropdown_arrow and not content.is_widget_collapsed and (not content.is_checkbox_visible or content.is_checkbox_checked)
           end
         },
         {
@@ -1092,7 +1092,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
       is_checkbox_checked = true,
       is_checkbox_visible = false,
       is_widget_visible   = true,
-      show_dropdown_arrow = widget_definition.has_options,
+      show_dropdown_arrow = widget_definition.has_subwidgets,
       is_widget_collapsed = widget_definition.is_collapsed,
       is_favorited        = widget_definition.is_favorited,
 
@@ -2979,6 +2979,7 @@ VMFOptionsView.initialize_settings_list_widgets = function (self)
       elseif widget_type == "keybind" then
         widget = self:initialize_keybind_widget(definition, scenegraph_id_start)
       elseif widget_type == "header" then
+        definition.has_subwidgets = #mod_settings_list_definitions > 1
         widget = self:initialize_header_widget(definition, scenegraph_id_start)
       elseif widget_type == "group" then
         widget = self:initialize_group_widget(definition, scenegraph_id_start)
