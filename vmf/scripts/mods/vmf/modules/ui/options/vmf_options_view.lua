@@ -1054,11 +1054,6 @@ local function create_header_widget(widget_definition, scenegraph_id)
             else
               style.checkbox_fill.color = is_interactable and content.checkbox_hotspot.is_hover and {255, 100, 100, 100} or {255, 0, 0, 0}
             end
-            if content.is_widget_collapsed then
-              style.checkbox_border.color = is_interactable and content.checkbox_hotspot.is_hover and {255, 166, 118, 61} or {255, 154, 109, 55}
-            else
-              style.checkbox_border.color = is_interactable and content.checkbox_hotspot.is_hover and {255, 103, 71, 38} or {255, 89, 61, 32}
-            end
           end
         },
         -- TOOLTIP
@@ -1098,14 +1093,12 @@ local function create_header_widget(widget_definition, scenegraph_id)
       is_checkbox_visible = false,
       is_widget_visible   = true,
       show_dropdown_arrow = widget_definition.has_options,
-
       is_widget_collapsed = widget_definition.is_collapsed,
       is_favorited        = widget_definition.is_favorited,
 
       rect_masked_texture = "rect_masked",
       header_bg           = "menu_frame_bg_04",
       fav_icon_texture    = "header_fav_icon_lit",
-      --checkbox_texture    = "checkbox_unchecked",
       highlight_texture   = "playerlist_hover",
       fav_arrow_texture   = "header_fav_arrow",
 
@@ -1163,11 +1156,12 @@ local function create_header_widget(widget_definition, scenegraph_id)
       },
 
       text = {
-        offset = {60, offset_y + 18, 3},
-        font_size = 28,
+        offset = {60, offset_y + widget_size[2] / 2, 3},
+        font_size = 24,
         font_type = "hell_shark_masked",
         dynamic_font = true,
-        text_color = Colors.get_color_table_with_alpha("white", 255)
+        text_color = Colors.get_color_table_with_alpha("white", 255),
+        vertical_alignment = "center"
       },
 --[[
       checkbox = {
@@ -1198,7 +1192,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
       },
 
       dropdown_triangle_right_1 = {
-        offset = {24, offset_y + 31, 4},
+        offset = {24, offset_y + widget_size[2] / 2 - 8, 3},
         size = {8, 8},
         color = {255, 255, 168, 0},
         triangle_alignment = "top_left",
@@ -1206,7 +1200,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
       },
 
       dropdown_triangle_right_2 = {
-        offset = {24, offset_y + 39, 4},
+        offset = {24, offset_y + widget_size[2] / 2, 3},
         size = {8, 8},
         color = {255, 255, 168, 0},
         triangle_alignment = "bottom_left",
@@ -1214,7 +1208,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
       },
 
       dropdown_triangle_down_1 = {
-        offset = {20, offset_y + 31, 4},
+        offset = {20, offset_y + widget_size[2] / 2 - 8, 3},
         size = {8, 8},
         color = {255, 255, 168, 0},
         triangle_alignment = "top_right",
@@ -1222,7 +1216,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
       },
 
       dropdown_triangle_down_2 = {
-        offset = {28, offset_y + 31, 4},
+        offset = {28, offset_y + widget_size[2] / 2 - 8, 3},
         size = {8, 8},
         color = {255, 255, 168, 0},
         triangle_alignment = "top_left",
