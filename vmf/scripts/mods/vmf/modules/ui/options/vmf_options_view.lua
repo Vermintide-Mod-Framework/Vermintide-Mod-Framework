@@ -526,40 +526,40 @@ local menu_widgets_definition = {
     scenegraph_id = "sg_root",
     element = {
       passes = {
-          {
-              pass_type = "rect",
-              style_id = "background",
-              texture_id = "rect_masked_texture"
-          },
-          {
-              pass_type = "texture_frame",
-              style_id = "frame",
-              texture_id = "frame"
-          },
-          {
-            pass_type = "texture",
+        {
+          pass_type = "rect",
+          style_id = "background",
+          texture_id = "rect_masked_texture"
+        },
+        {
+          pass_type = "texture_frame",
+          style_id = "frame",
+          texture_id = "frame"
+        },
+        {
+          pass_type = "texture",
 
-            style_id  = "settings_list_mask",
-            texture_id = "settings_list_mask_texture_id"
-          },
-          {
-            pass_type = "texture_uv",
+          style_id  = "settings_list_mask",
+          texture_id = "settings_list_mask_texture_id"
+        },
+        {
+          pass_type = "texture_uv",
 
-            style_id = "settings_list_mask_edge_fade_top",
-            content_id = "settings_list_mask_edge_fade_top"
-          },
-          {
-            pass_type = "texture_uv",
+          style_id = "settings_list_mask_edge_fade_top",
+          content_id = "settings_list_mask_edge_fade_top"
+        },
+        {
+          pass_type = "texture_uv",
 
-            style_id = "settings_list_mask_edge_fade_bottom",
-            content_id = "settings_list_mask_edge_fade_bottom"
-          },
-          {
-            pass_type = "rect",
+          style_id = "settings_list_mask_edge_fade_bottom",
+          content_id = "settings_list_mask_edge_fade_bottom"
+        },
+        {
+          pass_type = "rect",
 
-            style_id  = "dead_space_filler"
-          }
+          style_id  = "dead_space_filler"
         }
+      }
     },
     content = {
       settings_list_mask_texture_id = "mask_rect",
@@ -590,24 +590,24 @@ local menu_widgets_definition = {
 
       frame = {
         scenegraph_id = "sg_background_settings_frame",
-		texture_size = {
-			100,
-			100
-		},
-		texture_sizes = {
-			corner = {
-				60,
-				60
-			},
-			vertical = {
-				10,
-				31
-			},
-			horizontal = {
-				31,
-				10
-			}
-		},
+        texture_size = {
+          100,
+          100
+        },
+        texture_sizes = {
+          corner = {
+            60,
+            60
+          },
+          vertical = {
+            10,
+            31
+          },
+          horizontal = {
+            31,
+            10
+          }
+        },
         color = {
             255,
             255,
