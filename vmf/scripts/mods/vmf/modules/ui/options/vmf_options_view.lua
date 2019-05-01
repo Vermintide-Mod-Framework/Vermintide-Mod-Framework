@@ -580,7 +580,7 @@ local menu_widgets_definition = {
 
       background = {
         scenegraph_id = "sg_background_settings_list",
-        color = { 150, 0, 0, 0 },
+        color = { 200, 0, 0, 0 },
           offset = {
               0,
               0,
@@ -900,6 +900,38 @@ local function create_header_widget(widget_definition, scenegraph_id)
           end
         },
         {
+          pass_type = "triangle",
+          style_id  = "dropdown_triangle_right_1",
+
+          content_check_function = function (content)
+            return content.show_dropdown_arrow and content.is_checkbox_visible and content.is_widget_collapsed
+          end
+        },
+        {
+          pass_type = "triangle",
+          style_id  = "dropdown_triangle_right_2",
+
+          content_check_function = function (content)
+            return content.show_dropdown_arrow and content.is_checkbox_visible and content.is_widget_collapsed
+          end
+        },
+        {
+          pass_type = "triangle",
+          style_id  = "dropdown_triangle_down_1",
+
+          content_check_function = function (content)
+            return content.show_dropdown_arrow and content.is_checkbox_visible and not content.is_widget_collapsed
+          end
+        },
+        {
+          pass_type = "triangle",
+          style_id  = "dropdown_triangle_down_2",
+
+          content_check_function = function (content)
+            return content.show_dropdown_arrow and content.is_checkbox_visible and not content.is_widget_collapsed
+          end
+        },
+        {
           pass_type = "texture",
 
           style_id   = "checkbox_background",
@@ -969,7 +1001,6 @@ local function create_header_widget(widget_definition, scenegraph_id)
           offset_function = function (ui_scenegraph_, style, content, ui_renderer)
 
             local is_interactable = content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
-            local is_mod_enabled = not content.is_checkbox_checked
             if is_interactable then
 
               if content.tooltip_text then
@@ -999,7 +1030,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
                 if content.is_widget_collapsed then
                   content.callback_hide_sub_widgets(content)
                 end
-
+                local is_mod_enabled = not content.is_checkbox_checked
                 local mod_name = content.mod_name
 
                 content.is_checkbox_checked = is_mod_enabled
@@ -1007,16 +1038,16 @@ local function create_header_widget(widget_definition, scenegraph_id)
               end
             end
 
-            content.fav_icon_texture = content.is_favorited and "header_fav_icon_lit" or "header_fav_icon"
+            if content.is_favorited then
+              style.fav_icon.color = is_interactable and content.fav_icon_hotspot.is_hover and { 200, 255, 255, 255 } or { 255, 255, 255, 255 }
+            else
+              style.fav_icon.color = is_interactable and content.fav_icon_hotspot.is_hover and { 255, 255, 255, 255 } or { 125, 255, 255, 255 }
+            end
+
             --content.checkbox_texture = content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
             style.fav_arrow_up.color[1] = is_interactable and content.fav_arrow_up_hotspot.is_hover and 255 or 90
             style.fav_arrow_down.color[1] = is_interactable and content.fav_arrow_down_hotspot.is_hover and 255 or 90
-
-            if (not content.is_widget_collapsed and not is_mod_enabled) then
-                style.background.color = { 255, 200, 200, 200 }
-            else
-                style.background.color = {255, 100, 100, 100 }
-            end
+            style.background.color = is_interactable and { 255, 255, 225, 225 } or { 255, 175, 100, 100 }
 
             if content.is_checkbox_checked then
               style.checkbox_fill.color = is_interactable and content.checkbox_hotspot.is_hover and {255, 255, 255, 255} or {255, 255, 168, 0}
@@ -1066,12 +1097,14 @@ local function create_header_widget(widget_definition, scenegraph_id)
       is_checkbox_checked = true,
       is_checkbox_visible = false,
       is_widget_visible   = true,
+      show_dropdown_arrow = widget_definition.has_options,
+
       is_widget_collapsed = widget_definition.is_collapsed,
       is_favorited        = widget_definition.is_favorited,
 
       rect_masked_texture = "rect_masked",
-      header_bg = "menu_frame_bg_01",
-      fav_icon_texture    = "header_fav_icon",
+      header_bg           = "menu_frame_bg_04",
+      fav_icon_texture    = "header_fav_icon_lit",
       --checkbox_texture    = "checkbox_unchecked",
       highlight_texture   = "playerlist_hover",
       fav_arrow_texture   = "header_fav_arrow",
@@ -1095,7 +1128,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
       background = {
         size = {widget_size[1], widget_size[2] - 3},
         offset = {0, offset_y + 1, 0},
-        color = { 100, 0, 0, 0 },
+        color = { 255, 255, 225, 225 },
         masked = true
       },
 
@@ -1108,20 +1141,21 @@ local function create_header_widget(widget_definition, scenegraph_id)
 
       fav_icon = {
         size = {30, 30},
-        offset = {15, offset_y + 25, 3},
+        color = { 125, 255, 255, 255 },
+        offset = {widget_size[1] - 45, offset_y + 25, 3},
         masked = true
       },
 
       fav_arrow_up = {
         size = {20, 20},
-        offset = {20, offset_y + 57, 3},
+        offset = {widget_size[1] - 40, offset_y + 57, 3},
         color = {90, 255, 255, 255},
         masked = true
       },
 
       fav_arrow_down = {
         size = {20, 20},
-        offset = {20, offset_y + 3, 3},
+        offset = {widget_size[1] - 40, offset_y + 3, 3},
         angle = math.pi,
         pivot = {10, 10},
         color = {90, 255, 255, 255},
@@ -1162,26 +1196,58 @@ local function create_header_widget(widget_definition, scenegraph_id)
         color = {255, 255, 168, 0},
         masked = true
       },
+
+      dropdown_triangle_right_1 = {
+        offset = {24, offset_y + 31, 4},
+        size = {8, 8},
+        color = {255, 255, 168, 0},
+        triangle_alignment = "top_left",
+        masked = true
+      },
+
+      dropdown_triangle_right_2 = {
+        offset = {24, offset_y + 39, 4},
+        size = {8, 8},
+        color = {255, 255, 168, 0},
+        triangle_alignment = "bottom_left",
+        masked = true
+      },
+
+      dropdown_triangle_down_1 = {
+        offset = {20, offset_y + 31, 4},
+        size = {8, 8},
+        color = {255, 255, 168, 0},
+        triangle_alignment = "top_right",
+        masked = true
+      },
+
+      dropdown_triangle_down_2 = {
+        offset = {28, offset_y + 31, 4},
+        size = {8, 8},
+        color = {255, 255, 168, 0},
+        triangle_alignment = "top_left",
+        masked = true
+      },
       -- HOTSPOTS
 
       fav_icon_hotspot = {
         size = {60, widget_size[2]},
-        offset = {0, offset_y, 3}
+        offset = {widget_size[1] - 60, offset_y, 3}
       },
 
       fav_arrow_up_hotspot = {
         size = {60, 20},
-        offset = {0, offset_y + 60, 3}
+        offset = {widget_size[1] - 60, offset_y + 60, 3}
       },
 
       fav_arrow_down_hotspot = {
         size = {60, 20},
-        offset = {0, offset_y, 3}
+        offset = {widget_size[1] - 60, offset_y, 3}
       },
 
       checkbox_hotspot = {
-        size = {270, widget_size[2]},
-        offset = {widget_size[1] - 300, offset_y, 0}
+        size = {150, widget_size[2]},
+        offset = {widget_size[1] - 240, offset_y, 0}
       },
 
       -- TOOLTIP

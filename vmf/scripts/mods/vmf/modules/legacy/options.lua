@@ -134,6 +134,7 @@ vmf.initialize_mod_options_legacy = function (mod, widgets_definition)
   new_widget_definition.is_togglable      = mod:get_internal_data("is_togglable") and
                                              not mod:get_internal_data("is_mutator")
   new_widget_definition.is_collapsed      = vmf:get("options_menu_collapsed_mods")[mod:get_name()]
+  new_widget_definition.has_options       = mod:get_internal_data("has_options")
 
 
   if options_menu_favorite_mods then
