@@ -890,16 +890,6 @@ local function create_header_widget(widget_definition, scenegraph_id)
         --]]
         ---[[
         {
-          pass_type = "texture",
-
-          style_id   = "checkbox_border",
-          texture_id = "rect_masked_texture",
-
-          content_check_function = function (content)
-            return content.is_checkbox_visible
-          end
-        },
-        {
           pass_type = "triangle",
           style_id  = "dropdown_triangle_right_1",
 
@@ -933,20 +923,23 @@ local function create_header_widget(widget_definition, scenegraph_id)
         },
         {
           pass_type = "texture",
-
-          style_id   = "checkbox_background",
-          texture_id = "rect_masked_texture",
-
+          style_id = "checkbox_marker",
+          texture_id = "checkbox_marker",
+          content_check_function = function (content)
+            return content.is_checkbox_checked and content.is_checkbox_visible
+          end
+        },
+        {
+          pass_type = "rect",
+          style_id = "checkbox_background",
           content_check_function = function (content)
             return content.is_checkbox_visible
           end
         },
         {
-          pass_type = "texture",
-
-          style_id   = "checkbox_fill",
-          texture_id = "rect_masked_texture",
-
+          pass_type = "texture_frame",
+          style_id = "checkbox_frame",
+          texture_id = "checkbox_frame",
           content_check_function = function (content)
             return content.is_checkbox_visible
           end
@@ -1048,12 +1041,9 @@ local function create_header_widget(widget_definition, scenegraph_id)
             style.fav_arrow_up.color[1] = is_interactable and content.fav_arrow_up_hotspot.is_hover and 255 or 90
             style.fav_arrow_down.color[1] = is_interactable and content.fav_arrow_down_hotspot.is_hover and 255 or 90
             style.background.color = is_interactable and { 255, 255, 225, 225 } or { 255, 175, 100, 100 }
+            style.checkbox_marker.color = is_interactable and content.checkbox_hotspot.is_hover and { 255, 255, 255, 255 } or { 255, 255, 168, 0 }
+            style.checkbox_frame.color = is_interactable and content.checkbox_hotspot.is_hover and { 255, 200, 200, 200 } or { 255, 255, 255, 255 }
 
-            if content.is_checkbox_checked then
-              style.checkbox_fill.color = is_interactable and content.checkbox_hotspot.is_hover and {255, 255, 255, 255} or {255, 255, 168, 0}
-            else
-              style.checkbox_fill.color = is_interactable and content.checkbox_hotspot.is_hover and {255, 100, 100, 100} or {255, 0, 0, 0}
-            end
           end
         },
         -- TOOLTIP
@@ -1098,6 +1088,8 @@ local function create_header_widget(widget_definition, scenegraph_id)
 
       rect_masked_texture = "rect_masked",
       header_bg           = "menu_frame_bg_04",
+      checkbox_marker     = "matchmaking_checkbox",
+      checkbox_frame      = "menu_frame_06",
       fav_icon_texture    = "header_fav_icon_lit",
       highlight_texture   = "playerlist_hover",
       fav_arrow_texture   = "header_fav_arrow",
@@ -1170,24 +1162,43 @@ local function create_header_widget(widget_definition, scenegraph_id)
         masked = true
       },
 ]]
-      checkbox_border = {
-        offset = {widget_size[1] - 184, offset_y + 21, 1},
-        size = {38, 38},
-        color = {255, 89, 61, 32},
+
+      checkbox_style = {
+        vertical_alignment = "bottom",
+        horizontal_alignment = "right",
+        texture_size = { 40, 40 },
+        offset = {widget_size[1] - 144, offset_y + widget_size[2] / 2 - 20, 1},
+        color = { 255, 255, 255, 255 },
         masked = true
       },
-
       checkbox_background = {
-        offset = {widget_size[1] - 176, offset_y + 29, 3},
-        size = {22, 22},
-        color = {255, 0, 0, 0},
+        vertical_alignment = "bottom",
+        horizontal_alignment = "right",
+        texture_size = { 40, 40 },
+        offset = {widget_size[1] - 144, offset_y + widget_size[2] / 2 - 20, 0},
+        color = { 255, 0, 0, 0 },
         masked = true
       },
-
-      checkbox_fill = {
-        offset = {widget_size[1] - 174, offset_y + 31, 4},
-        size = {18, 18},
-        color = {255, 255, 168, 0},
+      checkbox_frame = {
+        vertical_alignment = "bottom",
+        horizontal_alignment = "right",
+        area_size = { 40, 40 },
+        texture_size = { 58, 58 },
+        texture_sizes = {
+          corner = { 5, 5 },
+          vertical = { 5, 1 },
+          horizontal = { 1, 5 }
+        },
+        offset = {widget_size[1] - 144, offset_y + widget_size[2] / 2 - 20, 1},
+        color = { 255, 255, 255, 255 },
+        masked = true
+      },
+      checkbox_marker = {
+        vertical_alignment = "bottom",
+        horizontal_alignment = "right",
+        texture_size = { 37, 31 },
+        offset = {widget_size[1] - 140, offset_y + widget_size[2] / 2 - 20 + 6, 1},
+        color = { 255, 255, 168, 0 },
         masked = true
       },
 
@@ -1322,21 +1333,20 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
         },
         {
           pass_type = "texture",
-
-          style_id   = "checkbox_border",
-          texture_id = "rect_masked_texture"
+          style_id = "checkbox_marker",
+          texture_id = "checkbox_marker",
+          content_check_function = function (content)
+            return content.is_checkbox_checked
+          end
         },
         {
-          pass_type = "texture",
-
-          style_id   = "checkbox_background",
-          texture_id = "rect_masked_texture"
+          pass_type = "rect",
+          style_id = "checkbox_background"
         },
         {
-          pass_type = "texture",
-
-          style_id   = "checkbox_fill",
-          texture_id = "rect_masked_texture"
+          pass_type = "texture_frame",
+          style_id = "checkbox_frame",
+          texture_id = "checkbox_frame"
         },
         -- HOTSPOTS
         {
@@ -1385,12 +1395,7 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
               end
             end
 
-            if content.is_checkbox_checked then
-              style.checkbox_fill.color = is_interactable and content.checkbox_hotspot.is_hover and {255, 255, 255, 255} or {255, 255, 168, 0}
-            else
-              style.checkbox_fill.color = is_interactable and content.checkbox_hotspot.is_hover and {255, 100, 100, 100} or {255, 0, 0, 0}
-            end
-            style.checkbox_border.color = is_interactable and content.checkbox_hotspot.is_hover and {255, 45, 45, 45} or {255, 30, 30, 30}
+            style.checkbox_marker.color = content.checkbox_hotspot.is_hover and { 255, 255, 255, 255 } or { 255, 255, 168, 0 }
           end
         },
         -- TOOLTIP
@@ -1439,6 +1444,8 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
 
       rect_masked_texture = "rect_masked",
       highlight_texture = "playerlist_hover",
+      checkbox_marker     = "matchmaking_checkbox",
+      checkbox_frame      = "menu_frame_06",
 
       checkbox_hotspot = {},
       highlight_hotspot = {},
@@ -1476,22 +1483,45 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
         text_color = Colors.get_color_table_with_alpha("white", 255)
       },
 
-      checkbox_border = {
-        offset = {widget_size[1] - 182, offset_y + 8, 1},
-        size = {34, 34},
-        color = {255, 30, 30, 30}
+      checkbox_style = {
+        vertical_alignment = "bottom",
+        horizontal_alignment = "right",
+        texture_size = { 30, 30 },
+        offset = {widget_size[1] - 149, offset_y + widget_size[2] / 2 - 15, 1},
+        color = { 255, 255, 255, 255 },
+        masked = true
       },
-
       checkbox_background = {
-        offset = {widget_size[1] - 174, offset_y + 16, 3},
-        size = {18, 18},
-        color = {255, 0, 0, 0}
+        vertical_alignment = "bottom",
+        horizontal_alignment = "right",
+        texture_size = { 30, 30 },
+        offset = {widget_size[1] - 149, offset_y + widget_size[2] / 2 - 15, 0},
+        color = { 255, 0, 0, 0 },
+        masked = true
       },
-
-      checkbox_fill = {
-        offset = {widget_size[1] - 172, offset_y + 18, 4},
-        size = {14, 14},
-        color = {255, 255, 168, 0}
+      checkbox_frame = {
+        vertical_alignment = "bottom",
+        horizontal_alignment = "right",
+        area_size = { 30, 30 },
+        texture_size = { 48, 48 },
+        texture_sizes = {
+          corner = { 5, 5 },
+          vertical = { 5, 1 },
+          horizontal = { 1, 5 }
+        },
+        offset = {widget_size[1] - 149, offset_y + widget_size[2] / 2 - 15, 1},
+        color = { 255, 255, 255, 255 },
+        masked = true
+      },
+      checkbox_marker = {
+        vertical_alignment = "bottom",
+        horizontal_alignment = "right",
+        texture_size = { 27, 21 },
+        offset = {widget_size[1] - 147, offset_y + widget_size[2] / 2 - 15 + 6, 1},
+        -- color = Colors.get_color_table_with_alpha("font_title", 255),
+        color = { 255, 255, 168, 0 },
+        -- color = { 255, 255, 255, 255},
+        masked = true
       },
 
       -- HOTSPOTS
