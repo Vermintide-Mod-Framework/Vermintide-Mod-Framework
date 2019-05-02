@@ -837,7 +837,8 @@ local function create_header_widget(widget_definition, scenegraph_id)
           texture_id = "highlight_texture",
 
           content_check_function = function (content)
-            return content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
+            return (not content.is_checkbox_visible or content.is_checkbox_checked) and 
+                    content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
           end
         },
         {
@@ -894,7 +895,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           style_id  = "dropdown_triangle_right_1",
 
           content_check_function = function (content)
-            return content.show_dropdown_arrow and content.is_widget_collapsed
+            return content.has_widgets and content.is_widget_collapsed and (not content.is_checkbox_visible or content.is_checkbox_checked)
           end
         },
         {
@@ -902,7 +903,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           style_id  = "dropdown_triangle_right_2",
 
           content_check_function = function (content)
-            return content.show_dropdown_arrow and content.is_widget_collapsed
+            return content.has_widgets and content.is_widget_collapsed and (not content.is_checkbox_visible or content.is_checkbox_checked)
           end
         },
         {
@@ -910,7 +911,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           style_id  = "dropdown_triangle_down_1",
 
           content_check_function = function (content)
-            return content.show_dropdown_arrow and not content.is_widget_collapsed and (not content.is_checkbox_visible or content.is_checkbox_checked)
+            return content.has_widgets and not content.is_widget_collapsed and (not content.is_checkbox_visible or content.is_checkbox_checked)
           end
         },
         {
@@ -918,7 +919,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           style_id  = "dropdown_triangle_down_2",
 
           content_check_function = function (content)
-            return content.show_dropdown_arrow and not content.is_widget_collapsed and (not content.is_checkbox_visible or content.is_checkbox_checked)
+            return content.has_widgets and not content.is_widget_collapsed and (not content.is_checkbox_visible or content.is_checkbox_checked)
           end
         },
         {
@@ -994,40 +995,28 @@ local function create_header_widget(widget_definition, scenegraph_id)
           offset_function = function (ui_scenegraph_, style, content, ui_renderer)
 
             local is_interactable = content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
+
+            -- Events & callbacks
             if is_interactable then
 
               if content.tooltip_text then
                 style.tooltip_text.cursor_offset = content.callback_fit_tooltip_to_the_screen(content, style.tooltip_text, ui_renderer)
               end
 
-              if content.highlight_hotspot.on_release and not content.checkbox_hotspot.on_release and not content.fav_icon_hotspot.on_release
-                and not content.fav_arrow_up_hotspot.on_release and not content.fav_arrow_down_hotspot.on_release then
-
-                content.callback_hide_sub_widgets(content)
-              end
-
-              if content.fav_icon_hotspot.on_release and not content.fav_arrow_up_hotspot.on_release and not content.fav_arrow_down_hotspot.on_release then
-                content.callback_favorite(content)
-              end
-
               if content.fav_arrow_up_hotspot.on_release then
                 content.callback_move_favorite(content, true)
-              end
-
-              if content.fav_arrow_down_hotspot.on_release then
+              elseif content.fav_arrow_down_hotspot.on_release then
                 content.callback_move_favorite(content, false)
-              end
-
-              if content.checkbox_hotspot.on_release then
-
-                if content.is_widget_collapsed then
-                  content.callback_hide_sub_widgets(content)
-                end
+              elseif content.fav_icon_hotspot.on_release then
+                content.callback_favorite(content)
+              elseif content.checkbox_hotspot.on_release then
                 local is_mod_enabled = not content.is_checkbox_checked
                 local mod_name = content.mod_name
 
                 content.is_checkbox_checked = is_mod_enabled
                 content.callback_mod_state_changed(mod_name, is_mod_enabled)
+              elseif content.highlight_hotspot.on_release then
+                content.callback_hide_sub_widgets(content)
               end
             end
 
@@ -1037,10 +1026,12 @@ local function create_header_widget(widget_definition, scenegraph_id)
               style.fav_icon.color = is_interactable and content.fav_icon_hotspot.is_hover and { 255, 255, 255, 255 } or { 125, 255, 255, 255 }
             end
 
-            --content.checkbox_texture = content.is_checkbox_checked and "checkbox_checked" or "checkbox_unchecked"
+            local is_disabled = content.is_checkbox_visible and not content.is_checkbox_checked
+            style.text.text_color = is_disabled and { 255, 100, 100, 100 } or { 255, 255, 255, 255 }
+            style.background.color = is_disabled and { 255, 175, 100, 100 } or { 255, 255, 225, 225 }
+
             style.fav_arrow_up.color[1] = is_interactable and content.fav_arrow_up_hotspot.is_hover and 255 or 90
             style.fav_arrow_down.color[1] = is_interactable and content.fav_arrow_down_hotspot.is_hover and 255 or 90
-            style.background.color = is_interactable and { 255, 255, 225, 225 } or { 255, 175, 100, 100 }
             style.checkbox_marker.color = is_interactable and content.checkbox_hotspot.is_hover and { 255, 255, 255, 255 } or { 255, 255, 168, 0 }
             style.checkbox_frame.color = is_interactable and content.checkbox_hotspot.is_hover and { 255, 200, 200, 200 } or { 255, 255, 255, 255 }
 
@@ -1082,7 +1073,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
       is_checkbox_checked = true,
       is_checkbox_visible = false,
       is_widget_visible   = true,
-      show_dropdown_arrow = widget_definition.has_subwidgets,
+      has_widgets = widget_definition.has_subwidgets,
       is_widget_collapsed = widget_definition.is_collapsed,
       is_favorited        = widget_definition.is_favorited,
 
