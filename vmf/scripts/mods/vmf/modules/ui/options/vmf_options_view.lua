@@ -837,7 +837,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           texture_id = "highlight_texture",
 
           content_check_function = function (content)
-            return (not content.is_checkbox_visible or content.is_checkbox_checked) and 
+            return (not content.is_checkbox_visible or content.is_checkbox_checked) and
                     content.highlight_hotspot.is_hover and content.callback_is_cursor_inside_settings_list()
           end
         },
