@@ -533,7 +533,7 @@ local menu_widgets_definition = {
         {
           pass_type = "texture_frame",
           style_id = "frame",
-          texture_id = "frame"
+          texture_id = "frame",
         },
         {
           pass_type = "texture",
