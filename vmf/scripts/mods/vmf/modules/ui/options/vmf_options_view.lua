@@ -60,7 +60,7 @@ local scenegraph_definition = {
         size = {1200, 50},
         position = {360, 1018, 1},
 
-        parent = "sg_aligner"
+        parent = "sg_aligner",
       },
 
       sg_search_bar_frame = {
