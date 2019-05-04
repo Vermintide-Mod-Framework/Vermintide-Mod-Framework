@@ -581,44 +581,19 @@ local menu_widgets_definition = {
       background = {
         scenegraph_id = "sg_background_settings_list",
         color = { 200, 0, 0, 0 },
-          offset = {
-              0,
-              0,
-              0
-          }
+          offset = { 0, 0, 0 }
       },
 
       frame = {
         scenegraph_id = "sg_background_settings_frame",
-        texture_size = {
-          100,
-          100
-        },
+        texture_size = { 100, 100 },
         texture_sizes = {
-          corner = {
-            60,
-            60
-          },
-          vertical = {
-            10,
-            31
-          },
-          horizontal = {
-            31,
-            10
-          }
+          corner = { 60, 60 },
+          vertical = { 10, 31 },
+          horizontal = { 31, 10 }
         },
-        color = {
-          255,
-          255,
-          255,
-          255
-        },
-        offset = {
-          0,
-          0,
-          5
-        }
+        color = { 255, 255, 255, 255 },
+        offset = { 0, 0, 5 }
       },
 
       settings_list_mask = {
@@ -699,7 +674,7 @@ local menu_widgets_definition = {
     style = {
       text = {
         offset = {46, 2, 3},
-        font_size = 28,
+        font_size = 24,
         font_type = "hell_shark",
         dynamic_font = true,
         text_color = Colors.get_color_table_with_alpha("white", 255)
@@ -829,6 +804,11 @@ local function create_header_widget(widget_definition, scenegraph_id)
 
           style_id   = "background",
           texture_id = "header_bg"
+        },
+        {
+          pass_type = "texture_frame",
+          style_id = "frame",
+          texture_id = "frame"
         },
         {
           pass_type = "texture",
@@ -1084,6 +1064,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
       fav_icon_texture    = "header_fav_icon_lit",
       highlight_texture   = "playerlist_hover",
       fav_arrow_texture   = "header_fav_arrow",
+      frame = "menu_frame_02",
 
       fav_icon_hotspot        = {},
       fav_arrow_up_hotspot    = {},
@@ -1102,15 +1083,40 @@ local function create_header_widget(widget_definition, scenegraph_id)
       -- VISUALS
 
       background = {
-        size = {widget_size[1], widget_size[2] - 3},
-        offset = {0, offset_y + 1, 0},
+        size = {widget_size[1] - 16, widget_size[2] - 8},
+        offset = {8, offset_y + 4, 0},
         color = { 255, 255, 225, 225 },
         masked = true
       },
 
+      frame = {
+        size = {widget_size[1] - 16, widget_size[2] - 8},
+        texture_size = { 100, 100 },
+        texture_sizes = {
+          corner = { 10, 10 },
+          vertical = { 2, 10 },
+          horizontal = { 10, 2 }
+        },
+        color = { 255, 255, 255, 255 },
+        offset = { 8, offset_y + 4, 5 },
+        masked = true
+      },
+
+      frame_disabled = {
+        size = {widget_size[1], widget_size[2]},
+        texture_size = { 100, 100 },
+        texture_sizes = {
+          corner = { 60, 60 },
+          vertical = { 10, 31 },
+          horizontal = { 31, 10 }
+        },
+        color = { 255, 150, 150, 150 },
+        offset = { 0, 0, 5 }
+      },
+
       highlight_texture = {
-        size = {widget_size[1], widget_size[2] - 3},
-        offset = {0, offset_y + 1, 2},
+        size = {widget_size[1] - 16, widget_size[2] - 8},
+        offset = {8, offset_y + 4, 2},
         color = {255, 255, 255, 255},
         masked = true
       },
@@ -1166,7 +1172,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
         vertical_alignment = "bottom",
         horizontal_alignment = "right",
         texture_size = { 40, 40 },
-        offset = {widget_size[1] - 144, offset_y + widget_size[2] / 2 - 20, 0},
+        offset = {widget_size[1] - 144, offset_y + widget_size[2] / 2 - 20, 2},
         color = { 255, 0, 0, 0 },
         masked = true
       },
@@ -1180,7 +1186,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           vertical = { 5, 1 },
           horizontal = { 1, 5 }
         },
-        offset = {widget_size[1] - 144, offset_y + widget_size[2] / 2 - 20, 1},
+        offset = {widget_size[1] - 144, offset_y + widget_size[2] / 2 - 20, 3},
         color = { 255, 255, 255, 255 },
         masked = true
       },
@@ -1188,7 +1194,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
         vertical_alignment = "bottom",
         horizontal_alignment = "right",
         texture_size = { 37, 31 },
-        offset = {widget_size[1] - 140, offset_y + widget_size[2] / 2 - 20 + 6, 1},
+        offset = {widget_size[1] - 140, offset_y + widget_size[2] / 2 - 20 + 6, 3},
         color = { 255, 255, 168, 0 },
         masked = true
       },
@@ -1468,7 +1474,7 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
 
       text = {
         offset = {60 + widget_definition.depth * 40, offset_y + 5, 3},
-        font_size = 28,
+        font_size = 24,
         font_type = "hell_shark_masked",
         dynamic_font = true,
         text_color = Colors.get_color_table_with_alpha("white", 255)
@@ -1705,7 +1711,7 @@ local function create_group_widget(widget_definition, scenegraph_id)
 
       text = {
         offset = {60 + widget_definition.depth * 40, offset_y + 5, 2},
-        font_size = 28,
+        font_size = 24,
         font_type = "hell_shark_masked",
         dynamic_font = true,
         text_color = Colors.get_color_table_with_alpha("white", 255)
@@ -2077,7 +2083,7 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
 
       text = {
         offset = {60 + widget_definition.depth * 40, offset_y + 5, 3},
-        font_size = 28,
+        font_size = 24,
         font_type = "hell_shark_masked",
         dynamic_font = true,
         text_color = Colors.get_color_table_with_alpha("white", 255)
@@ -2110,7 +2116,7 @@ local function create_dropdown_widget(widget_definition, scenegraph_id, scenegra
       current_option_text = {
         offset = {widget_size[1] - 165, offset_y + 4, 3},
         horizontal_alignment = "center",
-        font_size = 28,
+        font_size = 24,
         font_type = "hell_shark_masked",
         dynamic_font = true,
         text_color = Colors.get_color_table_with_alpha("cheeseburger", 255)
@@ -2296,7 +2302,7 @@ local function create_numeric_menu_widget(dropdown_definition, scenegraph_2nd_la
           21
         },
         horizontal_alignment = "center",
-        font_size = 28,
+        font_size = 24,
         font_type = "hell_shark_masked",
         dynamic_font = true,
         text_color = {255, 255, 255, 255}
@@ -2528,7 +2534,7 @@ local function create_numeric_widget(widget_definition, scenegraph_id, scenegrap
 
       text = {
         offset = {60 + widget_definition.depth * 40, offset_y + 5, 3},
-        font_size = 28,
+        font_size = 24,
         font_type = "hell_shark_masked",
         dynamic_font = true,
         text_color = Colors.get_color_table_with_alpha("white", 255)
@@ -2555,7 +2561,7 @@ local function create_numeric_widget(widget_definition, scenegraph_id, scenegrap
       current_value_text = {
         offset = {widget_size[1] - 165, offset_y + 4, 3},
         horizontal_alignment = "center",
-        font_size = 28,
+        font_size = 24,
         font_type = "hell_shark_masked",
         dynamic_font = true,
         text_color = Colors.get_color_table_with_alpha("cheeseburger", 255)
@@ -2801,7 +2807,7 @@ local function create_keybind_widget(widget_definition, scenegraph_id)
 
       text = {
         offset = {60 + widget_definition.depth * 40, offset_y + 5, 2},
-        font_size = 28,
+        font_size = 24,
         font_type = "hell_shark_masked",
         dynamic_font = true,
         text_color = Colors.get_color_table_with_alpha("white", 255)
