@@ -67,7 +67,7 @@ local scenegraph_definition = {
         size = {1200, 50},
         position = {360, 1018, 5},
 
-        parent = "sg_aligner"
+        parent = "sg_aligner",
       },
 
       sg_scrollbar = {
@@ -81,12 +81,12 @@ local scenegraph_definition = {
         size = {1200, 1000},
         position = {360, 15, 1},
 
-        parent = "sg_aligner"
+        parent = "sg_aligner",
       },
         sg_background_settings_frame = {
           size = {1200, 1000},
           position = {0, 0, 10},
-            parent = "sg_background_settings_list"
+          parent = "sg_background_settings_list",
 
         },
 
@@ -115,7 +115,7 @@ local scenegraph_definition = {
           size = {1200, 15},
           position = {0, 0, 3},
 
-          parent = "sg_background_settings_list"
+          parent = "sg_background_settings_list",
         },
 
   sg_dead_space_filler = {
@@ -545,24 +545,24 @@ local menu_widgets_definition = {
           pass_type = "texture",
 
           style_id  = "settings_list_mask",
-          texture_id = "settings_list_mask_texture_id"
+          texture_id = "settings_list_mask_texture_id",
         },
         {
           pass_type = "texture_uv",
 
           style_id = "settings_list_mask_edge_fade_top",
-          content_id = "settings_list_mask_edge_fade_top"
+          content_id = "settings_list_mask_edge_fade_top",
         },
         {
           pass_type = "texture_uv",
 
           style_id = "settings_list_mask_edge_fade_bottom",
-          content_id = "settings_list_mask_edge_fade_bottom"
+          content_id = "settings_list_mask_edge_fade_bottom",
         },
         {
           pass_type = "rect",
 
-          style_id  = "dead_space_filler"
+          style_id  = "dead_space_filler",
         }
       }
     },
@@ -576,7 +576,7 @@ local menu_widgets_definition = {
 
       settings_list_mask_edge_fade_bottom = {
         texture_id = "mask_rect_edge_fade",
-        uvs = {{0, 1}, {1, 0}}
+        uvs = {{0, 1}, {1, 0}},
       },
 
       frame = "menu_frame_02",
@@ -586,7 +586,7 @@ local menu_widgets_definition = {
       background = {
         scenegraph_id = "sg_background_settings_list",
         color = { 200, 0, 0, 0 },
-        offset = { 0, 0, 0 }
+        offset = { 0, 0, 0 },
       },
 
       frame = {
@@ -595,10 +595,10 @@ local menu_widgets_definition = {
         texture_sizes = {
           corner = { 30, 30 },
           vertical = { 5, 15 },
-          horizontal = { 15, 5 }
+          horizontal = { 15, 5 },
         },
         color = { 255, 255, 255, 255 },
-        offset = { 0, 0, 5 }
+        offset = { 0, 0, 5 },
       },
 
       settings_list_mask = {
@@ -635,7 +635,7 @@ local menu_widgets_definition = {
         {
           pass_type = "texture_frame",
           style_id = "frame",
-          texture_id = "frame"
+          texture_id = "frame",
         },
         {
           pass_type = "rect",
