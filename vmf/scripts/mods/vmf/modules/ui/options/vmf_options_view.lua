@@ -581,16 +581,16 @@ local menu_widgets_definition = {
       background = {
         scenegraph_id = "sg_background_settings_list",
         color = { 200, 0, 0, 0 },
-          offset = { 0, 0, 0 }
+        offset = { 0, 0, 0 }
       },
 
       frame = {
         scenegraph_id = "sg_background_settings_frame",
         texture_size = { 100, 100 },
         texture_sizes = {
-          corner = { 60, 60 },
-          vertical = { 10, 31 },
-          horizontal = { 31, 10 }
+          corner = { 30, 30 },
+          vertical = { 5, 15 },
+          horizontal = { 15, 5 }
         },
         color = { 255, 255, 255, 255 },
         offset = { 0, 0, 5 }
@@ -875,7 +875,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           style_id  = "dropdown_triangle_right_1",
 
           content_check_function = function (content)
-            return content.has_widgets and content.is_widget_collapsed and (not content.is_checkbox_visible or content.is_checkbox_checked)
+            return content.has_subwidgets and content.is_widget_collapsed and (not content.is_checkbox_visible or content.is_checkbox_checked)
           end
         },
         {
@@ -883,7 +883,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           style_id  = "dropdown_triangle_right_2",
 
           content_check_function = function (content)
-            return content.has_widgets and content.is_widget_collapsed and (not content.is_checkbox_visible or content.is_checkbox_checked)
+            return content.has_subwidgets and content.is_widget_collapsed and (not content.is_checkbox_visible or content.is_checkbox_checked)
           end
         },
         {
@@ -891,7 +891,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           style_id  = "dropdown_triangle_down_1",
 
           content_check_function = function (content)
-            return content.has_widgets and not content.is_widget_collapsed and (not content.is_checkbox_visible or content.is_checkbox_checked)
+            return content.has_subwidgets and not content.is_widget_collapsed and (not content.is_checkbox_visible or content.is_checkbox_checked)
           end
         },
         {
@@ -899,7 +899,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
           style_id  = "dropdown_triangle_down_2",
 
           content_check_function = function (content)
-            return content.has_widgets and not content.is_widget_collapsed and (not content.is_checkbox_visible or content.is_checkbox_checked)
+            return content.has_subwidgets and not content.is_widget_collapsed and (not content.is_checkbox_visible or content.is_checkbox_checked)
           end
         },
         {
@@ -1009,6 +1009,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
             local is_disabled = content.is_checkbox_visible and not content.is_checkbox_checked
             style.text.text_color = is_disabled and { 255, 100, 100, 100 } or { 255, 255, 255, 255 }
             style.background.color = is_disabled and { 255, 175, 100, 100 } or { 255, 255, 225, 225 }
+            style.frame.color = is_disabled and { 255, 150, 150, 150 } or { 255, 255, 255, 255 }
 
             style.fav_arrow_up.color[1] = is_interactable and content.fav_arrow_up_hotspot.is_hover and 255 or 90
             style.fav_arrow_down.color[1] = is_interactable and content.fav_arrow_down_hotspot.is_hover and 255 or 90
@@ -1053,12 +1054,12 @@ local function create_header_widget(widget_definition, scenegraph_id)
       is_checkbox_checked = true,
       is_checkbox_visible = false,
       is_widget_visible   = true,
-      has_widgets = widget_definition.has_subwidgets,
+      has_subwidgets = widget_definition.has_subwidgets,
       is_widget_collapsed = widget_definition.is_collapsed,
       is_favorited        = widget_definition.is_favorited,
 
       rect_masked_texture = "rect_masked",
-      header_bg           = "menu_frame_bg_04",
+      header_bg           = "button_frame_bg_01",
       checkbox_marker     = "matchmaking_checkbox",
       checkbox_frame      = "menu_frame_06",
       fav_icon_texture    = "header_fav_icon_lit",
@@ -1094,24 +1095,12 @@ local function create_header_widget(widget_definition, scenegraph_id)
         texture_size = { 100, 100 },
         texture_sizes = {
           corner = { 10, 10 },
-          vertical = { 2, 10 },
+          vertical = { 1, 10 },
           horizontal = { 10, 2 }
         },
         color = { 255, 255, 255, 255 },
         offset = { 8, offset_y + 4, 5 },
         masked = true
-      },
-
-      frame_disabled = {
-        size = {widget_size[1], widget_size[2]},
-        texture_size = { 100, 100 },
-        texture_sizes = {
-          corner = { 60, 60 },
-          vertical = { 10, 31 },
-          horizontal = { 31, 10 }
-        },
-        color = { 255, 150, 150, 150 },
-        offset = { 0, 0, 5 }
       },
 
       highlight_texture = {
@@ -3394,6 +3383,10 @@ VMFOptionsView.callback_hide_sub_widgets = function (self, widget_content)
   -- header
   else
     local collapsed_mods = vmf:get("options_menu_collapsed_mods")
+    -- Play a sound
+    if widget_content.has_subwidgets and widget_content.is_checkbox_checked then
+      WwiseWorld.trigger_event(self.wwise_world, "Play_hud_select")
+    end
     if widget_content.is_widget_collapsed then
       collapsed_mods[mod_name] = true
     else
