@@ -1001,20 +1001,20 @@ local function create_header_widget(widget_definition, scenegraph_id)
             end
 
             if content.is_favorited then
-              style.fav_icon.color = is_interactable and content.fav_icon_hotspot.is_hover and { 200, 255, 255, 255 } or { 255, 255, 255, 255 }
+              style.fav_icon.color = is_interactable and content.fav_icon_hotspot.is_hover and content.fav_icon_color_favourited_hover or content.fav_icon_color_favourited
             else
-              style.fav_icon.color = is_interactable and content.fav_icon_hotspot.is_hover and { 255, 255, 255, 255 } or { 125, 255, 255, 255 }
+              style.fav_icon.color = is_interactable and content.fav_icon_hotspot.is_hover and content.fav_icon_color_hover or content.fav_icon_color
             end
 
             local is_disabled = content.is_checkbox_visible and not content.is_checkbox_checked
-            style.text.text_color = is_disabled and { 255, 100, 100, 100 } or { 255, 255, 255, 255 }
-            style.background.color = is_disabled and { 255, 175, 100, 100 } or { 255, 255, 225, 225 }
-            style.frame.color = is_disabled and { 255, 150, 150, 150 } or { 255, 255, 255, 255 }
+            style.text.text_color = is_disabled and content.text_color_disabled or content.text_color
+            style.background.color = is_disabled and content.background_color_disabled or content.background_color
+            style.frame.color = is_disabled and content.frame_color_disabled or content.frame_color
 
-            style.fav_arrow_up.color[1] = is_interactable and content.fav_arrow_up_hotspot.is_hover and 255 or 90
-            style.fav_arrow_down.color[1] = is_interactable and content.fav_arrow_down_hotspot.is_hover and 255 or 90
-            style.checkbox_marker.color = is_interactable and content.checkbox_hotspot.is_hover and { 255, 255, 255, 255 } or { 255, 255, 168, 0 }
-            style.checkbox_frame.color = is_interactable and content.checkbox_hotspot.is_hover and { 255, 200, 200, 200 } or { 255, 255, 255, 255 }
+            style.fav_arrow_up.color[1] = is_interactable and content.fav_arrow_up_hotspot.is_hover and content.fav_arrow_color_hovered or content.fav_arrow_color
+            style.fav_arrow_down.color[1] = is_interactable and content.fav_arrow_down_hotspot.is_hover and content.fav_arrow_color_hovered or content.fav_arrow_color
+            style.checkbox_marker.color = is_interactable and content.checkbox_hotspot.is_hover and content.checkbox_marker_color_hovered or content.checkbox_marker_color
+            style.checkbox_frame.color = is_interactable and content.checkbox_hotspot.is_hover and content.checkbox_frame_color_hovered or content.checkbox_frame_color
 
           end
         },
@@ -1051,6 +1051,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
       }
     },
     content = {
+      -- Variables
       is_checkbox_checked = true,
       is_checkbox_visible = false,
       is_widget_visible   = true,
@@ -1058,6 +1059,25 @@ local function create_header_widget(widget_definition, scenegraph_id)
       is_widget_collapsed = widget_definition.is_collapsed,
       is_favorited        = widget_definition.is_favorited,
 
+      -- Colors
+      fav_icon_color_favourited = { 255, 255, 255, 255 },
+      fav_icon_color_favourited_hover = { 200, 255, 255, 255 },
+      fav_icon_color = { 125, 255, 255, 255 },
+      fav_icon_color_hover = { 255, 255, 255, 255 },
+      text_color = { 255, 255, 255, 255 },
+      text_color_disabled = { 255, 100, 100, 100 },
+      background_color = { 255, 255, 225, 225 },
+      background_color_disabled = { 255, 175, 100, 100 },
+      frame_color = { 255, 255, 255, 255 },
+      frame_color_disabled = { 255, 150, 150, 150 },
+      fav_arrow_color = { 125, 255, 255, 255 },
+      fav_arrow_color_hovered = { 255, 255, 255, 255 },
+      checkbox_marker_color = { 255, 255, 168, 0 },
+      checkbox_marker_color_hovered = { 255, 255, 255, 255 },
+      checkbox_frame_color = { 255, 255, 168, 0 },
+      checkbox_frame_color_hovered =  255, 200, 200, 200 },
+
+      -- Textures
       header_bg           = "button_frame_bg_01",
       frame               = "menu_frame_02",
       checkbox_marker     = "matchmaking_checkbox",
@@ -1067,6 +1087,7 @@ local function create_header_widget(widget_definition, scenegraph_id)
       fav_arrow_texture   = "header_fav_arrow",
       rect_masked_texture = "rect_masked",
 
+      -- Hotspots
       fav_icon_hotspot        = {},
       fav_arrow_up_hotspot    = {},
       fav_arrow_down_hotspot  = {},
