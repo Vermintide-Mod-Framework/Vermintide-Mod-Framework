@@ -529,7 +529,6 @@ local menu_widgets_definition = {
         {
           pass_type = "rect",
           style_id = "background",
-          texture_id = "rect_masked_texture"
         },
         {
           pass_type = "texture_frame",
@@ -911,8 +910,9 @@ local function create_header_widget(widget_definition, scenegraph_id)
           end
         },
         {
-          pass_type = "rect",
+          pass_type = "texture",
           style_id = "checkbox_background",
+          texture_id = "rect_masked_texture",
           content_check_function = function (content)
             return content.is_checkbox_visible
           end
@@ -1058,14 +1058,14 @@ local function create_header_widget(widget_definition, scenegraph_id)
       is_widget_collapsed = widget_definition.is_collapsed,
       is_favorited        = widget_definition.is_favorited,
 
-      rect_masked_texture = "rect_masked",
       header_bg           = "button_frame_bg_01",
+      frame               = "menu_frame_02",
       checkbox_marker     = "matchmaking_checkbox",
       checkbox_frame      = "menu_frame_06",
       fav_icon_texture    = "header_fav_icon_lit",
       highlight_texture   = "playerlist_hover",
       fav_arrow_texture   = "header_fav_arrow",
-      frame = "menu_frame_02",
+      rect_masked_texture = "rect_masked",
 
       fav_icon_hotspot        = {},
       fav_arrow_up_hotspot    = {},
@@ -1149,25 +1149,17 @@ local function create_header_widget(widget_definition, scenegraph_id)
       },
 ]]
 
-      checkbox_style = {
-        vertical_alignment = "bottom",
-        horizontal_alignment = "right",
-        texture_size = { 40, 40 },
-        offset = {widget_size[1] - 144, offset_y + widget_size[2] / 2 - 20, 1},
-        color = { 255, 255, 255, 255 },
-        masked = true
-      },
       checkbox_background = {
-        vertical_alignment = "bottom",
-        horizontal_alignment = "right",
+        vertical_alignment = "center",
+        horizontal_alignment = "center",
         texture_size = { 40, 40 },
-        offset = {widget_size[1] - 144, offset_y + widget_size[2] / 2 - 20, 2},
+        offset = {widget_size[1] - 164, offset_y + widget_size[2] / 2, 2},
         color = { 255, 0, 0, 0 },
         masked = true
       },
       checkbox_frame = {
-        vertical_alignment = "bottom",
-        horizontal_alignment = "right",
+        vertical_alignment = "center",
+        horizontal_alignment = "center",
         area_size = { 40, 40 },
         texture_size = { 58, 58 },
         texture_sizes = {
@@ -1175,15 +1167,15 @@ local function create_header_widget(widget_definition, scenegraph_id)
           vertical = { 5, 1 },
           horizontal = { 1, 5 }
         },
-        offset = {widget_size[1] - 144, offset_y + widget_size[2] / 2 - 20, 3},
+        offset = {widget_size[1] - 164, offset_y + widget_size[2] / 2, 3},
         color = { 255, 255, 255, 255 },
         masked = true
       },
       checkbox_marker = {
-        vertical_alignment = "bottom",
-        horizontal_alignment = "right",
+        vertical_alignment = "center",
+        horizontal_alignment = "center",
         texture_size = { 37, 31 },
-        offset = {widget_size[1] - 140, offset_y + widget_size[2] / 2 - 20 + 6, 3},
+        offset = {widget_size[1] - 161, offset_y + widget_size[2] / 2 + 2, 3},
         color = { 255, 255, 168, 0 },
         masked = true
       },
@@ -1468,45 +1460,34 @@ local function create_checkbox_widget(widget_definition, scenegraph_id)
         dynamic_font = true,
         text_color = Colors.get_color_table_with_alpha("white", 255)
       },
-
-      checkbox_style = {
-        vertical_alignment = "bottom",
-        horizontal_alignment = "right",
-        texture_size = { 30, 30 },
-        offset = {widget_size[1] - 149, offset_y + widget_size[2] / 2 - 15, 1},
-        color = { 255, 255, 255, 255 },
-        masked = true
-      },
       checkbox_background = {
-        vertical_alignment = "bottom",
-        horizontal_alignment = "right",
+        vertical_alignment = "center",
+        horizontal_alignment = "center",
         texture_size = { 30, 30 },
-        offset = {widget_size[1] - 149, offset_y + widget_size[2] / 2 - 15, 0},
+        offset = {widget_size[1] - 164, offset_y + widget_size[2] / 2, 2},
         color = { 255, 0, 0, 0 },
         masked = true
       },
       checkbox_frame = {
-        vertical_alignment = "bottom",
-        horizontal_alignment = "right",
+        vertical_alignment = "center",
+        horizontal_alignment = "center",
         area_size = { 30, 30 },
-        texture_size = { 48, 48 },
+        texture_size = { 58, 58 },
         texture_sizes = {
           corner = { 5, 5 },
           vertical = { 5, 1 },
           horizontal = { 1, 5 }
         },
-        offset = {widget_size[1] - 149, offset_y + widget_size[2] / 2 - 15, 1},
+        offset = {widget_size[1] - 164, offset_y + widget_size[2] / 2, 3},
         color = { 255, 255, 255, 255 },
         masked = true
       },
       checkbox_marker = {
-        vertical_alignment = "bottom",
-        horizontal_alignment = "right",
+        vertical_alignment = "center",
+        horizontal_alignment = "center",
         texture_size = { 27, 21 },
-        offset = {widget_size[1] - 147, offset_y + widget_size[2] / 2 - 15 + 6, 1},
-        -- color = Colors.get_color_table_with_alpha("font_title", 255),
+        offset = {widget_size[1] - 161, offset_y + widget_size[2] / 2 + 2, 3},
         color = { 255, 255, 168, 0 },
-        -- color = { 255, 255, 255, 255},
         masked = true
       },
 
