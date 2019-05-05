@@ -58,14 +58,14 @@ local scenegraph_definition = {
 
       sg_search_bar = {
         size = {1200, 50},
-        position = {360, 1018, 1},
+        position = {360, 1018, 20},
 
         parent = "sg_aligner",
       },
 
       sg_search_bar_frame = {
         size = {1200, 50},
-        position = {360, 1018, 5},
+        position = {360, 1018, 21},
 
         parent = "sg_aligner",
       },
@@ -85,7 +85,7 @@ local scenegraph_definition = {
       },
         sg_background_settings_frame = {
           size = {1200, 1000},
-          position = {0, 0, 10},
+          position = {0, 0, 15},
           parent = "sg_background_settings_list",
 
         },
