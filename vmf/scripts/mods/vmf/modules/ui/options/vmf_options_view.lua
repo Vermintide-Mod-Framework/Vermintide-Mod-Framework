@@ -641,12 +641,6 @@ local menu_widgets_definition = {
           pass_type = "rect",
 
           style_id  = "background",
-
-          content_check_function = function (content, style)
-
-            
-            return true
-          end
         },
         {
           pass_type = "texture",
@@ -662,7 +656,7 @@ local menu_widgets_definition = {
         },
         {
           pass_type = "local_offset",
-          offset_function = function (ui_scenegraph_, style, content, ui_renderer)
+          offset_function = function (ui_scenegraph_, style, content)
             style.background.color = (content.is_active and content.background_color_active) or
                                      (content.hotspot.is_hover and content.background_color_hovered) or
                                       content.background_color
