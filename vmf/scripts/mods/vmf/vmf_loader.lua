@@ -37,10 +37,10 @@ function vmf_mod_object:init()
   dofile("scripts/mods/vmf/modules/ui/options/mod_options")
   dofile("scripts/mods/vmf/modules/vmf_options")
 
-  if VT1 then
-    dofile("scripts/mods/vmf/modules/core/mutators/mutators_manager")
-    dofile("scripts/mods/vmf/modules/ui/mutators/mutators_gui")
-  end
+  -- if VT1 then
+  --   dofile("scripts/mods/vmf/modules/core/mutators/mutators_manager")
+  --   dofile("scripts/mods/vmf/modules/ui/mutators/mutators_gui")
+  -- end
 
   vmf = get_mod("VMF")
   vmf.delayed_chat_messages_hook()
@@ -59,7 +59,7 @@ function vmf_mod_object:update(dt)
   vmf.mods_update_event(dt)
   vmf.check_keybinds()
   vmf.execute_queued_chat_command()
-  if VT1 then vmf.check_mutators_state() end
+  --if VT1 then vmf.check_mutators_state() end
 
   if not vmf.all_mods_were_loaded and Managers.mod._state == "done" then
 
@@ -68,8 +68,8 @@ function vmf_mod_object:update(dt)
     vmf.create_network_dictionary()
     vmf.ping_vmf_users()
 
-    if VT1 then vmf.modify_map_view() end
-    if VT1 then vmf.mutators_delete_raw_config() end
+    --if VT1 then vmf.modify_map_view() end
+    --if VT1 then vmf.mutators_delete_raw_config() end
 
     vmf.all_mods_loaded_event()
 
