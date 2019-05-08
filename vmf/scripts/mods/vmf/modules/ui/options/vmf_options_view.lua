@@ -660,8 +660,8 @@ local menu_widgets_definition = {
             style.background.color = (content.is_active and content.background_color_active) or
                                      (content.hotspot.is_hover and content.background_color_hovered) or
                                       content.background_color
-            style.frame.color = content.is_active and content.frame_color_focused or content.frame_color  
-            style.frame.texture_sizes = content.is_active and content.frame_texture_sizes_focused or content.frame_texture_sizes  
+            style.frame.color = content.is_active and content.frame_color_focused or content.frame_color
+            style.frame.texture_sizes = content.is_active and content.frame_texture_sizes_focused or content.frame_texture_sizes
           end
         },
       }
@@ -696,7 +696,8 @@ local menu_widgets_definition = {
     },
     style = {
       text = {
-        offset = {46, 2, 3},
+        vertical_alignment = "center",
+        offset = {46, 6, 3},
         font_size = 24,
         font_type = "hell_shark",
         dynamic_font = true,
