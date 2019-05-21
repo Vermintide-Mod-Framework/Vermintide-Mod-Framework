@@ -19,6 +19,8 @@ local ERRORS = {
                            "table, not %s.",
     mod_options_initializing_failed = "[VMF Mod Manager] (new_mod) mod options initialization: could not initialize " ..
                                        "mod's options. %s",
+    mutator_data_initializing_failed = "[VMF Mod Manager] (new_mod) mutator data initialization: could not " ..
+                                       "initialize mutator's data. %s",
   },
   PREFIX = {
     mod_localization_initialization = "[VMF Mod Manager] (new_mod) 'mod_localization' initialization",
@@ -163,11 +165,6 @@ function vmf.initialize_mod_data(mod, mod_data)
   vmf.set_internal_data(mod, "is_mutator",      mod_data.is_mutator)
   vmf.set_internal_data(mod, "allow_rehooking", mod_data.allow_rehooking)
 
-  -- Register mod as mutator @TODO: calling this after options initialization would be better, I guess?
-  if mod_data.is_mutator then
-    vmf.register_mod_as_mutator(mod, mod_data.mutator_settings)
-  end
-
   -- Mod's options initialization (with legacy widget definitions support)
   if mod_data.options or ((mod_data.is_togglable and not mod_data.is_mutator) and not mod_data.options_widgets) then
     local success, error_message = pcall(vmf.initialize_mod_options, mod, mod_data.options)
@@ -177,6 +174,15 @@ function vmf.initialize_mod_data(mod, mod_data)
     end
   elseif mod_data.options_widgets then
     vmf.initialize_mod_options_legacy(mod, mod_data.options_widgets)
+  end
+
+  -- Mutator data initialization.
+  if mod_data.is_mutator then
+    local success, error_message = pcall(vmf.initialize_mutator_data, mod, mod_data.mutator_data)
+    if not success then
+      mod:error(ERRORS.REGULAR.mutator_data_initializing_failed, error_message)
+      return
+    end
   end
 
   -- Textures initialization @TODO: move to a separate function
