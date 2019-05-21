@@ -30,11 +30,7 @@ local function set_mod_state(mod, is_enabled, initial_call)
     if mod:get_internal_data("is_mutator") then
       _enabled_mutators[mod:get_name()] = is_enabled
     else
-      if is_enabled then
-        _disabled_mods[mod:get_name()] = nil
-      else
-        _disabled_mods[mod:get_name()] = true
-      end
+      _disabled_mods[mod:get_name()] = not is_enabled or nil
       vmf:set("disabled_mods_list", _disabled_mods)
     end
   end
@@ -82,11 +78,7 @@ end
 function vmf.initialize_mod_state(mod)
   local state
   if mod:get_internal_data("is_mutator") then
-    if _enabled_mutators[mod:get_name()] then
-      state = true
-    else
-      state = false
-    end
+    state = not not _enabled_mutators[mod:get_name()]
     set_mutator_state(mod, state, true)
   else
     state = not _disabled_mods[mod:get_name()]
