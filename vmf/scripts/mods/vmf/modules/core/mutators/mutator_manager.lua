@@ -106,6 +106,26 @@ local function validate_mutator_data(mod, data)
   end
 end
 
+local function sanitize_mutator_data(data)
+  local sanitized_data = {
+    required_on_clients = data.required_on_clients,
+    enable_before       = {},
+    enable_after        = {},
+    dice                = {
+      bonus = data.dice.bonus,
+      tomes = data.dice.tomes,
+      grims = data.dice.grims
+    }
+  }
+  for _, mutator_name in ipairs(data.enable_before) do
+    sanitized_data.enable_before[mutator_name] = true
+  end
+  for _, mutator_name in ipairs(data.enable_after) do
+    sanitized_data.enable_after[mutator_name] = true
+  end
+  return sanitized_data
+end
+
 -- =============================================================================
 -- VMF internal functions
 -- =============================================================================
@@ -124,7 +144,8 @@ function vmf.initialize_mutator_data(mod, data)
   -- [throws errors]
   validate_mutator_data(mod, data)
 
-  validate_mutator_data(mutator_data)
+  local sanitized_data = sanitize_mutator_data(data)
+  vmf.set_internal_data(mod, "mutator_data", sanitized_data)
 
   vmf.mutators[mod] = {}
 end
