@@ -35,7 +35,12 @@ local ERRORS = {
     dice_missing_field = "'dice' table must contain 'bonus', 'tomes', and 'grims' fields.",
     dice_field_wrong_type = "'dice.%s' must be a number, not %s.",
     wrong_dice_number = "'dice.%s' can not be less than 0 and greater than 7.",
-  }
+  },
+  REGULAR = {
+    -- vmf.initialize_correct_mutators_toggling_order:
+    mutators_enable_before_conflict = "Mutators '%s' and '%s' are both set to load before each other.",
+    mutators_enable_after_conflict = "Mutators '%s' and '%s' are both set to load after each other.",
+  },
 }
 
 -- =============================================================================
@@ -151,4 +156,34 @@ function vmf.initialize_mutator_data(mod, data)
 end
 
 function vmf.on_mutator_state_changed(mutator, enabled, initial_call)
+end
+
+-- Populate dependant mutators inside `vmf.mutators` to ensure correct toggling
+-- order.
+function vmf.initialize_correct_mutators_toggling_order()
+  for mutator in pairs(vmf.mutators) do
+    local mutator_data = mutator:get_internal_data("mutator_data")
+
+    for another_mutator_name in pairs(mutator_data.enable_before) do
+      local another_mutator = get_mod(another_mutator_name)
+      if vmf.mutators[another_mutator] then
+        if another_mutator:get_internal_data("mutator_data").enable_before[mutator:get_name()] then
+          mutator:error(ERRORS.REGULAR.mutators_enable_before_conflict, another_mutator_name, mutator:get_name())
+        else
+          vmf.mutators[mutator][another_mutator] = true
+        end
+      end
+    end
+
+    for another_mutator_name in pairs(mutator_data.enable_after) do
+      local another_mutator = get_mod(another_mutator_name)
+      if vmf.mutators[another_mutator] then
+        if another_mutator:get_internal_data("mutator_data").enable_after[mutator:get_name()] then
+          mutator:error(ERRORS.REGULAR.mutators_enable_after_conflict, another_mutator_name, mutator:get_name())
+        else
+          vmf.mutators[another_mutator][mutator] = true
+        end
+      end
+    end
+  end
 end

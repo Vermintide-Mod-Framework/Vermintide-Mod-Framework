@@ -71,6 +71,7 @@ function vmf_mod_object:update(dt)
 
     --if VT1 then vmf.modify_map_view() end
     --if VT1 then vmf.mutators_delete_raw_config() end
+    vmf.initialize_correct_mutators_toggling_order()
 
     vmf.all_mods_loaded_event()
 
