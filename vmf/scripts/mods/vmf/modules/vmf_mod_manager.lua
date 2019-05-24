@@ -126,9 +126,7 @@ function new_mod(mod_name, mod_resources)
   end
 
   -- Initialize mod state
-  if mod:get_internal_data("is_togglable") then
-    vmf.initialize_mod_state(mod)
-  end
+  vmf.initialize_mod_state(mod)
 
   return mod
 end
@@ -143,6 +141,8 @@ end
 -- #####################################################################################################################
 
 vmf = create_mod("VMF")
+-- Toggling module is not yet initialized so set "is_enabled" directly.
+vmf.set_internal_data(vmf, "is_enabled", true)
 
 -- #####################################################################################################################
 -- ##### VMF internal functions and variables ##########################################################################

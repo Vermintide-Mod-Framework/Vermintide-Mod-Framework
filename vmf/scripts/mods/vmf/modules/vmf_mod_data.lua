@@ -27,7 +27,6 @@ function VMFMod:init(mod_name)
   })
   set_internal_data(self, "name",          mod_name)
   set_internal_data(self, "readable_name", mod_name)
-  set_internal_data(self, "is_enabled",    true)
   set_internal_data(self, "is_togglable",  false)
   set_internal_data(self, "is_mutator",    false)
 

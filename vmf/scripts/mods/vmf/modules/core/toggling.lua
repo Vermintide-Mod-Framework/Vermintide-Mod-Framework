@@ -76,13 +76,17 @@ end
 -- * All mutators are disabled by default unless they were enabled before
 --   VMF reloading.
 function vmf.initialize_mod_state(mod)
-  local state
-  if mod:get_internal_data("is_mutator") then
-    state = not not _enabled_mutators[mod:get_name()]
-    set_mutator_state(mod, state, true)
+  if mod:get_internal_data("is_togglable") then
+    local state
+    if mod:get_internal_data("is_mutator") then
+      state = not not _enabled_mutators[mod:get_name()]
+      set_mutator_state(mod, state, true)
+    else
+      state = not _disabled_mods[mod:get_name()]
+      set_mod_state(mod, state, true)
+    end
   else
-    state = not _disabled_mods[mod:get_name()]
-    set_mod_state(mod, state, true)
+    vmf.set_internal_data(mod, "is_enabled", true)
   end
 end
 
