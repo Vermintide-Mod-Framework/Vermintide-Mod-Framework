@@ -56,7 +56,7 @@ local function resolve_resource(mod, error_prefix_data, resource, resource_value
   elseif type_value == "function" then
     return vmf.safe_call(mod, error_prefix_data, resource_value, mod)
   elseif type_value == "table" then
-    return true, type_value
+    return true, resource_value
   end
 
   mod:warning("%s: 'mod_%s' (optional) should be a string, function or table; not %s",
