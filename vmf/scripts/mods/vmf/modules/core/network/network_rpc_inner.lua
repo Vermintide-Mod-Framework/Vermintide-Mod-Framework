@@ -168,7 +168,7 @@ return {
         rpc_other_recipients = _other_peers
       elseif recipient == "others" then
         rpc_other_recipients = _other_peers
-      elseif recipient == "local"then
+      elseif recipient == "local" then
         rpc_send_locally = true
       else
         rpc_other_recipients = {[recipient] = true}
