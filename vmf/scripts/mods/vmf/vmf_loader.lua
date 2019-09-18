@@ -29,7 +29,7 @@ function vmf_mod_object:init()
   dofile("scripts/mods/vmf/modules/core/localization")
   dofile("scripts/mods/vmf/modules/core/options")
   dofile("scripts/mods/vmf/modules/legacy/options")
-  dofile("scripts/mods/vmf/modules/core/network")
+  dofile("scripts/mods/vmf/modules/core/network/network_manager")
   dofile("scripts/mods/vmf/modules/core/commands")
   dofile("scripts/mods/vmf/modules/gui/custom_textures")
   dofile("scripts/mods/vmf/modules/gui/custom_views")
@@ -57,6 +57,7 @@ end
 
 function vmf_mod_object:update(dt)
   vmf.update_package_manager()
+  vmf.network_update()
   vmf.mods_update_event(dt)
   vmf.check_keybinds()
   vmf.execute_queued_chat_command()
@@ -66,9 +67,10 @@ function vmf_mod_object:update(dt)
 
     vmf.generate_keybinds()
     vmf.initialize_vmf_options_view()
-    vmf.create_network_dictionary()
-    vmf.ping_vmf_users()
+    --vmf.create_network_dictionary()
+    --vmf.ping_vmf_users()
 
+    vmf.network_initialize()
     --if VT1 then vmf.modify_map_view() end
     --if VT1 then vmf.mutators_delete_raw_config() end
     vmf.initialize_correct_mutators_toggling_order()
@@ -92,6 +94,7 @@ function vmf_mod_object:on_reload()
   vmf.disable_mods_options_button()
   if VT1 then vmf.reset_map_view() end
   vmf.mods_unload_event(false)
+  vmf.network_shutdown()
   vmf.remove_custom_views()
   vmf.unload_all_resource_packages()
   vmf.hooks_unload()

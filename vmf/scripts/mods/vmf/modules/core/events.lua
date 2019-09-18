@@ -119,13 +119,14 @@ end
 
   Is called when a player with the same mod, which uses network, joins the game. Meaning, that this event will be called
   only for mods which registered at least 1 network call.
-  * player [player]: player object of the player who joined the game
+  * player    [player]: player object of the player who joined the game
+  * on_reload [bool]  : 'true' if event is fired after player reloaded his mods in the middle of the game
 --]]
-function vmf.mod_user_joined_the_game(mod, player)
+function vmf.mod_user_joined_the_game(mod, player, on_reload)
 
   local event_name = "on_user_joined"
 
-  run_event(mod, event_name, player)
+  run_event(mod, event_name, player, on_reload)
 end
 
 
@@ -134,13 +135,14 @@ end
 
   Is called when a player with the same mod, which uses network, leaves the game. Meaning, that this event will be
   called only for mods which registered at least 1 network call.
-  * player [player]: player object of the player who is about to leave the game
+  * player    [player]: player object of the player who is about to leave the game
+  * on_reload [bool]  : 'true' if event is fired when player started mod reloading process in the middle of the game
 --]]
-function vmf.mod_user_left_the_game(mod, player)
+function vmf.mod_user_left_the_game(mod, player, on_reload)
 
   local event_name = "on_user_left"
 
-  run_event(mod, event_name, player)
+  run_event(mod, event_name, player, on_reload)
 end
 
 

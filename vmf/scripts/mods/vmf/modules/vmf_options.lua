@@ -185,7 +185,7 @@ vmf.on_setting_changed = function (setting_id)
 
   elseif setting_id == "show_network_debug_info" then
 
-    vmf.load_network_settings()
+    --vmf.load_network_settings()
 
   elseif setting_id == "log_ui_renderers_info" then
 
