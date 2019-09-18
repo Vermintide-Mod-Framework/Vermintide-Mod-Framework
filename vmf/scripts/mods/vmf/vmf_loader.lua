@@ -92,7 +92,7 @@ end
 function vmf_mod_object:on_reload()
   print("VMF:ON_RELOAD()")
   vmf.disable_mods_options_button()
-  if VT1 then vmf.reset_map_view() end
+  --if VT1 then vmf.reset_map_view() end
   vmf.mods_unload_event(false)
   vmf.network_shutdown()
   vmf.remove_custom_views()
