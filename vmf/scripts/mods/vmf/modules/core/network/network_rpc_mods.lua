@@ -1,5 +1,8 @@
 local vmf = get_mod("VMF")
 
+-- Steam user ID == peer_id. Cache it to avoid extra calls.
+local LOCAL_PEER_ID = Steam.user_id()
+
 -- Table for storing mod RPC callbacks. Is used for:
 -- * Safety checks.
 -- * Generating encode/decode dictionaries.
@@ -25,8 +28,6 @@ local _own_mod_and_rpc_ids
 -- * Encode dictionary is generated only locally to encode all outgoing RPCs.
 -- * Decode dictionary is generated for every VMF user once they send their IDs
 --   to decode incoming RPCs.
--- * Decode dictionary identifier for VMF peers is their peer_id except for
---   local player, which uses string "local" as their identifier.
 local _rpc_encode_dictionary
 --    _rpc_encode_dictionary[mod][rpc_name] = {mod_id, rpc_id}
 local _rpc_decode_dictionaries = {}
@@ -99,7 +100,7 @@ end
 -- * Fire 'mod.on_user_joined' event for all locally existing mods if peer_id is
 --   not local.
 local function initialize_peer(peer_id, mod_and_rpc_ids, on_reload)
-  local is_local_peer_id = peer_id == "local"
+  local is_local_peer_id = peer_id == LOCAL_PEER_ID
 
   local mod_ids = mod_and_rpc_ids.mod_ids
   local rpc_ids = mod_and_rpc_ids.rpc_ids
@@ -211,7 +212,7 @@ function VMFMod:network_send(rpc_name, recipient, ...)
     recipient["local"] = true
   elseif recipient == "others" then
     recipient = table.clone(_mods_users_list[self])
-  elseif recipient == "local" or recipient == Network.peer_id() then
+  elseif recipient == "local" or recipient == LOCAL_PEER_ID then
     recipient = {["local"] = true}
   elseif _mods_users_list[self][recipient] then
     recipient = {[recipient] = true}
@@ -255,7 +256,7 @@ end
 return {
   initialize = function()
     generate_own_mod_and_rpc_ids()
-    initialize_peer("local", _own_mod_and_rpc_ids)
+    initialize_peer(LOCAL_PEER_ID, _own_mod_and_rpc_ids)
     _module_is_initialized = true
   end,
 

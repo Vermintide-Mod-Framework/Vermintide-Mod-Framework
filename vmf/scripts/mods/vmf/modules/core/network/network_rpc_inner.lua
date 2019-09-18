@@ -25,6 +25,9 @@ local INNER_RPC_DICTIONARY = {
 -- Callbacks have to be safe to execute.
 local INNER_RPC_CALLBACKS
 
+-- Steam user ID == peer_id. Cache it to avoid extra calls.
+local LOCAL_PEER_ID = Steam.user_id()
+
 -- peer_ids of other VMF clients who successfully exchanged their VMF network
 -- data with local client.
 local _other_peers = {}
@@ -86,7 +89,7 @@ end
 -- step which is not necessary for local RPCs.
 local function send_rpc_local(rpc_type, ...)
   -- @TODO: Remove pcall, error message, [T...] when everything is proven safe.
-  local success, error = pcall(INNER_RPC_CALLBACKS[rpc_type], "local", ...)
+  local success, error = pcall(INNER_RPC_CALLBACKS[rpc_type], LOCAL_PEER_ID, ...)
   if not success then
     vmf.throw_error(ERRORS.THROWABLE.local_rpc_execution_failure, error)
   end
