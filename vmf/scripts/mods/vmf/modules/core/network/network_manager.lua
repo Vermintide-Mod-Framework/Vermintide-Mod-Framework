@@ -79,7 +79,7 @@ end)
 
 vmf:hook(PlayerManager, "remove_player", function (func, self, peer_id, local_player_id)
   local player = self:player_from_peer_id(peer_id, local_player_id)
-  if player and not player.bot_player then
+  if player and not (player.bot_player or player.local_player) then
     _INNER_RPC_MANAGER.remove_peer(peer_id)
     _MODS_RPC_MANAGER.remove_peer(peer_id, false)
   end
