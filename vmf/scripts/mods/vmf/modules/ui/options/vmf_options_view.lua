@@ -3087,6 +3087,8 @@ end
 
 --                        [VT1]                [VT2]
 local UIResolutionScale = UIResolutionScale or UIResolutionScale_pow2
+-- @TODO: replace with `VT1` later
+local USE_LEGACY_FONT_NAMES = VT1 or (tonumber(script_data.settings.content_revision) < 1296)
 VMFOptionsView.callback_fit_tooltip_to_the_screen = function (self, widget_content, widget_style, ui_renderer)
 
   local cursor_offset_bottom = widget_style.cursor_offset_bottom
@@ -3100,7 +3102,7 @@ VMFOptionsView.callback_fit_tooltip_to_the_screen = function (self, widget_conte
       local max_width = widget_style.max_width
 
       local font, font_size = UIFontByResolution(widget_style)
-      local font_name = font[3]
+      local font_name = USE_LEGACY_FONT_NAMES and font[3] or widget_style.font_type
       local font_material = font[1]
 
       local _, font_min, font_max = UIGetFontHeight(ui_renderer.gui, font_name, font_size)
