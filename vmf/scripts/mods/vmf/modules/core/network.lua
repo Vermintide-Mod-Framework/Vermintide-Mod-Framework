@@ -137,8 +137,11 @@ local function rpc_chat_message(member, channel_id, message_sender, message, loc
     RPC.rpc_chat_message(member, channel_id, message_sender, message, localization_param,
                           is_system_message, pop_chat, is_dev)
   else
-    RPC.rpc_chat_message(member, channel_id, message_sender, 0, message, {localization_param}, false, false,
-                          is_system_message, pop_chat, is_dev)
+    local major_version, minor_version = VersionSettings.version:match("^(%d+)%.(%d+)")
+    if major_version == 3 and minor_version < 4 then
+        RPC.rpc_chat_message(member, channel_id, message_sender, 0, message, {localization_param}, false, false,
+                              is_system_message, pop_chat, is_dev)
+    end
   end
 end
 

@@ -21,8 +21,11 @@ local function send_system_message(peer_id, message)
     RPC.rpc_chat_message(peer_id, CHANNEL_ID, MESSAGE_SENDER, message, LOCALIZATION_PARAM, IS_SYSTEM_MESSAGE, POP_CHAT,
                           IS_DEV)
   else
-    RPC.rpc_chat_message(peer_id, CHANNEL_ID, MESSAGE_SENDER, LOCAL_PLAYER_ID, message, LOCALIZATION_PARAMETERS,
-                          LOCALIZE, LOCALIZE_PARAMETERS, IS_SYSTEM_MESSAGE, POP_CHAT, IS_DEV)
+    local major_version, minor_version = VersionSettings.version:match("^(%d+)%.(%d+)")
+    if major_version == 3 and minor_version < 4 then
+      RPC.rpc_chat_message(peer_id, CHANNEL_ID, MESSAGE_SENDER, LOCAL_PLAYER_ID, message, LOCALIZATION_PARAMETERS,
+                            LOCALIZE, LOCALIZE_PARAMETERS, IS_SYSTEM_MESSAGE, POP_CHAT, IS_DEV)
+    end
   end
 end
 
@@ -30,8 +33,11 @@ local function add_system_message_to_chat(chat_manager, message)
   if VT1 then
     chat_manager:_add_message_to_list(CHANNEL_ID, MESSAGE_SENDER, message, IS_SYSTEM_MESSAGE, POP_CHAT, IS_DEV)
   else
-    chat_manager:_add_message_to_list(CHANNEL_ID, MESSAGE_SENDER, LOCAL_PLAYER_ID, message, IS_SYSTEM_MESSAGE, POP_CHAT,
-                                       IS_DEV)
+    local major_version, minor_version = VersionSettings.version:match("^(%d+)%.(%d+)")
+    if major_version == 3 and minor_version < 4 then
+      chat_manager:_add_message_to_list(CHANNEL_ID, MESSAGE_SENDER, LOCAL_PLAYER_ID, message, IS_SYSTEM_MESSAGE, POP_CHAT,
+                                         IS_DEV)
+    end
   end
 end
 
