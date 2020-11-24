@@ -417,5 +417,6 @@ stds["VT1"] = {
 stds["VT2"] = {
     read_globals = {
         "IngameViewLayoutLogic", "HeroWindowIngameView",
+        "PEER_ID_TO_CHANNEL", "CHANNEL_TO_PEER_ID", "Irc",
     },
 }

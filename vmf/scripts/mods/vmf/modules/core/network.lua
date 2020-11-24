@@ -137,11 +137,8 @@ local function rpc_chat_message(member, channel_id, message_sender, message, loc
     RPC.rpc_chat_message(member, channel_id, message_sender, message, localization_param,
                           is_system_message, pop_chat, is_dev)
   else
-    local major_version, minor_version = VersionSettings.version:match("^(%d+)%.(%d+)")
-    if major_version == 3 and minor_version < 4 then
-        RPC.rpc_chat_message(member, channel_id, message_sender, 0, message, {localization_param}, false, false,
-                              is_system_message, pop_chat, is_dev)
-    end
+    RPC.rpc_chat_message(PEER_ID_TO_CHANNEL[member], channel_id, message_sender, 0, message, {localization_param},
+                          false, false, is_system_message, pop_chat, is_dev, 0)
   end
 end
 
@@ -247,6 +244,7 @@ vmf:hook("ChatManager", "rpc_chat_message",
   if channel_id == VERMINTIDE_CHANNEL_ID then
     func(self, sender, channel_id, message_sender, arg1, arg2, arg3, ...)
   else
+    sender = CHANNEL_TO_PEER_ID[sender]
 
     if not _network_module_is_initialized then
       return
