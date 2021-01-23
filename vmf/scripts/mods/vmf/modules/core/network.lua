@@ -12,6 +12,8 @@ local _shared_rpcs_map = ""
 local _network_module_is_initialized = false
 local _network_debug = false
 
+local VT2_PORT_NUMBER = 0
+
 local VERMINTIDE_CHANNEL_ID = 1
 local RPC_VMF_REQUEST_CHANNEL_ID = 3
 local RPC_VMF_RESPONCE_CHANNEL_ID = 4
@@ -131,14 +133,20 @@ end
 
 -- NETWORK
 
-local function rpc_chat_message(member, channel_id, message_sender, message, localization_param,
-                                is_system_message, pop_chat, is_dev)
-  if VT1 then
+local rpc_chat_message
+if VT1 then
+  rpc_chat_message = function(member, channel_id, message_sender, message, localization_param,
+                                  is_system_message, pop_chat, is_dev)
     RPC.rpc_chat_message(member, channel_id, message_sender, message, localization_param,
                           is_system_message, pop_chat, is_dev)
-  else
-    RPC.rpc_chat_message(PEER_ID_TO_CHANNEL[member], channel_id, message_sender, 0, message, {localization_param},
-                          false, false, is_system_message, pop_chat, is_dev, 0)
+  end
+else
+  local _payload = {"","",""}
+  rpc_chat_message = function(member, channel_id, _, rpc_data1, rpc_data2)
+    _payload[1] = tostring(channel_id)
+    _payload[2] = rpc_data1
+    _payload[3] = rpc_data2
+    Managers.mod:network_send(member, VT2_PORT_NUMBER, _payload)
   end
 end
 
@@ -238,85 +246,80 @@ end
 -- ##### Hooks ########################################################################################################
 -- ####################################################################################################################
 
-vmf:hook("ChatManager", "rpc_chat_message",
-          function(func, self, sender, channel_id, message_sender, arg1, arg2, arg3, ...)
+local function vmf_network_recv(sender, channel_id, rpc_data1, rpc_data2)
+  if not _network_module_is_initialized then
+    return
+  end
 
-  if channel_id == VERMINTIDE_CHANNEL_ID then
-    func(self, sender, channel_id, message_sender, arg1, arg2, arg3, ...)
-  else
-    sender = CHANNEL_TO_PEER_ID[sender]
+  if channel_id == RPC_VMF_REQUEST_CHANNEL_ID then -- rpc_vmf_request
 
-    if not _network_module_is_initialized then
-      return
+    network_debug("ping", "received", sender)
+
+    send_rpc_vmf_pong(sender)
+
+  elseif channel_id == RPC_VMF_RESPONCE_CHANNEL_ID then -- rpc_vmf_responce
+    -- @TODO: maybe I should protect it from sending by the player who's not in the game?
+
+    network_debug("pong", "received", sender)
+    if _network_debug then
+      vmf:info("[RECEIVED MODS TABLE]: " .. rpc_data1)
+      vmf:info("[RECEIVED RPCS TABLE]: " .. rpc_data2)
     end
 
-    local rpc_data1, rpc_data2
-    if VT1 then
-      rpc_data1 = arg1
-      rpc_data2 = arg2
-    else
-      rpc_data1 = arg2
-      rpc_data2 = arg3[1]
-    end
+    pcall(function()
 
-    if channel_id == RPC_VMF_REQUEST_CHANNEL_ID then -- rpc_vmf_request
+      local user_rpcs_dictionary = {}
 
-      network_debug("ping", "received", sender)
+      user_rpcs_dictionary[1] = cjson.decode(rpc_data1) -- mods
+      user_rpcs_dictionary[2] = cjson.decode(rpc_data2) -- rpcs
 
-      send_rpc_vmf_pong(sender)
+      _vmf_users[sender] = user_rpcs_dictionary
 
-    elseif channel_id == RPC_VMF_RESPONCE_CHANNEL_ID then -- rpc_vmf_responce
-      -- @TODO: maybe I should protect it from sending by the player who's not in the game?
+      vmf:info("Added %s to the VMF users list.", sender)
 
-      network_debug("pong", "received", sender)
-      if _network_debug then
-        vmf:info("[RECEIVED MODS TABLE]: " .. rpc_data1)
-        vmf:info("[RECEIVED RPCS TABLE]: " .. rpc_data2)
-      end
+      -- event
+      local player = Managers.player:player_from_peer_id(sender)
+      if player then
 
-      pcall(function()
-
-        local user_rpcs_dictionary = {}
-
-        user_rpcs_dictionary[1] = cjson.decode(rpc_data1) -- mods
-        user_rpcs_dictionary[2] = cjson.decode(rpc_data2) -- rpcs
-
-        _vmf_users[sender] = user_rpcs_dictionary
-
-        vmf:info("Added %s to the VMF users list.", sender)
-
-        -- event
-        local player = Managers.player:player_from_peer_id(sender)
-        if player then
-
-          for mod_name, _ in pairs(user_rpcs_dictionary[1]) do
-            local mod = get_mod(mod_name)
-            if mod then
-              vmf.mod_user_joined_the_game(mod, player)
-            end
+        for mod_name, _ in pairs(user_rpcs_dictionary[1]) do
+          local mod = get_mod(mod_name)
+          if mod then
+            vmf.mod_user_joined_the_game(mod, player)
           end
         end
-      end)
-
-    elseif channel_id == RPC_VMF_UNKNOWN_CHANNEL_ID then
-      local mod_number, rpc_number = unpack(cjson.decode(rpc_data1))
-
-      local mod_name, rpc_name = convert_numbers_to_names(mod_number, rpc_number)
-      if mod_name and get_mod(mod_name):is_enabled() then
-
-        network_debug("data", "received", sender, mod_name, rpc_name, rpc_data2)
-
-        -- can be error in both callback_function() and deserialize_data()
-        local error_prefix = "(network) " .. tostring(rpc_name)
-        vmf.safe_call_nr(
-         get_mod(mod_name),
-         error_prefix,
-         function() _rpc_callbacks[mod_name][rpc_name](sender, deserialize_data(rpc_data2)) end
-        )
       end
+    end)
+
+  elseif channel_id == RPC_VMF_UNKNOWN_CHANNEL_ID then
+    local mod_number, rpc_number = unpack(cjson.decode(rpc_data1))
+
+    local mod_name, rpc_name = convert_numbers_to_names(mod_number, rpc_number)
+    if mod_name and get_mod(mod_name):is_enabled() then
+
+      network_debug("data", "received", sender, mod_name, rpc_name, rpc_data2)
+
+      -- can be error in both callback_function() and deserialize_data()
+      local error_prefix = "(network) " .. tostring(rpc_name)
+      vmf.safe_call_nr(
+        get_mod(mod_name),
+        error_prefix,
+        function() _rpc_callbacks[mod_name][rpc_name](sender, deserialize_data(rpc_data2)) end
+      )
     end
   end
-end)
+end
+
+if VT1 then
+  vmf:hook("ChatManager", "rpc_chat_message",
+          function(func, self, sender, channel_id, message_sender, arg1, arg2, ...)
+    if channel_id == VERMINTIDE_CHANNEL_ID then
+      func(self, sender, channel_id, message_sender, arg1, arg2, ...)
+    else
+      vmf_network_recv(sender, channel_id, arg1, arg2)
+    end
+  end)
+end
+-- VT2 uses the networking API provided by the ModManager.
 
 vmf:hook(PlayerManager, "add_remote_player", function (func, self, peer_id, player_controlled, ...)
 
@@ -385,7 +388,19 @@ vmf.create_network_dictionary = function()
   _shared_mods_map = cjson.encode(_shared_mods_map)
   _shared_rpcs_map = cjson.encode(_shared_rpcs_map)
 
+  if not VT1 then
+    Managers.mod:network_bind(0, function(sender, payload)
+      vmf_network_recv(sender, tonumber(payload[1]), payload[2], payload[3])
+    end)
+  end
+
   _network_module_is_initialized = true
+end
+
+vmf.network_unload = function()
+  if not VT1 then
+    Managers.mod:network_unbind(VT2_PORT_NUMBER)
+  end
 end
 
 vmf.ping_vmf_users = function()
