@@ -95,7 +95,6 @@ function vmf_mod_object:on_reload()
   vmf.unload_all_resource_packages()
   vmf.hooks_unload()
   vmf.reset_guis()
-  vmf.network_unload()
 end
 
 
