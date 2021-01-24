@@ -389,7 +389,7 @@ vmf.create_network_dictionary = function()
   _shared_rpcs_map = cjson.encode(_shared_rpcs_map)
 
   if not VT1 then
-    Managers.mod:network_bind(0, function(sender, payload)
+    Managers.mod:network_bind(VT2_PORT_NUMBER, function(sender, payload)
       vmf_network_recv(sender, tonumber(payload[1]), payload[2], payload[3])
     end)
   end
