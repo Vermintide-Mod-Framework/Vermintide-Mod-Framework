@@ -26,6 +26,9 @@
       --sidebar-width: 23rem;
       --sidebar-nav-link-before-content: "";
       --sidebar-nav-link-padding: 0.25em 0 0.25em 0px; /* trbl */
+      --sidebar-nav-strong-border-width: 0;
+      --sidebar-nav-strong-margin: 1.5em -25px 0 0;
+      --sidebar-nav-link-before-content-l3: "";
     }
     /* Add an icon to links that open in a new tab. */
     a[target='_blank']:not(.no-out-arrow)::after {
@@ -91,6 +94,9 @@
       font-size: inherit !important;
       margin: inherit !important;
       padding: inherit !important;
+    }
+    .sidebar-nav ul > li > strong + ul {
+        margin-left: 1em;
     }
   </style>
 </head>
