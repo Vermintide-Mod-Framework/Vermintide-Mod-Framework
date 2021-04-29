@@ -4216,7 +4216,7 @@ end
 
 VMFOptionsView.on_enter = function (self)
 
-  if ShowCursorStack.stack_depth == 0 then ShowCursorStack.push() end
+  if ShowCursorStack.stack_depth == 0 or not VT1 then ShowCursorStack.push() end
 
   local input_manager = self.input_manager
   input_manager.block_device_except_service(input_manager, "vmf_options_menu", "keyboard", 1)
