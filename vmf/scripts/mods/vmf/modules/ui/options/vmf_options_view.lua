@@ -51,7 +51,6 @@ local scenegraph_definition = {
 
       parent = "sg_root",
 
-      scale = "fit",
       horizontal_alignment = "center",
       vertical_alignment = "center"
     },
@@ -2919,8 +2918,7 @@ VMFOptionsView.initialize_settings_list_widgets = function (self)
 
   self.definitions.scenegraph_2nd_layer[scenegraph_id_start_2nd_layer] = {
     size     = {0, 0},
-    position = {0, 0, 0},
-    offset   = {0, 0, 0},
+    position = {0, 0, 510},
 
     vertical_alignment = "bottom",
     horizontal_alignment = "left"
@@ -4216,7 +4214,7 @@ end
 
 VMFOptionsView.on_enter = function (self)
 
-  if ShowCursorStack.stack_depth == 0 then ShowCursorStack.push() end
+  if ShowCursorStack.stack_depth == 0 or not VT1 then ShowCursorStack.push() end
 
   local input_manager = self.input_manager
   input_manager.block_device_except_service(input_manager, "vmf_options_menu", "keyboard", 1)
