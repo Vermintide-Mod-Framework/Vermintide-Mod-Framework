@@ -2919,7 +2919,7 @@ VMFOptionsView.initialize_settings_list_widgets = function (self)
 
   self.definitions.scenegraph_2nd_layer[scenegraph_id_start_2nd_layer] = {
     size     = {0, 0},
-    position = {0, 0, 0},
+    position = {0, 0, 510},
     offset   = {0, 0, 0},
 
     vertical_alignment = "bottom",
