@@ -182,7 +182,7 @@ vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_in
     end
 
     -- ctrl + v
-    if Keyboard.pressed(Keyboard.button_index("v")) and Keyboard.button(Keyboard.button_index("left ctrl")) == 1 then
+    if VT1 and Keyboard.pressed(Keyboard.button_index("v")) and Keyboard.button(Keyboard.button_index("left ctrl")) == 1 then
       local new_chat_message = self.chat_message
 
       -- remove carriage returns
