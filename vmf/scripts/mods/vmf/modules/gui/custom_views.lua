@@ -398,4 +398,4 @@ end
 -- #####################################################################################################################
 
 -- If VMF is reloaded mid-game, get ingame_ui.
-_ingame_ui = Managers.matchmaking and Managers.matchmaking[VT1 and "ingame_ui" or "_ingame_ui"]
+_ingame_ui = (VT1 and Managers.matchmaking and Managers.matchmaking.ingame_ui) or (Managers.ui and Managers.ui._ingame_ui)
