@@ -2,9 +2,10 @@
 Contribute to VMF -- add your name here!
 
 + [Aussiemon](https://github.com/Aussiemon)
-+ [Azumgi](https://github.com/Azumgi)
++ [Dreomite](https://github.com/Dreomite)
 + [E1Camino](https://github.com/E1Camino)
 + [FireSiku](https://github.com/FireSiku)
++ [Fracticality](https://github.com/fracticality)
 + [grasmann](https://github.com/grasmann)
 + [griffin02](https://github.com/griffin02)
 + [Grimalackt](https://github.com/thebotz)
