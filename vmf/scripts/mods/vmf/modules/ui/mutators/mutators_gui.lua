@@ -143,9 +143,9 @@ local function offset_function_callback(ui_scenegraph_, style, content, ui_rende
   -- Enable/disable mutator.
   if content.highlight_hotspot.on_release then
     if mutator:is_enabled() then
-      vmf.mod_state_changed(mutator:get_name(), false)
+      vmf.set_mod_state(mutator, false)
     elseif can_be_enabled then
-      vmf.mod_state_changed(mutator:get_name(), true)
+      vmf.set_mod_state(mutator, true)
     end
   end
 

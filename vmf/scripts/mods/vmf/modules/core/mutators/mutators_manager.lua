@@ -166,7 +166,7 @@ local function disable_impossible_mutators(is_broadcast, reason_text_id)
   for i = #_mutators, 1, -1 do
     local mutator = _mutators[i]
     if mutator:is_enabled() and not mutator_can_be_enabled(mutator) then
-      vmf.mod_state_changed(mutator:get_name(), false)
+      vmf.set_mod_state(mutator, false)
       table.insert(disabled_mutators, mutator)
     end
   end

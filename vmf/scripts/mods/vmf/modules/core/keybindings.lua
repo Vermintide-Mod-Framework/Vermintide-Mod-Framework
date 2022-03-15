@@ -217,7 +217,7 @@ local function perform_keybind_action(data, is_pressed)
   local can_perform_action = is_vmf_input_service_active() or data.global or data.release_action
 
   if data.type == "mod_toggle" and can_perform_action and not data.mod:get_internal_data("is_mutator") then
-    vmf.mod_state_changed(data.mod:get_name(), not data.mod:is_enabled())
+    vmf.set_mod_state(data.mod, not data.mod:is_enabled())
     return true
   elseif data.type == "function_call" and can_perform_action and data.mod:is_enabled() then
     call_function(data.mod, data.function_name, is_pressed)

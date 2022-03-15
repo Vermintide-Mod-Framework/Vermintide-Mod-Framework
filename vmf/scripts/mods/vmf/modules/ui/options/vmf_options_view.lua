@@ -3058,7 +3058,7 @@ end
 
 VMFOptionsView.callback_mod_state_changed = function (self, mod_name, is_mod_enabled)
 
-  vmf.mod_state_changed(mod_name, is_mod_enabled)
+  vmf.set_mod_state(get_mod(mod_name), is_mod_enabled)
 
   WwiseWorld.trigger_event(self.wwise_world, "Play_hud_select")
 

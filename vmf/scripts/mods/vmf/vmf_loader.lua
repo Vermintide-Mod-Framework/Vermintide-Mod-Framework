@@ -29,18 +29,19 @@ function vmf_mod_object:init()
   dofile("scripts/mods/vmf/modules/core/localization")
   dofile("scripts/mods/vmf/modules/core/options")
   dofile("scripts/mods/vmf/modules/legacy/options")
-  dofile("scripts/mods/vmf/modules/core/network")
+  dofile("scripts/mods/vmf/modules/core/network/network_manager")
   dofile("scripts/mods/vmf/modules/core/commands")
   dofile("scripts/mods/vmf/modules/gui/custom_textures")
   dofile("scripts/mods/vmf/modules/gui/custom_views")
   dofile("scripts/mods/vmf/modules/ui/chat/chat_actions")
   dofile("scripts/mods/vmf/modules/ui/options/mod_options")
   dofile("scripts/mods/vmf/modules/vmf_options")
+  dofile("scripts/mods/vmf/modules/core/mutators/mutator_manager")
 
-  if VT1 then
-    dofile("scripts/mods/vmf/modules/core/mutators/mutators_manager")
-    dofile("scripts/mods/vmf/modules/ui/mutators/mutators_gui")
-  end
+  -- if VT1 then
+  --   dofile("scripts/mods/vmf/modules/core/mutators/mutators_manager")
+  --   dofile("scripts/mods/vmf/modules/ui/mutators/mutators_gui")
+  -- end
 
   vmf = get_mod("VMF")
   vmf.delayed_chat_messages_hook()
@@ -56,20 +57,23 @@ end
 
 function vmf_mod_object:update(dt)
   vmf.update_package_manager()
+  vmf.network_update()
   vmf.mods_update_event(dt)
   vmf.check_keybinds()
   vmf.execute_queued_chat_command()
-  if VT1 then vmf.check_mutators_state() end
+  --if VT1 then vmf.check_mutators_state() end
 
   if not vmf.all_mods_were_loaded and Managers.mod._state == "done" then
 
     vmf.generate_keybinds()
     vmf.initialize_vmf_options_view()
-    vmf.create_network_dictionary()
-    vmf.ping_vmf_users()
+    --vmf.create_network_dictionary()
+    --vmf.ping_vmf_users()
 
-    if VT1 then vmf.modify_map_view() end
-    if VT1 then vmf.mutators_delete_raw_config() end
+    vmf.network_initialize()
+    --if VT1 then vmf.modify_map_view() end
+    --if VT1 then vmf.mutators_delete_raw_config() end
+    vmf.initialize_correct_mutators_toggling_order()
 
     vmf.all_mods_loaded_event()
 
@@ -89,8 +93,9 @@ end
 function vmf_mod_object:on_reload()
   print("VMF:ON_RELOAD()")
   vmf.disable_mods_options_button()
-  if VT1 then vmf.reset_map_view() end
+  --if VT1 then vmf.reset_map_view() end
   vmf.mods_unload_event(false)
+  vmf.network_shutdown()
   vmf.remove_custom_views()
   vmf.unload_all_resource_packages()
   vmf.hooks_unload()
