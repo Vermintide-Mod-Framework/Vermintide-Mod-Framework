@@ -92,6 +92,7 @@ function vmf_mod_object:on_reload()
   if VT1 then vmf.reset_map_view() end
   vmf.mods_unload_event(false)
   vmf.remove_custom_views()
+  vmf.remove_injected_hud_components()
   vmf.unload_all_resource_packages()
   vmf.hooks_unload()
   vmf.reset_guis()
