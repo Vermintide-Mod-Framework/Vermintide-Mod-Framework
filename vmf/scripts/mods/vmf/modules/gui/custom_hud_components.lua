@@ -8,19 +8,16 @@ local ERRORS = {
         -- inject_hud_component:
         component_already_exists = "hud component with class_name '%s' already exists.",
         -- validate_component_data:
-        component_name_wrong_type = "'component_name' must be a string, not %s.",
-        component_definition_wrong_type = "'component_definition' must be a table, not %s.",
-        class_name_wrong_type = "'component_definition.class_name' must be a string, not %s.",
-        use_hud_scale_wrong_type = "'component_definition.use_hud_scale' must be a boolean or nil, not %s.",
-        always_active_wrong_type = "'component_definition.always_active' must be a boolean, not %s.",
-        visibility_groups_wrong_type = "'component_definition.visibility_groups' must be a table, not %s.",
-        visibility_groups_key_wrong_type = "'component_definition.visibility_groups' table keys must be a number, not %s.",
-        visibility_group_name_wrong_type = "'group_name' must be a string, not %s.",
+        class_name_wrong_type = "'class_name' must be a string, not %s.",
+        visibility_groups_wrong_type = "'visibility_groups' must be a table, not %s.",
+        visibility_groups_key_wrong_type = "'visibility_groups' table keys must be a number, not %s.",
+        visibility_groups_value_wrong_type = "'visibility_groups' table values must be a string, not %s.",
+        use_hud_scale_wrong_type = "'use_hud_scale' must be a boolean or nil, not %s.",
         validation_function_wrong_type = "'validation_function' must be a function or nil, not %s."
     },
     PREFIX = {
-        register_hud_component_validation = "[Custom HUD Components] (register_hud_component) Hud component data validation '%s'",
-        register_hud_component_injection = "[Custom HUD Components] (inject_hud_component) Hud component injection '%s' ",
+        component_validation = "[Custom HUD Components] (register_hud_component) Hud component data validation '%s'",
+        component_injection = "[Custom HUD Components] (inject_hud_component) Hud component injection '%s' ",
         ingamehud_hook_injection = "[Custom HUD Components] Hud component injection '%s'"
     }
 }
@@ -85,7 +82,7 @@ end
 -- @ THROWS_ERRORS
 local function validate_component_data(component_settings)
     if type(component_settings.class_name) ~= "string" then
-        vmf.throw_error(ERRORS.THROWABLE.component_name_wrong_type, type(component_settings.class_name))
+        vmf.throw_error(ERRORS.THROWABLE.class_name_wrong_type, type(component_settings.class_name))
     end
     if component_settings.use_hud_scale and type(component_settings.use_hud_scale) ~= "boolean" then
         vmf.throw_error(ERRORS.THROWABLE.use_hud_scale_wrong_type, type(component_settings.use_hud_scale))
@@ -103,7 +100,7 @@ local function validate_component_data(component_settings)
             vmf.throw_error(ERRORS.THROWABLE.visibility_groups_key_wrong_type, type(key))
         end
         if type(group_name) ~= "string" then
-            vmf.throw_error(ERRORS.THROWABLE.visibility_group_name_wrong_type, type(group_name))
+            vmf.throw_error(ERRORS.THROWABLE.visibility_groups_value_wrong_type, type(group_name))
         end
     end
 
@@ -115,7 +112,15 @@ end
 
 --[[
   Validates provided component settings, injects the component, and returns 'true' if everything is correct.
-  * component_settings [table]: settings of the component to register
+  * component_settings   [table]                : Settings of the component to register
+  ** class_name          [string]               (required) : Name of the class containing the component logic.
+  ** visibility_groups   [table<number,string>] (required) : Array of visibility group names for the component to be
+                                                             included in.
+  ** use_hud_scale       [boolean]              (optional) : Set to 'true' if ingame_hud should scale the component.
+  ** validation_function [func]                 (optional) : Function called by ingame_hud to determine whether to
+                                                             create the component, supplying the 'ingame_ui_context'.
+                                                             Return 'true' from this function to enable.
+                                                             Set to nil to always enable.
 --]]
 function VMFMod:register_hud_component(component_settings)
     if vmf.check_wrong_argument_type(self, "register_hud_component", "component_data", component_settings, "table") then
@@ -126,8 +131,14 @@ function VMFMod:register_hud_component(component_settings)
 
     local component_name = component_settings.class_name
 
-    if not vmf.safe_call_nrc(self, {ERRORS.PREFIX.register_hud_component_validation, component_name}, validate_component_data,
-            component_settings) then
+    if not vmf.safe_call_nrc(self,
+            {
+                ERRORS.PREFIX.register_hud_component_validation,
+                component_name
+            },
+            validate_component_data,
+            component_settings
+    ) then
         return
     end
 
@@ -137,7 +148,14 @@ function VMFMod:register_hud_component(component_settings)
     }
 
     if _ingame_hud then
-        if not vmf.safe_call_nrc(self, {ERRORS.PREFIX.register_hud_component_injection, component_name}, inject_hud_component, component_name) then
+        if not vmf.safe_call_nrc(self,
+                {
+                    ERRORS.PREFIX.register_hud_component_injection,
+                    component_name
+                },
+                inject_hud_component,
+                component_name
+        ) then
             _components_data[component_name] = nil
         end
     end
@@ -152,7 +170,14 @@ end
 vmf:hook_safe(IngameHud, "_setup_components", function (self)
     _ingame_hud = self
     for component_name, _ in pairs(_components_data) do
-        if not vmf.safe_call_nrc(self, {ERRORS.PREFIX.ingamehud_hook_injection, component_name}, inject_hud_component, component_name) then
+        if not vmf.safe_call_nrc(self,
+                {
+                    ERRORS.PREFIX.ingamehud_hook_injection,
+                    component_name
+                },
+                inject_hud_component,
+                component_name
+        ) then
             _components_data[component_name] = nil
         end
     end
@@ -176,5 +201,4 @@ end
 -- #####################################################################################################################
 
 -- If VMF is reloaded mid-game, get ingame_hud.
-_ingame_hud = (VT1 and Managers.matchmaking and Managers.matchmaking.ingame_ui.ingame_hud)
-           or (Managers.ui and Managers.ui._ingame_ui.ingame_hud)
+_ingame_hud = Managers.ui and Managers.ui._ingame_ui.ingame_hud
