@@ -112,7 +112,7 @@ end
 
 --[[
   Validates provided component settings, injects the component, and returns 'true' if everything is correct.
-  * component_settings   [table]                : Settings of the component to register
+  * component_settings   [table]                           : Settings of the component to register
   ** class_name          [string]               (required) : Name of the class containing the component logic.
   ** visibility_groups   [table<number,string>] (required) : Array of visibility group names for the component to be
                                                              included in.
