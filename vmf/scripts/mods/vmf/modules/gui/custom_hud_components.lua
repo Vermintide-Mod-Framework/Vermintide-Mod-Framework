@@ -28,12 +28,6 @@ local ERRORS = {
 -- ##### Local functions ###############################################################################################
 -- #####################################################################################################################
 
-local function reset_component_status()
-  for _, component_data in pairs(_components_data) do
-    component_data.status = COMPONENT_STATUS.REGISTERED
-  end
-end
-
 local function get_mod_hud_components(mod)
   return table.filter(_components_data, function(component_data)
     return component_data.mod == mod
@@ -198,7 +192,7 @@ end
 
 vmf:hook_safe(IngameHud, "_setup_components", function(self)
   _ingame_hud = self
-  for component_name, _ in pairs(_components_data) do
+  for component_name, component_data in pairs(_components_data) do
     if not vmf.safe_call_nrc(self,
                              {
                                ERRORS.PREFIX.ingamehud_hook_injection,
@@ -214,9 +208,6 @@ end)
 
 vmf:hook_safe(IngameHud, "destroy", function()
   _ingame_hud = nil
-  -- HUD components are reset every time the party is changed (including the initial local-player-only lobby)
-  -- We need to reset injection status as well.
-  reset_component_status()
 end)
 
 -- #####################################################################################################################
