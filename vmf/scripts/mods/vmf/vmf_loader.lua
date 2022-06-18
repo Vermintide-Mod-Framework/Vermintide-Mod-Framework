@@ -40,6 +40,8 @@ function vmf_mod_object:init()
   if VT1 then
     dofile("scripts/mods/vmf/modules/core/mutators/mutators_manager")
     dofile("scripts/mods/vmf/modules/ui/mutators/mutators_gui")
+  else
+    dofile("scripts/mods/vmf/modules/gui/custom_hud_components")
   end
 
   vmf = get_mod("VMF")
@@ -89,7 +91,11 @@ end
 function vmf_mod_object:on_reload()
   print("VMF:ON_RELOAD()")
   vmf.disable_mods_options_button()
-  if VT1 then vmf.reset_map_view() end
+  if VT1 then
+    vmf.reset_map_view()
+  else
+    vmf.remove_injected_hud_components()
+  end
   vmf.mods_unload_event(false)
   vmf.remove_custom_views()
   vmf.unload_all_resource_packages()
