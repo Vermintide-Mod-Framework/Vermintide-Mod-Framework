@@ -1,6 +1,10 @@
-# VMF contributors (sorted alphabetically)
-Contribute to VMF -- add your name here!
+# DMF contributors (sorted alphabetically)
+Contribute to DMF -- add your name here!
++ [Aussiemon](https://github.com/Aussiemon)
++ [Fracticality](https://github.com/fracticality)
++ [grasmann](https://github.com/grasmann)
 
+# VMF contributors (sorted alphabetically)
 + [Aussiemon](https://github.com/Aussiemon)
 + [Dreomite](https://github.com/Dreomite)
 + [E1Camino](https://github.com/E1Camino)

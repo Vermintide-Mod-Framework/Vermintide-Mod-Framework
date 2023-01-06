@@ -1,26 +1,17 @@
 <p align="center">
-  <a href="#welcome-to-the-vermintide-mod-framework-vmf-repository">
+  <a href="#welcome-to-the-darktide-mod-framework-vmf-repository">
     <img
-      alt="Vermintide Mod Framework"
+      alt="Darktide Mod Framework"
       src="https://github.com/Vermintide-Mod-Framework/Vermintide-Mod-Framework/blob/master/assets/vmf_logo_black.png"
       width="600"
     />
   </a>
 </p>
-<p align="center">
-  <a href="https://travis-ci.com/Vermintide-Mod-Framework/Vermintide-Mod-Framework">
-    <img
-      alt="Build Status"
-      src="https://travis-ci.com/Vermintide-Mod-Framework/Vermintide-Mod-Framework.svg?branch=master"
-      width="100"
-    />
-  </a>
-</p>
 
 
-## Welcome to the Vermintide Mod Framework (VMF) Repository!
+## Welcome to the Darktide Mod Framework (DMF) Repository!
 
-The Vermintide Mod Framework is an open-source, community-run framework of modules that provides enhanced modding capabilities and support. The framework is designed to be both independent and lightweight; making no changes to gameplay on its own.
+The Darktide Mod Framework is an open-source, community-run framework of modules that provides enhanced modding capabilities and support. The framework is designed to be both independent and lightweight; making no changes to gameplay on its own.
 
 Mods created for the project may utilize:
 
@@ -28,13 +19,10 @@ Mods created for the project may utilize:
 * Shared function hooks
 * Chat commands
 * Keybinds
-* Mutator support (for now available only in Vermintide 1)
-* Network calls
-* QHD+ UI re-scaling
 * Rewritten, lightweight mod functions
 * An on-event call system
 
-The Vermintide Mod Framework originally started in Warhammer End Times: Vermintide as an unofficial modding platform. In the time since, VMF has been rewritten and redesigned with contributions from many unique members of the community; culminating in this unified project made for the arrival of official mod support.
+The Darktide Mod Framework originally started in Warhammer End Times: Vermintide as an unofficial modding platform. In the time since, DMF has been rewritten and redesigned with contributions from many unique members of the community; culminating in this unified project.
 
 For more information, check out **[the framework's wiki pages](https://github.com/Vermintide-Mod-Framework/Vermintide-Mod-Framework/wiki)**.
 
