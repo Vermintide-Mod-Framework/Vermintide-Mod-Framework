@@ -1,6 +1,11 @@
 local vmf = get_mod("VMF")
 
-Managers.vmf = Managers.vmf or {} -- @TODO: move it to on_reload when it will be implemented in vt1
+-- @TODO: move it to on_reload when it will be implemented in vt1
+Managers.vmf = Managers.vmf or {
+  delete = function()
+    return
+  end
+}
 Managers.vmf.persistent_tables = Managers.vmf.persistent_tables or {}
 
 local _persistent_tables = Managers.vmf.persistent_tables

@@ -11,6 +11,7 @@ local _commands_list = {}
 local _command_index = 0 -- 0 => nothing selected
 
 local _commands_list_gui_draw
+local _commands_list_gui_destroy
 
 local _chat_history = {}
 local _chat_history_index = 0
@@ -21,14 +22,34 @@ local _chat_history_remove_dups_last = false
 local _chat_history_remove_dups_all = false
 local _chat_history_save_commands_only = false
 
-local _queued_command -- is a workaround for VT2 where raycast is blocked during ui update
+local _chat_message
+local _previous_chat_message
+local _queued_command
 
 -- ####################################################################################################################
 -- ##### Local functions ##############################################################################################
 -- ####################################################################################################################
 
 local function initialize_drawing_function()
-  _commands_list_gui_draw = dofile("scripts/mods/vmf/modules/ui/chat/commands_list_gui")
+  if not _commands_list_gui_draw then
+    local commands_list_gui = vmf:dofile("dmf/scripts/mods/vmf/modules/ui/chat/commands_list_gui")
+    _commands_list_gui_draw = commands_list_gui.draw
+    _commands_list_gui_destroy = commands_list_gui.destroy
+  end
+end
+
+local function destroy_command_gui()
+  if _commands_list_gui_destroy then
+    _commands_list_gui_destroy()
+    _commands_list_gui_draw = nil
+    _commands_list_gui_destroy = nil
+  end
+end
+
+local function clean_chat_notifications()
+  if Managers.event then
+    Managers.event:trigger("event_clear_notifications")
+  end
 end
 
 local function clean_chat_history()
@@ -36,42 +57,42 @@ local function clean_chat_history()
   _chat_history_index = 0
 end
 
+local function get_chat_index(chat_gui)
+  return chat_gui._input_field_widget.content.caret_position
+end
+
+local function get_chat_message(chat_gui)
+  return chat_gui._input_field_widget.content.input_text or ""
+end
+
 local function set_chat_message(chat_gui, message)
-  chat_gui.chat_message = message
-  chat_gui.chat_index   = KeystrokeHelper.num_utf8chars(chat_gui.chat_message) + 1
-  chat_gui.chat_input_widget.content.text_index = 1
+  _chat_message = message
+  chat_gui._input_field_widget.content.input_text = message
+  chat_gui._input_field_widget.content.caret_position = Utf8.string_length(_chat_message) + 1
 end
 
 -- ####################################################################################################################
 -- ##### Hooks ########################################################################################################
 -- ####################################################################################################################
 
-vmf:hook_safe(WorldManager, "create_world", function(self_, name)
-  if name == "top_ingame_view" then
-    initialize_drawing_function()
-  end
-end)
-
-
-vmf:hook_safe("ChatGui", "block_input", function()
-  _chat_opened = true
-end)
-
-
-vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_input_service, dt, no_unblock,
-                                               chat_enabled, ...)
+-- Handle chat actions when the chat window is active
+vmf:hook("ConstantElementChat", "_handle_active_chat_input", function(func, self, input_service, ui_renderer, ...)
+  initialize_drawing_function()
 
   local command_executed = false
 
-  -- if ENTER was pressed
-  if Keyboard.pressed(Keyboard.button_index("enter")) or Keyboard.pressed(Keyboard.button_index("numpad enter")) then
+  _chat_message = get_chat_message(self)
+  _chat_opened = true
+
+  -- if message is sending
+  if input_service:get("send_chat_message") then
 
     -- chat history
     if _chat_history_enabled
-       and self.chat_message ~= ""
-       and not (_chat_history_remove_dups_last and (self.chat_message == _chat_history[1]))
+       and _chat_message ~= ""
+       and not (_chat_history_remove_dups_last and (_chat_message == _chat_history[1]))
        and (not _chat_history_save_commands_only or (_command_index ~= 0)) then
-      table.insert(_chat_history, 1, self.chat_message)
+      table.insert(_chat_history, 1, _chat_message)
 
       if #_chat_history == _chat_history_max + 1 then
         table.remove(_chat_history, #_chat_history)
@@ -80,7 +101,7 @@ vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_in
       if _chat_history_remove_dups_all then
 
         for i = 2, #_chat_history do
-          if _chat_history[i] == self.chat_message then
+          if _chat_history[i] == _chat_message then
             table.remove(_chat_history, i)
             break
           end
@@ -91,7 +112,7 @@ vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_in
     -- command execution
     if _command_index ~= 0 then
       local args = {}
-      for arg in string.gmatch(self.chat_message, "%S+") do
+      for arg in string.gmatch(_chat_message, "%S+") do
         table.insert(args, arg)
       end
       table.remove(args, 1)
@@ -107,13 +128,21 @@ vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_in
       set_chat_message(self, "")
 
       command_executed = true
+
+    elseif string.sub(_chat_message, 1, 1) == "/" then
+      vmf:notify(vmf:localize("chat_command_not_recognized") .. ": " .. _chat_message)
+      set_chat_message(self, "")
+      return
     end
   end
+  
+  local old_chat_message = _chat_message
 
-  local old_chat_message = self.chat_message
+  local result = func(self, input_service, ui_renderer, ...)
 
-  local chat_focused, chat_closed, chat_close_time = func(self, input_service, menu_input_service,
-                                                                dt, no_unblock, chat_enabled, ...)
+  -- Get completion state
+  local input_widget = self._input_field_widget
+  local chat_closed = not input_widget.content.is_writing
 
   if chat_closed then
     set_chat_message(self, "")
@@ -123,24 +152,19 @@ vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_in
     _commands_list = {}
     _command_index = 0
     _chat_history_index = 0
-
-    if command_executed then
-      chat_closed = false
-      chat_close_time = nil
-    end
   end
 
   if _chat_opened then
 
-    -- getting state of 'tab', 'arrow up' and 'arrow down' buttons
-    local tab_pressed = false
+    -- getting state of 'arrow right', 'arrow up' and 'arrow down' buttons
+    local arrow_right_pressed = false
     local arrow_up_pressed = false
     local arrow_down_pressed = false
     for _, stroke in ipairs(Keyboard.keystrokes()) do
-      if stroke == Keyboard.TAB then
-        tab_pressed = true
         -- game considers some "ctrl + [something]" combinations as arrow buttons,
         -- so I have to check for ctrl not pressed
+      if stroke == Keyboard.RIGHT and Keyboard.button(Keyboard.button_index("left ctrl")) == 0 then
+        arrow_right_pressed = true
       elseif stroke == Keyboard.UP and Keyboard.button(Keyboard.button_index("left ctrl")) == 0 then
         arrow_up_pressed = true
       elseif stroke == Keyboard.DOWN and Keyboard.button(Keyboard.button_index("left ctrl")) == 0 then
@@ -151,14 +175,12 @@ vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_in
     -- chat history
     if _chat_history_enabled then
 
-      -- reverse result of native chat history in VT2
-      if not VT1 and input_service.get(input_service, "chat_next_old_message") or
-                     input_service.get(input_service, "chat_previous_old_message") then
+      if arrow_up_pressed then
         set_chat_message(self, old_chat_message)
       end
 
       -- message was modified by player
-      if self.chat_message ~= self.previous_chat_message then
+      if _chat_message ~= _previous_chat_message then
         _chat_history_index = 0
       end
       if arrow_up_pressed or arrow_down_pressed then
@@ -171,7 +193,7 @@ vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_in
 
             set_chat_message(self, _chat_history[new_index])
 
-            self.previous_chat_message = self.chat_message
+            _previous_chat_message = _chat_message
 
             _chat_history_index = new_index
           else -- new_index == 0
@@ -181,41 +203,15 @@ vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_in
       end
     end
 
-    -- ctrl + v
-    if VT1 and Keyboard.pressed(Keyboard.button_index("v")) and Keyboard.button(Keyboard.button_index("left ctrl")) == 1 then
-      local new_chat_message = self.chat_message
-
-      -- remove carriage returns
-      local clipboard_data = tostring(Clipboard.get()):gsub("\r", "")
-
-      -- remove invalid characters
-      if Utf8.valid(clipboard_data) then
-        new_chat_message = new_chat_message .. clipboard_data
-      else
-        local valid_data = ""
-        clipboard_data:gsub(".", function(c)
-          if Utf8.valid(c) then
-            valid_data = valid_data .. c
-          end
-        end)
-        new_chat_message = new_chat_message .. valid_data
-      end
-
-      set_chat_message(self, new_chat_message)
-    end
-
-    -- ctrl + c
-    if Keyboard.pressed(Keyboard.button_index("c")) and Keyboard.button(Keyboard.button_index("left ctrl")) == 1 then
-      Clipboard.put(self.chat_message)
-    end
-
     -- entered chat message starts with "/"
-    if string.sub(self.chat_message, 1, 1) == "/" then
+    if string.sub(_chat_message, 1, 1) == "/" then
 
-      -- if there's no space after '/part_of_command_name' and if TAB was pressed
-      if not string.find(self.chat_message, " ") and tab_pressed and
-         -- if TAB was pressed with caret at the end of the string
-         (string.len(self.chat_message) + 1) == self.chat_index and
+      local autocompleting = false
+
+      -- if there's no space after '/part_of_command_name' and if arrow_right was pressed
+      if not string.find(_chat_message, " ") and arrow_right_pressed and
+         -- if arrow_right was pressed with caret at the end of the string
+         (string.len(_chat_message) + 1) == get_chat_index(self) and
          -- if there are any commands matching entered '/part_of_command_name
          (#_commands_list > 0) then
 
@@ -224,16 +220,15 @@ vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_in
         set_chat_message(self, "/" .. _commands_list[_command_index].name)
 
         -- so the next block won't update the commands list
-        old_chat_message = self.chat_message
+        autocompleting = true
       end
 
 
-      if self.chat_message ~= old_chat_message then
-
+      if not autocompleting or not vmf._commands_list_gui_draw then
         -- get '/part_of_command_name' without '/'
-        local command_name_contains = self.chat_message:match("%S+"):sub(2, -1)
+        local command_name_contains = _chat_message:match("%S+"):sub(2, -1)
 
-        if string.find(self.chat_message, " ") then
+        if string.find(_chat_message, " ") then
           _commands_list = vmf.get_commands_list(command_name_contains, true)
         else
           _commands_list = vmf.get_commands_list(command_name_contains)
@@ -248,7 +243,7 @@ vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_in
 
 
     -- chat message was modified and doesn't start with '/'
-    elseif self.chat_message ~= old_chat_message and #_commands_list > 0 then
+    elseif #_commands_list > 0 then
       _commands_list = {}
       _command_index = 0
     end
@@ -258,7 +253,7 @@ vmf:hook("ChatGui", "_update_input", function(func, self, input_service, menu_in
     end
   end
 
-  return chat_focused, chat_closed, chat_close_time
+  return result
 end)
 
 -- ####################################################################################################################
@@ -303,16 +298,19 @@ vmf.execute_queued_chat_command = function()
   end
 end
 
+vmf.destroy_command_gui = function()
+  destroy_command_gui()
+end
+
 -- ####################################################################################################################
 -- ##### Script #######################################################################################################
 -- ####################################################################################################################
 
 vmf.load_chat_history_settings()
+vmf:command("clean_chat_notifications", vmf:localize("clean_chat_notifications"), clean_chat_notifications)
 
 if _chat_history_save then
   _chat_history = vmf:get("chat_history") or _chat_history
 end
 
-if Managers.world and Managers.world:has_world("top_ingame_view") then
-  initialize_drawing_function()
-end
+initialize_drawing_function()

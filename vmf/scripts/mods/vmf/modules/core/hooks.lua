@@ -8,7 +8,7 @@ local vmf = get_mod("VMF")
 local HOOK_TYPES = {
     hook        = 1,
     hook_safe   = 2,
-    hook_origin = 3,
+    hook_origin = 3
 }
 
 -- Constants to ease on table lookups when not needed
@@ -36,6 +36,7 @@ local _hooks = {
     setmetatable({}, auto_table_meta), -- safe
     {}, -- origin
 }
+local _hooks_by_file = {}
 local _origs = {}
 
 -- ####################################################################################################################
@@ -390,6 +391,33 @@ function VMFMod:hook_origin(obj, method, handler)
     return generic_hook(self, obj, method, handler, "hook_origin")
 end
 
+-- :hook_file() allows you to hook a function across every past and future version of a game file,
+--         allowing your handler to replace the function in the stack,
+--         and control its execution. All hooks on the same function will be part of a chain, with the
+--         original function at the end. Your handler has to call the next function in the chain manually.
+-- The chain of event is determined by mod load order.
+function VMFMod:hook_file(obj_str, method_str, handler)
+    -- Add hook create function to list for the file
+    _hooks_by_file[obj_str] = _hooks_by_file[obj_str] or {}
+
+    local hook_create_func = function(this_filepath, this_index)
+        local dynamic_obj =
+            "vmf:get_require_store(\"" .. this_filepath .. "\")[" .. tostring(this_index) .. "]"
+        return generic_hook(self, dynamic_obj, method_str, handler, "hook")
+    end
+    table.insert(_hooks_by_file[obj_str], hook_create_func)
+    
+    -- Add the new hook to every instance of the file
+    local all_file_instances = vmf:get_require_store(obj_str)
+    if all_file_instances then
+        for i, item in ipairs(all_file_instances) do
+            if item then
+                hook_create_func(obj_str, i)
+            end
+        end
+    end
+end
+
 -- Enable/disable functions for all hook types:
 function VMFMod:hook_enable(obj, method)
     generic_hook_toggle(self, obj, method, true)
@@ -436,6 +464,19 @@ vmf.apply_delayed_hooks = function(status, state)
         for i = #_delayed, 1, -1 do
             _delayed[i]()
             table.remove(_delayed, i)
+        end
+    end
+end
+
+vmf.apply_hooks_to_file = function(filepath, store_index)
+    local all_file_instances = vmf:get_require_store(filepath)
+    local file_instance = all_file_instances and all_file_instances[store_index]
+    
+    local all_file_hooks = _hooks_by_file[filepath]
+    
+    if all_file_hooks and file_instance then
+        for _, hook_create_func in ipairs(all_file_hooks) do
+            hook_create_func(filepath, store_index)
         end
     end
 end

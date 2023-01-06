@@ -1,5 +1,5 @@
 --[[
-  Manages everything related to mutators: loading order, enabling/disabling process, giving extra dice etc.
+  Manages everything related to mutators: loading order, enabling/disabling process, giving extra rewards etc.
 --]]
 local vmf = get_mod("VMF")
 
@@ -23,11 +23,11 @@ local _mutators_sorted = false
 local _all_mutators_disabled = false
 
 -- External modules
-local dice_manager = vmf:dofile("scripts/mods/vmf/modules/core/mutators/mutators_dice")
-local set_lobby_data = vmf:dofile("scripts/mods/vmf/modules/core/mutators/mutators_info")
+local reward_manager = vmf:dofile("dmf/scripts/mods/vmf/modules/core/mutators/mutators_reward")
+local set_lobby_data = vmf:dofile("dmf/scripts/mods/vmf/modules/core/mutators/mutators_info")
 
 -- Get default configuration
-local _default_config = vmf:dofile("scripts/mods/vmf/modules/core/mutators/mutators_default_config")
+local _default_config = vmf:dofile("dmf/scripts/mods/vmf/modules/core/mutators/mutators_default_config")
 
 -- List of enabled mutators in case VMF is reloaded in the middle of the game
 local _enabled_mutators = vmf:persistent_table("enabled_mutators")
@@ -49,7 +49,7 @@ end
 -- Called after mutator is enabled
 local function on_enabled(mutator)
   local config = mutator:get_internal_data("mutator_config")
-  dice_manager.addDice(config.dice)
+  reward_manager.addReward(config.reward)
   set_lobby_data()
   print("[MUTATORS] Enabled " .. mutator:get_name() .. " (" .. tostring(get_index(_mutators, mutator)) .. ")")
 
@@ -61,9 +61,9 @@ end
 local function on_disabled(mutator, initial_call)
   local config = mutator:get_internal_data("mutator_config")
 
-  -- All mutators run on_disabled on initial call, so there's no need to remove dice and set lobby data
+  -- All mutators run on_disabled on initial call, so there's no need to remove rewards and set lobby data
   if not initial_call then
-    dice_manager.removeDice(config.dice)
+    reward_manager.removeReward(config.reward)
     set_lobby_data()
   end
   print("[MUTATORS] Disabled " .. mutator:get_name() .. " (" .. tostring(get_index(_mutators, mutator)) .. ")")
@@ -74,9 +74,13 @@ end
 
 -- Checks if the player is server in a way that doesn't incorrectly return false during loading screens
 local function player_is_server()
-  local player = Managers.player
-  local state = Managers.state
-  return not player or player.is_server or not state or state.game_mode == nil
+  return Managers and Managers.state and Managers.state.game_session and Managers.state.game_session:is_server()
+
+  --[[ -- Might not be necessary?
+  return Managers and Managers.state and (
+    (Managers.state.game_session and Managers.state.game_session:is_server()) or
+    (Managers.state.game_mode and Managers.state.game_mode._game_mode == nil))
+  --]]
 end
 
 
@@ -154,7 +158,7 @@ local function mutator_can_be_enabled(mutator)
   end
 
   -- If conflicting difficulty is set (if no difficulty is set, all mutators are allowed)
-  local actual_difficulty = Managers.state and Managers.state.difficulty:get_difficulty()
+  local actual_difficulty = Managers.state and Managers.state.difficulty:get_difficulty() or 0
   local compatible_difficulties = mutator_compatibility_config.compatible_difficulties
   return not actual_difficulty or compatible_difficulties[actual_difficulty]
 end
@@ -302,14 +306,11 @@ local function update_compatibility(mutator)
 
   -- Compatibility with current difficulty (This part works only for VT1. Will see what to do with VT2 later.)
   compatibility.compatible_difficulties = {
-    easy = false,
-    normal = false,
-    hard = false,
-    harder = false,
-    hardest = false,
-    survival_hard = false,
-    survival_harder = false,
-    survival_hardest = false,
+    lowest = false,
+    low = false,
+    medium = false,
+    high = false,
+    highest = false,
   }
   local compatible_difficulties = compatibility.compatible_difficulties
   local compatible_difficulties_number = 0
@@ -342,7 +343,7 @@ local function initialize_mutator_config(mutator, _raw_config)
 
   local config = mutator:get_internal_data("mutator_config")
 
-  config.dice            = raw_config.dice
+  config.reward          = raw_config.reward
   config.short_title     = raw_config.short_title
   config.title_placement = raw_config.title_placement
 
@@ -493,13 +494,11 @@ end
 -- ##### Hooks #########################################################################################################
 -- #####################################################################################################################
 
-vmf:hook_safe(DifficultyManager, "set_difficulty", function()
-  disable_impossible_mutators(true, "disabled_reason_difficulty_change")
-end)
+-- @TODO: Hook to disable impossible mutators when the difficulty changes
 
 -- #####################################################################################################################
 -- ##### Script ########################################################################################################
 -- #####################################################################################################################
 
 -- Testing
---vmf:dofile("scripts/mods/vmf/modules/core/mutators/test/mutators_test")
+--vmf:dofile("dmf/scripts/mods/vmf/modules/core/mutators/test/mutators_test")

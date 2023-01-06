@@ -1,8 +1,5 @@
 return {
   run = function()
-    return dofile("scripts/mods/vmf/vmf_loader")
-  end,
-  packages = {
-    "resource_packages/vmf"
-  }
+    return Mods.file.dofile("dmf/scripts/mods/vmf/vmf_loader")
+  end
 }

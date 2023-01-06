@@ -11,7 +11,7 @@ end
 -- #####################################################################################################################
 
 -- Defining VMFMod class.
-VMFMod = class(VMFMod)
+VMFMod = class("VMFMod")
 
 -- Creating mod data table when object of VMFMod class is created.
 function VMFMod:init(mod_name)

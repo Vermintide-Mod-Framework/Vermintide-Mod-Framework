@@ -4,6 +4,9 @@ local vmf = get_mod("VMF")
 -- It would requires hooks to be pushed higher in the loading order, but then we lose hooks printing to console
 -- Unless we find a way to store our logging messages in memory before the console is loaded.
 
+-- Global backup of the ffi library
+local _ffi = Mods.lua.ffi
+
 local _console_data = vmf:persistent_table("dev_console_data")
 if not _console_data.enabled then _console_data.enabled = false end
 if not _console_data.original_print then _console_data.original_print = print end
@@ -13,12 +16,6 @@ if not _console_data.original_print then _console_data.original_print = print en
 -- ####################################################################################################################
 
 local function open_dev_console()
-
-  -- Forbid using dev console in official realm. Hopefully, temporarily restriction. So no localization.
-  if not VT1 and not script_data["eac-untrusted"] then
-    vmf:echo("You can't use developer console in official realm.")
-    return
-  end
 
   if not _console_data.enabled then
 
@@ -50,14 +47,13 @@ local function close_dev_console()
 
     -- CommandWindow won't close by itself, so it have to be closed manually
     vmf:pcall(function()
-      local ffi = require("ffi")
-      ffi.cdef([[
+      _ffi.cdef([[
         void* FindWindowA(const char* lpClassName, const char* lpWindowName);
         int64_t SendMessageA(void* hWnd, unsigned int Msg, uint64_t wParam, int64_t lParam);
       ]])
       local WM_CLOSE = 0x10;
-      local hwnd = ffi.C.FindWindowA("ConsoleWindowClass", "Developer console")
-      ffi.C.SendMessageA(hwnd, WM_CLOSE, 0, 0)
+      local hwnd = _ffi.C.FindWindowA("ConsoleWindowClass", "Developer console")
+      _ffi.C.SendMessageA(hwnd, WM_CLOSE, 0, 0)
     end)
 
     _console_data.enabled = false

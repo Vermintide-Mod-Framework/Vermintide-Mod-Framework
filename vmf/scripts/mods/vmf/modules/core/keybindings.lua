@@ -197,8 +197,8 @@ local ERRORS = {
 -- #####################################################################################################################
 
 local function is_vmf_input_service_active()
-  local input_service = Managers.input:get_service("VMF")
-  return input_service and not input_service:is_blocked()
+  -- @TODO: Implement check for active VMF input service
+  return true
 end
 
 
@@ -304,8 +304,7 @@ function vmf.generate_keybinds()
         shift   = modifier_keys["shift"],
 
         function_name   = raw_keybind_data.function_name,
-        view_name       = raw_keybind_data.view_name,
-        transition_data = raw_keybind_data.transition_data
+        view_name       = raw_keybind_data.view_name
       }
 
       _keybinds[primary_key] = _keybinds[primary_key] or {
@@ -337,16 +336,14 @@ end
 -- Creates VMF input service. It is required to know when non-global keybinds can be triggered.
 -- (Called every time a level is loaded, or on mods reload)
 function vmf.create_keybinds_input_service()
-  -- VMF input has to be created only during the actual game
-  if Managers.state.game_mode and not Managers.input:get_service("VMF") then
-    rawset(_G, "EmptyKeyMap", {win32 = {}, xb1 = {}})
-    Managers.input:create_input_service("VMF", "EmptyKeyMap")
-    rawset(_G, "EmptyKeyMap", nil)
-
-    -- Synchronize state of VMF input service with Player input service
-    local is_blocked = Managers.input:get_service("Player"):is_blocked()
-    Managers.input:get_service("VMF"):set_blocked(is_blocked)
-  end
+  -- @TODO: Link this input service to the player's input service and find some way to see if it's blocked
+  --[[
+  -- To create the VMF input service in Darktide
+  local input_manager = Managers.input
+  local service_type = "VMF"
+  input_manager:add_setting(service_type, aliases, raw_key_table, filter_table, default_devices)
+  input_manager:get_input_service(service_type)
+  --]]
 end
 
 

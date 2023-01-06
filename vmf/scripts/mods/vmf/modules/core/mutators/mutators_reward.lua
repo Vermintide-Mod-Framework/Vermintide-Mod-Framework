@@ -1,46 +1,48 @@
 --[[
-  Notify players of enabled mutators via chat and tab menu
+  Add additional reward to end game results
 --]]
 local vmf = get_mod("VMF")
+
+-- Amounts of additional rewards to be added at level completion
+local _num_reward = {
+  credits = 0,
+  plasteel = 0,
+  diamantine = 0
+}
 
 -- #####################################################################################################################
 -- ##### Local functions ###############################################################################################
 -- #####################################################################################################################
 
--- Assembles a list of enabled mutators
-local function add_enabled_mutators_titles_to_string(separator, is_short)
-  local enabled_mutators = {}
-  for _, mutator in ipairs(vmf.mutators) do
-    if mutator:is_enabled() then
-      table.insert(enabled_mutators, mutator)
-    end
+-- Adds/removes reward modifiers
+local function adjustReward(credits, plasteel, diamantine, multiplier)
+  if credits then
+    _num_reward.credits = _num_reward.credits + credits * multiplier
   end
-  return vmf.add_mutator_titles_to_string(enabled_mutators, separator, is_short)
-end
-
-
--- Sets the lobby name
-local function set_lobby_data()
-  -- @TODO: Add mutator titles to lobby name in matchmaking
-end
-
-
-local function get_peer_id_from_cookie(client_cookie)
-  return string.match(client_cookie, "%[(.-)%]")
+  if plasteel then
+    _num_reward.plasteel = _num_reward.plasteel + plasteel * multiplier
+  end
+  if diamantine then
+    _num_reward.diamantine = _num_reward.diamantine + diamantine * multiplier
+  end
 end
 
 -- #####################################################################################################################
 -- ##### Hooks #########################################################################################################
 -- #####################################################################################################################
 
--- @TODO: Hook to update difficulty name
-
--- @TODO: Hook to notify strike team of enabled mutators
-
--- @TODO: Hook to whisper incoming players about enabled mutators
+-- @TODO: Hook to increase mission's reward according to enabled mutators
 
 -- #####################################################################################################################
 -- ##### Return ########################################################################################################
 -- #####################################################################################################################
 
-return set_lobby_data
+return {
+  addReward = function(reward)
+    adjustReward(reward.credits, reward.plasteel, reward.diamantine, 1)
+  end,
+
+  removeReward = function(reward)
+    adjustReward(reward.credits, reward.plasteel, reward.diamantine, -1)
+  end
+}

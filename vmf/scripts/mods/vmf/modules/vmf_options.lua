@@ -1,7 +1,7 @@
 local vmf = get_mod("VMF")
 
 local vmf_mod_data = {}
-vmf_mod_data.name = "Vermintide Mod Framework"
+vmf_mod_data.name = "Darktide Mod Framework"
 vmf_mod_data.options = {
   widgets = {
     {
@@ -10,11 +10,7 @@ vmf_mod_data.options = {
       default_value   = {"f4"},
       keybind_trigger = "pressed",
       keybind_type    = "view_toggle",
-      view_name       = "vmf_options_view",
-      transition_data = {
-        open_view_transition_name  = "vmf_options_view_open",
-        close_view_transition_name = "vmf_options_view_close"
-      }
+      view_name       = "vmf_options_view"
     },
     {
       setting_id    = "vmf_options_scrolling_speed",
@@ -60,40 +56,67 @@ vmf_mod_data.options = {
       default_value = "default",
       options = {
         {text = "settings_default", value = "default"},
-        {text = "settings_custom",  value = "custom", show_widgets = {1, 2, 3, 4, 5}},
+        {text = "settings_custom",  value = "custom", show_widgets = {1, 2, 3, 4, 5, 6}},
       },
       sub_widgets = {
         {
+          setting_id    = "output_mode_notification",
+          type          = "dropdown",
+          default_value = 5,
+          options = {
+            {text = "output_disabled",              value = 0},
+            {text = "output_log",                   value = 1},
+            {text = "output_chat",                  value = 2},
+            {text = "output_notification",          value = 3},
+            {text = "output_log_and_chat",          value = 4},
+            {text = "output_log_and_notification",  value = 5},
+            {text = "output_chat_and_notification", value = 6},
+            {text = "output_all",                   value = 7},
+          }
+        },
+        {
           setting_id    = "output_mode_echo",
           type          = "dropdown",
-          default_value = 3,
+          default_value = 4,
           options = {
-            {text = "output_disabled",     value = 0},
-            {text = "output_log",          value = 1},
-            {text = "output_chat",         value = 2},
-            {text = "output_log_and_chat", value = 3},
+            {text = "output_disabled",              value = 0},
+            {text = "output_log",                   value = 1},
+            {text = "output_chat",                  value = 2},
+            {text = "output_notification",          value = 3},
+            {text = "output_log_and_chat",          value = 4},
+            {text = "output_log_and_notification",  value = 5},
+            {text = "output_chat_and_notification", value = 6},
+            {text = "output_all",                   value = 7},
           }
         },
         {
           setting_id    = "output_mode_error",
           type          = "dropdown",
-          default_value = 3,
+          default_value = 4,
           options = {
-            {text = "output_disabled",     value = 0},
-            {text = "output_log",          value = 1},
-            {text = "output_chat",         value = 2},
-            {text = "output_log_and_chat", value = 3},
+            {text = "output_disabled",              value = 0},
+            {text = "output_log",                   value = 1},
+            {text = "output_chat",                  value = 2},
+            {text = "output_notification",          value = 3},
+            {text = "output_log_and_chat",          value = 4},
+            {text = "output_log_and_notification",  value = 5},
+            {text = "output_chat_and_notification", value = 6},
+            {text = "output_all",                   value = 7},
           }
         },
         {
           setting_id    = "output_mode_warning",
           type          = "dropdown",
-          default_value = 3,
+          default_value = 4,
           options = {
-            {text = "output_disabled",     value = 0},
-            {text = "output_log",          value = 1},
-            {text = "output_chat",         value = 2},
-            {text = "output_log_and_chat", value = 3},
+            {text = "output_disabled",              value = 0},
+            {text = "output_log",                   value = 1},
+            {text = "output_chat",                  value = 2},
+            {text = "output_notification",          value = 3},
+            {text = "output_log_and_chat",          value = 4},
+            {text = "output_log_and_notification",  value = 5},
+            {text = "output_chat_and_notification", value = 6},
+            {text = "output_all",                   value = 7},
           }
         },
         {
@@ -101,10 +124,14 @@ vmf_mod_data.options = {
           type          = "dropdown",
           default_value = 1,
           options = {
-            {text = "output_disabled",     value = 0},
-            {text = "output_log",          value = 1},
-            {text = "output_chat",         value = 2},
-            {text = "output_log_and_chat", value = 3},
+            {text = "output_disabled",              value = 0},
+            {text = "output_log",                   value = 1},
+            {text = "output_chat",                  value = 2},
+            {text = "output_notification",          value = 3},
+            {text = "output_log_and_chat",          value = 4},
+            {text = "output_log_and_notification",  value = 5},
+            {text = "output_chat_and_notification", value = 6},
+            {text = "output_all",                   value = 7},
           }
         },
         {
@@ -112,10 +139,14 @@ vmf_mod_data.options = {
           type          = "dropdown",
           default_value = 0,
           options = {
-            {text = "output_disabled",     value = 0},
-            {text = "output_log",          value = 1},
-            {text = "output_chat",         value = 2},
-            {text = "output_log_and_chat", value = 3},
+            {text = "output_disabled",              value = 0},
+            {text = "output_log",                   value = 1},
+            {text = "output_chat",                  value = 2},
+            {text = "output_notification",          value = 3},
+            {text = "output_log_and_chat",          value = 4},
+            {text = "output_log_and_notification",  value = 5},
+            {text = "output_chat_and_notification", value = 6},
+            {text = "output_all",                   value = 7},
           }
         }
       }
@@ -139,7 +170,7 @@ vmf_mod_data.options = {
         {
           setting_id    = "chat_history_remove_dups",
           type          = "checkbox",
-          default_value = false,
+          default_value = true,
           sub_widgets = {
             {
               setting_id    = "chat_history_remove_dups_mode",
@@ -170,7 +201,10 @@ vmf.on_setting_changed = function (setting_id)
 
   if setting_id == "vmf_options_scrolling_speed" then
 
-    vmf.load_vmf_options_view_settings()
+    -- Not necessary until the view is loaded
+    if vmf.load_vmf_options_view_settings then
+      vmf.load_vmf_options_view_settings()
+    end
 
   elseif setting_id == "developer_mode" then
 
@@ -192,6 +226,7 @@ vmf.on_setting_changed = function (setting_id)
     vmf.load_custom_textures_settings()
 
   elseif setting_id == "logging_mode"
+      or setting_id == "output_mode_notification"
       or setting_id == "output_mode_echo"
       or setting_id == "output_mode_error"
       or setting_id == "output_mode_warning"
@@ -234,7 +269,11 @@ if not vmf:get("vmf_initialized") then
   vmf.load_custom_textures_settings()
   vmf.load_dev_console_settings()
   vmf.load_chat_history_settings()
-  --vmf.load_vmf_options_view_settings()
+
+  -- Not necessary until the view is loaded
+  if vmf.load_vmf_options_view_settings then
+    vmf.load_vmf_options_view_settings()
+  end
 
   vmf:set("vmf_initialized", true)
 end

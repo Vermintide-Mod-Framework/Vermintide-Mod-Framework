@@ -1,6 +1,12 @@
 local vmf = get_mod("VMF") -- @TODO: remove it?
 
 
+-- Global backup of the io library
+local _io = Mods.lua.io
+
+-- Global backup of the os library
+local _os = Mods.lua.os
+
 local function table_dump(key, value, depth, max_depth)
   if max_depth < depth then
     return
@@ -222,8 +228,8 @@ local function table_dump_to_file(dumped_table, dumped_table_name, max_depth)
   -- ## Saving to file ##
   -- ####################
 
-  os.execute("mkdir dump 2>nul")
-  local file = assert(io.open("./dump/" .. dumped_table_name .. ".json", "w+"))
+  _os.execute("mkdir dump 2>nul")
+  local file = assert(_io.open("./dump/" .. dumped_table_name .. ".json", "w+"))
 
   local function dump_to_file(table_entry, table_name, depth)
 

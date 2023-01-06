@@ -168,40 +168,18 @@ function vmf.initialize_mod_data(mod, mod_data)
     vmf.register_mod_as_mutator(mod, mod_data.mutator_settings)
   end
 
-  -- Mod's options initialization (with legacy widget definitions support)
+  -- Mod's options initialization
   if mod_data.options or ((mod_data.is_togglable and not mod_data.is_mutator) and not mod_data.options_widgets) then
     local success, error_message = pcall(vmf.initialize_mod_options, mod, mod_data.options)
     if not success then
       mod:error(ERRORS.REGULAR.mod_options_initializing_failed, error_message)
       return
     end
-  elseif mod_data.options_widgets then
-    vmf.initialize_mod_options_legacy(mod, mod_data.options_widgets)
   end
 
   -- Textures initialization @TODO: move to a separate function
   if type(mod_data.custom_gui_textures) == "table" then
-    local custom_gui_textures = mod_data.custom_gui_textures
-
-    if type(custom_gui_textures.textures) == "table" then
-      vmf.custom_textures(mod, unpack(custom_gui_textures.textures))
-    end
-
-    if type(custom_gui_textures.atlases) == "table" then
-      for _, atlas_settings in ipairs(custom_gui_textures.atlases) do
-        if type(atlas_settings) == "table" then
-          vmf.custom_atlas(mod, unpack(atlas_settings))
-        end
-      end
-    end
-
-    if type(custom_gui_textures.ui_renderer_injections) == "table" then
-      for _, injection_settings in ipairs(custom_gui_textures.ui_renderer_injections) do
-        if type(injection_settings) == "table" then
-          vmf.inject_materials(mod, unpack(injection_settings))
-        end
-      end
-    end
+    -- @TODO: Not implemented
   end
 
   return true

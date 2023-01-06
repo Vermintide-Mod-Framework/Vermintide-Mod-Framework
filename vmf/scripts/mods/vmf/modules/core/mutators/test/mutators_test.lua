@@ -50,8 +50,7 @@ create_test_mutator("test_deathwish", {
   is_mutator = true,
   mutator_settings = {
     difficulty_levels = {
-      "hardest",
-      "survival_hardest",
+      "highest",
     },
     title_placement = "after",
   },
@@ -64,9 +63,9 @@ create_test_mutator("test_slayer", {
   is_mutator = true,
   mutator_settings = {
     difficulty_levels = {
-      "survival_hard",
-      "survival_harder",
-      "survival_hardest",
+      "medium",
+      "high",
+      "highest",
     },
   },
 })
@@ -98,7 +97,7 @@ create_test_mutator("test_one_hit_one_kill", {
                          " non porta ante. Phasellus consequat facilisis quam quis dignissim",
   is_mutator = true,
   mutator_settings = {
-    difficulty_levels = {"hardest"},
+    difficulty_levels = {"highest"},
     enable_after_these = {"test_more_rats_weapons"},
   },
 })
@@ -116,10 +115,10 @@ create_test_mutator("lmao", {
   name = "lmao",
   is_mutator = true,
   mutator_settings = {
-    difficulty_levels = {"hardest"},
+    difficulty_levels = {"highest"},
     enable_after_these = {"ayyyy"},
-    dice = {
-      bonus = 2,
+    reward = {
+      plasteel = 2,
     },
   },
 })
@@ -131,7 +130,7 @@ create_test_mutator("test_more_rats_weapons", {
   is_mutator = true,
   mutator_settings = {
     compatible_with_all = true,
-    difficulty_levels = {"hardest"},
+    difficulty_levels = {"highest"},
   },
 })
 

@@ -98,6 +98,9 @@ return {
     es = "Personalizado",
     ru = "Пользовательские",
   },
+  output_mode_notification = {
+    en = "'Notification' Output",
+  },
   output_mode_echo = {
     en = "'Echo' Output",
     es = "Mensajes de 'Echo'",
@@ -138,10 +141,22 @@ return {
     es = "Chat",
     ru = "Чат",
   },
+  output_notification = {
+    en = "Notification",
+  },
   output_log_and_chat = {
     en = "Log & Chat",
     es = "Registro (log) y chat",
     ru = "Лог и чат",
+  },
+  output_all = {
+    en = "All",
+  },
+  output_log_and_notification = {
+    en = "Log & Notification",
+  },
+  output_chat_and_notification = {
+    en = "Chat & Notification",
   },
   chat_history_enable = {
     en = "Chat Input History",
@@ -224,11 +239,16 @@ return {
          "ВНИМАНИЕ: изменение этой настройки очистит вашу историю ввода.",
   },
 
-
+  chat_command_not_recognized = {
+    en = "Command not recognized",
+  },
   clean_chat_history = {
     en = "cleans chat input history",
     es = "Borra el historial de usuario",
     ru = "очищает историю ввода",
+  },
+  clean_chat_notifications = {
+    en = "cleans chat notification alerts"
   },
   dev_console_opened = {
     en = "Developer console opened.",
@@ -249,30 +269,21 @@ return {
     es = "No se proporcionó una descripción.",
   },
 
-  -- Difficulties' names [V1]
-  easy = {
-    en = "Easy"
+  -- Difficulties' names
+  lowest = {
+    en = "Sedition"
   },
-  normal = {
-    en = "Normal"
+  low = {
+    en = "Uprising"
   },
-  hard = {
-    en = "Hard"
+  medium = {
+    en = "Malice"
   },
-  harder = {
-    en = "Nightmare"
+  high = {
+    en = "Heresy"
   },
-  hardest = {
-    en = "Cataclysm"
-  },
-  survival_hard = {
-    en = "Veteran"
-  },
-  survival_harder = {
-    en = "Champion"
-  },
-  survival_hardest = {
-    en = "Heroic"
+  highest = {
+    en = "Damnation"
   },
 
   -- Chat messages

@@ -329,24 +329,6 @@ local function validate_keybind_data(data)
       vmf.throw_error("[widget \"%s\" (keybind)]: 'keybind_type' is set to \"view_toggle\" so 'view_name' " ..
                       "field is required and must have 'string' type", data.setting_id)
     end
-
-    local transition_data = data.transition_data
-    if type(transition_data) ~= "table" then
-      vmf.throw_error("[widget \"%s\" (keybind)]: 'keybind_type' is set to \"view_toggle\" so 'transition_data' " ..
-                      "field is required and must have 'table' type", data.setting_id)
-    end
-    if transition_data.open_view_transition_name and type(transition_data.open_view_transition_name) ~= "string" then
-      vmf.throw_error("[widget \"%s\" (keybind)]: 'transition_data.open_view_transition_name' must have "..
-                       "'string' type", data.setting_id)
-    end
-    if transition_data.close_view_transition_name and type(transition_data.close_view_transition_name) ~= "string" then
-      vmf.throw_error("[widget \"%s\" (keybind)]: 'transition_data.close_view_transition_name' must have "..
-                       "'string' type", data.setting_id)
-    end
-    if transition_data.transition_fade and type(transition_data.transition_fade) ~= "boolean" then
-      vmf.throw_error("[widget \"%s\" (keybind)]: 'transition_data.transition_fade' must have "..
-                       "'boolean' type", data.setting_id)
-    end
   end
 
   local default_value = data.default_value
@@ -388,7 +370,6 @@ local function initialize_keybind_data(mod, data, localize)
   new_data.keybind_type    = data.keybind_type
   new_data.function_name   = data.function_name   -- required, if (keybind_type == "function_call")
   new_data.view_name       = data.view_name       -- required, if (keybind_type == "view_toggle")
-  new_data.transition_data = data.transition_data -- required, if (keybind_type == "view_toggle")
 
   validate_keybind_data(new_data)
 
@@ -525,11 +506,12 @@ local function initialize_mod_options_widgets_data(mod, widgets_data, localize)
   end
 
   local initialized_data = {}
+  local base_depth = 0
 
   -- Define widget data for header widget, because it's not up to modders to define it.
   local header_widget_data = {type = "header", sub_widgets = widgets_data}
   -- Put data of all widgets in one-dimensional array in order they will be displayed in mod options.
-  _unfolded_raw_widgets_data = unfold_table({header_widget_data}, widgets_data, 1, 1)
+  _unfolded_raw_widgets_data = unfold_table({header_widget_data}, widgets_data, 1, base_depth)
   -- Load info about widgets previously collapsed by user
   local collapsed_widgets = vmf:get("options_menu_collapsed_widgets")[mod:get_name()] or {}
 
@@ -571,8 +553,7 @@ local function initialize_default_settings_and_keybinds(mod, initialized_widgets
           type            = data.keybind_type,
           keys            = mod:get(data.setting_id),
           function_name   = data.function_name,
-          view_name       = data.view_name,
-          transition_data = data.transition_data
+          view_name       = data.view_name
         }
       )
     end

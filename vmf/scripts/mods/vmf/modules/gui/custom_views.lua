@@ -1,10 +1,10 @@
 local vmf = get_mod("VMF")
 
+local _custom_view_data = vmf:persistent_table("custom_view_data")
+
 local _ingame_ui
-local _ingame_ui_disabled
--- There's no direct access to local variable 'transitions' in ingame_ui.
-local _ingame_ui_transitions = require("scripts/ui/views/ingame_ui_settings").transitions
 local _views_data = {}
+local _loaded_views = {}
 
 local ERRORS = {
   THROWABLE = {
@@ -57,10 +57,8 @@ local ERRORS = {
 -- #####################################################################################################################
 
 local function is_view_active_for_current_level(view_name)
-  local active = _views_data[view_name].view_settings.active
-  if _ingame_ui.is_in_inn and active.inn or not _ingame_ui.is_in_inn and active.ingame then
-    return true
-  end
+  -- @TODO: Add active setting per mechanism type
+  return true
 end
 
 
@@ -74,76 +72,60 @@ local function inject_view(view_name)
 
   local mod                 = _views_data[view_name].mod
   local init_view_function  = view_settings.init_view_function
-  local transitions         = _views_data[view_name].view_transitions
-  local blocked_transitions = view_settings.blocked_transitions[_ingame_ui.is_in_inn and "inn" or "ingame"]
 
-  -- Check for collisions.
-  if _ingame_ui.views[view_name] then
-    vmf.throw_error(ERRORS.THROWABLE.view_already_exists, view_name)
-  end
-  for transition_name, _ in pairs(transitions) do
-    if _ingame_ui_transitions[transition_name] then
-      vmf.throw_error(ERRORS.THROWABLE.transition_already_exists, transition_name)
-    end
-  end
+  -- Check for collisions. @TODO: Check for collisions by mod
+  --if _ingame_ui._view_list[view_name] then
+  --  vmf.throw_error(ERRORS.THROWABLE.view_already_exists, view_name)
+  --end
+  --for transition_name, _ in pairs(transitions) do
+  --  if _ingame_ui_transitions[transition_name] then
+  --    vmf.throw_error(ERRORS.THROWABLE.transition_already_exists, transition_name)
+  --  end
+  --end
 
   -- Initialize and inject view.
-  local success, view = vmf.safe_call(mod, ERRORS.PREFIX.view_initializing, init_view_function,
-                                                                             _ingame_ui.ingame_ui_context)
+  local success = vmf.safe_call(mod, ERRORS.PREFIX.view_initializing, init_view_function,
+                                                                             view_settings, {})
   if success then
-    _ingame_ui.views[view_name] = view
+    _ingame_ui._view_list[view_name] = view_settings
   else
     vmf.throw_error(ERRORS.THROWABLE.view_initializing_failed)
   end
 
   -- Inject view transitions.
-  for transition_name, transition_function in pairs(transitions) do
-    _ingame_ui_transitions[transition_name] = transition_function
-  end
+  --for transition_name, transition_function in pairs(transitions) do
+  --  _ingame_ui_transitions[transition_name] = transition_function
+  --end
 
   -- Inject view blocked transitions.
-  for blocked_transition_name, _ in pairs(blocked_transitions) do
-    _ingame_ui.blocked_transitions[blocked_transition_name] = true
-  end
+  --for blocked_transition_name, _ in pairs(blocked_transitions) do
+  --  _ingame_ui.blocked_transitions[blocked_transition_name] = true
+  --end
 end
 
 
 local function remove_injected_views(on_reload)
   -- These elements should be removed only on_reload, because, otherwise, they will be deleted automatically.
   if on_reload then
-    -- If some custom view is active, safely close it.
-    if _views_data[_ingame_ui.current_view] then
-      -- Hack to ensure cursor stack safety.
-      ShowCursorStack.stack_depth = ShowCursorStack.stack_depth + 1
-      _ingame_ui:handle_transition("exit_menu")
-      ShowCursorStack.stack_depth = 1
-      ShowCursorStack.pop()
-    end
 
-    for view_name, view_data in pairs(_views_data) do
+    for view_name, _ in pairs(_views_data) do
       -- Remove injected views.
-      local view = _ingame_ui.views[view_name]
-      if view then
-        if type(view.destroy) == "function" then
-          vmf.safe_call_nr(view_data.mod, {ERRORS.PREFIX.view_destroying, view_name}, view.destroy, view)
-        end
-        _ingame_ui.views[view_name] = nil
-      end
+      _ingame_ui._view_list[view_name] = nil
     end
   end
 
-  for _, view_data in pairs(_views_data) do
+  --for _, view_data in pairs(_views_data) do
     -- Remove injected transitions.
-    for transition_name, _ in pairs(view_data.view_transitions) do
-      _ingame_ui_transitions[transition_name] = nil
-    end
+  --  for transition_name, _ in pairs(view_data.view_transitions) do
+  --    _ingame_ui_transitions[transition_name] = nil
+  --  end
 
     -- Remove blocked transitions
-    local blocked_transitions = view_data.view_settings.blocked_transitions[_ingame_ui.is_in_inn and "inn" or "ingame"]
-    for blocked_transition_name, _ in pairs(blocked_transitions) do
-      _ingame_ui.blocked_transitions[blocked_transition_name] = nil
-    end
-  end
+  --  local blocked_transitions = view_data.view_settings.blocked_transitions[_ingame_ui.is_in_inn and "inn" or "ingame"]
+  --  for blocked_transition_name, _ in pairs(blocked_transitions) do
+  --    _ingame_ui.blocked_transitions[blocked_transition_name] = nil
+  --  end
+  --end
 end
 
 
@@ -189,46 +171,88 @@ local function validate_view_data(view_data)
     vmf.throw_error(ERRORS.THROWABLE.init_view_function_wrong_type, type(view_settings.init_view_function))
   end
 
+  -- Verify active if present
   local active = view_settings.active
-  if type(active) ~= "table" then
-    vmf.throw_error(ERRORS.THROWABLE.active_wrong_type, type(active))
-  end
-  if active.inn == nil or active.ingame == nil then
-    vmf.throw_error(ERRORS.THROWABLE.active_missing_element)
-  end
-  for level_name, value in pairs(active) do
-    if level_name ~= "inn" and level_name ~= "ingame" then
-      vmf.throw_error(ERRORS.THROWABLE.active_element_wrong_name, level_name)
+  if active then
+    if type(active) ~= "table" then
+      vmf.throw_error(ERRORS.THROWABLE.active_wrong_type, type(active))
     end
-    if type(value) ~= "boolean" then
-      vmf.throw_error(ERRORS.THROWABLE.active_element_wrong_type, level_name, type(value))
+    if active.inn == nil or active.ingame == nil then
+      vmf.throw_error(ERRORS.THROWABLE.active_missing_element)
+    end
+    for level_name, value in pairs(active) do
+      if level_name ~= "inn" and level_name ~= "ingame" then
+        vmf.throw_error(ERRORS.THROWABLE.active_element_wrong_name, level_name)
+      end
+      if type(value) ~= "boolean" then
+        vmf.throw_error(ERRORS.THROWABLE.active_element_wrong_type, level_name, type(value))
+      end
     end
   end
 
+  -- Verify blocked transitions if present
   local blocked_transitions = view_settings.blocked_transitions
-  if type(blocked_transitions) ~= "table" then
-    vmf.throw_error(ERRORS.THROWABLE.blocked_transitions_wrong_type, type(blocked_transitions))
-  end
-  if not blocked_transitions.inn or not blocked_transitions.ingame then
-    vmf.throw_error(ERRORS.THROWABLE.blocked_transitions_missing_element)
-  end
-  for level_name, level_blocked_transitions in pairs(blocked_transitions) do
-    if level_name ~= "inn" and level_name ~= "ingame" then
-      vmf.throw_error(ERRORS.THROWABLE.blocked_transitions_element_wrong_name, level_name)
+  if blocked_transitions then
+    if type(blocked_transitions) ~= "table" then
+      vmf.throw_error(ERRORS.THROWABLE.blocked_transitions_wrong_type, type(blocked_transitions))
     end
-    if type(level_blocked_transitions) ~= "table" then
-      vmf.throw_error(ERRORS.THROWABLE.blocked_transitions_element_wrong_type, level_name,
-                                                                                type(level_blocked_transitions))
+    if not blocked_transitions.inn or not blocked_transitions.ingame then
+      vmf.throw_error(ERRORS.THROWABLE.blocked_transitions_missing_element)
     end
-    for transition_name, value in pairs(level_blocked_transitions) do
-      if not view_transitions[transition_name] then
-        vmf.throw_error(ERRORS.THROWABLE.blocked_transition_invalid, transition_name, level_name)
+    for level_name, level_blocked_transitions in pairs(blocked_transitions) do
+      if level_name ~= "inn" and level_name ~= "ingame" then
+        vmf.throw_error(ERRORS.THROWABLE.blocked_transitions_element_wrong_name, level_name)
       end
-      if value ~= true then
-        vmf.throw_error(ERRORS.THROWABLE.blocked_transition_wrong_value, level_name, transition_name)
+      if type(level_blocked_transitions) ~= "table" then
+        vmf.throw_error(ERRORS.THROWABLE.blocked_transitions_element_wrong_type, level_name,
+                                                                                  type(level_blocked_transitions))
+      end
+      for transition_name, value in pairs(level_blocked_transitions) do
+        if not view_transitions[transition_name] then
+          vmf.throw_error(ERRORS.THROWABLE.blocked_transition_invalid, transition_name, level_name)
+        end
+        if value ~= true then
+          vmf.throw_error(ERRORS.THROWABLE.blocked_transition_wrong_value, level_name, transition_name)
+        end
       end
     end
   end
+end
+
+-- Checks:
+--   * View registered
+--   * View has settings
+--   * View is either loaded or configured to load on call
+-- View settings only apply when the app has switched to the view loader.
+local function check_load_status(view_name)
+
+  local view_settings = _views_data[view_name] and _views_data[view_name].view_settings
+  return view_settings and _loaded_views[view_name] or
+      (_custom_view_data.loader_initialized and
+              (view_settings.load_always or
+               view_settings.is_hub and view_settings.load_in_hub))
+end
+
+
+-- Checks:
+--   * View registered
+--   * View is loaded/loadable
+--   * View is not already active
+--   * View is not in the middle of closing
+local function can_open_view(view_name)
+
+  if _ingame_ui then
+    if
+      _views_data[view_name]                     and
+      _custom_view_data.loader_initialized       and
+      not Managers.ui:view_active(view_name)     and
+      not Managers.ui:is_view_closing(view_name)
+    then
+      return true
+    end
+  end
+
+  return false
 end
 
 -- #####################################################################################################################
@@ -243,46 +267,8 @@ end
   * transition_params  [anything]: parameter, which will be passed to callable transition function, 'on_exit' method of
                                    the old view and 'on_enter' method of the new view
 --]]
-function VMFMod:handle_transition(transition_name, ignore_active_menu, fade, transition_params)
-  if vmf.check_wrong_argument_type(self, "handle_transition", "transition_name", transition_name, "string") then
-    return
-  end
-
-  local vt2_player_list_active
-  if not VT1 then
-		local ingame_player_list_ui = _ingame_ui.ingame_hud:component("IngamePlayerListUI")
-		vt2_player_list_active = ingame_player_list_ui and ingame_player_list_ui:is_active()
-  end
-
-  if _ingame_ui
-     and not _ingame_ui_disabled
-     and not _ingame_ui:pending_transition()
-     and not _ingame_ui:end_screen_active()
-     and (not _ingame_ui.menu_active or ignore_active_menu)
-     and not _ingame_ui.leave_game
-     and not _ingame_ui.return_to_title_screen
-     and (
-       VT1
-          and not _ingame_ui.menu_suspended
-          and not _ingame_ui.popup_join_lobby_handler.visible
-       or not VT1
-          and not Managers.transition:in_fade_active()
-          and not _ingame_ui:cutscene_active()
-          and not _ingame_ui:unavailable_hero_popup_active()
-          and (not vt2_player_list_active or ignore_active_menu)
-     )
-  then
-    if fade then
-      vmf.safe_call_nr(self, {ERRORS.PREFIX.handle_transition_fade, transition_name}, _ingame_ui.transition_with_fade,
-                                                                                       _ingame_ui, transition_name,
-                                                                                        transition_params)
-    else
-      vmf.safe_call_nr(self, {ERRORS.PREFIX.handle_transition_no_fade, transition_name}, _ingame_ui.handle_transition,
-                                                                                          _ingame_ui, transition_name,
-                                                                                           transition_params)
-    end
-    return true
-  end
+function VMFMod:handle_transition()
+  return true
 end
 
 
@@ -298,6 +284,11 @@ function VMFMod:register_view(view_data)
   view_data = table.clone(view_data)
 
   local view_name = view_data.view_name
+  view_data.view_settings.name = view_name
+
+  if view_data.view_settings.close_on_hotkey_pressed == nil then
+    view_data.view_settings.close_on_hotkey_pressed = true
+  end
 
   if not vmf.safe_call_nrc(self, {ERRORS.PREFIX.register_view_validation, view_name}, validate_view_data,
                                                                                                          view_data) then
@@ -307,7 +298,8 @@ function VMFMod:register_view(view_data)
   _views_data[view_name] = {
     mod              = self,
     view_settings    = view_data.view_settings,
-    view_transitions = view_data.view_transitions
+    view_transitions = view_data.view_transitions,
+    view_options     = view_data.view_options,
   }
 
   if _ingame_ui then
@@ -323,24 +315,40 @@ end
 -- ##### Hooks #########################################################################################################
 -- #####################################################################################################################
 
-vmf:hook_safe(IngameUI, "init", function(self)
+
+-- Track the creation of the view loader
+vmf:hook_safe(ViewLoader, "init", function()
+  _custom_view_data.loader_initialized = true
+end)
+
+-- Track the deletion of the view loader
+vmf:hook_safe(ViewLoader, "destroy", function()
+  _custom_view_data.loader_initialized = false
+end)
+
+
+-- Track the loading of views, set the loader flag if class selection is reached
+vmf:hook_safe(UIManager, "load_view", function(self, view_name)
+  if view_name == "class_selection_view" then
+    _custom_view_data.loader_initialized = true
+  end
+  _loaded_views[view_name] = true
+end)
+
+-- Track the unloading of views
+vmf:hook_safe(UIManager, "unload_view", function(self, view_name)
+  _loaded_views[view_name] = nil
+end)
+
+
+-- Store the view handler for later use and inject views
+vmf:hook_safe(UIViewHandler, "init", function(self)
   _ingame_ui = self
   for view_name, _ in pairs(_views_data) do
     if not vmf.safe_call_nrc(self, {ERRORS.PREFIX.ingameui_hook_injection, view_name}, inject_view, view_name) then
       _views_data[view_name] = nil
     end
   end
-end)
-
-
-vmf:hook_safe(IngameUI, "destroy", function()
-  remove_injected_views(false)
-  _ingame_ui = nil
-end)
-
-
-vmf:hook_safe(IngameUI, "update", function(self, dt_, t_, disable_ingame_ui)
-  _ingame_ui_disabled = disable_ingame_ui
 end)
 
 -- #####################################################################################################################
@@ -356,7 +364,8 @@ end
 
 -- Opens/closes a view if all conditions are met. Since keybinds module can't do UI-related checks, all the cheks are
 -- done in this function. This function is called every time some view-toggling keybind is pressed.
-function vmf.keybind_toggle_view(mod, view_name, keybind_transition_data, can_be_opened, is_keybind_pressed)
+function vmf.keybind_toggle_view(mod, view_name, keybind_transition_data, can_perform_action, is_keybind_pressed)
+  --[[
   if _ingame_ui then
     local view_data = _views_data[view_name]
     if not view_data or (view_data.mod ~= mod) then
@@ -377,7 +386,7 @@ function vmf.keybind_toggle_view(mod, view_name, keybind_transition_data, can_be
           end
         end
       -- Can open views only when keybind is pressed.
-      elseif can_be_opened and is_keybind_pressed then
+      elseif can_perform_action and is_keybind_pressed then
         if keybind_transition_data.open_view_transition_name then
           if view_data.view_transitions[keybind_transition_data.open_view_transition_name] then
             mod:handle_transition(keybind_transition_data.open_view_transition_name, true,
@@ -391,6 +400,56 @@ function vmf.keybind_toggle_view(mod, view_name, keybind_transition_data, can_be
       end
     end
   end
+  --]]
+
+  if _ingame_ui then
+
+    -- Check that the view is registered
+    local view_data = _views_data[view_name]
+    if not view_data or (view_data.mod ~= mod) then
+      mod:error(ERRORS.REGULAR.view_not_registered, view_name)
+      return
+    end
+
+    -- If the view is open, this is a toggle close
+    if Managers.ui:view_active(view_name) then
+
+      -- Don't close the view if it's already closing
+      if not Managers.ui:is_view_closing(view_name) then
+        local force_close = true
+        Managers.ui:close_view(view_name, force_close)
+      end
+
+    -- Otherwise, this is a toggle open
+    elseif can_perform_action and is_keybind_pressed then
+      
+      local validation_function = view_data.view_settings.validation_function
+      local can_open_and_validated = can_open_view(view_name) and (not validation_function or validation_function())
+
+      -- Checks for inactive, not closing, no other open view, loaded/loadable, and validation
+      if not can_open_and_validated then
+        return
+      end
+
+      local view_options = view_data.view_options
+      local close_all = view_options and view_options.close_all or false
+      local close_previous = view_options and view_options.close_previous or false
+      local close_transition_time = view_options and view_options.close_transition_time or nil
+      local transition_time = view_options and view_options.transition_time or nil
+
+      local view_context = {}
+      local use_transition_ui = view_data.view_settings.use_transition_ui
+      local no_transition_ui = use_transition_ui == false
+      local view_settings_override = no_transition_ui and {
+        use_transition_ui = false
+      }
+
+      -- Open the view with default parameters
+      Managers.ui:open_view(view_name, transition_time, close_previous,
+                                      close_all, close_transition_time, view_context, view_settings_override)
+
+    end
+  end
 end
 
 -- #####################################################################################################################
@@ -398,4 +457,4 @@ end
 -- #####################################################################################################################
 
 -- If VMF is reloaded mid-game, get ingame_ui.
-_ingame_ui = (VT1 and Managers.matchmaking and Managers.matchmaking.ingame_ui) or (Managers.ui and Managers.ui._ingame_ui)
+_ingame_ui = Managers.ui and Managers.ui._view_handler

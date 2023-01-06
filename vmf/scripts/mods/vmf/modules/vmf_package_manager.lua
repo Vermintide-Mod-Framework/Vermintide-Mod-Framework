@@ -12,9 +12,6 @@ local PUBLIC_STATUSES = {
 
 local ERRORS = {
   REGULAR = {
-    -- check_vt1:
-    cant_use_vmf_package_manager_in_vt1 = "[VMF Package Manager] (%s): you can't use VMF package manager in VT1 " ..
-                                           "because VT1 mods don't support more than 1 resource package.",
     -- VMFMod:load_package:
     package_already_loaded = "[VMF Package Manager] (load_package): package '%s' has already been loaded.",
     package_not_found = "[VMF Package Manager] (load_package): could not find package '%s'.",
@@ -41,21 +38,13 @@ local WARNINGS = {
 -- ##### Local functions ###############################################################################################
 -- #####################################################################################################################
 
-local function check_vt1(mod, function_name)
-  if VT1 then
-    mod:error(ERRORS.REGULAR.cant_use_vmf_package_manager_in_vt1, function_name)
-    return true
-  end
-end
-
-
 -- Brings resources of the loaded package in game and executes callback. Or unloads package's resources, if loading was
 -- cancelled.
 local function flush_package(package_name)
   local package_data = _packages[package_name]
 
   if package_data.status == "loading_cancelled" then
-    Mod.release_resource_package(package_data.resource_package)
+    Application.release_resource_package(package_data.resource_package)
     _packages[package_name] = nil
   else
     package_data.resource_package:flush()
@@ -88,8 +77,7 @@ end
   * sync         [boolean] : (optional) load the packages synchronously, freezing the game until it is loaded
 --]]
 function VMFMod:load_package(package_name, callback, sync)
-  if check_vt1(self, "load_package") or
-     vmf.check_wrong_argument_type(self, "load_package", "package_name", package_name, "string") or
+  if vmf.check_wrong_argument_type(self, "load_package", "package_name", package_name, "string") or
      vmf.check_wrong_argument_type(self, "load_package", "callback", callback, "function", "nil") or
      vmf.check_wrong_argument_type(self, "load_package", "sync", sync, "boolean", "nil")
   then
@@ -101,7 +89,7 @@ function VMFMod:load_package(package_name, callback, sync)
     return
   end
 
-  local resource_package = Mod.resource_package(self:get_internal_data("mod_handle"), package_name)
+  local resource_package = Application.resource_package(package_name)
   if not resource_package then
     self:error(ERRORS.REGULAR.package_not_found, package_name)
     return
@@ -150,8 +138,7 @@ end
   * package_name [string]: package name. needs to be the full path to the `.package` file without the extension
 --]]
 function VMFMod:unload_package(package_name)
-  if check_vt1(self, "unload_package") or
-     vmf.check_wrong_argument_type(self, "unload_package", "package_name", package_name, "string")
+  if vmf.check_wrong_argument_type(self, "unload_package", "package_name", package_name, "string")
   then
     return
   end
@@ -168,7 +155,7 @@ function VMFMod:unload_package(package_name)
   elseif package_status == "loading" then
     _packages[package_name].status = "loading_cancelled"
   elseif package_status == "loaded" then
-    Mod.release_resource_package(_packages[package_name].resource_package)
+    Application.release_resource_package(_packages[package_name].resource_package)
     _packages[package_name] = nil
   end
 end
@@ -179,8 +166,7 @@ end
   * package_name [string]: package name. needs to be the full path to the `.package` file without the extension
 --]]
 function VMFMod:package_status(package_name)
-  if check_vt1(self, "package_status") or
-    vmf.check_wrong_argument_type(self, "package_status", "package_name", package_name, "string")
+  if vmf.check_wrong_argument_type(self, "package_status", "package_name", package_name, "string")
   then
     return
   end

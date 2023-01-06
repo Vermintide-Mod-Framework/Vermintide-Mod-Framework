@@ -1,5 +1,8 @@
 local vmf = get_mod("VMF")
 
+-- Global method to load a file through io with a return
+local mod_dofile = Mods.file.dofile
+
 -- #####################################################################################################################
 -- ##### Local functions ###############################################################################################
 -- #####################################################################################################################
@@ -84,7 +87,7 @@ function vmf.safe_call_dofile(mod, error_prefix_data, file_path)
     show_error(mod, error_prefix_data, "file path should be a string.")
     return false
   end
-  return vmf.safe_call(mod, error_prefix_data, dofile, file_path)
+  return vmf.safe_call(mod, error_prefix_data, mod_dofile, file_path)
 end
 
 
