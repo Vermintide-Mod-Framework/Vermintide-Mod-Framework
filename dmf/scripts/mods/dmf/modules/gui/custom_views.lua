@@ -1,9 +1,10 @@
 local dmf = get_mod("DMF")
 
-local _custom_view_data = dmf:persistent_table("custom_view_data")
+local _custom_view_persistent_data = dmf:persistent_table("custom_view_data")
+
+local _custom_views_data = {}
 
 local _ingame_ui
-local _views_data = {}
 local _loaded_views = {}
 
 local ERRORS = {
@@ -68,10 +69,10 @@ local function inject_view(view_name)
     return
   end
 
-  local view_settings = _views_data[view_name].view_settings
+  local view_settings = _custom_views_data[view_name].view_settings
+  local mod           = _custom_views_data[view_name].mod
 
-  local mod                 = _views_data[view_name].mod
-  local init_view_function  = view_settings.init_view_function
+  local init_view_function = view_settings.init_view_function
 
   -- Check for collisions. @TODO: Check for collisions by mod
   --if _ingame_ui._view_list[view_name] then
@@ -108,13 +109,13 @@ local function remove_injected_views(on_reload)
   -- These elements should be removed only on_reload, because, otherwise, they will be deleted automatically.
   if on_reload then
 
-    for view_name, _ in pairs(_views_data) do
+    for view_name, _ in pairs(_custom_views_data) do
       -- Remove injected views.
       _ingame_ui._view_list[view_name] = nil
     end
   end
 
-  --for _, view_data in pairs(_views_data) do
+  --for _, view_data in pairs(_custom_views_data) do
     -- Remove injected transitions.
   --  for transition_name, _ in pairs(view_data.view_transitions) do
   --    _ingame_ui_transitions[transition_name] = nil
@@ -149,7 +150,7 @@ local function validate_view_data(view_data)
     if type(transition_function) ~= "function" then
       dmf.throw_error(ERRORS.THROWABLE.transition_wrong_type, transition_name, type(transition_function))
     end
-    for another_view_name, another_view_data in pairs(_views_data) do
+    for another_view_name, another_view_data in pairs(_custom_views_data) do
       for another_transition_name, _ in pairs(another_view_data.view_transitions) do
         if transition_name == another_transition_name then
           dmf.throw_error(ERRORS.THROWABLE.transition_name_taken, transition_name, another_view_data.mod:get_name(),
@@ -219,20 +220,6 @@ local function validate_view_data(view_data)
   end
 end
 
--- Checks:
---   * View registered
---   * View has settings
---   * View is either loaded or configured to load on call
--- View settings only apply when the app has switched to the view loader.
-local function check_load_status(view_name)
-
-  local view_settings = _views_data[view_name] and _views_data[view_name].view_settings
-  return view_settings and _loaded_views[view_name] or
-      (_custom_view_data.loader_initialized and
-              (view_settings.load_always or
-               view_settings.is_hub and view_settings.load_in_hub))
-end
-
 
 -- Checks:
 --   * View registered
@@ -243,9 +230,9 @@ local function can_open_view(view_name)
 
   if _ingame_ui then
     if
-      _views_data[view_name]                     and
-      _custom_view_data.loader_initialized       and
-      not Managers.ui:view_active(view_name)     and
+      _custom_views_data[view_name]                   and
+      _custom_view_persistent_data.loader_initialized and
+      not Managers.ui:view_active(view_name)          and
       not Managers.ui:is_view_closing(view_name)
     then
       return true
@@ -295,7 +282,7 @@ function DMFMod:register_view(view_data)
     return
   end
 
-  _views_data[view_name] = {
+  _custom_views_data[view_name] = {
     mod              = self,
     view_settings    = view_data.view_settings,
     view_transitions = view_data.view_transitions,
@@ -304,7 +291,7 @@ function DMFMod:register_view(view_data)
 
   if _ingame_ui then
     if not dmf.safe_call_nrc(self, {ERRORS.PREFIX.register_view_injection, view_name}, inject_view, view_name) then
-      _views_data[view_data.view_name] = nil
+      _custom_views_data[view_data.view_name] = nil
     end
   end
 
@@ -318,19 +305,19 @@ end
 
 -- Track the creation of the view loader
 dmf:hook_safe(ViewLoader, "init", function()
-  _custom_view_data.loader_initialized = true
+  _custom_view_persistent_data.loader_initialized = true
 end)
 
 -- Track the deletion of the view loader
 dmf:hook_safe(ViewLoader, "destroy", function()
-  _custom_view_data.loader_initialized = false
+  _custom_view_persistent_data.loader_initialized = false
 end)
 
 
 -- Track the loading of views, set the loader flag if class selection is reached
 dmf:hook_safe(UIManager, "load_view", function(self, view_name)
   if view_name == "class_selection_view" then
-    _custom_view_data.loader_initialized = true
+    _custom_view_persistent_data.loader_initialized = true
   end
   _loaded_views[view_name] = true
 end)
@@ -344,9 +331,9 @@ end)
 -- Store the view handler for later use and inject views
 dmf:hook_safe(UIViewHandler, "init", function(self)
   _ingame_ui = self
-  for view_name, _ in pairs(_views_data) do
+  for view_name, _ in pairs(_custom_views_data) do
     if not dmf.safe_call_nrc(self, {ERRORS.PREFIX.ingameui_hook_injection, view_name}, inject_view, view_name) then
-      _views_data[view_name] = nil
+      _custom_views_data[view_name] = nil
     end
   end
 end)
@@ -365,47 +352,11 @@ end
 -- Opens/closes a view if all conditions are met. Since keybinds module can't do UI-related checks, all the cheks are
 -- done in this function. This function is called every time some view-toggling keybind is pressed.
 function dmf.keybind_toggle_view(mod, view_name, keybind_transition_data, can_perform_action, is_keybind_pressed)
-  --[[
-  if _ingame_ui then
-    local view_data = _views_data[view_name]
-    if not view_data or (view_data.mod ~= mod) then
-      mod:error(ERRORS.REGULAR.view_not_registered, view_name)
-      return
-    end
-
-    if is_view_active_for_current_level(view_name) then
-      if _ingame_ui.current_view == view_name then
-        if keybind_transition_data.close_view_transition_name and not Managers.chat:chat_is_focused() then
-          if view_data.view_transitions[keybind_transition_data.close_view_transition_name] then
-            mod:handle_transition(keybind_transition_data.close_view_transition_name, true,
-                                  keybind_transition_data.transition_fade,
-                                    keybind_transition_data.close_view_transition_params)
-          else
-            mod:error(ERRORS.REGULAR.transition_not_registered, keybind_transition_data.close_view_transition_name,
-                                                                 view_name)
-          end
-        end
-      -- Can open views only when keybind is pressed.
-      elseif can_perform_action and is_keybind_pressed then
-        if keybind_transition_data.open_view_transition_name then
-          if view_data.view_transitions[keybind_transition_data.open_view_transition_name] then
-            mod:handle_transition(keybind_transition_data.open_view_transition_name, true,
-                                   keybind_transition_data.transition_fade,
-                                    keybind_transition_data.open_view_transition_params)
-          else
-            mod:error(ERRORS.REGULAR.transition_not_registered, keybind_transition_data.open_view_transition_name,
-                                                                 view_name)
-          end
-        end
-      end
-    end
-  end
-  --]]
 
   if _ingame_ui then
 
     -- Check that the view is registered
-    local view_data = _views_data[view_name]
+    local view_data = _custom_views_data[view_name]
     if not view_data or (view_data.mod ~= mod) then
       mod:error(ERRORS.REGULAR.view_not_registered, view_name)
       return
