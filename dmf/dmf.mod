@@ -1,5 +1,5 @@
 return {
   run = function()
-    return Mods.file.dofile("dmf/scripts/mods/vmf/vmf_loader")
+    return Mods.file.dofile("dmf/scripts/mods/dmf/dmf_loader")
   end
 }
