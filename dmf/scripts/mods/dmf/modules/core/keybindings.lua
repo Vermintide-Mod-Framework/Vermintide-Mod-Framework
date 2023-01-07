@@ -1,7 +1,9 @@
 local dmf = get_mod("DMF")
 
+local InputUtils = require("scripts/managers/input/input_utils")
+
 local PRIMARY_BINDABLE_KEYS = {
-  KEYBOARD = {
+  ["keyboard"] = {
     [8]   = {"Backspace",           "backspace"},
     [9]   = {"Tab",                 "tab"},
     [13]  = {"Enter",               "enter"},
@@ -116,7 +118,7 @@ local PRIMARY_BINDABLE_KEYS = {
  --?[226] = {"\",                   "oem_102 (> <)"},
     [256] = {"Num Enter",           "numpad enter"}
   },
-  MOUSE = {
+  ["mouse"] = {
     [0]  = {"Mouse Left",        "mouse left"},
     [1]  = {"Mouse Right",       "mouse right"},
     [2]  = {"Mouse Middle",      "mouse middle"},
@@ -126,8 +128,9 @@ local PRIMARY_BINDABLE_KEYS = {
     [11] = {"Mouse Wheel Down",  "mouse wheel down"},
     [12] = {"Mouse Wheel Left",  "mouse wheel left"},
     [13] = {"Mouse Wheel Right", "mouse wheel right"}
-  },--[[ -- will work on this if it will be needed
-  GAMEPAD = {
+  },
+  --[[ -- will work on this if it will be needed
+  ["gamepad"] = {
     [0]  = {"", "d_up"},
     [1]  = {"", "d_down"},
     [2]  = {"", "d_left"},
@@ -149,31 +152,39 @@ local PRIMARY_BINDABLE_KEYS = {
 
 local OTHER_KEYS = {
   -- modifier keys
-  ["shift"]     = {160, "Shift", "KEYBOARD", 161},
-  ["ctrl"]      = {162, "Ctrl",  "KEYBOARD", 163},
-  ["alt"]       = {164, "Alt",   "KEYBOARD", 165},
+  ["left shift"]  = {160, "Shift", "keyboard", 161},
+  ["right shift"] = {160, "Shift", "keyboard", 161},
+  ["shift"]       = {160, "Shift", "keyboard", 161},
+  ["left ctrl"]   = {162, "Ctrl",  "keyboard", 163},
+  ["right ctrl"]  = {162, "Ctrl",  "keyboard", 163},
+  ["ctrl"]        = {162, "Ctrl",  "keyboard", 163},
+  ["left alt"]    = {164, "Alt",   "keyboard", 165},
+  ["right alt"]   = {164, "Alt",   "keyboard", 165},
+  ["alt"]         = {164, "Alt",   "keyboard", 165},
   -- hack for 'dmf.build_keybind_string' function
   ["no_button"] = {-1, ""}
 }
 
 local KEYS_INFO = {}
--- Populate KEYS_INFO:
+
+-- Populate KEYS_INFO: Index, readable name, device name
 for input_device_name, input_device_keys in pairs(PRIMARY_BINDABLE_KEYS) do
   for key_index, key_info in pairs(input_device_keys) do
     KEYS_INFO[key_info[2]] = {key_index, key_info[1], input_device_name}
   end
 end
+
 for key_id, key_data in pairs(OTHER_KEYS) do
     KEYS_INFO[key_id] = key_data
 end
 
 -- Can't use 'Device.released' because it will break keybinds if button is released when game window is not active.
 local CHECK_INPUT_FUNCTIONS = {
-  KEYBOARD = {
+  keyboard = {
     PRESSED  = function(key_id) return Keyboard.pressed(KEYS_INFO[key_id][1]) end,
     RELEASED = function(key_id) return Keyboard.button(KEYS_INFO[key_id][1]) == 0 end
   },
-  MOUSE = {
+  mouse = {
     PRESSED  = function(key_id) return Mouse.pressed(KEYS_INFO[key_id][1]) end,
     RELEASED = function(key_id) return Mouse.button(KEYS_INFO[key_id][1]) == 0 end
   }
@@ -234,7 +245,7 @@ end
 
 -- Checks for pressed and released keybinds, performs keybind actions.
 -- * Checks for both right and left key modifiers (ctrl, alt, shift).
--- * If some keybind is pressed, won't check for other keybinds until this keybing is released.
+-- * If some keybind is pressed, won't check for other keybinds until this keybind is released.
 -- * If several mods bound the same keys, keybind action will be performed for all of them, when keybind is pressed.
 -- * Keybind is considered released, when its primary key is released.
 function dmf.check_keybinds()
@@ -246,10 +257,34 @@ function dmf.check_keybinds()
     for primary_key, keybinds_data in pairs(_keybinds) do
       if keybinds_data.check_pressed(primary_key) then
         for _, keybind_data in ipairs(keybinds_data) do
-          if (not keybind_data.ctrl  and not ctrl_pressed  or keybind_data.ctrl  and ctrl_pressed)  and
-             (not keybind_data.alt   and not alt_pressed   or keybind_data.alt   and alt_pressed)   and
-             (not keybind_data.shift and not shift_pressed or keybind_data.shift and shift_pressed)
+
+          local all_pressed = true
+          for enabler, _ in pairs(keybind_data.enablers) do
+
+            -- Check that every enabler key is pressed
+            if OTHER_KEYS[enabler] and
+              (
+                Keyboard.button(KEYS_INFO[enabler][1]) +
+                Keyboard.button(KEYS_INFO[enabler][4])
+              ) <= 0
+              or not (Keyboard.button(KEYS_INFO[enabler][1]) > 0)
+            then
+              all_pressed = false
+              break
+            end
+          end
+
+          -- Check that no modifier keys are pressed that shouldn't be
+          if all_pressed and
+             (not keybind_data.ctrl  and ctrl_pressed)  and
+             (not keybind_data.alt   and alt_pressed)   and
+             (not keybind_data.shift and shift_pressed)
           then
+            all_pressed = false
+          end
+
+          -- Peform the keybind action if everything validates
+          if all_pressed then
             if perform_keybind_action(keybind_data, true) then
               if keybind_data.trigger == "held" then
                 keybind_data.release_action = true
@@ -295,13 +330,14 @@ function dmf.generate_keybinds()
       end
 
       local keybind_data = {
-        mod     = mod,
-        global  = raw_keybind_data.global,
-        trigger = raw_keybind_data.trigger,
-        type    = raw_keybind_data.type,
-        ctrl    = modifier_keys["ctrl"],
-        alt     = modifier_keys["alt"],
-        shift   = modifier_keys["shift"],
+        mod      = mod,
+        global   = raw_keybind_data.global,
+        trigger  = raw_keybind_data.trigger,
+        type     = raw_keybind_data.type,
+        enablers = modifier_keys,
+        ctrl     = modifier_keys["ctrl"]  or modifier_keys["left ctrl"]  or modifier_keys["right ctrl"],
+        alt      = modifier_keys["alt"]   or modifier_keys["left alt"]   or modifier_keys["right alt"],
+        shift    = modifier_keys["shift"] or modifier_keys["left shift"] or modifier_keys["right shift"],
 
         function_name   = raw_keybind_data.function_name,
         view_name       = raw_keybind_data.view_name
@@ -347,7 +383,7 @@ function dmf.create_keybinds_input_service()
 end
 
 
--- Converts key_index to readable key_id, which is used by DMF to idenify keys.
+-- Converts key_index to readable key_id, which is used by DMF to identify keys.
 -- (Used for capturing keybinds)
 function dmf.get_key_id(device, key_index)
   local key_info = PRIMARY_BINDABLE_KEYS[device][key_index]
@@ -370,6 +406,79 @@ function dmf.build_keybind_string(keys)
     table.insert(readable_key_names, KEYS_INFO[key_id][2])
   end
   return table.concat(readable_key_names, " + ")
+end
+
+
+-- Translate key watch result to mod options keybind
+-- (Used in keybind widget)
+function dmf.keybind_result_to_keys(keybind_result)
+  local keys = {}
+
+  -- Get the local name of the main key
+  if keybind_result.main then
+
+    local global_name = keybind_result.main
+    local device_type = InputUtils.key_device_type(global_name)
+    local local_name = InputUtils.local_key_name(global_name, device_type)
+
+    -- Check for a missing or unbindable primary key name
+    if not local_name or not dmf.can_bind_as_primary_key(local_name) then
+      return keys
+    end
+
+    keys[1] = local_name
+  end
+
+  -- Add the enablers keys as additional keys
+  if keybind_result.enablers then
+    for _, global_name in ipairs(keybind_result.enablers) do
+
+      local device_type = InputUtils.key_device_type(global_name)
+      local local_name = InputUtils.local_key_name(global_name, device_type)
+
+      keys[#keys + 1] = local_name
+    end
+  end
+
+  return keys
+end
+
+
+-- Translate mod options keybind to key watch result
+-- (Used in keybind widget)
+function dmf.keys_to_keybind_result(keys)
+  local keybind_result = {
+    enablers = {},
+    disablers = {}
+  }
+
+  if not keys or #keys == 0 then
+    return nil
+  end
+
+  if keys[1] then
+    local local_name = keys[1]
+    local global_name = KEYS_INFO[local_name] and InputUtils.local_to_global_name(local_name, KEYS_INFO[local_name][3])
+
+    -- End early if our main key doesn't exist, and return an empty result
+    if not global_name then
+      return nil
+    end
+
+    keybind_result.main = global_name
+  end
+
+  -- Add all remaining keys to the enablers list
+  for i = 2, #keys do
+    local local_name = keys[i]
+    local global_name = KEYS_INFO[local_name] and InputUtils.local_to_global_name(local_name, KEYS_INFO[local_name][3])
+
+    if global_name then
+      keybind_result.enablers[#keybind_result.enablers + 1] = global_name
+    end
+  end
+
+  return keybind_result
 end
 
 -- #####################################################################################################################

@@ -250,7 +250,7 @@ end
 
 dmf.load_developer_mode_settings = function () --@TODO: maybe move it to somewhere else?
   Managers.mod._settings.developer_mode = dmf:get("developer_mode")
-  Application.set_user_setting("mod_settings", Managers.mod._settings)
+  Application.set_user_setting("mod_manager_settings", Managers.mod._settings)
 end
 
 -- ####################################################################################################################

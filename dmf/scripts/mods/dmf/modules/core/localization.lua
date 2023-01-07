@@ -80,7 +80,7 @@ end
 
 
 DMFMod.add_global_localize_strings = function (self, text_translations)
-  for text_id, translations in ipairs(text_translations) do
+  for text_id, translations in pairs(text_translations) do
     if not _global_localization_database[text_id] then
       _global_localization_database[text_id] = translations
     end

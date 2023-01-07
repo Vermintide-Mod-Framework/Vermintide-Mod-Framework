@@ -512,20 +512,20 @@ blueprints.dropdown = {
     local has_options_function = entry.options_function ~= nil
     local has_dynamic_contents = entry.has_dynamic_contents
     local options = entry.options or entry.options_function and entry.options_function()
-    local options_by_id = {}
     local num_options = #options
     local num_visible_options = math.min(num_options, max_visible_options)
     content.num_visible_options = num_visible_options
     local optional_num_decimals = entry.optional_num_decimals
     local number_format = string.format("%%.%sf", optional_num_decimals or DEFAULT_NUM_DECIMALS)
 
+    local options_by_value = {}
     for i = 1, num_options do
       local option = options[i]
-      options_by_id[option.id] = option
+      options_by_value[option.value] = option
     end
 
     content.number_format = number_format
-    content.options_by_id = options_by_id
+    content.options_by_value = options_by_value
     content.options = options
 
     content.hotspot.pressed_callback = function ()
@@ -559,7 +559,7 @@ blueprints.dropdown = {
     local offset = widget.offset
     local style = widget.style
     local options = content.options
-    local options_by_id = content.options_by_id
+    local options_by_value = content.options_by_value
     local num_visible_options = content.num_visible_options
     local num_options = #options
     local focused = content.exclusive_focus and not is_disabled
@@ -587,7 +587,7 @@ blueprints.dropdown = {
 
     value = entry.get_function and entry:get_function() or content.internal_value or "<not selected>"
 
-    local preview_option = options_by_id[value]
+    local preview_option = options_by_value[value]
     local preview_option_id = preview_option and preview_option.id
     local preview_value = preview_option and preview_option.display_name or Localize("loc_settings_option_unavailable")
 
@@ -677,7 +677,7 @@ blueprints.dropdown = {
 
       if not new_value and focused and not using_gamepad and option_hotspot.on_pressed then
         option_hotspot.on_pressed = nil
-        new_value = option.id
+        new_value = option.value
         content.selected_index = i
       end
 

@@ -675,7 +675,6 @@ DMFOptionsView._setup_category_config = function (self, config)
   for i = 1, #config_categories do
     local category_config = config_categories[i]
     local category_display_name = category_config.display_name
-    local category_icon = category_config.icon
     local category_reset_function = category_config.reset_function
     local valid = self._validation_mapping[category_display_name].validation_result
 
@@ -683,7 +682,6 @@ DMFOptionsView._setup_category_config = function (self, config)
       local entry = {
         widget_type = "settings_button",
         display_name = category_display_name,
-        icon = category_icon,
         can_be_reset = category_config.can_be_reset,
         pressed_function = function (parent, widget, entry)
           self._category_content_grid:select_widget(widget)

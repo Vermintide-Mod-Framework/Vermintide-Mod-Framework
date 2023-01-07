@@ -3,6 +3,7 @@ Contribute to DMF -- add your name here!
 + [Aussiemon](https://github.com/Aussiemon)
 + [Fracticality](https://github.com/fracticality)
 + [grasmann](https://github.com/grasmann)
++ [philipdestroyer](https://github.com/philippedavid)
 
 # VMF contributors (sorted alphabetically)
 + [Aussiemon](https://github.com/Aussiemon)

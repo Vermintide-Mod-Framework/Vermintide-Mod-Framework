@@ -1,15 +1,27 @@
 local dmf = get_mod("DMF")
 
 local OptionsUtilities = require("scripts/utilities/ui/options")
-local InputUtils = require("scripts/managers/input/input_utils")
 
 local _type_template_map = {}
+
+local _devices = {
+  "keyboard",
+  "mouse"
+}
+local _cancel_keys = {
+  "keyboard_esc"
+}
+local _reserved_keys = {}
 
 -- ####################################################################################################################
 -- ##### Local functions ##############################################################################################
 -- ####################################################################################################################
 
--- Create value slider template
+-- #####################
+-- ###### Header #######
+-- #####################
+
+-- Create header template
 local create_header_template = function (self, params)
 
   local template = {
@@ -24,11 +36,15 @@ end
 _type_template_map["header"] = create_header_template
 
 
+-- ###########################
+-- ###### Percent Slider #####
+-- ###########################
+
 -- Create percentage slider template
 local create_percent_slider_template = function (self, params)
 
   params.on_value_changed_function = function(new_value)
-    get_mod(params.mod_name):set(params.setting_id, new_value)
+    get_mod(params.mod_name):set(params.setting_id, new_value, true)
 
     return true
   end
@@ -53,11 +69,15 @@ end
 _type_template_map["percent_slider"] = create_percent_slider_template
 
 
+-- ###########################
+-- ###### Value Slider #######
+-- ###########################
+
 -- Create value slider template
 local create_value_slider_template = function (self, params)
 
   params.on_value_changed_function = function(new_value)
-    get_mod(params.mod_name):set(params.setting_id, new_value)
+    get_mod(params.mod_name):set(params.setting_id, new_value, true)
 
     return true
   end
@@ -87,6 +107,10 @@ _type_template_map["value_slider"] = create_value_slider_template
 _type_template_map["numeric"] = create_value_slider_template
 
 
+-- ######################
+-- ###### Checkbox ######
+-- ######################
+
 -- Create checkbox template
 local create_checkbox_template = function (self, params)
   local template = {
@@ -99,7 +123,7 @@ local create_checkbox_template = function (self, params)
     value_type = "boolean",
   }
   template.on_activated = function(new_value)
-    get_mod(params.mod_name):set(params.setting_id, new_value)
+    get_mod(params.mod_name):set(params.setting_id, new_value, true)
 
     return true
   end
@@ -111,6 +135,40 @@ local create_checkbox_template = function (self, params)
 end
 _type_template_map["checkbox"] = create_checkbox_template
 
+
+-- ########################
+-- ###### Mod Toggle ######
+-- ########################
+
+-- Create mod toggle template
+local create_mod_toggle_template = function (self, params)
+  local template = {
+    after = params.after,
+    category = params.category,
+    default_value = true,
+    display_name = dmf:localize("toggle_mod"),
+    indentation_level = 0,
+    tooltip_text = dmf:localize("toggle_mod_description"),
+    value_type = "boolean",
+  }
+
+  template.on_activated = function(new_value)
+    dmf.mod_state_changed(params.mod_name, new_value)
+
+    return true
+  end
+  template.get_function = function()
+    return get_mod(params.mod_name):is_enabled()
+  end
+
+  return template
+end
+_type_template_map["mod_toggle"] = create_mod_toggle_template
+
+
+-- ######################
+-- ###### Dropdown ######
+-- ######################
 
 -- Create dropdown template
 local create_dropdown_template = function (self, params)
@@ -131,7 +189,7 @@ local create_dropdown_template = function (self, params)
     widget_type = "dropdown",
   }
   template.on_activated = function(new_value)
-    get_mod(params.mod_name):set(params.setting_id, new_value)
+    get_mod(params.mod_name):set(params.setting_id, new_value, true)
 
     return true
   end
@@ -144,34 +202,30 @@ end
 _type_template_map["dropdown"] = create_dropdown_template
 
 
-local set_new_keybind = function (self, keybind_widget_content)
+-- ###########################
+-- ######### Keybind #########
+-- ###########################
+
+local set_new_keybind = function (self, keybind_data)
+  local mod = get_mod(keybind_data.mod_name)
   dmf.add_mod_keybind(
-    get_mod(keybind_widget_content.mod_name),
-    keybind_widget_content.setting_id,
+    mod,
+    keybind_data.setting_id,
     {
-      global          = keybind_widget_content.keybind_global,
-      trigger         = keybind_widget_content.keybind_trigger,
-      type            = keybind_widget_content.keybind_type,
-      keys            = keybind_widget_content.keys,
-      function_name   = keybind_widget_content.function_name,
-      view_name       = keybind_widget_content.view_name,
+      global          = keybind_data.keybind_global,
+      trigger         = keybind_data.keybind_trigger,
+      type            = keybind_data.keybind_type,
+      keys            = keybind_data.keys,
+      function_name   = keybind_data.function_name,
+      view_name       = keybind_data.view_name,
     }
   )
+  mod:set(keybind_data.setting_id, keybind_data.keys, true)
 end
 
 
 -- Create keybind template
 local create_keybind_template = function (self, params)
-  local reserved_keys = {}
-  local cancel_keys = {
-    "keyboard_esc"
-  }
-  local devices = {
-    "keyboard",
-    "mouse",
-    "xbox_controller",
-    "ps4_controller"
-  }
 
   local template = {
     widget_type = "keybind",
@@ -181,63 +235,57 @@ local create_keybind_template = function (self, params)
     group_name = params.category,
     category = params.category,
     after = params.parent_index,
-    devices = devices,
+    devices = _devices,
     sort_order = params.sort_order,
-    cancel_keys = cancel_keys,
-    reserved_keys = reserved_keys,
+    cancel_keys = _cancel_keys,
+    reserved_keys = _reserved_keys,
     indentation_level = params.depth,
     mod_name = params.mod_name,
     setting_id = params.setting_id,
+    keys = dmf.keys_to_keybind_result(params.keys),
 
     on_activated = function (new_value, old_value)
 
-      for i = 1, #cancel_keys do
-        local cancel_key = cancel_keys[i]
+      for i = 1, #_cancel_keys do
+        local cancel_key = _cancel_keys[i]
         if cancel_key == new_value.main then
 
           -- Prevent unbinding the mod options menu
           if params.setting_id ~= "open_dmf_options" then
 
-            params.keybind_text = ""
-            params.keys         = {}
-
+            -- Unbind the keybind
+            params.keys = {}
             set_new_keybind(self, params)
           end
+
           return true
         end
       end
 
-      for i = 1, #reserved_keys do
-        local reserved_key = reserved_keys[i]
+      for i = 1, #_reserved_keys do
+        local reserved_key = _reserved_keys[i]
         if reserved_key == new_value.main then
           return false
         end
       end
 
-      local device_type = InputUtils.key_device_type(new_value.main)
-      local key_name = InputUtils.local_key_name(new_value.main, device_type)
+      -- Get the new keybind
+      local keys = dmf.keybind_result_to_keys(new_value)
 
-      params.keybind_text = key_name
-      params.keys         = {key_name}
+      -- Bind the new key and prevent unbinding the mod options menu
+      if keys and #keys > 0 or params.setting_id ~= "open_dmf_options" then
+        params.keys = keys
+        set_new_keybind(self, params)
+      end
 
-      set_new_keybind(self, params)
       return true
     end,
 
     get_function = function (template)
+      local keys = get_mod(template.mod_name):get(template.setting_id)
+      local keybind_result = dmf.keys_to_keybind_result(keys)
 
-      local setting = get_mod(template.mod_name):get(template.setting_id)
-      local local_name = setting and setting[1]
-      if not local_name then
-        return false
-      end
-
-      local global_name = InputUtils.local_to_global_name(local_name, "keyboard")
-      return {
-        main = global_name,
-        disablers = {},
-        enablers = {},
-      }
+      return keybind_result
     end,
   }
 
@@ -246,6 +294,11 @@ end
 _type_template_map["keybind"] = create_keybind_template
 
 
+-- ###########################
+-- ###### Miscellaneous ######
+-- ###########################
+
+-- Get the template creation function associated with a given widget data type
 local function widget_data_to_template(self, data)
   if data and data.type and type(data.type) == "string" and _type_template_map[data.type] then
     return _type_template_map[data.type](self, data)
@@ -256,16 +309,28 @@ local function widget_data_to_template(self, data)
 end
 
 
---  Add mod categories to options view
-local create_mod_category = function (self, categories, widget_data)
+--  Add a mod category to the options view categories
+local function create_mod_category(self, categories, widget_data)
   local category = {
     can_be_reset = widget_data.can_be_reset or true,
     display_name = widget_data.readable_mod_name or widget_data.mod_name or "",
-    icon         = widget_data.icon_material or "content/ui/materials/icons/system/settings/category_gameplay",
     custom       = true
   }
   categories[#categories + 1] = category
   return category
+end
+
+
+-- Create an option template and handle index offsets
+local function create_option_template(self, widget_data, category_name, index_offset)
+  local template = widget_data_to_template(self, widget_data)
+  if template then
+    template.custom = true
+    template.category = category_name
+    template.after = template.after and template.after + index_offset or nil
+    
+    return template
+  end
 end
 
 -- ####################################################################################################################
@@ -276,20 +341,48 @@ end
 -- ##### DMF internal functions and variables #########################################################################
 -- ####################################################################################################################
 
-
 -- Add mod settings to options view
 dmf.create_mod_options_settings = function (self, options_templates)
   local categories = options_templates.categories
   local settings = options_templates.settings
 
+  -- Create a category for every mod
   for _, mod_data in ipairs(dmf.options_widgets_data) do
     local category = create_mod_category(self, categories, mod_data[1])
 
-    for _, widget_data in ipairs(mod_data) do
-      local template = widget_data_to_template(self, widget_data)
+    local index_offset = 0
+    
+    -- Create the category header
+    local template = create_option_template(self, mod_data[1], category.display_name, index_offset)
+    if template then
+      settings[#settings + 1] = template
+    end
+
+    -- Create a top-level toggle option if the mod is togglable
+    if mod_data[1].is_togglable then
+      local toggle_widget_data = {
+        mod_name = mod_data[1].mod_name,
+        category = category.display_name,
+        after = #settings,
+        type = "mod_toggle"
+      }
+
+      local toggle_template = create_option_template(self, toggle_widget_data, category.display_name, index_offset)
+      if toggle_template then
+        settings[#settings + 1] = toggle_template
+        index_offset = index_offset + 1
+      end
+    end
+
+    -- Populate the category with options taken from the remaining options data
+    for i = 2, #mod_data do
+      local widget_data = mod_data[i]
+
+      template = widget_data_to_template(self, widget_data)
       if template then
         template.custom = true
         template.category = category.display_name
+        template.after = template.after + index_offset
         
         settings[#settings + 1] = template
       end
@@ -297,47 +390,6 @@ dmf.create_mod_options_settings = function (self, options_templates)
   end
 
   return options_templates
-
-  --[[local settings = OptionsView._options_templates.settings
-
-  for name, this_mod in pairs(Mods) do
-    -- Custom settings
-    if type(this_mod) == "table" and this_mod.options then
-
-      local text = this_mod.text or name
-      Mods.Localization.add("loc_settings_menu_group_mods_"..name, text)
-
-      local options_no_after = 0
-      for _, option in pairs(this_mod.options) do
-        if not option.after then
-          options_no_after = options_no_after + 1
-        end
-      end
-
-      if options_no_after > 0 then
-        settings[#settings+1] = {
-          widget_type = "group_header",
-          group_name = "mods_settings",
-          display_name = "loc_settings_menu_group_mods_"..name,
-          category = "loc_settings_menu_category_mods",
-          custom = true,
-        }
-      end
-
-      for _, setting in pairs(this_mod.options) do
-        setting.custom = true
-        setting.category = setting.category or "loc_settings_menu_category_mods"
-        setting.indentation_level = setting.after and 1 or 0
-        if setting.after then
-          local index = self:after_index(OptionsView, setting.after)
-          table.insert(settings, index, setting)
-        else
-          settings[#settings+1] = setting
-        end
-      end
-      
-    end
-  end]]
 end
 
 

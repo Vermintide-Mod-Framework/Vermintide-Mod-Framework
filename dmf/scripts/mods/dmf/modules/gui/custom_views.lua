@@ -110,7 +110,15 @@ local function remove_injected_views(on_reload)
   if on_reload then
 
     for view_name, _ in pairs(_custom_views_data) do
-      -- Remove injected views.
+
+      -- Close the view if active
+      if Managers.ui:view_active(view_name) then
+        
+        local force_close = true
+        Managers.ui:close_view(view_name, force_close)
+      end
+
+      -- Remove the injected view
       _ingame_ui._view_list[view_name] = nil
     end
   end
@@ -306,11 +314,6 @@ end
 -- Track the creation of the view loader
 dmf:hook_safe(ViewLoader, "init", function()
   _custom_view_persistent_data.loader_initialized = true
-end)
-
--- Track the deletion of the view loader
-dmf:hook_safe(ViewLoader, "destroy", function()
-  _custom_view_persistent_data.loader_initialized = false
 end)
 
 

@@ -22,6 +22,12 @@ return {
   percent = {
     en = "%%",
   },
+  toggle_mod = {
+    en = "Toggle Mod",
+  },
+  toggle_mod_description = {
+    en = "Enable or disable the mod",
+  },
   ui_scaling = {
     en = "UI Scaling for FHD+ Resolutions",
     es = "Reescalado de la interfaz para resoluciones Full HD+",
