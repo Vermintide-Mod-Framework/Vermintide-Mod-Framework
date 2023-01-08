@@ -204,7 +204,7 @@ function dmf.load_logging_settings()
   _logging_settings = {
     notification = dmf:get("logging_mode") == "custom" and dmf:get("output_mode_notification") or 5,
     echo         = dmf:get("logging_mode") == "custom" and dmf:get("output_mode_echo")         or 4,
-    error        = dmf:get("logging_mode") == "custom" and dmf:get("output_mode_error")        or 4,
+    error        = dmf:get("logging_mode") == "custom" and dmf:get("output_mode_error")        or 7,
     warning      = dmf:get("logging_mode") == "custom" and dmf:get("output_mode_warning")      or 4,
     info         = dmf:get("logging_mode") == "custom" and dmf:get("output_mode_info")         or 1,
     debug        = dmf:get("logging_mode") == "custom" and dmf:get("output_mode_debug")        or 0,
