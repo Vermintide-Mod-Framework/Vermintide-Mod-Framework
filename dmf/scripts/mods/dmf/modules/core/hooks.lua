@@ -36,7 +36,10 @@ local _hooks = {
     setmetatable({}, auto_table_meta), -- safe
     {}, -- origin
 }
-local _hooks_by_file = {}
+
+local _file_hooks_by_file = {}
+local _file_hooks_applied_to_file = {}
+
 local _origs = {}
 
 -- ####################################################################################################################
@@ -397,21 +400,28 @@ end
 --         original function at the end. Your handler has to call the next function in the chain manually.
 -- The chain of event is determined by mod load order.
 function DMFMod:hook_file(obj_str, method_str, handler)
-    -- Add hook create function to list for the file
-    _hooks_by_file[obj_str] = _hooks_by_file[obj_str] or {}
+    
+    -- Set up the tables for the file
+    local mod_name = self:get_name()
+    _file_hooks_by_file[obj_str]         = _file_hooks_by_file[obj_str] or {}
+    _file_hooks_applied_to_file[obj_str] = _file_hooks_applied_to_file[obj_str] or {[mod_name] = {}}
 
+    -- Add the hook create function to the file's table
     local hook_create_func = function(this_filepath, this_index)
         local dynamic_obj = self:get_require_store(this_filepath)[this_index]
         return generic_hook(self, dynamic_obj, method_str, handler, "hook")
     end
-    table.insert(_hooks_by_file[obj_str], hook_create_func)
+
+    -- Index file hooks by mod name to prevent duplicates per mod
+    _file_hooks_by_file[obj_str][mod_name] = hook_create_func
     
     -- Add the new hook to every instance of the file
     local all_file_instances = self:get_require_store(obj_str)
     if all_file_instances then
         for i, item in ipairs(all_file_instances) do
-            if item then
+            if item and not _file_hooks_applied_to_file[obj_str][mod_name][i] then
                 hook_create_func(obj_str, i)
+                _file_hooks_applied_to_file[obj_str][mod_name][i] = true
             end
         end
     end
@@ -468,12 +478,11 @@ dmf.apply_delayed_hooks = function(status, state)
 end
 
 dmf.apply_hooks_to_file = function(require_store, filepath, store_index)
-    local all_file_hooks = _hooks_by_file[filepath]
-    local file_instance = require_store and require_store[store_index]
-    
-    if all_file_hooks and file_instance then
-        for _, hook_create_func in ipairs(all_file_hooks) do
-            hook_create_func(filepath, store_index)
+    if _file_hooks_by_file[filepath] and require_store and require_store[store_index] then
+        for mod_name, hook_create_func in pairs(_file_hooks_by_file[filepath]) do
+            if not _file_hooks_applied_to_file[filepath][mod_name][store_index] then
+                hook_create_func(filepath, store_index)
+            end
         end
     end
 end
