@@ -39,8 +39,9 @@ local _notification_types = {
 
 local function add_chat_notification(message, notification_type, sound_event, replay_to_chat_on_error)
   if Managers.event then
-    Managers.event:trigger("event_add_notification_message",
-    _notification_types[notification_type] and notification_type or "default",
+    Managers.event:trigger(
+      "event_add_notification_message",
+      _notification_types[notification_type] and notification_type or "default",
       message or "",
       nil,
       sound_event or UISoundEvents.default_click

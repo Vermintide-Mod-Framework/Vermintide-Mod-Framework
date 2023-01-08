@@ -62,12 +62,20 @@ end
 -- ##### Hooks #########################################################################################################
 -- #####################################################################################################################
 
--- Handles the swap to io for registered files
+-- Handles the swap to io for registered files and the application of file hooks
 dmf:hook(_G, "require", function (func, path, ...)
   if _io_requires[path] then
     return dmf:dofile(path)
   else
-    return func(path, ...)
+    local result = func(path, ...)
+
+    -- Apply any file hooks to the newly-required file
+    local require_store = get_require_store(path)
+    if require_store then
+      dmf.apply_hooks_to_file(require_store, path, #require_store)
+    end
+
+    return result
   end
 end)
 

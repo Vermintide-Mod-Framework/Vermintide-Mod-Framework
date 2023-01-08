@@ -401,14 +401,13 @@ function DMFMod:hook_file(obj_str, method_str, handler)
     _hooks_by_file[obj_str] = _hooks_by_file[obj_str] or {}
 
     local hook_create_func = function(this_filepath, this_index)
-        local dynamic_obj =
-            "dmf:get_require_store(\"" .. this_filepath .. "\")[" .. tostring(this_index) .. "]"
+        local dynamic_obj = self:get_require_store(this_filepath)[this_index]
         return generic_hook(self, dynamic_obj, method_str, handler, "hook")
     end
     table.insert(_hooks_by_file[obj_str], hook_create_func)
     
     -- Add the new hook to every instance of the file
-    local all_file_instances = dmf:get_require_store(obj_str)
+    local all_file_instances = self:get_require_store(obj_str)
     if all_file_instances then
         for i, item in ipairs(all_file_instances) do
             if item then
@@ -468,11 +467,9 @@ dmf.apply_delayed_hooks = function(status, state)
     end
 end
 
-dmf.apply_hooks_to_file = function(filepath, store_index)
-    local all_file_instances = dmf:get_require_store(filepath)
-    local file_instance = all_file_instances and all_file_instances[store_index]
-    
+dmf.apply_hooks_to_file = function(require_store, filepath, store_index)
     local all_file_hooks = _hooks_by_file[filepath]
+    local file_instance = require_store and require_store[store_index]
     
     if all_file_hooks and file_instance then
         for _, hook_create_func in ipairs(all_file_hooks) do
