@@ -1,13 +1,13 @@
 local dmf
 
--- Global variable indicating which version of the game is currently running
-VT1 = false
-
 -- Native mod object used by Fatshark mod manager
 local dmf_mod_object = {}
 
 -- Global method to load a file through iowith a return
 local mod_dofile = Mods.file.dofile
+
+-- Global backup of original print() method
+local print = __print
 
 -- #####################################################################################################################
 -- ##### Initialization ################################################################################################

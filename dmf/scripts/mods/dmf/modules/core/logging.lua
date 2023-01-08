@@ -1,6 +1,15 @@
 local dmf = get_mod("DMF")
 
+local ChatManagerConstants = require("scripts/foundation/managers/chat/chat_manager_constants")
+local UISoundEvents = require("scripts/settings/ui/ui_sound_events")
+
+-- Global backup of original print() method
+local print = __print
+
+local _chat_element
+
 local _unsent_chat_messages = {}
+
 local _logging_settings
 local _logging_settings_lookup = {
   [0] = {[1] = false, [2] = false, [3] = false}, -- Disabled
@@ -12,46 +21,48 @@ local _logging_settings_lookup = {
   [6] = {[1] = false, [2] = true,  [3] = true},  -- Chat and Notification
   [7] = {[1] = true,  [2] = true,  [3] = true},  -- All
 }
-local _notification_sound = "wwise/events/ui/play_ui_click"
+
+local _notification_types = {
+  achievement = true,
+  alert = true,
+  contract = true,
+  currency = true,
+  default = true,
+  dev = true,
+  item_granted = true,
+  matchmaking = true,
+}
 
 -- #####################################################################################################################
 -- ##### Local functions ###############################################################################################
 -- #####################################################################################################################
 
-local function add_chat_notification(message)
-  local event_manager = Managers.event
-  
-  if event_manager then
-    event_manager:trigger("event_add_notification_message", "default", message, nil, _notification_sound)
+local function add_chat_notification(message, notification_type, sound_event, replay_to_chat_on_error)
+  if Managers.event then
+    Managers.event:trigger("event_add_notification_message",
+    _notification_types[notification_type] and notification_type or "default",
+      message or "",
+      nil,
+      sound_event or UISoundEvents.default_click
+    )
+
+  elseif replay_to_chat_on_error then
+    table.insert(_unsent_chat_messages, {message, "NOTIFICATION"})
   end
 end
 
 
 local function add_chat_message(message, sender)
-  local chat_manager = Managers.chat
-  local event_manager = Managers.event
-  
-  if chat_manager and event_manager then
-    local message_obj = {
-      message_body = message,
-      is_current_user = false,
-    }
-    
-    local participant = {
-      displayname = sender or "SYSTEM",
-    }
-    
-    local message_sent = false
-    
-    local channel_handle, channel = next(chat_manager:connected_chat_channels())
-    if channel then
-      event_manager:trigger("chat_manager_message_recieved", channel_handle, participant, message_obj)
-      message_sent = true
-    end
-    
-    if not message_sent then
-      table.insert(_unsent_chat_messages, message)
-    end
+  local channel_sender = sender or "SYSTEM"
+
+  -- Send to our stored chat element if it exists
+  if _chat_element then
+    _chat_element:_add_message(message, channel_sender, ChatManagerConstants.ChannelTag.PRIVATE)
+
+  else
+    -- Otherwise play the message as a notification for now, and replay it later
+    add_chat_notification(message, nil, nil, false)
+    table.insert(_unsent_chat_messages, {message, sender})
   end
 end
 
@@ -67,8 +78,8 @@ local function safe_format(mod, str, ...)
 end
 
 
-local function send_to_notifications(self, message)
-  add_chat_notification(message)
+local function send_to_notifications(self, message, notification_type, sound_event)
+  add_chat_notification(message, notification_type, sound_event, true)
 end
 
 
@@ -82,6 +93,12 @@ local function send_to_chat(self, msg_type, message)
 end
 
 
+local string_format = string.format
+local function printf(f, ...)
+	print(string_format(f, ...))
+end
+
+
 local function send_to_log(self, msg_type, message)
   printf("[MOD][%s][%s] %s", self:get_name(), string.upper(msg_type), message)
 end
@@ -92,7 +109,11 @@ local function log_message(self, msg_type, message, ...)
   message = safe_format(self, tostring(message), ...)
   if message then
     if _logging_settings[msg_type].send_to_notifications then
-      send_to_notifications(self, message)
+      if msg_type == "error" then
+        send_to_notifications(self, {text = message}, "alert", UISoundEvents.notification_matchmaking_failed)
+      else
+        send_to_notifications(self, message)
+      end
     end
     if _logging_settings[msg_type].send_to_chat then
       send_to_chat(self, msg_type, message)
@@ -160,10 +181,14 @@ end
 -- Can't be hooked right away, since hooking module is not initialized yet
 -- Sends unsent messages to chat when chat channel is finally created
 function dmf.delayed_chat_messages_hook()
-  dmf:hook_safe("VivoxManager", "join_chat_channel", function (self)
-    if #_unsent_chat_messages > 0 and #self:connected_chat_channels() > 0 then
+  dmf:hook_safe("ConstantElementChat", "_handle_input", function (self)
+
+    -- Store the chat element for adding messages directly
+    _chat_element = self
+
+    if #_unsent_chat_messages > 0 then
       for _, message in ipairs(_unsent_chat_messages) do
-        add_chat_message(message)
+        add_chat_message(message[1], message[2])
       end
 
       for i, _ in ipairs(_unsent_chat_messages) do

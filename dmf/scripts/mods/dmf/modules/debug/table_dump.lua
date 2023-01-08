@@ -7,6 +7,9 @@ local _io = Mods.lua.io
 -- Global backup of the os library
 local _os = Mods.lua.os
 
+-- Global backup of original print() method
+local print = __print
+
 local function table_dump(key, value, depth, max_depth)
   if max_depth < depth then
     return

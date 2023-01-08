@@ -3,6 +3,9 @@
 --]]
 local dmf = get_mod("DMF")
 
+-- Global backup of original print() method
+local print = __print
+
 -- List of mods that are also mutators in order in which they should be enabled
 local _mutators = {}
 

@@ -19,6 +19,11 @@ return {
     es = "Velocidad de desplazamiento en el menu",
     ru = "Скорость прокрутки меню",
   },
+  dmf_first_run_notification = {
+    en = "Welcome to the Darktide Mod Framework. Mod options have been added to the Options Menu.",
+    es = "Bienvenidos a el Mod Framework de Darktide. Hemos agregado las opciones de Mod a el menu de opciones.",
+    de = "Willkommen beim Darktide Mod Framework. Ein Button für Mod-Optionen wurde dem Hauptmenu hinzugefügt.",
+  },
   percent = {
     en = "%%",
   },

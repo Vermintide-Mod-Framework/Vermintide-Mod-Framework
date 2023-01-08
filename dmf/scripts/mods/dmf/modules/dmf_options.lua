@@ -275,5 +275,6 @@ if not dmf:get("dmf_initialized") then
     dmf.load_dmf_options_view_settings()
   end
 
+  dmf:notify(dmf:localize("dmf_first_run_notification"))
   dmf:set("dmf_initialized", true)
 end

@@ -1,6 +1,6 @@
 local dmf = get_mod("DMF")
 
--- @TODO: move it to on_reload when it will be implemented in vt1
+-- @TODO: move it to on_reload
 Managers.dmf = Managers.dmf or {
   delete = function()
     return
