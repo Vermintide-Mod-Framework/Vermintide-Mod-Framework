@@ -87,10 +87,11 @@ end
 local function send_to_chat(self, msg_type, message)
 
   if msg_type ~= "echo" then
-    message = string.format("[%s][%s] %s", self:get_name(), string.upper(msg_type), message)
+    message = string.format("[%s] %s", string.upper(msg_type), message)
   end
 
-  add_chat_message(message)
+  local sender = self and self:get_name() and string.format("[%s]", self:get_name())
+  add_chat_message(message, sender)
 end
 
 
