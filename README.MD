@@ -24,7 +24,7 @@ Mods created for the project may utilize:
 
 The Darktide Mod Framework originally started in Warhammer End Times: Vermintide as an unofficial modding platform. In the time since, DMF has been rewritten and redesigned with contributions from many unique members of the community; culminating in this unified project.
 
-For more information, check out **[the framework's wiki pages](https://github.com/Vermintide-Mod-Framework/Vermintide-Mod-Framework/wiki)**.
+For more information, check out **[the framework's wiki pages](https://github.com/Darktide-Mod-Framework/Darktide-Mod-Framework/wiki)**.
 
 
 ## Building the Framework
