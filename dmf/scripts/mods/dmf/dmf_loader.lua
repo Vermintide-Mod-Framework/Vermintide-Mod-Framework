@@ -80,6 +80,7 @@ end
 
 function dmf_mod_object:on_unload()
   print("DMF:ON_UNLOAD()")
+  dmf.report_delayed_hooks()
   dmf.save_chat_history()
   dmf.save_unsaved_settings_to_file()
   dmf.destroy_command_gui()

@@ -18,6 +18,7 @@ local HOOK_TYPE_ORIGIN = 3
 
 -- dont need to attach this to registry.
 local _delayed = {}
+local _delayed_obj_names = {}
 local _delaying_enabled = true
 
 -- This metatable will automatically create a table entry if one doesnt exist.
@@ -285,6 +286,7 @@ local function generic_hook(mod, obj, method, handler, func_name)
             table.insert(_delayed, function()
                 generic_hook(mod, obj, method, handler, func_name)
             end)
+            _delayed_obj_names[obj] = true
             return
         else
             mod:error("(%s): trying to hook object that doesn't exist: %s", func_name, obj)
@@ -339,6 +341,7 @@ local function generic_hook_toggle(mod, obj, method, enabled_state)
             table.insert(_delayed, function()
                 generic_hook_toggle(mod, obj, method, enabled_state)
             end)
+            _delayed_obj_names[obj] = true
             return
         else
             mod:error("(%s): trying to toggle hook on object that doesn't exist: %s", func_name, obj)
@@ -464,9 +467,6 @@ dmf.hooks_unload = function()
 end
 
 dmf.apply_delayed_hooks = function(status, state)
-    if status == "enter" and state == "StateIngame" then
-        _delaying_enabled = false
-    end
     if #_delayed > 0 then
         dmf:info("Attempt to hook %s delayed hooks", #_delayed)
         -- Go through the table in reverse so we don't get any issues removing entries inside the loop
@@ -474,6 +474,13 @@ dmf.apply_delayed_hooks = function(status, state)
             _delayed[i]()
             table.remove(_delayed, i)
         end
+    end
+end
+
+dmf.report_delayed_hooks = function()
+    if #_delayed > 0 then
+        dmf:info(tostring(#_delayed) .. " hooked function" ..
+            (#_delayed == 1 and " does" or "s do") .. " not exist.")
     end
 end
 
@@ -486,3 +493,17 @@ dmf.apply_hooks_to_file = function(require_store, filepath, store_index)
         end
     end
 end
+
+-- ####################################################################################################################
+-- ##### Hooks ########################################################################################################
+-- ####################################################################################################################
+
+-- If class() is called on an object we've delayed for, re-run delayed hooks
+dmf:hook_safe(_G, "class", function(class_name)
+    if _delayed_obj_names[class_name] then
+        dmf:info("%s is now available for previously-delayed hooks.", class_name)
+        dmf.apply_delayed_hooks()
+
+        _delayed_obj_names[class_name] = nil
+    end
+end)
