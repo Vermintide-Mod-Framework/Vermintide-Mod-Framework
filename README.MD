@@ -2,7 +2,7 @@
   <a href="#welcome-to-the-darktide-mod-framework-vmf-repository">
     <img
       alt="Darktide Mod Framework"
-      src="https://github.com/Vermintide-Mod-Framework/Vermintide-Mod-Framework/blob/master/assets/vmf_logo_black.png"
+      src="./assets/dmf_logo_black.png"
       width="600"
     />
   </a>
