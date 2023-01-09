@@ -39,8 +39,46 @@ local get_file_path = function(local_path, file_name, file_extension)
 end
 
 
+-- Read or read and execute the given path to return the specified data
+local function read_or_execute(file_path, args, return_type)
+  local f = _io.open(file_path, "r")
+
+  local result
+  if return_type == "lines" then
+    result = {}
+    for line in f:lines() do
+      if line then
+        -- Trim whitespace
+        line = line:gsub("^%s*(.-)%s*$", "%1")
+
+        -- Handle empty lines and single-line comments
+        if line ~= "" and line:sub(1, 2) ~= "--" then
+          table.insert(result, line)
+        end
+      end
+    end
+  else
+    result = f:read("*all")
+
+    -- Either execute the data or leave it unmodified
+    if return_type == "exec_result" or return_type == "exec_boolean" then
+      local func = loadstring(result)
+      result = func(args)
+    end
+  end
+
+  f:close()
+  if return_type == "exec_boolean" then
+    return true
+  else
+    return result
+  end
+end
+
+
 -- Handle an IO operation with respect to safety, execution, and the results returned
-local function handle_io(mod, local_path, file_name, file_extension, args, safe_call, execute, return_result)
+local function handle_io(mod, local_path, file_name, file_extension, args, safe_call, return_type)
+
   local file_path = get_file_path(local_path, file_name, file_extension)
   mod:debug("Loading " .. file_path)
 
@@ -55,24 +93,7 @@ local function handle_io(mod, local_path, file_name, file_extension, args, safe_
     -- If this is a safe call, wrap it in a pcall
     if safe_call then
       status, result = pcall(function ()
-        local f = _io.open(file_path, "r")
-        local data = f:read("*all")
-
-        -- Either execute the data or return it unmodified
-        local pcall_result
-        if execute then
-          local func = loadstring(data)
-          pcall_result = func(args)
-        else
-          pcall_result = data
-        end
-
-        f:close()
-        if return_result then
-          return pcall_result
-        else
-          return true
-        end
+        return read_or_execute(file_path, args, return_type)
       end)
 
       -- If status is failed, notify the user and return false
@@ -83,28 +104,10 @@ local function handle_io(mod, local_path, file_name, file_extension, args, safe_
 
     -- If this isn't a safe call, load without a pcall
     else
-      local f = _io.open(file_path, "r")
-      local data = f:read("*all")
-
-      -- Either execute the data or return it unmodified
-      if execute then
-        local func = loadstring(data)
-        result = func(args)
-      else
-        result = data
-      end
-
-      f:close()
+      result = read_or_execute(file_path, args, return_type)
     end
 
-    -- Return data if configured
-    if return_result then
-      return result
-
-    -- Otherwise return success
-    else
-      return true
-    end
+    return result
 
   -- If the initial open failed, report failure
   else
@@ -117,10 +120,10 @@ end
 -- Return whether the file exists at the given path
 local function file_exists(local_path, file_name, file_extension)
   local file_path = get_file_path(local_path, file_name, file_extension)
-  local f = io.open(file_path,"r")
+  local f = _io.open(file_path,"r")
 
   if f ~= nil then
-    io.close(f)
+    _io.close(f)
     return true
   else
     return false
@@ -131,49 +134,56 @@ end
 -- ##### DMFMod ########################################################################################################
 -- #####################################################################################################################
 
--- Use the io library to execute the given file safely, without return
+-- Use the io library to execute the given file with a pcall, without return
 function DMFMod:io_exec(local_path, file_name, file_extension, args)
-  return handle_io(self, local_path, file_name, file_extension, args, true, true, false)
+  return handle_io(self, local_path, file_name, file_extension, args, true, "exec_boolean")
 end
 
 
--- Use the io library to execute the given file without return
+-- Use the io library to execute the given file without a pcall, without return
 function DMFMod:io_exec_unsafe(local_path, file_name, file_extension, args)
-  return handle_io(self, local_path, file_name, file_extension, args, false, true, false)
+  return handle_io(self, local_path, file_name, file_extension, args, false, "exec_boolean")
 end
 
 
--- Use the io library to execute the given file and return the result
+-- Use the io library to execute the given file with a pcall and return the result
 function DMFMod:io_exec_with_return(local_path, file_name, file_extension, args)
-  return handle_io(self, local_path, file_name, file_extension, args, true, true, true)
+  return handle_io(self, local_path, file_name, file_extension, args, true, "exec_result")
 end
 
 
--- Use the io library to execute the given file unsafely and return the result
+-- Use the io library to execute the given file without a pcall and return the result
 function DMFMod:io_exec_unsafe_with_return(local_path, file_name, file_extension, args)
-  return handle_io(self, local_path, file_name, file_extension, args, false, true, true)
+  return handle_io(self, local_path, file_name, file_extension, args, false, "exec_result")
 end
 
 
--- Use the io library to execute the given file and return the result,
+-- Use the io library to execute the given file with a pcall and return the result,
 -- but treat the first parameter as the entire path to the file, and assume .lua.
--- IO version of the dofile method.
+-- IO version of the dofile method with a pcall.
 function DMFMod:io_dofile(file_path)
-  return handle_io(self, file_path, nil, nil, nil, true, true, true)
+  return handle_io(self, file_path, nil, nil, nil, true, "exec_result")
 end
 
 
--- Use the io library to execute the given file unsafely and return the result,
+-- Use the io library to execute the given file without a pcall and return the result,
 -- but treat the first parameter as the entire path to the file, and assume .lua.
 -- IO version of the dofile method.
 function DMFMod:io_dofile_unsafe(file_path)
-  return handle_io(self, file_path, nil, nil, nil, false, true, true)
+  return handle_io(self, file_path, nil, nil, nil, false, "exec_result")
 end
 
 
--- Use the io library to return the contents of the given file without execution
+-- Use the io library to return the contents of the given file
 function DMFMod:io_read_content(file_path, file_extension)
-  return handle_io(self, file_path, nil, file_extension, nil, true, false, true)
+  return handle_io(self, file_path, nil, file_extension, nil, true, "data")
+end
+
+
+-- Use the io library to return the contents of the given file as a table of lines.
+-- Single-line Lua comments and empty lines are ignored.
+function DMFMod:io_read_content_to_table(file_path, file_extension)
+  return handle_io(self, file_path, nil, file_extension, nil, true, "lines")
 end
 
 -- #####################################################################################################################
