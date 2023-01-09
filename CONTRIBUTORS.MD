@@ -4,6 +4,7 @@ Contribute to DMF -- add your name here!
 + [Fracticality](https://github.com/fracticality)
 + [grasmann](https://github.com/grasmann)
 + [philipdestroyer](https://github.com/philippedavid)
++ [SirAiedail](https://github.com/SirAiedail)
 
 # VMF contributors (sorted alphabetically)
 + [Aussiemon](https://github.com/Aussiemon)

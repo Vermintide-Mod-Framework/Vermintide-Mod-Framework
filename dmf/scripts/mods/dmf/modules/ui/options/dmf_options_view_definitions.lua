@@ -1,6 +1,6 @@
 local dmf = get_mod("DMF")
 
-local _view_settings = dmf:dofile("dmf/scripts/mods/dmf/modules/ui/options/dmf_options_view_settings")
+local _view_settings = dmf:io_dofile("dmf/scripts/mods/dmf/modules/ui/options/dmf_options_view_settings")
 
 local ScrollbarPassTemplates = require("scripts/ui/pass_templates/scrollbar_pass_templates")
 local UIFontSettings = require("scripts/managers/ui/ui_font_settings")

@@ -24,8 +24,8 @@ end
 -- ##### DMF Options View Class #######################################################################################
 -- ####################################################################################################################
 
-local _content_blueprints = dmf:dofile("dmf/scripts/mods/dmf/modules/ui/options/dmf_options_view_content_blueprints")
-local _view_settings = dmf:dofile("dmf/scripts/mods/dmf/modules/ui/options/dmf_options_view_settings")
+local _content_blueprints = dmf:io_dofile("dmf/scripts/mods/dmf/modules/ui/options/dmf_options_view_content_blueprints")
+local _view_settings = dmf:io_dofile("dmf/scripts/mods/dmf/modules/ui/options/dmf_options_view_settings")
 
 local InputUtils = require("scripts/managers/input/input_utils")
 local ScriptWorld = require("scripts/foundation/utilities/script_world")
@@ -42,7 +42,7 @@ local SETTINGS_GRID = 2
 local DMFOptionsView = class("DMFOptionsView", "BaseView")
 
 DMFOptionsView.init = function (self, settings)
-  local definitions = dmf:dofile("dmf/scripts/mods/dmf/modules/ui/options/dmf_options_view_definitions")
+  local definitions = dmf:io_dofile("dmf/scripts/mods/dmf/modules/ui/options/dmf_options_view_definitions")
 
   DMFOptionsView.super.init(self, definitions, settings)
 

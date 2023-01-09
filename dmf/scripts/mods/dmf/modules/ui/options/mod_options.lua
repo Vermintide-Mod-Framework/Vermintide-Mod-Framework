@@ -433,7 +433,7 @@ dmf.initialize_dmf_options_view = function ()
     }
   })
 
-  dmf:dofile("dmf/scripts/mods/dmf/modules/ui/options/dmf_options_view")
+  dmf:io_dofile("dmf/scripts/mods/dmf/modules/ui/options/dmf_options_view")
 end
 
 -- ####################################################################################################################

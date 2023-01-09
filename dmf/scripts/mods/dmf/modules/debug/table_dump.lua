@@ -1,11 +1,18 @@
 local dmf = get_mod("DMF") -- @TODO: remove it?
 
+-- Local backup of the io library
+local _io = dmf:persistent_table("_io")
+_io.initialized = _io.initialized or false
+if not _io.initialized then
+  _io = dmf.deepcopy(Mods.lua.io)
+end
 
--- Global backup of the io library
-local _io = Mods.lua.io
-
--- Global backup of the os library
-local _os = Mods.lua.os
+-- Local backup of the io library
+local _os = dmf:persistent_table("_os")
+_os.initialized = _os.initialized or false
+if not _os.initialized then
+  _os = dmf.deepcopy(Mods.lua.os)
+end
 
 -- Global backup of original print() method
 local print = __print

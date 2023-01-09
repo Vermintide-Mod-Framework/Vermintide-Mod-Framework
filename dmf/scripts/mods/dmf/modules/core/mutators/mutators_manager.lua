@@ -26,11 +26,11 @@ local _mutators_sorted = false
 local _all_mutators_disabled = false
 
 -- External modules
-local reward_manager = dmf:dofile("dmf/scripts/mods/dmf/modules/core/mutators/mutators_reward")
-local set_lobby_data = dmf:dofile("dmf/scripts/mods/dmf/modules/core/mutators/mutators_info")
+local reward_manager = dmf:io_dofile("dmf/scripts/mods/dmf/modules/core/mutators/mutators_reward")
+local set_lobby_data = dmf:io_dofile("dmf/scripts/mods/dmf/modules/core/mutators/mutators_info")
 
 -- Get default configuration
-local _default_config = dmf:dofile("dmf/scripts/mods/dmf/modules/core/mutators/mutators_default_config")
+local _default_config = dmf:io_dofile("dmf/scripts/mods/dmf/modules/core/mutators/mutators_default_config")
 
 -- List of enabled mutators in case DMF is reloaded in the middle of the game
 local _enabled_mutators = dmf:persistent_table("enabled_mutators")
@@ -504,4 +504,4 @@ end
 -- #####################################################################################################################
 
 -- Testing
---dmf:dofile("dmf/scripts/mods/dmf/modules/core/mutators/test/mutators_test")
+--dmf:io_dofile("dmf/scripts/mods/dmf/modules/core/mutators/test/mutators_test")

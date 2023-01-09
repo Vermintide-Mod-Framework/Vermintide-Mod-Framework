@@ -1,6 +1,6 @@
 local dmf = get_mod("DMF")
 
-local _view_settings = dmf:dofile("dmf/scripts/mods/dmf/modules/ui/options/dmf_options_view_settings")
+local _view_settings = dmf:io_dofile("dmf/scripts/mods/dmf/modules/ui/options/dmf_options_view_settings")
 
 local ButtonPassTemplates = require("scripts/ui/pass_templates/button_pass_templates")
 local CheckboxPassTemplates = require("scripts/ui/pass_templates/checkbox_pass_templates")

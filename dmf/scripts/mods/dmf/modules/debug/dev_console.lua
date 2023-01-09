@@ -4,8 +4,12 @@ local dmf = get_mod("DMF")
 -- It would requires hooks to be pushed higher in the loading order, but then we lose hooks printing to console
 -- Unless we find a way to store our logging messages in memory before the console is loaded.
 
--- Global backup of the ffi library
-local _ffi = Mods.lua.ffi
+-- Local backup of the ffi library
+local _ffi = dmf:persistent_table("_ffi")
+_ffi.initialized = _ffi.initialized or false
+if not _ffi.initialized then
+  _ffi = dmf.deepcopy(Mods.lua.ffi)
+end
 
 local _console_data = dmf:persistent_table("dev_console_data")
 if not _console_data.enabled then _console_data.enabled = false end

@@ -32,7 +32,7 @@ local _queued_command
 
 local function initialize_drawing_function()
   if not _commands_list_gui_draw then
-    local commands_list_gui = dmf:dofile("dmf/scripts/mods/dmf/modules/ui/chat/commands_list_gui")
+    local commands_list_gui = dmf:io_dofile("dmf/scripts/mods/dmf/modules/ui/chat/commands_list_gui")
     _commands_list_gui_draw = commands_list_gui.draw
     _commands_list_gui_destroy = commands_list_gui.destroy
   end

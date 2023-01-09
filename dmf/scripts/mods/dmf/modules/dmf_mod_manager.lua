@@ -50,7 +50,7 @@ local function resolve_resource(mod, error_prefix_data, resource, resource_value
   local type_value = type(resource_value)
 
   if type_value == "string" then
-    return dmf.safe_call_dofile(mod, error_prefix_data, resource_value)
+    return dmf.safe_call_io_dofile(mod, error_prefix_data, resource_value)
   elseif type_value == "function" then
     return dmf.safe_call(mod, error_prefix_data, resource_value, mod)
   elseif type_value == "table" then

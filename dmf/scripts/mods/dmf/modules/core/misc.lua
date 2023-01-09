@@ -18,3 +18,20 @@ function dmf.check_wrong_argument_type(mod, dmf_function_name, argument_name, ar
                                                                         table.concat(allowed_types, "/"), argument_type)
   return true
 end
+
+
+-- http://lua-users.org/wiki/CopyTable
+function dmf.deepcopy(original_table)
+  local orig_type = type(original_table)
+  local copy
+  if orig_type == 'table' then
+    copy = {}
+    for orig_key, orig_value in next, original_table, nil do
+      copy[dmf.deepcopy(orig_key)] = dmf.deepcopy(orig_value)
+    end
+    setmetatable(copy, dmf.deepcopy(getmetatable(original_table)))
+  else -- number, string, boolean, etc
+    copy = original_table
+  end
+  return copy
+end

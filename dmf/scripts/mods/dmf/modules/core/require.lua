@@ -65,7 +65,7 @@ end
 -- Handles the swap to io for registered files and the application of file hooks
 dmf:hook(_G, "require", function (func, path, ...)
   if _io_requires[path] then
-    return dmf:dofile(path)
+    return dmf:io_dofile(path)
   else
     local result = func(path, ...)
 

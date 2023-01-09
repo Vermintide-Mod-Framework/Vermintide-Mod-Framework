@@ -1,8 +1,5 @@
 local dmf = get_mod("DMF")
 
--- Global method to load a file through io with a return
-local mod_dofile = Mods.file.dofile
-
 -- Global backup of original print() method
 local print = __print
 
@@ -90,7 +87,17 @@ function dmf.safe_call_dofile(mod, error_prefix_data, file_path)
     show_error(mod, error_prefix_data, "file path should be a string.")
     return false
   end
-  return dmf.safe_call(mod, error_prefix_data, mod_dofile, file_path)
+  return dmf.safe_call(mod, error_prefix_data, dofile, mod, file_path)
+end
+
+
+-- Safe Call [io_dofile]
+function dmf.safe_call_io_dofile(mod, error_prefix_data, file_path)
+  if type(file_path) ~= "string" then
+    show_error(mod, error_prefix_data, "file path should be a string.")
+    return false
+  end
+  return dmf.safe_call(mod, error_prefix_data, mod.io_dofile_unsafe, mod, file_path)
 end
 
 
