@@ -518,7 +518,7 @@ local function initialize_mod_options_widgets_data(mod, widgets_data, localize)
   -- Before starting widgets data initialization, clear this table. It's used to detect if 2 widgets
   -- defined the same setting_id.
   _defined_mod_settings = {}
-  
+
   -- Initialize widgets' data.
   for _, widget_data in ipairs(_unfolded_raw_widgets_data) do
     local initialized_widget_data = initialize_widget_data(mod, widget_data, localize, collapsed_widgets)
