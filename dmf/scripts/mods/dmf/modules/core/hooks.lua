@@ -190,7 +190,7 @@ local function create_internal_hook(orig, obj, method)
         end
         return unpack(values, 1, num_values)
     end
-    
+
     if not _origs[obj] then _origs[obj] = {} end
     _origs[obj][method] = orig
     obj[method] = fn
@@ -307,7 +307,7 @@ local function generic_hook(mod, obj, method, handler, func_name)
         mod:error("(%s): trying to hook %s (a %s), not a function.", func_name, method, type(orig))
         return
     end
-    
+
     -- Edge Case: If someone hooks a copy of a function after its been hooked, point it back in the right direction
     if _registry.uids[orig] then
         orig = _registry.uids[orig]
@@ -403,7 +403,7 @@ end
 --         original function at the end. Your handler has to call the next function in the chain manually.
 -- The chain of event is determined by mod load order.
 function DMFMod:hook_file(obj_str, method_str, handler)
-    
+
     -- Set up the tables for the file
     local mod_name = self:get_name()
     _file_hooks_by_file[obj_str]         = _file_hooks_by_file[obj_str] or {}
@@ -417,7 +417,7 @@ function DMFMod:hook_file(obj_str, method_str, handler)
 
     -- Index file hooks by mod name to prevent duplicates per mod
     _file_hooks_by_file[obj_str][mod_name] = hook_create_func
-    
+
     -- Add the new hook to every instance of the file
     local all_file_instances = self:get_require_store(obj_str)
     if all_file_instances then
@@ -499,11 +499,17 @@ end
 -- ####################################################################################################################
 
 -- If class() is called on an object we've delayed for, re-run delayed hooks
-dmf:hook_safe(_G, "class", function(class_name)
+dmf:hook(_G, "class", function(func, class_name, ...)
+    local class_object = func(class_name, ...)
     if _delayed_obj_names[class_name] then
         dmf:info("%s is now available for previously-delayed hooks.", class_name)
-        dmf.apply_delayed_hooks()
 
-        _delayed_obj_names[class_name] = nil
+        -- Methods aren't defined yet, so we need to wait for the instance creation to apply delayed hooks
+        dmf:hook_safe(class_object, "new", function ()
+            dmf.apply_delayed_hooks()
+            _delayed_obj_names[class_name] = nil
+            dmf:hook_disable(class_object, "new")
+        end)
     end
+    return class_object
 end)
