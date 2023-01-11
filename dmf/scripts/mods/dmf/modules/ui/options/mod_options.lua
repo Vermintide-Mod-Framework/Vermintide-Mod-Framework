@@ -376,10 +376,10 @@ dmf.create_mod_options_settings = function (self, options_templates)
     end
 
     -- Create the mod description
-    if mod_data[1].tooltip then
+    if mod_data[1].description then
       local desc_widget_data = {
         mod_name = mod_data[1].mod_name,
-        description = mod_data[1].tooltip,
+        description = mod_data[1].description,
         category = category.display_name,
         display_name = category.display_name,
         after = #settings,

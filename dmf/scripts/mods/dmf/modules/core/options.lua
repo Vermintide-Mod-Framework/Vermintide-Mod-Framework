@@ -46,7 +46,7 @@ local function initialize_header_data(mod, data)
   new_data.index             = data.index
   new_data.mod_name          = mod:get_name()
   new_data.readable_mod_name = mod:get_readable_name()
-  new_data.tooltip           = mod:get_description()
+  new_data.description       = mod:get_description()
   new_data.is_togglable      = mod:get_internal_data("is_togglable") and not mod:get_internal_data("is_mutator")
   new_data.is_collapsed      = dmf:get("options_menu_collapsed_mods")[mod:get_name()]
 
