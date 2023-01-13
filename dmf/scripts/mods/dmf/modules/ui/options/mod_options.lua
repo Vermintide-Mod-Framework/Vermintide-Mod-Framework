@@ -35,6 +35,23 @@ local create_header_template = function (self, params)
 end
 _type_template_map["header"] = create_header_template
 
+-- ##########################
+-- ###### Description #######
+-- ##########################
+
+-- Create description template
+local create_description_template = function (self, params)
+
+  local template = {
+    category = params.category,
+    group_name = params.mod_name,
+    display_name = params.description,
+    widget_type = "description",
+    after = params.after
+  }
+  return template
+end
+_type_template_map["description"] = create_description_template
 
 -- ###########################
 -- ###### Percent Slider #####
@@ -328,7 +345,7 @@ local function create_option_template(self, widget_data, category_name, index_of
     template.custom = true
     template.category = category_name
     template.after = template.after and template.after + index_offset or nil
-    
+
     return template
   end
 end
@@ -351,11 +368,29 @@ dmf.create_mod_options_settings = function (self, options_templates)
     local category = create_mod_category(self, categories, mod_data[1])
 
     local index_offset = 0
-    
+
     -- Create the category header
     local template = create_option_template(self, mod_data[1], category.display_name, index_offset)
     if template then
       settings[#settings + 1] = template
+    end
+
+    -- Create the mod description
+    if mod_data[1].description then
+      local desc_widget_data = {
+        mod_name = mod_data[1].mod_name,
+        description = mod_data[1].description,
+        category = category.display_name,
+        display_name = category.display_name,
+        after = #settings,
+        type = "description"
+      }
+      local desc_template = create_option_template(self, desc_widget_data, category.display_name, index_offset)
+
+      if desc_template then
+        settings[#settings + 1] = desc_template
+        index_offset = index_offset + 1
+      end
     end
 
     -- Create a top-level toggle option if the mod is togglable
@@ -383,7 +418,7 @@ dmf.create_mod_options_settings = function (self, options_templates)
         template.custom = true
         template.category = category.display_name
         template.after = template.after + index_offset
-        
+
         settings[#settings + 1] = template
       end
     end
