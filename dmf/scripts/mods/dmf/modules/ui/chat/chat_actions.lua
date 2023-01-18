@@ -1,9 +1,10 @@
+local dmf = get_mod("DMF")
+
 --[[
   * chat commands
   * chat history
   * ctrl + c, ctrl + v
 ]]
-local dmf = get_mod("DMF")
 
 local _chat_opened = false
 

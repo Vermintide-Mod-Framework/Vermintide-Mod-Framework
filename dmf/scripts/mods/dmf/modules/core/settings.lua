@@ -1,3 +1,5 @@
+local dmf = get_mod("DMF")
+
 --[[
   Settings manager.
   * Operates settings within the mod namespace (you can define settings with the same name for different mods)
@@ -5,7 +7,6 @@
   * All settings are saved to the settings-file when game state changes, when options menu is closed, and on reload
   * Serializable settings types: number, string, boolean, table (array-like and map-like, but not mixed)
 --]]
-local dmf = get_mod("DMF")
 
 local _mods_settings = Application.user_setting("mods_settings") or {}
 

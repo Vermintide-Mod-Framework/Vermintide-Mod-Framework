@@ -1,4 +1,4 @@
-local dmf = get_mod("DMF") -- @TODO: remove it?
+local dmf = get_mod("DMF")
 
 -- Local backup of the io library
 local _io = dmf:persistent_table("_io")

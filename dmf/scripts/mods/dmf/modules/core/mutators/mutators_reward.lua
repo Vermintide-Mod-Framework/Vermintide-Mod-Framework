@@ -1,7 +1,8 @@
+local dmf = get_mod("DMF")
+
 --[[
   Add additional reward to end game results
 --]]
-local dmf = get_mod("DMF")
 
 -- Amounts of additional rewards to be added at level completion
 local _num_reward = {

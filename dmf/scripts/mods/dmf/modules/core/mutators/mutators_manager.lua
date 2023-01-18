@@ -1,7 +1,8 @@
+local dmf = get_mod("DMF")
+
 --[[
   Manages everything related to mutators: loading order, enabling/disabling process, giving extra rewards etc.
 --]]
-local dmf = get_mod("DMF")
 
 -- Global backup of original print() method
 local print = __print
