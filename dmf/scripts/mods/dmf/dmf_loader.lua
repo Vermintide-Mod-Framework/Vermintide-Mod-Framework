@@ -80,7 +80,6 @@ end
 
 function dmf_mod_object:on_unload()
   print("DMF:ON_UNLOAD()")
-  dmf.report_delayed_hooks()
   dmf.save_chat_history()
   dmf.save_unsaved_settings_to_file()
   dmf.destroy_command_gui()
@@ -102,7 +101,7 @@ function dmf_mod_object:on_game_state_changed(status, state)
   print("DMF:ON_GAME_STATE_CHANGED(), status: " .. tostring(status) .. ", state: " .. tostring(state))
   dmf.mods_game_state_changed_event(status, state)
   dmf.save_unsaved_settings_to_file()
-  dmf.apply_delayed_hooks(status, state)
+  dmf.apply_delayed_hooks()
   dmf.destroy_command_gui()
 
   if status == "enter" and state == "StateIngame" then

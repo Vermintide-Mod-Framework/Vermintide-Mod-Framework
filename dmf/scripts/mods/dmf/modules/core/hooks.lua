@@ -17,8 +17,7 @@ local HOOK_TYPE_SAFE   = 2
 local HOOK_TYPE_ORIGIN = 3
 
 -- dont need to attach this to registry.
-local _delayed = {}
-local _delayed_obj_names = {}
+local _delayed_hooks = {}
 local _delaying_enabled = true
 
 -- This metatable will automatically create a table entry if one doesnt exist.
@@ -239,7 +238,29 @@ local function create_hook(mod, orig, obj, method, handler, func_name, hook_type
             mod:warning("(%s): Attempting to rehook active hook [%s].", func_name, method)
         end
     end
+end
 
+-- Applies delayed hooks set for the given object name.
+local function apply_delayed_hooks_by_obj_name(obj_name)
+    if _delayed_hooks[obj_name] and #_delayed_hooks[obj_name] > 0 then
+
+        -- Check for the object before attempting hooks
+        local obj, success = get_object_reference(obj_name) --luacheck: ignore
+        if obj and success then
+            dmf:info("Attempting to hook %s delayed hooks for object %s", #_delayed_hooks[obj_name], obj_name)
+
+            -- Go through the table in reverse so we don't get any issues removing entries inside the loop
+            for i = #_delayed_hooks[obj_name], 1, -1 do
+                _delayed_hooks[obj_name][i]()
+                table.remove(_delayed_hooks[obj_name], i)
+            end
+
+            -- Remove the table if empty
+            if #_delayed_hooks[obj_name] == 0 then
+                _delayed_hooks[obj_name] = nil
+            end
+        end
+    end
 end
 
 -- ####################################################################################################################
@@ -283,10 +304,12 @@ local function generic_hook(mod, obj, method, handler, func_name)
         if _delaying_enabled and type(obj) == "string" then
             -- Call this func at a later time, using upvalues.
             mod:info("(%s): [%s.%s] needs to be delayed.", func_name, obj, method)
-            table.insert(_delayed, function()
+
+            -- Sort hooks by obj string
+            _delayed_hooks[obj] = _delayed_hooks[obj] or {}
+            _delayed_hooks[obj][#_delayed_hooks[obj] + 1] = function()
                 generic_hook(mod, obj, method, handler, func_name)
-            end)
-            _delayed_obj_names[obj] = true
+            end
             return
         else
             mod:error("(%s): trying to hook object that doesn't exist: %s", func_name, obj)
@@ -338,10 +361,12 @@ local function generic_hook_toggle(mod, obj, method, enabled_state)
         if _delaying_enabled and type(obj) == "string" then
             -- Call this func at a later time, using upvalues.
             mod:info("(%s): [%s.%s] needs to be delayed.", func_name, obj, method)
-            table.insert(_delayed, function()
+
+            -- Sort hooks by obj string
+            _delayed_hooks[obj] = _delayed_hooks[obj] or {}
+            _delayed_hooks[obj][#_delayed_hooks[obj] + 1] = function()
                 generic_hook_toggle(mod, obj, method, enabled_state)
-            end)
-            _delayed_obj_names[obj] = true
+            end
             return
         else
             mod:error("(%s): trying to toggle hook on object that doesn't exist: %s", func_name, obj)
@@ -466,24 +491,22 @@ dmf.hooks_unload = function()
     end
 end
 
-dmf.apply_delayed_hooks = function(status, state)
-    if #_delayed > 0 then
-        dmf:info("Attempt to hook %s delayed hooks", #_delayed)
-        -- Go through the table in reverse so we don't get any issues removing entries inside the loop
-        for i = #_delayed, 1, -1 do
-            _delayed[i]()
-            table.remove(_delayed, i)
-        end
+-- Apply all previously-delayed hooks
+dmf.apply_delayed_hooks = function()
+    local num_delayed = 0
+
+    for obj_name, hooks in pairs(_delayed_hooks) do
+        num_delayed = num_delayed + #hooks
+        apply_delayed_hooks_by_obj_name(obj_name)
+    end
+
+    if num_delayed > 0 then
+        dmf:info("Attempted to hook " .. tostring(num_delayed) .. " delayed function" ..
+            (num_delayed == 1 and "" or "s"))
     end
 end
 
-dmf.report_delayed_hooks = function()
-    if #_delayed > 0 then
-        dmf:info(tostring(#_delayed) .. " hooked function" ..
-            (#_delayed == 1 and " does" or "s do") .. " not exist.")
-    end
-end
-
+-- Apply all associated file hooks to the given file
 dmf.apply_hooks_to_file = function(require_store, filepath, store_index)
     if _file_hooks_by_file[filepath] and require_store and require_store[store_index] then
         for mod_name, hook_create_func in pairs(_file_hooks_by_file[filepath]) do
@@ -501,14 +524,14 @@ end
 -- If class() is called on an object we've delayed for, re-run delayed hooks
 dmf:hook(_G, "class", function(func, class_name, ...)
     local class_object = func(class_name, ...)
-    if _delayed_obj_names[class_name] then
+    if _delayed_hooks[class_name] then
         dmf:info("%s is now available for previously-delayed hooks.", class_name)
 
         -- Methods aren't defined yet, so we need to wait for the instance creation to apply delayed hooks
-        dmf:hook_safe(class_object, "new", function ()
-            dmf.apply_delayed_hooks()
-            _delayed_obj_names[class_name] = nil
+        dmf:hook(class_object, "new", function (class_func, ...)
+            apply_delayed_hooks_by_obj_name(class_name)
             dmf:hook_disable(class_object, "new")
+            return class_func(...)
         end)
     end
     return class_object
