@@ -422,33 +422,25 @@ function DMFMod:hook_origin(obj, method, handler)
     return generic_hook(self, obj, method, handler, "hook_origin")
 end
 
--- :hook_file() allows you to hook a function across every past and future version of a game file,
---         allowing your handler to replace the function in the stack,
---         and control its execution. All hooks on the same function will be part of a chain, with the
---         original function at the end. Your handler has to call the next function in the chain manually.
+-- :hook_file() allows you to hook every past and future version of a game file,
+--         executing a callback function on every instance.
 -- The chain of event is determined by mod load order.
-function DMFMod:hook_file(obj_str, method_str, handler)
+function DMFMod:hook_file(obj_str, callback_func)
 
     -- Set up the tables for the file
     local mod_name = self:get_name()
     _file_hooks_by_file[obj_str]         = _file_hooks_by_file[obj_str] or {}
     _file_hooks_applied_to_file[obj_str] = _file_hooks_applied_to_file[obj_str] or {[mod_name] = {}}
 
-    -- Add the hook create function to the file's table
-    local hook_create_func = function(this_filepath, this_index)
-        local dynamic_obj = self:get_require_store(this_filepath)[this_index]
-        return generic_hook(self, dynamic_obj, method_str, handler, "hook")
-    end
+    -- Store file hooks by mod name to prevent duplicates per mod
+    _file_hooks_by_file[obj_str][mod_name] = callback_func
 
-    -- Index file hooks by mod name to prevent duplicates per mod
-    _file_hooks_by_file[obj_str][mod_name] = hook_create_func
-
-    -- Add the new hook to every instance of the file
+    -- Run the hook's callback on every instance of the file
     local all_file_instances = self:get_require_store(obj_str)
     if all_file_instances then
-        for i, item in ipairs(all_file_instances) do
-            if item and not _file_hooks_applied_to_file[obj_str][mod_name][i] then
-                hook_create_func(obj_str, i)
+        for i, instance in ipairs(all_file_instances) do
+            if instance and not _file_hooks_applied_to_file[obj_str][mod_name][i] then
+                callback_func(instance)
                 _file_hooks_applied_to_file[obj_str][mod_name][i] = true
             end
         end
@@ -508,10 +500,14 @@ end
 
 -- Apply all associated file hooks to the given file
 dmf.apply_hooks_to_file = function(require_store, filepath, store_index)
+
+    -- If the file has hooks and the instance exists
     if _file_hooks_by_file[filepath] and require_store and require_store[store_index] then
-        for mod_name, hook_create_func in pairs(_file_hooks_by_file[filepath]) do
+
+        -- Apply every hook for the file to the instance
+        for mod_name, callback_func in pairs(_file_hooks_by_file[filepath]) do
             if not _file_hooks_applied_to_file[filepath][mod_name][store_index] then
-                hook_create_func(filepath, store_index)
+                callback_func(require_store[store_index])
             end
         end
     end
