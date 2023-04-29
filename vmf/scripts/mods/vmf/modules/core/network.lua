@@ -14,6 +14,8 @@ local _network_debug = false
 
 local VT2_PORT_NUMBER = 0
 
+local MAX_MOD_DATA_LENGTH = 500
+
 local VERMINTIDE_CHANNEL_ID = 1
 local RPC_VMF_REQUEST_CHANNEL_ID = 3
 local RPC_VMF_RESPONCE_CHANNEL_ID = 4
@@ -142,7 +144,7 @@ if VT1 then
   end
 else
   local _payload = {"","",""}
-  rpc_chat_message = function(member, channel_id, _, rpc_data1, rpc_data2)
+  rpc_chat_message = function(member, channel_id, _, rpc_data1, rpc_data2)	
     _payload[1] = tostring(channel_id)
     _payload[2] = rpc_data1
     _payload[3] = rpc_data2
@@ -156,10 +158,41 @@ local function send_rpc_vmf_ping(peer_id)
   rpc_chat_message(peer_id, 3, Network.peer_id(), "", "", false, true, false)
 end
 
+local function chunk_string(value, max_length)
+  if not max_length or max_length < 1 then
+    return { value }
+  end
+  local total_length = #value
+  local chunks = {}
+  local chunk_start = 1
+  for chunk_start = 1, total_length, max_length do
+    chunks[#chunks+1] = value:sub(chunk_start, chunk_start+max_length-1)
+  end
+  return chunks
+end
+
 local function send_rpc_vmf_pong(peer_id)
 
   network_debug("pong", "sent", peer_id)
-  rpc_chat_message(peer_id, 4, Network.peer_id(), _shared_mods_map, _shared_rpcs_map, false, true, false)
+  
+  local mod_data_blocks = chunk_string(_shared_mods_map, MAX_MOD_DATA_LENGTH)
+  local rpc_data_blocks = chunk_string(_shared_rpcs_map, MAX_MOD_DATA_LENGTH)
+  
+  local total_blocks = math.max(#mod_data_blocks, #rpc_data_blocks)
+  
+  if total_blocks > 1 then
+	rpc_chat_message(peer_id, 4, Network.peer_id(), "blocks", total_blocks, false, true, false)
+	local current_block = 1
+	while current_block <= total_blocks do
+		local mod_data_block = mod_data_blocks[current_block] or ""
+		local rpc_data_block = rpc_data_blocks[current_block] or ""
+		rpc_chat_message(peer_id, 4, Network.peer_id(), mod_data_block, rpc_data_block, false, true, false)
+		
+		current_block = current_block + 1
+	end
+  else
+	rpc_chat_message(peer_id, 4, Network.peer_id(), _shared_mods_map, _shared_rpcs_map, false, true, false)
+  end
 end
 
 local function send_rpc_vmf_data(peer_id, mod_name, rpc_name, ...)
@@ -246,32 +279,20 @@ end
 -- ##### Hooks ########################################################################################################
 -- ####################################################################################################################
 
-local function vmf_network_recv(sender, channel_id, rpc_data1, rpc_data2)
-  if not _network_module_is_initialized then
-    return
-  end
-
-  if channel_id == RPC_VMF_REQUEST_CHANNEL_ID then -- rpc_vmf_request
-
-    network_debug("ping", "received", sender)
-
-    send_rpc_vmf_pong(sender)
-
-  elseif channel_id == RPC_VMF_RESPONCE_CHANNEL_ID then -- rpc_vmf_responce
-    -- @TODO: maybe I should protect it from sending by the player who's not in the game?
+local function vmf_received_full_pong(sender, mod_data, rpc_data)
 
     network_debug("pong", "received", sender)
     if _network_debug then
-      vmf:info("[RECEIVED MODS TABLE]: " .. rpc_data1)
-      vmf:info("[RECEIVED RPCS TABLE]: " .. rpc_data2)
+      vmf:info("[RECEIVED MODS TABLE]: " .. mod_data)
+      vmf:info("[RECEIVED RPCS TABLE]: " .. rpc_data)
     end
 
     pcall(function()
 
       local user_rpcs_dictionary = {}
 
-      user_rpcs_dictionary[1] = cjson.decode(rpc_data1) -- mods
-      user_rpcs_dictionary[2] = cjson.decode(rpc_data2) -- rpcs
+      user_rpcs_dictionary[1] = cjson.decode(mod_data) -- mods
+      user_rpcs_dictionary[2] = cjson.decode(rpc_data) -- rpcs
 
       _vmf_users[sender] = user_rpcs_dictionary
 
@@ -289,7 +310,48 @@ local function vmf_network_recv(sender, channel_id, rpc_data1, rpc_data2)
         end
       end
     end)
+end
 
+local expected_pong_data_blocks = {}
+local partial_pong_mod_data = {}
+local partial_pong_rpc_data = {}
+
+local function vmf_network_recv(sender, channel_id, rpc_data1, rpc_data2)
+  if not _network_module_is_initialized then
+    return
+  end
+
+  if channel_id == RPC_VMF_REQUEST_CHANNEL_ID then -- rpc_vmf_request
+
+    network_debug("ping", "received", sender)
+
+    send_rpc_vmf_pong(sender)
+
+  elseif channel_id == RPC_VMF_RESPONCE_CHANNEL_ID then -- rpc_vmf_responce
+    -- @TODO: maybe I should protect it from sending by the player who's not in the game?
+
+	if rpc_data1 == "blocks" then
+		expected_pong_data_blocks[sender] = tonumber(rpc_data2)
+		partial_pong_mod_data[sender] = ""
+		partial_pong_rpc_data[sender] = ""
+	elseif expected_pong_data_blocks[sender] and expected_pong_data_blocks[sender] > 0 then
+		expected_pong_data_blocks[sender] = expected_pong_data_blocks[sender] - 1
+		if rpc_data1 then
+			partial_pong_mod_data[sender] = partial_pong_mod_data[sender] .. rpc_data1
+		end
+		if rpc_data2 then
+			partial_pong_rpc_data[sender] = partial_pong_rpc_data[sender] .. rpc_data2
+		end
+		
+		if expected_pong_data_blocks[sender] == 0 then
+			vmf_received_full_pong(sender, partial_pong_mod_data[sender], partial_pong_rpc_data[sender])
+			expected_pong_data_blocks[sender] = nil
+			partial_pong_mod_data[sender] = nil
+			partial_pong_rpc_data[sender] = nil
+		end
+	else
+		vmf_received_full_pong(sender, rpc_data1, rpc_data2)
+	end
   elseif channel_id == RPC_VMF_UNKNOWN_CHANNEL_ID then
     local mod_number, rpc_number = unpack(cjson.decode(rpc_data1))
 
