@@ -158,37 +158,20 @@ local function send_rpc_vmf_ping(peer_id)
   rpc_chat_message(peer_id, 3, Network.peer_id(), "", "", false, true, false)
 end
 
-local function chunk_string(value, max_length)
-  if not max_length or max_length < 1 then
-    return { value }
-  end
-  local total_length = #value
-  local chunks = {}
-  local chunk_start = 1
-  for chunk_start = 1, total_length, max_length do
-    chunks[#chunks+1] = value:sub(chunk_start, chunk_start+max_length-1)
-  end
-  return chunks
-end
-
 local function send_rpc_vmf_pong(peer_id)
 
   network_debug("pong", "sent", peer_id)
   
-  local mod_data_blocks = chunk_string(_shared_mods_map, MAX_MOD_DATA_LENGTH)
-  local rpc_data_blocks = chunk_string(_shared_rpcs_map, MAX_MOD_DATA_LENGTH)
-  
-  local total_blocks = math.max(#mod_data_blocks, #rpc_data_blocks)
+  local total_blocks = math.ceil(math.max(#_shared_mods_map / MAX_MOD_DATA_LENGTH, #_shared_rpcs_map / MAX_MOD_DATA_LENGTH))
   
   if total_blocks > 1 then
 	rpc_chat_message(peer_id, 4, Network.peer_id(), "blocks", total_blocks, false, true, false)
-	local current_block = 1
-	while current_block <= total_blocks do
-		local mod_data_block = mod_data_blocks[current_block] or ""
-		local rpc_data_block = rpc_data_blocks[current_block] or ""
-		rpc_chat_message(peer_id, 4, Network.peer_id(), mod_data_block, rpc_data_block, false, true, false)
+	local last_block_start = (total_blocks-1)*MAX_MOD_DATA_LENGTH + 1 
+	for block_start = 1, last_block_start, MAX_MOD_DATA_LENGTH do
+		local mod_data_block = _shared_mods_map:sub(block_start, block_start + MAX_MOD_DATA_LENGTH - 1)
+		local rpc_data_block = _shared_rpcs_map:sub(block_start, block_start + MAX_MOD_DATA_LENGTH - 1)
 		
-		current_block = current_block + 1
+		rpc_chat_message(peer_id, 4, Network.peer_id(), mod_data_block, rpc_data_block, false, true, false)
 	end
   else
 	rpc_chat_message(peer_id, 4, Network.peer_id(), _shared_mods_map, _shared_rpcs_map, false, true, false)
@@ -393,6 +376,10 @@ vmf:hook(PlayerManager, "add_remote_player", function (func, self, peer_id, play
 end)
 
 vmf:hook(PlayerManager, "remove_player", function (func, self, peer_id, ...)
+
+  expected_pong_data_blocks[peer_id] = nil
+  partial_pong_mod_data[peer_id] = nil
+  partial_pong_rpc_data[peer_id] = nil
 
   if _vmf_users[peer_id] then
 
