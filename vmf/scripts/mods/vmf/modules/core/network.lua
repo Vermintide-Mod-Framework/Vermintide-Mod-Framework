@@ -148,7 +148,7 @@ if VT1 then
   end
 else
   local _payload = {"","",""}
-  rpc_chat_message = function(member, channel_id, _, rpc_data1, rpc_data2)	
+  rpc_chat_message = function(member, channel_id, _, rpc_data1, rpc_data2)
     _payload[1] = tostring(channel_id)
     _payload[2] = rpc_data1
     _payload[3] = rpc_data2
