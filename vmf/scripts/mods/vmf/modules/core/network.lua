@@ -9,6 +9,10 @@ local _local_rpcs_map = {}
 local _shared_mods_map = ""
 local _shared_rpcs_map = ""
 
+local _expected_pong_data_blocks = {}
+local _partial_pong_mod_data = {}
+local _partial_pong_rpc_data = {}
+
 local _network_module_is_initialized = false
 local _network_debug = false
 
@@ -162,19 +166,20 @@ local function send_rpc_vmf_pong(peer_id)
 
   network_debug("pong", "sent", peer_id)
   
+  local self_peer_id = Network.peer_id()
   local total_blocks = math.ceil(math.max(#_shared_mods_map / MAX_MOD_DATA_LENGTH, #_shared_rpcs_map / MAX_MOD_DATA_LENGTH))
   
   if total_blocks > 1 then
-	rpc_chat_message(peer_id, 4, Network.peer_id(), "blocks", total_blocks, false, true, false)
+	rpc_chat_message(peer_id, 4, self_peer_id, "blocks", total_blocks, false, true, false)
 	local last_block_start = (total_blocks-1)*MAX_MOD_DATA_LENGTH + 1 
 	for block_start = 1, last_block_start, MAX_MOD_DATA_LENGTH do
 		local mod_data_block = _shared_mods_map:sub(block_start, block_start + MAX_MOD_DATA_LENGTH - 1)
 		local rpc_data_block = _shared_rpcs_map:sub(block_start, block_start + MAX_MOD_DATA_LENGTH - 1)
 		
-		rpc_chat_message(peer_id, 4, Network.peer_id(), mod_data_block, rpc_data_block, false, true, false)
+		rpc_chat_message(peer_id, 4, self_peer_id, mod_data_block, rpc_data_block, false, true, false)
 	end
   else
-	rpc_chat_message(peer_id, 4, Network.peer_id(), _shared_mods_map, _shared_rpcs_map, false, true, false)
+	rpc_chat_message(peer_id, 4, self_peer_id, _shared_mods_map, _shared_rpcs_map, false, true, false)
   end
 end
 
@@ -274,8 +279,8 @@ local function vmf_received_full_pong(sender, mod_data, rpc_data)
 
       local user_rpcs_dictionary = {}
 
-      user_rpcs_dictionary[1] = cjson.decode(mod_data) -- mods
-      user_rpcs_dictionary[2] = cjson.decode(rpc_data) -- rpcs
+      user_rpcs_dictionary[1] = cjson.decode(mod_data)
+      user_rpcs_dictionary[2] = cjson.decode(rpc_data)
 
       _vmf_users[sender] = user_rpcs_dictionary
 
@@ -295,10 +300,6 @@ local function vmf_received_full_pong(sender, mod_data, rpc_data)
     end)
 end
 
-local expected_pong_data_blocks = {}
-local partial_pong_mod_data = {}
-local partial_pong_rpc_data = {}
-
 local function vmf_network_recv(sender, channel_id, rpc_data1, rpc_data2)
   if not _network_module_is_initialized then
     return
@@ -314,23 +315,19 @@ local function vmf_network_recv(sender, channel_id, rpc_data1, rpc_data2)
     -- @TODO: maybe I should protect it from sending by the player who's not in the game?
 
 	if rpc_data1 == "blocks" then
-		expected_pong_data_blocks[sender] = tonumber(rpc_data2)
-		partial_pong_mod_data[sender] = ""
-		partial_pong_rpc_data[sender] = ""
-	elseif expected_pong_data_blocks[sender] and expected_pong_data_blocks[sender] > 0 then
-		expected_pong_data_blocks[sender] = expected_pong_data_blocks[sender] - 1
-		if rpc_data1 then
-			partial_pong_mod_data[sender] = partial_pong_mod_data[sender] .. rpc_data1
-		end
-		if rpc_data2 then
-			partial_pong_rpc_data[sender] = partial_pong_rpc_data[sender] .. rpc_data2
-		end
+		_expected_pong_data_blocks[sender] = tonumber(rpc_data2)
+		_partial_pong_mod_data[sender] = ""
+		_partial_pong_rpc_data[sender] = ""
+	elseif _expected_pong_data_blocks[sender] and _expected_pong_data_blocks[sender] > 0 then
+		_expected_pong_data_blocks[sender] = _expected_pong_data_blocks[sender] - 1
+		_partial_pong_mod_data[sender] = _partial_pong_mod_data[sender] .. rpc_data1
+		_partial_pong_rpc_data[sender] = _partial_pong_rpc_data[sender] .. rpc_data2
 		
-		if expected_pong_data_blocks[sender] == 0 then
-			vmf_received_full_pong(sender, partial_pong_mod_data[sender], partial_pong_rpc_data[sender])
-			expected_pong_data_blocks[sender] = nil
-			partial_pong_mod_data[sender] = nil
-			partial_pong_rpc_data[sender] = nil
+		if _expected_pong_data_blocks[sender] == 0 then
+			vmf_received_full_pong(sender, _partial_pong_mod_data[sender], _partial_pong_rpc_data[sender])
+			_expected_pong_data_blocks[sender] = nil
+			_partial_pong_mod_data[sender] = nil
+			_partial_pong_rpc_data[sender] = nil
 		end
 	else
 		vmf_received_full_pong(sender, rpc_data1, rpc_data2)
@@ -377,9 +374,9 @@ end)
 
 vmf:hook(PlayerManager, "remove_player", function (func, self, peer_id, ...)
 
-  expected_pong_data_blocks[peer_id] = nil
-  partial_pong_mod_data[peer_id] = nil
-  partial_pong_rpc_data[peer_id] = nil
+  _expected_pong_data_blocks[peer_id] = nil
+  _partial_pong_mod_data[peer_id] = nil
+  _partial_pong_rpc_data[peer_id] = nil
 
   if _vmf_users[peer_id] then
 
