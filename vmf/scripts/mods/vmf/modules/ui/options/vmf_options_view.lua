@@ -3075,6 +3075,10 @@ VMFOptionsView.callback_is_cursor_inside_settings_list = function (self)
   local mask_pos  = Vector3.deprecated_copy(UISceneGraph.get_world_position(self.ui_scenegraph, "sg_settings_list_mask"))
   local mask_size = UISceneGraph.get_size(self.ui_scenegraph, "sg_settings_list_mask")
 
+  if not cursor then
+    return false
+  end
+  
   local cursor_position = UIInverseScaleVectorToResolution(cursor)
 
   local is_hover = math.point_is_inside_2d_box(cursor_position, mask_pos, mask_size)
