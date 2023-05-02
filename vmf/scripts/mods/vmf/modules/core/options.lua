@@ -396,6 +396,46 @@ local function initialize_keybind_data(mod, data, localize)
 end
 
 -- ---------------------------------------------------------------------------------------------------------------------
+-- ----| Text |---------------------------------------------------------------------------------------------------------
+-- ---------------------------------------------------------------------------------------------------------------------
+
+local function validate_text_data(data)
+
+  if data.max_length and type(data.max_length) ~= "number" then
+    vmf.throw_error("[widget \"%s\" (text)]: 'max_length' field must have 'number' type", data.setting_id)
+  end
+  
+  if data.validate and type(data.validate) ~= "function" then
+    vmf.throw_error("[widget \"%s\" (text)]: 'validate' field must have 'function' type", data.setting_id)
+  end
+  
+  local default_value = data.default_value
+  if type(default_value) ~= "string" then
+    vmf.throw_error("[widget \"%s\" (text)]: 'default_value' field is required and must have 'string' type",
+                     data.setting_id)
+  end
+  if data.max_length and #default_value > data.max_length then
+    vmf.throw_error("[widget \"%s\" (text)]: 'default_value' field must have length less than or equal to 'max_length'",
+                     data.setting_id)
+  end
+  if data.validate and not data.validate(default_value) then
+    vmf.throw_error("[widget \"%s\" (text)]: 'default_value' field must pass provided 'validate' function",
+                     data.setting_id)
+  end
+end
+
+local function initialize_text_data(mod, data, localize)
+  local new_data = initialize_generic_widget_data(mod, data, localize)
+
+  new_data.max_length = data.max_length -- optional
+  new_data.validate = data.validate 	-- optional
+
+  validate_text_data(new_data)
+
+  return new_data
+end
+
+-- ---------------------------------------------------------------------------------------------------------------------
 -- ----| Numeric |------------------------------------------------------------------------------------------------------
 -- ---------------------------------------------------------------------------------------------------------------------
 
@@ -476,6 +516,8 @@ local function initialize_widget_data(mod, data, localize, collapsed_widgets)
     return initialize_dropdown_data(mod, data, localize, collapsed_widgets)
   elseif data.type == "keybind" then
     return initialize_keybind_data(mod, data, localize)
+  elseif data.type == "text" then
+    return initialize_text_data(mod, data, localize)
   elseif data.type == "numeric" then
     return initialize_numeric_data(mod, data, localize)
   end
