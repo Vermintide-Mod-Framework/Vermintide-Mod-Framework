@@ -4052,10 +4052,11 @@ VMFOptionsView.update_search_bar = function (self)
 
     local new_search_text = KeystrokeHelper.parse_strokes(old_search_text, text_index, "insert", keystrokes)
 
-    new_search_text = string.gsub(new_search_text, "%%", "")
+	-- Prepend % [ ] ( ) . + - * ? ^ $ with % to allow users to search on special pattern characters
+    local new_search_text_escaped = new_search_text:gsub("([%%%[%]%(%)%.%+%-%*%?%^%$])", "%%%1")
 
     if new_search_text ~= old_search_text then
-      self:filter_mods_settings_by_name(new_search_text)
+      self:filter_mods_settings_by_name(new_search_text_escaped)
     end
 
     widget_content.text = new_search_text
