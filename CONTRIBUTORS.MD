@@ -11,6 +11,7 @@ Contribute to VMF -- add your name here!
 + [Grimalackt](https://github.com/thebotz)
 + [IamLupo](https://github.com/IamLupo)
 + [ManuelBlanc](https://github.com/ManuelBlanc)
++ [Prismism](https://github.com/Vermintide-Analytics)
 + [Shazbot](https://github.com/Shazbot)
 + [SirAiedail](https://github.com/SirAiedail)
 + [UnShame](https://github.com/unshame)
