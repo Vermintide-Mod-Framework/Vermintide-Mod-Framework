@@ -2098,12 +2098,12 @@ local function create_text_menu_widget(dropdown_definition, scenegraph_2nd_layer
         offset = {offset_x, offset_y - size_y, 20},
         color = {255, 20, 20, 20}
       },
-	  selection = {
-	    size = {0, 25},
-		offset = {offset_x, dropdown_definition.style.current_value_text.offset[2] + 10, 21},
-		color = {255, 40, 40, 40},
+      selection = {
+        size = {0, 25},
+        offset = {offset_x, dropdown_definition.style.current_value_text.offset[2] + 10, 21},
+        color = {255, 40, 40, 40},
         horizontal_alignment = "right"
-	  },
+      },
       new_value_text = {
         offset = {
           dropdown_definition.style.current_value_text.offset[1],
@@ -2294,7 +2294,7 @@ local function create_text_widget(widget_definition, scenegraph_id, scenegraph_2
       mod_name = widget_definition.mod_name,
       setting_id = widget_definition.setting_id,
       widget_type = widget_definition.type,
-	  
+      
       current_value_text = "whatever",
       default_value = widget_definition.default_value,
       parent_widget_number = widget_definition.parent_index,
@@ -3894,11 +3894,11 @@ VMFOptionsView.callback_draw_text_menu = function (self, widget_content)
     
     local highlight_size = UIRenderer.text_size(self.ui_renderer, selected_text, font_material, font_size, font_name)
     local highlight_offset = UIRenderer.text_size(self.ui_renderer, unselected_after, font_material, font_size, font_name)
-	
-	text_menu_selection_style.size[1] = highlight_size
-	text_menu_selection_style.offset[1] = text_menu_text_style.offset[1] - (highlight_size + highlight_offset)
+    
+    text_menu_selection_style.size[1] = highlight_size
+    text_menu_selection_style.offset[1] = text_menu_text_style.offset[1] - (highlight_size + highlight_offset)
   else
-	text_menu_selection_style.size[1] = 0
+    text_menu_selection_style.size[1] = 0
   end
   
 
@@ -3915,39 +3915,39 @@ VMFOptionsView.callback_draw_text_menu = function (self, widget_content)
 
   for _, stroke in ipairs(keystrokes) do
     if type(stroke) == "string" then
-	  new_value = new_value .. stroke
+      new_value = new_value .. stroke
     elseif stroke == Keyboard.BACKSPACE or stroke == Keyboard.DELETE then
       if #new_value > 0 then
-	    if selection then
-		  new_value = new_value:sub(0, selection.start-1) .. new_value:sub(selection.stop+1, -1)
-		  text_menu_content.selection = nil
-		else
-		  new_value = new_value:sub(1, -2)
-		end
+        if selection then
+          new_value = new_value:sub(0, selection.start-1) .. new_value:sub(selection.stop+1, -1)
+          text_menu_content.selection = nil
+        else
+          new_value = new_value:sub(1, -2)
+        end
       end
     elseif stroke == 1 and (Keyboard.button(Keyboard.button_id("left ctrl")) or Keyboard.button(Keyboard.button_id("right ctrl"))) then -- Ctrl+A
-	  if #new_value > 0 then
-	    text_menu_content.selection = {
-		  ["start"] = 1,
-		  ["stop"] = #new_value
-		}
-	  end
+      if #new_value > 0 then
+        text_menu_content.selection = {
+          ["start"] = 1,
+          ["stop"] = #new_value
+        }
+      end
     elseif stroke == 22 and (Keyboard.button(Keyboard.button_id("left ctrl")) or Keyboard.button(Keyboard.button_id("right ctrl"))) then -- Ctrl+V
-	  local clipboard = Clipboard.get() or ""
-	  if Utf8.valid(clipboard) then
-	    new_value = new_value .. clipboard
-	  end
-	elseif stroke == Keyboard.LEFT or stroke == Keyboard.RIGHT then
-		text_menu_content.selection = nil
-	end
+      local clipboard = Clipboard.get() or ""
+      if Utf8.valid(clipboard) then
+        new_value = new_value .. clipboard
+      end
+    elseif stroke == Keyboard.LEFT or stroke == Keyboard.RIGHT then
+        text_menu_content.selection = nil
+    end
   end
   
   local new_value_is_valid = (not widget_content.max_length or (#new_value <= widget_content.max_length)) and (not widget_content.validate or widget_content.validate(new_value))
 
   if new_value_is_valid then
-	text_menu_text_style.text_color = {255, 255, 255, 255}
+    text_menu_text_style.text_color = {255, 255, 255, 255}
   else
-	text_menu_text_style.text_color = {255, 255, 70, 70}
+    text_menu_text_style.text_color = {255, 255, 70, 70}
   end
 
   -- ASSIGNING VALUES ##################################
@@ -3979,12 +3979,12 @@ VMFOptionsView.callback_draw_text_menu = function (self, widget_content)
   if Mouse.released(0) and not widget_content.wrong_mouse_on_release or Keyboard.released(13) then
     self:callback_change_text_menu_visibility(widget_content)
     text_menu_content.selection = nil
-	
+    
     if new_value_is_valid then
-		widget_content.current_value = new_value
-		widget_content.current_value_text = widget_content.current_value
+        widget_content.current_value = new_value
+        widget_content.current_value_text = widget_content.current_value
     end
-	
+    
     return true
   end
 
@@ -3992,7 +3992,7 @@ VMFOptionsView.callback_draw_text_menu = function (self, widget_content)
 
   if Keyboard.released(27) then
     self:callback_change_text_menu_visibility(widget_content)
-	text_menu_content.selection = nil
+    text_menu_content.selection = nil
   end
 
   widget_content.wrong_mouse_on_release = nil
@@ -4402,7 +4402,7 @@ VMFOptionsView.update_picked_option_for_settings_list_widgets = function (self)
         end
 
         widget_content.keybind_text = vmf.build_keybind_string(widget_content.keys)
-	  elseif widget_type == "text" then
+      elseif widget_type == "text" then
 
         loaded_setting_value = get_mod(widget_content.mod_name):get(widget_content.setting_id)
 
