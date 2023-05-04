@@ -2040,10 +2040,10 @@ end
 
 -- ████████╗███████╗██╗  ██╗████████╗
 -- ╚══██╔══╝██╔════╝╚██╗██╔╝╚══██╔══╝
---    ██║   █████╗   ╚███╔╝    ██║   
---    ██║   ██╔══╝   ██╔██╗    ██║   
---    ██║   ███████╗██╔╝ ██╗   ██║   
---    ╚═╝   ╚══════╝╚═╝  ╚═╝   ╚═╝   
+--    ██║   █████╗   ╚███╔╝    ██║
+--    ██║   ██╔══╝   ██╔██╗    ██║
+--    ██║   ███████╗██╔╝ ██╗   ██║
+--    ╚═╝   ╚══════╝╚═╝  ╚═╝   ╚═╝
 
 local function create_text_menu_widget(dropdown_definition, scenegraph_2nd_layer_id)
 
@@ -2294,7 +2294,7 @@ local function create_text_widget(widget_definition, scenegraph_id, scenegraph_2
       mod_name = widget_definition.mod_name,
       setting_id = widget_definition.setting_id,
       widget_type = widget_definition.type,
-      
+
       current_value_text = "whatever",
       default_value = widget_definition.default_value,
       parent_widget_number = widget_definition.parent_index,
@@ -3877,7 +3877,7 @@ VMFOptionsView.callback_draw_text_menu = function (self, widget_content)
   local font_material   = font[1]
 
   local new_value = text_menu_content.new_value
-  
+
   local new_value_text              = text_menu_content.new_value_text
 
   local new_value_text_width = UIRenderer.text_size(self.ui_renderer, new_value_text, font_material, font_size, font_name)
@@ -3885,22 +3885,22 @@ VMFOptionsView.callback_draw_text_menu = function (self, widget_content)
   text_menu_caret_style.offset[1] = text_menu_text_style.offset[1] - 3
 
   -- calculate selection highlight offset and size ----
-  
+
   local selection = text_menu_content.selection
   local text_menu_selection_style = widget_content.popup_menu_widget.style.selection
   if selection then
     local selected_text = new_value:sub(selection.start, selection.stop)
     local unselected_after = new_value:sub(selection.stop+1, -1)
-    
+
     local highlight_size = UIRenderer.text_size(self.ui_renderer, selected_text, font_material, font_size, font_name)
     local highlight_offset = UIRenderer.text_size(self.ui_renderer, unselected_after, font_material, font_size, font_name)
-    
+
     text_menu_selection_style.size[1] = highlight_size
     text_menu_selection_style.offset[1] = text_menu_text_style.offset[1] - (highlight_size + highlight_offset)
   else
     text_menu_selection_style.size[1] = 0
   end
-  
+
 
   -- blink caret ---------------------------------------
 
@@ -3941,7 +3941,7 @@ VMFOptionsView.callback_draw_text_menu = function (self, widget_content)
         text_menu_content.selection = nil
     end
   end
-  
+
   local new_value_is_valid = (not widget_content.max_length or (#new_value <= widget_content.max_length)) and (not widget_content.validate or widget_content.validate(new_value))
 
   if new_value_is_valid then
@@ -3979,12 +3979,12 @@ VMFOptionsView.callback_draw_text_menu = function (self, widget_content)
   if Mouse.released(0) and not widget_content.wrong_mouse_on_release or Keyboard.released(13) then
     self:callback_change_text_menu_visibility(widget_content)
     text_menu_content.selection = nil
-    
+
     if new_value_is_valid then
         widget_content.current_value = new_value
         widget_content.current_value_text = widget_content.current_value
     end
-    
+
     return true
   end
 
