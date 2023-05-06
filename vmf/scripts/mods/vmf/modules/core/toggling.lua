@@ -11,12 +11,16 @@ vmf.set_mod_state = function (mod, is_enabled, initial_call)
   vmf.set_internal_data(mod, "is_enabled", is_enabled)
 
   if is_enabled then
+    if not VT1 then
+      vmf.inject_hud_components(mod)
+    end
     mod:enable_all_hooks()
-    vmf.inject_hud_components(mod)
     vmf.mod_enabled_event(mod, initial_call)
   else
+    if not VT1 then
+      vmf.remove_injected_hud_components(mod)
+    end
     mod:disable_all_hooks()
-    vmf.remove_injected_hud_components(mod)
     vmf.mod_disabled_event(mod, initial_call)
   end
 
