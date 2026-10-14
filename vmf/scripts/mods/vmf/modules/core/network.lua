@@ -372,7 +372,7 @@ vmf:hook(PlayerManager, "add_remote_player", function (func, self, peer_id, play
   return func(self, peer_id, player_controlled, ...)
 end)
 
-vmf:hook(PlayerManager, "remove_player", function (func, self, peer_id, ...)
+vmf:hook(PlayerManager, "remove_player", function (func, self, peer_id, local_player_id, ...)
 
   _expected_pong_data_blocks[peer_id] = nil
   _partial_pong_mod_data[peer_id] = nil
@@ -382,7 +382,7 @@ vmf:hook(PlayerManager, "remove_player", function (func, self, peer_id, ...)
 
     -- make sure it's not the bot
     for _, player in pairs(Managers.player:human_players()) do
-      if player.peer_id == peer_id then
+      if player.peer_id == peer_id and player:local_player_id() == local_player_id then
 
         vmf:info("Removed %s from the VMF users list.", peer_id)
 
@@ -400,7 +400,7 @@ vmf:hook(PlayerManager, "remove_player", function (func, self, peer_id, ...)
     end
   end
 
-  func(self, peer_id, ...)
+  func(self, peer_id, local_player_id, ...)
 end)
 
 -- ####################################################################################################################
