@@ -181,7 +181,7 @@ local CHECK_INPUT_FUNCTIONS = {
 
 local _raw_keybinds_data = {}
 local _keybinds = {}
-local _pressed_key
+local _pressed_keys = {}
 
 local ERRORS = {
   PREFIX = {
@@ -234,46 +234,40 @@ end
 
 -- Checks for pressed and released keybinds, performs keybind actions.
 -- * Checks for both right and left key modifiers (ctrl, alt, shift).
--- * If some keybind is pressed, won't check for other keybinds until this keybing is released.
 -- * If several mods bound the same keys, keybind action will be performed for all of them, when keybind is pressed.
 -- * Keybind is considered released, when its primary key is released.
 function vmf.check_keybinds()
   local ctrl_pressed  = (Keyboard.button(KEYS_INFO["ctrl"][1])  + Keyboard.button(KEYS_INFO["ctrl"][4]))  > 0
   local alt_pressed   = (Keyboard.button(KEYS_INFO["alt"][1])   + Keyboard.button(KEYS_INFO["alt"][4]))   > 0
   local shift_pressed = (Keyboard.button(KEYS_INFO["shift"][1]) + Keyboard.button(KEYS_INFO["shift"][4])) > 0
-
-  if not _pressed_key then
-    for primary_key, keybinds_data in pairs(_keybinds) do
-      if keybinds_data.check_pressed(primary_key) then
-        for _, keybind_data in ipairs(keybinds_data) do
-          if (not keybind_data.ctrl  and not ctrl_pressed  or keybind_data.ctrl  and ctrl_pressed)  and
-             (not keybind_data.alt   and not alt_pressed   or keybind_data.alt   and alt_pressed)   and
-             (not keybind_data.shift and not shift_pressed or keybind_data.shift and shift_pressed)
-          then
-            if perform_keybind_action(keybind_data, true) then
-              if keybind_data.trigger == "held" then
-                keybind_data.release_action = true
-              end
-              _pressed_key = primary_key
+  
+  for primary_key, keybinds_data in pairs(_keybinds) do
+    if keybinds_data.check_pressed(primary_key) then
+      for _, keybind_data in ipairs(keybinds_data) do
+        if (not keybind_data.ctrl  and not ctrl_pressed  or keybind_data.ctrl  and ctrl_pressed)  and
+           (not keybind_data.alt   and not alt_pressed   or keybind_data.alt   and alt_pressed)   and
+           (not keybind_data.shift and not shift_pressed or keybind_data.shift and shift_pressed)
+        then
+          if perform_keybind_action(keybind_data, true) then
+            if keybind_data.trigger == "held" then
+              keybind_data.release_action = true
             end
+          _pressed_keys[primary_key] = true
           end
-        end
-        if _pressed_key then
-          break
         end
       end
     end
   end
 
-  if _pressed_key then
-    if _keybinds[_pressed_key].check_released(_pressed_key) then
-      for _, keybind_data in ipairs(_keybinds[_pressed_key]) do
+  for pressed_key, _ in pairs(_pressed_keys) do
+    if _keybinds[pressed_key].check_released(pressed_key) then
+      for _, keybind_data in ipairs(_keybinds[pressed_key]) do
         if keybind_data.release_action then
           perform_keybind_action(keybind_data, false)
           keybind_data.release_action = nil
         end
       end
-      _pressed_key = nil
+      _pressed_keys[pressed_key] = nil
     end
   end
 end
